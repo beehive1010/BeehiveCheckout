@@ -107,7 +107,7 @@ if [ "$LOCAL_RUNNING" = true ]; then
     echo ""
     
     # Start functions serve in background
-    supabase functions serve --env-file .env.local &
+    supabase functions serve --env-file .env &
     SERVE_PID=$!
     
     # Wait a moment for server to start

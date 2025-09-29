@@ -5,7 +5,7 @@ import { Button } from '../ui/button';
 import { Badge } from '../ui/badge';
 import { Loader2, Shield, Crown, Users, AlertTriangle, Wallet } from 'lucide-react';
 import { useWallet } from '../../hooks/useWallet';
-import { authService } from '../../lib/supabaseClient';
+import { authService } from '../../lib/supabase-unified';
 import { useI18n } from '../../contexts/I18nContext';
 import RegistrationModal from '../modals/RegistrationModal';
 import { referralService } from '../../api/landing/referral.client';
@@ -87,32 +87,43 @@ export function MemberGuard({
         return;
       }
 
-      // Use the same isActivatedMember check as Welcome page to avoid conflicts
+      // Use useWallet hook's authentication logic to avoid conflicts
       let isActivated = false;
       let membershipLevel = 0;
       
-      try {
-        console.log('🛡️ MemberGuard: Checking membership status using authService.isActivatedMember');
-        const membershipResult = await authService.isActivatedMember(walletAddress);
-        console.log('🛡️ MemberGuard: Membership result:', membershipResult);
-        
-        // Use the same logic as Welcome page - check both isActivated and current_level
-        const hasLevel = membershipResult.memberData?.current_level >= 1;
-        isActivated = membershipResult.isActivated || hasLevel;
-        membershipLevel = membershipResult.memberData?.current_level || 0;
-        
-        console.log('🛡️ MemberGuard: Final status', { 
-          isActivated, 
-          membershipLevel,
-          apiActivated: membershipResult.isActivated,
-          hasLevel,
-          currentLevel: membershipResult.memberData?.current_level
-        });
-      } catch (error) {
-        console.warn('🛡️ MemberGuard: Membership check failed:', error);
-        // Fallback to non-activated state
-        isActivated = false;
-        membershipLevel = 0;
+      // Special handling for admin user (same as useWallet.ts)
+      const isAdminUser = walletAddress.toLowerCase() === '0xa212a85f7434a5ebaa5b468971ec3972ce72a544';
+      
+      if (isAdminUser) {
+        // Apply admin user override
+        isActivated = true;
+        membershipLevel = 1;
+        console.log('🛡️ MemberGuard: Applied admin user override - activated with Level 1');
+      } else {
+        // Regular user authentication logic
+        try {
+          console.log('🛡️ MemberGuard: Checking membership status using authService.isActivatedMember');
+          const membershipResult = await authService.isActivatedMember(walletAddress);
+          console.log('🛡️ MemberGuard: Membership result:', membershipResult);
+          
+          // Use the same logic as Welcome page - check both isActivated and current_level
+          const hasLevel = membershipResult.memberData?.current_level >= 1;
+          isActivated = membershipResult.isActivated || hasLevel;
+          membershipLevel = membershipResult.memberData?.current_level || 0;
+          
+          console.log('🛡️ MemberGuard: Final status', { 
+            isActivated, 
+            membershipLevel,
+            apiActivated: membershipResult.isActivated,
+            hasLevel,
+            currentLevel: membershipResult.memberData?.current_level
+          });
+        } catch (error) {
+          console.warn('🛡️ MemberGuard: Membership check failed:', error);
+          // Fallback to non-activated state
+          isActivated = false;
+          membershipLevel = 0;
+        }
       }
 
       setUserStatus({

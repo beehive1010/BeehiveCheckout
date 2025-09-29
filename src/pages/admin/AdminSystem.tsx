@@ -28,6 +28,7 @@ import {
 } from 'lucide-react';
 import { useAdminAuth } from '../../hooks/useAdminAuth';
 import { useToast } from '../../hooks/use-toast';
+import { useIsMobile } from '../../hooks/use-mobile';
 
 interface SystemMetric {
   id: string;
@@ -78,6 +79,7 @@ interface ErrorLog {
 export default function AdminSystem() {
   const { hasPermission } = useAdminAuth();
   const { toast } = useToast();
+  const isMobile = useIsMobile();
   const [isLoading, setIsLoading] = useState(true);
   const [systemMetrics, setSystemMetrics] = useState<SystemMetric[]>([]);
   const [services, setServices] = useState<ServiceStatus[]>([]);

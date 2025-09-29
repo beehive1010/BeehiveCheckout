@@ -1,0 +1,498 @@
+import React, { useState, useEffect } from 'react';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../ui/card';
+import { Button } from '../ui/button';
+import { Badge } from '../ui/badge';
+import { Alert, AlertDescription } from '../ui/alert';
+import { useToast } from '../../hooks/use-toast';
+import { 
+  Wallet, 
+  DollarSign, 
+  QrCode, 
+  Copy, 
+  RefreshCw, 
+  Eye,
+  EyeOff,
+  ExternalLink,
+  Coins,
+  TrendingUp,
+  AlertTriangle,
+  CheckCircle
+} from 'lucide-react';
+
+// Supported chains configuration
+const SUPPORTED_CHAINS = [
+  { 
+    id: 42161, 
+    name: 'Arbitrum One', 
+    symbol: 'ARB', 
+    icon: '🔵',
+    usdtAddress: '0xfA278827a612BBA895e7F0A4fBA504b22ff3E7C9',
+    testUsdtAddress: '0x75faf114eafb1BDbe2F0316DF893fd58CE46AA4d',
+    decimals: 18,
+    explorer: 'https://arbiscan.io'
+  },
+  { 
+    id: 1, 
+    name: 'Ethereum', 
+    symbol: 'ETH', 
+    icon: '🔷',
+    usdtAddress: '0xdAC17F958D2ee523a2206206994597C13D831ec7',
+    decimals: 6,
+    explorer: 'https://etherscan.io'
+  },
+  { 
+    id: 137, 
+    name: 'Polygon', 
+    symbol: 'MATIC', 
+    icon: '🟣',
+    usdtAddress: '0xc2132D05D31c914a87C6611C10748AEb04B58e8F',
+    decimals: 6,
+    explorer: 'https://polygonscan.com'
+  }
+];
+
+interface WalletBalance {
+  chain: string;
+  chainId: number;
+  usdt: string;
+  testUsdt?: string;
+  native: string;
+  lastUpdated: string;
+  status: 'healthy' | 'warning' | 'error';
+}
+
+interface QRCodeProps {
+  value: string;
+  size?: number;
+  className?: string;
+}
+
+// Simple QR Code component (you might want to use a proper QR library like qrcode-generator)
+const QRCode: React.FC<QRCodeProps> = ({ value, size = 200, className }) => {
+  return (
+    <div className={`bg-white p-4 rounded-lg ${className}`} style={{ width: size, height: size }}>
+      <div className="w-full h-full bg-black/10 rounded flex items-center justify-center text-xs text-center break-all">
+        QR Code for:<br/>{value.slice(0, 20)}...
+      </div>
+    </div>
+  );
+};
+
+export const ServerWalletPanel: React.FC = () => {
+  const { toast } = useToast();
+  const [walletBalances, setWalletBalances] = useState<WalletBalance[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [showPrivateInfo, setShowPrivateInfo] = useState(false);
+  const [selectedChainForDeposit, setSelectedChainForDeposit] = useState<number | null>(null);
+  
+  // Server wallet address from env
+  const serverWalletAddress = import.meta.env.VITE_SERVER_WALLET_ADDRESS;
+  
+  useEffect(() => {
+    loadWalletBalances();
+  }, []);
+  
+  const loadWalletBalances = async () => {
+    try {
+      setIsLoading(true);
+      const balances: WalletBalance[] = [];
+      
+      for (const chain of SUPPORTED_CHAINS) {
+        try {
+          // Use thirdweb client to get balances
+          const { createThirdwebClient } = await import('thirdweb');
+          const { getContract, readContract } = await import('thirdweb');
+          const { defineChain } = await import('thirdweb/chains');
+          const { getWalletBalance } = await import('thirdweb/wallets');
+          
+          const client = createThirdwebClient({
+            clientId: import.meta.env.VITE_THIRDWEB_CLIENT_ID!,
+          });
+          
+          const chainDef = defineChain(chain.id);
+          
+          // Get native token balance
+          let nativeBalance = '0';
+          try {
+            const balance = await getWalletBalance({
+              client,
+              chain: chainDef,
+              address: serverWalletAddress!,
+            });
+            nativeBalance = balance.displayValue;
+          } catch (error) {
+            console.warn(`Failed to get native balance for ${chain.name}:`, error);
+          }
+          
+          // Get USDT balance
+          let usdtBalance = '0';
+          try {
+            const usdtContract = getContract({
+              client,
+              chain: chainDef,
+              address: chain.usdtAddress,
+            });
+            
+            const balance = await readContract({
+              contract: usdtContract,
+              method: "function balanceOf(address) view returns (uint256)",
+              params: [serverWalletAddress!]
+            });
+            
+            usdtBalance = (Number(balance) / Math.pow(10, chain.decimals)).toFixed(6);
+          } catch (error) {
+            console.warn(`Failed to get USDT balance for ${chain.name}:`, error);
+          }
+          
+          // Get Test USDT balance (only for Arbitrum)
+          let testUsdtBalance;
+          if (chain.testUsdtAddress) {
+            try {
+              const testUsdtContract = getContract({
+                client,
+                chain: chainDef,
+                address: chain.testUsdtAddress,
+              });
+              
+              const balance = await readContract({
+                contract: testUsdtContract,
+                method: "function balanceOf(address) view returns (uint256)",
+                params: [serverWalletAddress!]
+              });
+              
+              testUsdtBalance = (Number(balance) / Math.pow(10, 18)).toFixed(6); // Test USDT is 18 decimals
+            } catch (error) {
+              console.warn(`Failed to get Test USDT balance for ${chain.name}:`, error);
+            }
+          }
+          
+          const walletBalance: WalletBalance = {
+            chain: chain.name,
+            chainId: chain.id,
+            usdt: usdtBalance,
+            testUsdt: testUsdtBalance,
+            native: nativeBalance,
+            lastUpdated: new Date().toLocaleString(),
+            status: parseFloat(usdtBalance) > 100 ? 'healthy' : parseFloat(usdtBalance) > 10 ? 'warning' : 'error'
+          };
+          
+          balances.push(walletBalance);
+        } catch (error) {
+          console.error(`Failed to load balance for ${chain.name}:`, error);
+          balances.push({
+            chain: chain.name,
+            chainId: chain.id,
+            usdt: 'Error',
+            native: 'Error',
+            lastUpdated: new Date().toLocaleString(),
+            status: 'error'
+          });
+        }
+      }
+      
+      setWalletBalances(balances);
+    } catch (error) {
+      console.error('Failed to load wallet balances:', error);
+      toast({
+        title: "Error Loading Balances",
+        description: "Failed to fetch server wallet balances",
+        variant: "destructive"
+      });
+    } finally {
+      setIsLoading(false);
+    }
+  };
+  
+  const copyToClipboard = async (text: string, label: string) => {
+    try {
+      await navigator.clipboard.writeText(text);
+      toast({
+        title: "Copied!",
+        description: `${label} copied to clipboard`,
+      });
+    } catch (error) {
+      toast({
+        title: "Copy Failed",
+        description: "Failed to copy to clipboard",
+        variant: "destructive"
+      });
+    }
+  };
+  
+  const getStatusIcon = (status: string) => {
+    switch (status) {
+      case 'healthy':
+        return <CheckCircle className="h-4 w-4 text-green-500" />;
+      case 'warning':
+        return <AlertTriangle className="h-4 w-4 text-yellow-500" />;
+      case 'error':
+        return <AlertTriangle className="h-4 w-4 text-red-500" />;
+      default:
+        return <AlertTriangle className="h-4 w-4 text-gray-500" />;
+    }
+  };
+  
+  const getStatusColor = (status: string) => {
+    switch (status) {
+      case 'healthy': return 'text-green-500';
+      case 'warning': return 'text-yellow-500';
+      case 'error': return 'text-red-500';
+      default: return 'text-gray-500';
+    }
+  };
+  
+  const formatAddress = (address: string) => {
+    return `${address.slice(0, 6)}...${address.slice(-4)}`;
+  };
+  
+  if (!serverWalletAddress) {
+    return (
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <Wallet className="h-5 w-5" />
+            Server Wallet Management
+          </CardTitle>
+          <CardDescription>Monitor and manage server wallet balances</CardDescription>
+        </CardHeader>
+        <CardContent>
+          <Alert>
+            <AlertTriangle className="h-4 w-4" />
+            <AlertDescription>
+              Server wallet address not configured. Please set VITE_SERVER_WALLET_ADDRESS in environment variables.
+            </AlertDescription>
+          </Alert>
+        </CardContent>
+      </Card>
+    );
+  }
+  
+  return (
+    <div className="space-y-6">
+      {/* Server Wallet Info */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <Wallet className="h-5 w-5 text-honey" />
+            Server Wallet Management
+          </CardTitle>
+          <CardDescription>Monitor and manage server wallet balances across all chains</CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          {/* Wallet Address */}
+          <div className="space-y-2">
+            <label className="text-sm font-medium">Server Wallet Address</label>
+            <div className="flex items-center gap-2 p-3 bg-muted rounded-lg">
+              <code className="flex-1 text-sm font-mono">
+                {showPrivateInfo ? serverWalletAddress : formatAddress(serverWalletAddress)}
+              </code>
+              <Button
+                size="sm"
+                variant="ghost"
+                onClick={() => setShowPrivateInfo(!showPrivateInfo)}
+              >
+                {showPrivateInfo ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+              </Button>
+              <Button
+                size="sm"
+                variant="ghost"
+                onClick={() => copyToClipboard(serverWalletAddress, 'Wallet address')}
+              >
+                <Copy className="h-4 w-4" />
+              </Button>
+            </div>
+          </div>
+          
+          {/* Refresh Button */}
+          <div className="flex justify-end">
+            <Button
+              onClick={loadWalletBalances}
+              disabled={isLoading}
+              size="sm"
+              variant="outline"
+            >
+              <RefreshCw className={`h-4 w-4 mr-2 ${isLoading ? 'animate-spin' : ''}`} />
+              Refresh Balances
+            </Button>
+          </div>
+        </CardContent>
+      </Card>
+      
+      {/* Balance Overview */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+        {SUPPORTED_CHAINS.map((chain) => {
+          const balance = walletBalances.find(b => b.chainId === chain.id);
+          return (
+            <Card key={chain.id}>
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <CardTitle className="text-sm font-medium flex items-center gap-2">
+                  <span>{chain.icon}</span>
+                  {chain.name}
+                </CardTitle>
+                {balance && getStatusIcon(balance.status)}
+              </CardHeader>
+              <CardContent className="space-y-3">
+                {isLoading ? (
+                  <div className="space-y-2">
+                    <div className="h-6 bg-muted animate-pulse rounded" />
+                    <div className="h-4 bg-muted animate-pulse rounded w-3/4" />
+                  </div>
+                ) : balance ? (
+                  <div className="space-y-2">
+                    <div className="flex items-center justify-between">
+                      <span className="text-xs text-muted-foreground">USDT</span>
+                      <span className={`font-bold ${getStatusColor(balance.status)}`}>
+                        {balance.usdt === 'Error' ? 'Error' : `${balance.usdt} USDT`}
+                      </span>
+                    </div>
+                    
+                    {balance.testUsdt && (
+                      <div className="flex items-center justify-between">
+                        <span className="text-xs text-muted-foreground">Test USDT</span>
+                        <span className="font-bold text-blue-400">
+                          {balance.testUsdt} TEST
+                        </span>
+                      </div>
+                    )}
+                    
+                    <div className="flex items-center justify-between">
+                      <span className="text-xs text-muted-foreground">{chain.symbol}</span>
+                      <span className="font-bold text-muted-foreground">
+                        {balance.native === 'Error' ? 'Error' : `${balance.native} ${chain.symbol}`}
+                      </span>
+                    </div>
+                    
+                    <div className="pt-2 border-t border-border">
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        className="w-full"
+                        onClick={() => setSelectedChainForDeposit(chain.id)}
+                      >
+                        <QrCode className="h-4 w-4 mr-2" />
+                        Show Deposit
+                      </Button>
+                    </div>
+                  </div>
+                ) : (
+                  <div className="text-center py-4">
+                    <span className="text-sm text-muted-foreground">Failed to load</span>
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+          );
+        })}
+      </div>
+      
+      {/* Deposit Modal */}
+      {selectedChainForDeposit && (
+        <Card>
+          <CardHeader>
+            <div className="flex items-center justify-between">
+              <CardTitle className="flex items-center gap-2">
+                <QrCode className="h-5 w-5 text-honey" />
+                Deposit to {SUPPORTED_CHAINS.find(c => c.id === selectedChainForDeposit)?.name}
+              </CardTitle>
+              <Button
+                size="sm"
+                variant="ghost"
+                onClick={() => setSelectedChainForDeposit(null)}
+              >
+                ✕
+              </Button>
+            </div>
+            <CardDescription>
+              Send USDT or native tokens to this address on {SUPPORTED_CHAINS.find(c => c.id === selectedChainForDeposit)?.name}
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              {/* QR Code */}
+              <div className="flex flex-col items-center space-y-4">
+                <QRCode value={serverWalletAddress} size={200} />
+                <div className="text-center">
+                  <p className="text-sm font-medium">Scan to deposit</p>
+                  <p className="text-xs text-muted-foreground">
+                    Works with any wallet app
+                  </p>
+                </div>
+              </div>
+              
+              {/* Address & Instructions */}
+              <div className="space-y-4">
+                <div>
+                  <label className="text-sm font-medium">Wallet Address</label>
+                  <div className="mt-1 p-3 bg-muted rounded-lg">
+                    <code className="text-sm font-mono break-all">
+                      {serverWalletAddress}
+                    </code>
+                  </div>
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    className="mt-2 w-full"
+                    onClick={() => copyToClipboard(serverWalletAddress, 'Deposit address')}
+                  >
+                    <Copy className="h-4 w-4 mr-2" />
+                    Copy Address
+                  </Button>
+                </div>
+                
+                {/* Supported Tokens */}
+                <div>
+                  <label className="text-sm font-medium">Supported Tokens</label>
+                  <div className="mt-2 space-y-2">
+                    <div className="flex items-center justify-between p-2 bg-muted rounded">
+                      <span className="text-sm">USDT</span>
+                      <Badge variant="outline">Primary</Badge>
+                    </div>
+                    {SUPPORTED_CHAINS.find(c => c.id === selectedChainForDeposit)?.testUsdtAddress && (
+                      <div className="flex items-center justify-between p-2 bg-muted rounded">
+                        <span className="text-sm">Test USDT</span>
+                        <Badge variant="secondary">Testing</Badge>
+                      </div>
+                    )}
+                    <div className="flex items-center justify-between p-2 bg-muted rounded">
+                      <span className="text-sm">
+                        {SUPPORTED_CHAINS.find(c => c.id === selectedChainForDeposit)?.symbol}
+                      </span>
+                      <Badge variant="outline">Gas</Badge>
+                    </div>
+                  </div>
+                </div>
+                
+                {/* Explorer Link */}
+                <div>
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    className="w-full"
+                    onClick={() => {
+                      const chain = SUPPORTED_CHAINS.find(c => c.id === selectedChainForDeposit);
+                      if (chain?.explorer) {
+                        window.open(`${chain.explorer}/address/${serverWalletAddress}`, '_blank');
+                      }
+                    }}
+                  >
+                    <ExternalLink className="h-4 w-4 mr-2" />
+                    View on Explorer
+                  </Button>
+                </div>
+              </div>
+            </div>
+            
+            {/* Warning */}
+            <Alert>
+              <AlertTriangle className="h-4 w-4" />
+              <AlertDescription>
+                <strong>Important:</strong> Only send tokens on the {SUPPORTED_CHAINS.find(c => c.id === selectedChainForDeposit)?.name} network. 
+                Tokens sent on other networks will be lost permanently.
+              </AlertDescription>
+            </Alert>
+          </CardContent>
+        </Card>
+      )}
+    </div>
+  );
+};

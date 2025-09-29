@@ -1,5 +1,5 @@
-import { createClient } from '@supabase/supabase-js';
-import type { Database } from '../../types/database.types';
+import {createClient} from '@supabase/supabase-js';
+import type {Database} from '../../types/database.types';
 
 // Environment variables
 const supabaseUrl = import.meta.env.VITE_SUPABASE_URL!;
@@ -44,7 +44,16 @@ export async function callEdgeFunction(
 
     return await response.json();
   } catch (error) {
-    console.error(`Edge Function [${functionName}] Error:`, error);
+    // Enhanced error logging for debugging
+    if (error instanceof Error) {
+      console.error(`Edge Function [${functionName}] Error:`, {
+        message: error.message,
+        name: error.name,
+        stack: error.stack
+      });
+    } else {
+      console.error(`Edge Function [${functionName}] Error:`, error);
+    }
     throw error;
   }
 }
@@ -183,8 +192,7 @@ export const authService = {
       // If not activated in database, fall back to blockchain check
       console.log(`🔗 Database shows no activation, checking blockchain for ${walletAddress}`);
       const chainResult = await callEdgeFunction('activate-membership', {
-        transactionHash: 'check_existing',
-        level: 1
+        action: 'check-activation-status'
       }, walletAddress);
       
       if (!chainResult.success) {
@@ -222,25 +230,35 @@ export const authService = {
     } catch (error: any) {
       console.error('Error checking member activation:', error);
       
-      // Final fallback: direct database check
+      // Final fallback: Use Edge Function instead of direct database check
       try {
-        console.log('🔄 Error occurred, trying direct database fallback...');
-        const { data: fallbackMember } = await this.supabase
-          .from('members')
-          .select('current_level, wallet_address, activation_time')
-          .ilike('wallet_address', walletAddress)
-          .single();
-        
-        if (fallbackMember && fallbackMember.current_level > 0) {
-          console.log('✅ Found membership in final database fallback');
-          return { 
-            isActivated: true, 
-            memberData: fallbackMember, 
-            error: null 
-          };
+        console.log('🔄 Error occurred, trying Edge Function fallback...');
+        const fallbackResponse = await fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/activate-membership`, {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${import.meta.env.VITE_SUPABASE_ANON_KEY}`,
+            'apikey': import.meta.env.VITE_SUPABASE_ANON_KEY,
+            'Content-Type': 'application/json',
+            'x-wallet-address': walletAddress,
+          },
+          body: JSON.stringify({
+            action: 'get-member-info'
+          })
+        });
+
+        if (fallbackResponse.ok) {
+          const fallbackResult = await fallbackResponse.json();
+          if (fallbackResult.success && fallbackResult.member && fallbackResult.member.current_level > 0) {
+            console.log('✅ Found membership in Edge Function fallback');
+            return { 
+              isActivated: true, 
+              memberData: fallbackResult.member, 
+              error: null 
+            };
+          }
         }
       } catch (fallbackError) {
-        console.warn('Final database fallback failed:', fallbackError);
+        console.warn('Edge Function fallback failed:', fallbackError);
       }
       
       return { isActivated: false, memberData: null, error: { message: error.message } };
@@ -459,56 +477,54 @@ export const matrixService = {
     }, rootWallet);
   },
 
-  // Get referrals for a root wallet
+  // Get matrix referrals for a root wallet using new MasterSpec table structure
   async getReferrals(rootWallet: string, layer?: number) {
     let query = supabase
-      .from('referrals')
+      .from('matrix_referrals')
       .select('*')
-      .eq('matrix_root_wallet', rootWallet)
-      .eq('is_active', true);
+      .eq('matrix_root_wallet', rootWallet);
 
     if (layer) {
-      query = query.eq('matrix_layer', layer);
+      query = query.eq('parent_depth', layer);
     }
 
-    return query.order('placed_at', { ascending: true });
+    return query.order('created_at', { ascending: true });
   },
 
-  // Get matrix statistics using direct database queries for real data
+  // Get matrix statistics using new MasterSpec table structure
   async getMatrixStats(walletAddress: string) {
     try {
-      // Get direct referrals count (layer 1 referrals) - use ilike for case-insensitive matching
+      // Get direct referrals count (URL direct referrals) from referrals_new table
       const { count: directReferralsCount } = await supabase
-        .from('referrals')
+        .from('referrals_new')
         .select('*', { count: 'exact', head: true })
-        .ilike('matrix_parent', walletAddress)
-        .eq('matrix_layer', 1);
+        .ilike('referrer_wallet', walletAddress);
 
-      // Get total team size (all referrals) - use ilike for case-insensitive matching
+      // Get total matrix team size from matrix_referrals table
       const { count: totalTeamSize } = await supabase
-        .from('referrals')
+        .from('matrix_referrals')
         .select('*', { count: 'exact', head: true })
         .ilike('matrix_root_wallet', walletAddress);
 
-      // Get max layer - use ilike for case-insensitive matching
-      const { data: maxLayerData } = await supabase
-        .from('referrals')
-        .select('matrix_layer')
+      // Get max depth from matrix_referrals
+      const { data: maxDepthData } = await supabase
+        .from('matrix_referrals')
+        .select('layer')
         .ilike('matrix_root_wallet', walletAddress)
-        .order('matrix_layer', { ascending: false })
+        .order('layer', { ascending: false })
         .limit(1);
 
-      const maxLayer = maxLayerData?.[0]?.matrix_layer || 0;
+      const maxLayer = maxDepthData?.[0]?.layer || 0;
 
-      // Get recent activity (last 10 referrals) - use ilike for case-insensitive matching
+      // Get recent matrix activity (last 10 placements)
       const { data: recentActivity } = await supabase
-        .from('referrals')
+        .from('matrix_referrals_tree_view')
         .select(`
           member_wallet,
           placed_at,
           matrix_layer,
           matrix_position,
-          is_active
+          referral_type
         `)
         .ilike('matrix_root_wallet', walletAddress)
         .order('placed_at', { ascending: false })
@@ -538,44 +554,39 @@ export const matrixService = {
     }
   },
 
-  // Create referral record (usually handled by matrix placement)
+  // Create matrix referral record using new MasterSpec table structure
   async createReferral(referralData: {
-    root_wallet: string;
+    matrix_root_wallet: string;
     member_wallet: string;
     parent_wallet?: string;
-    placer_wallet: string;
+    parent_depth: number;
     position: string;
-    layer: number;
-    placement_type: string;
+    referral_type: string;
   }) {
     return supabase
-      .from('referrals')
+      .from('matrix_referrals')
       .insert([{
         ...referralData,
-        is_active: true,
         created_at: new Date().toISOString(),
       }])
       .select()
       .single();
   },
 
-  // Update referral status
+  // Update matrix referral (matrix referrals are immutable in MasterSpec)
   async updateReferralStatus(referralId: string, isActive: boolean) {
-    return supabase
-      .from('referrals')
-      .update({ is_active: isActive })
-      .eq('id', referralId)
-      .select()
-      .single();
+    // Note: Matrix referrals should be immutable according to MasterSpec
+    // This function is kept for backward compatibility but logs a warning
+    console.warn('Matrix referrals should be immutable according to MasterSpec 2.5');
+    return { data: null, error: { message: 'Matrix referrals are immutable' } };
   },
 
-  // Count direct referrals (layer 1 referrals placed by this wallet)
+  // Count direct referrals from referrals_new table (URL direct referrals)
   async countDirectReferrals(walletAddress: string) {
     const { count } = await supabase
-      .from('referrals')
+      .from('referrals_new')
       .select('*', { count: 'exact', head: true })
-      .eq('placer_wallet', walletAddress)
-      .eq('layer', 1);
+      .eq('referrer_wallet', walletAddress);
 
     return count || 0;
   },
@@ -598,20 +609,20 @@ export const matrixService = {
                 .order('placed_at', { ascending: true });
   },
 
-  // Get original referral relationships (before spillover)
+  // Get original matrix referral relationships using new MasterSpec structure
   async getOriginalReferrals(rootWallet: string, layer?: number) {
     let query = supabase
-      .from('referrals')
+      .from('matrix_referrals')
       .select('*')
       .eq('matrix_root_wallet', rootWallet)
-      .eq('is_active', true);
+      .eq('referral_type', 'is_direct'); // Only direct placements, not spillovers
 
     if (layer) {
-      query = query.eq('matrix_layer', layer);
+      query = query.eq('parent_depth', layer);
     }
 
-    return query.order('matrix_layer', { ascending: true })
-                .order('placed_at', { ascending: true });
+    return query.order('parent_depth', { ascending: true })
+                .order('created_at', { ascending: true });
   },
 
   // Get spillover matrix statistics using new functions
@@ -1330,14 +1341,41 @@ export const activationService = {
         };
       }
 
-      // Check if user exists in users table
-      const { data: userData } = await supabase
-        .from('users')
-        .select('wallet_address, username, referrer_wallet')
-        .ilike('wallet_address', walletAddress)
-        .single();
+      // Check if user exists using Edge Function (avoid direct table access)
+      try {
+        const userCheckResponse = await fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/auth`, {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${import.meta.env.VITE_SUPABASE_ANON_KEY}`,
+            'apikey': import.meta.env.VITE_SUPABASE_ANON_KEY,
+            'Content-Type': 'application/json',
+            'x-wallet-address': walletAddress,
+          },
+          body: JSON.stringify({
+            action: 'get-user'
+          })
+        });
 
-      if (!userData) {
+        if (!userCheckResponse.ok) {
+          return {
+            eligible: false,
+            reason: 'User must be registered first',
+            data: null
+          };
+        }
+
+        const userResult = await userCheckResponse.json();
+        if (!userResult.success || !userResult.user) {
+          return {
+            eligible: false,
+            reason: 'User must be registered first',
+            data: null
+          };
+        }
+
+        const userData = userResult.user;
+      } catch (error) {
+        console.error('Error checking user via Edge Function:', error);
         return {
           eligible: false,
           reason: 'User must be registered first',

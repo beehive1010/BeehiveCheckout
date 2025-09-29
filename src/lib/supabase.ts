@@ -1,7 +1,7 @@
 // Supabase client configuration for Beehive Platform - Working functions only
-import { createClient } from '@supabase/supabase-js'
-import type { Database } from '../../types/database.types'
-import { dbFunctionStubs } from './supabase-functions-stubs'
+import {createClient} from '@supabase/supabase-js'
+import type {Database} from '../../types/database.types'
+// Removed temporary stubs - all functions now implemented
 
 const supabaseUrl = import.meta.env.VITE_SUPABASE_URL
 const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY
@@ -154,6 +154,6 @@ export const dbFunctions = {
     })
   },
 
-  // Stub functions for missing functionality (temporary)
-  ...dbFunctionStubs
+  // All database functions are now implemented above
+  // No stubs needed
 }

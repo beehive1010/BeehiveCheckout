@@ -54,7 +54,7 @@ export default function NotificationInbox({
       try {
         const response = await callEdgeFunction('notification', { action: 'stats' }, walletAddress);
         if (!response.success) {
-          throw new Error(response.error || 'Failed to fetch notification stats');
+          throw new Error(response.error || t('notifications.errors.fetchStatsFailed'));
         }
         return response.data;
       } catch (error) {
@@ -110,7 +110,7 @@ export default function NotificationInbox({
         
         const response = await callEdgeFunction('notification', Object.fromEntries(params), walletAddress);
         if (!response.success) {
-          throw new Error(response.error || 'Failed to fetch notifications');
+          throw new Error(response.error || t('notifications.errors.fetchNotificationsFailed'));
         }
         return response.data;
       } catch (error) {
@@ -136,7 +136,7 @@ export default function NotificationInbox({
       
       const response = await callEdgeFunction('notification', Object.fromEntries(params), walletAddress);
       if (!response.success) {
-        throw new Error(response.error || 'Failed to mark notification as read');
+        throw new Error(response.error || t('notifications.errors.markAsReadFailed'));
       }
       return response.data;
     },
@@ -150,7 +150,7 @@ export default function NotificationInbox({
     mutationFn: async () => {
       const response = await callEdgeFunction('notification', { action: 'mark-all-read' }, walletAddress);
       if (!response.success) {
-        throw new Error(response.error || 'Failed to mark all notifications as read');
+        throw new Error(response.error || t('notifications.errors.markAllAsReadFailed'));
       }
       return response.data;
     },
@@ -164,7 +164,7 @@ export default function NotificationInbox({
     mutationFn: async (notificationId: string) => {
       // TODO: Implement archive functionality in Edge Function
       console.log('Archive not yet implemented:', notificationId);
-      throw new Error('Archive functionality not yet implemented');
+      throw new Error(t('notifications.errors.archiveNotImplemented'));
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['notifications'] });
@@ -176,7 +176,7 @@ export default function NotificationInbox({
     mutationFn: async (notificationId: string) => {
       // TODO: Implement delete functionality in Edge Function
       console.log('Delete not yet implemented:', notificationId);
-      throw new Error('Delete functionality not yet implemented');
+      throw new Error(t('notifications.errors.deleteNotImplemented'));
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['notifications'] });
@@ -375,7 +375,7 @@ export default function NotificationInbox({
               <Search className="w-4 h-4 text-gray-400" />
               <input
                 type="text"
-                placeholder="Search notifications..."
+                placeholder={t('notifications.placeholders.searchNotifications')}
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
                 className="bg-gray-800 border border-gray-600 rounded-md px-3 py-2 text-white placeholder-gray-400 focus:border-yellow-500 focus:outline-none flex-1"
@@ -510,7 +510,7 @@ export default function NotificationInbox({
                                       data-testid={`action-button-${notification.id}`}
                                     >
                                       <ExternalLink className="w-4 h-4 mr-2" />
-                                      {notification.actionType || 'Take Action'}
+                                      {notification.actionType || t('notifications.actions.takeAction')}
                                     </Button>
                                   )}
                                   

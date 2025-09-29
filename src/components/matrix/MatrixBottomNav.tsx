@@ -1,36 +1,39 @@
 import React from 'react';
 import { Link } from 'wouter';
 import { Home, Users, GraduationCap, Gift, TrendingUp } from 'lucide-react';
+import { useI18n } from '../../contexts/I18nContext';
 
 export function MatrixBottomNav() {
+  const { t } = useI18n();
+  
   const navItems = [
     {
       icon: Home,
-      label: 'Home',
+      label: t('matrix.navigation.home'),
       href: '/',
       section: '#hero'
     },
     {
       icon: Users,
-      label: 'Features',
+      label: t('matrix.navigation.features'),
       href: '/',
       section: '#features'
     },
     {
       icon: TrendingUp,
-      label: 'How It Works',
+      label: t('matrix.navigation.howItWorks'),
       href: '/',
       section: '#how-it-works'
     },
     {
       icon: GraduationCap,
-      label: 'Education',
+      label: t('matrix.navigation.education'),
       href: '/',
       section: '#education'
     },
     {
       icon: Gift,
-      label: 'Get Started',
+      label: t('matrix.navigation.getStarted'),
       href: '/',
       section: '#cta'
     }

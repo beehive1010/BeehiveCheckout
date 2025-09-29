@@ -1,4 +1,4 @@
-import { QueryClient, QueryFunction } from "@tanstack/react-query";
+import {QueryClient, QueryFunction} from "@tanstack/react-query";
 
 async function throwIfResNotOk(res: Response) {
   if (!res.ok) {
@@ -43,7 +43,7 @@ export async function apiRequest(
   
   // Base Supabase URL
   const baseUrl = 'https://cvqibjcbfrwsgkvthccp.supabase.co/functions/v1';
-  const anonKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImN2cWliamNiZnJ3c2drdnRoY2NwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MjQ1MjUwMTYsImV4cCI6MjA0MDEwMTAxNn0.gBWZUvwCJgP1lsVQlZNDsYXDxBEr31QfRtNEgYzS6NA';
+  const anonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
   
   // Simple mapping: extract function name from URL
   let functionName = 'balance'; // default

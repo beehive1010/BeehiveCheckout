@@ -3,7 +3,7 @@ import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { ChevronLeft, ChevronRight, Users, Target, Network, ArrowDown, ArrowRight } from 'lucide-react';
-import { matrixService } from '@/lib/supabaseClient';
+// import { matrixService } from '@/lib/supabaseClient'; // Removed - now using direct API calls
 import { useI18n } from '@/contexts/I18nContext';
 
 interface MatrixMember {
@@ -55,17 +55,28 @@ const RecursiveMatrixViewer: React.FC<RecursiveMatrixViewerProps> = ({
       // 首先获取用户自己的matrix
       await loadSingleMatrix(walletAddress, recursiveMatrices);
       
-      // 然后获取用户下级的matrix（递归方式）
-      const userMatrix = await matrixService.getMatrixTree(walletAddress);
-      if (userMatrix.success && userMatrix.matrix) {
-        const directReferrals = userMatrix.matrix.filter((ref: any) => 
-          ref.matrix_root?.toLowerCase() === walletAddress.toLowerCase() && 
-          ref.matrix_layer === 1
-        );
+      // 使用 matrix-view function 获取用户下级的matrix数据
+      const response = await fetch('https://cvqibjcbfrwsgkvthccp.supabase.co/functions/v1/matrix-view', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${import.meta.env.VITE_SUPABASE_ANON_KEY}`,
+          'x-wallet-address': walletAddress
+        },
+        body: JSON.stringify({
+          action: 'get-matrix-members'
+        })
+      });
 
-        // 为每个直接下级加载他们的matrix
-        for (const referral of directReferrals.slice(0, maxDepth)) {
-          await loadSingleMatrix(referral.member_wallet, recursiveMatrices);
+      if (response.ok) {
+        const userMatrix = await response.json();
+        if (userMatrix.success && userMatrix.data?.matrix_data?.by_layer) {
+          const layer1Members = userMatrix.data.matrix_data.by_layer[1] || [];
+          
+          // 为每个第一层的下级加载他们的matrix
+          for (const referral of layer1Members.slice(0, maxDepth)) {
+            await loadSingleMatrix(referral.wallet_address, recursiveMatrices);
+          }
         }
       }
 
@@ -73,7 +84,7 @@ const RecursiveMatrixViewer: React.FC<RecursiveMatrixViewerProps> = ({
       setSelectedMatrix(walletAddress);
     } catch (error: any) {
       console.error('Error loading recursive matrix data:', error);
-      setError(error.message || 'Failed to load recursive matrix data');
+      setError(error.message || t('matrix.errors.loadRecursiveMatrixFailed'));
     } finally {
       setLoading(false);
     }
@@ -81,27 +92,55 @@ const RecursiveMatrixViewer: React.FC<RecursiveMatrixViewerProps> = ({
 
   const loadSingleMatrix = async (matrixRoot: string, dataContainer: RecursiveMatrixData) => {
     try {
-      const result = await matrixService.getMatrixTree(matrixRoot);
-      
-      if (result.success && result.matrix) {
-        const matrixMembers = result.matrix
-          .filter((ref: any) => ref.matrix_root?.toLowerCase() === matrixRoot.toLowerCase())
-          .map((ref: any): MatrixMember => ({
-            walletAddress: ref.member_wallet,
-            username: ref.member_info?.username || `User${ref.member_wallet.slice(-4)}`,
-            layer: ref.matrix_layer,
-            position: normalizePosition(ref.matrix_position),
-            isActive: ref.is_active,
-            joinDate: ref.created_at
-          }))
-          .sort((a, b) => a.layer - b.layer || a.position.localeCompare(b.position));
+      // 使用 matrix-view function 获取matrix数据
+      const response = await fetch('https://cvqibjcbfrwsgkvthccp.supabase.co/functions/v1/matrix-view', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${import.meta.env.VITE_SUPABASE_ANON_KEY}`,
+          'x-wallet-address': matrixRoot
+        },
+        body: JSON.stringify({
+          action: 'get-matrix-members'
+        })
+      });
 
-        dataContainer[matrixRoot] = {
-          ownerUsername: `User${matrixRoot.slice(-4)}`,
-          members: matrixMembers,
-          totalCount: matrixMembers.length,
-          deepestLayer: Math.max(...matrixMembers.map(m => m.layer), 0)
-        };
+      if (response.ok) {
+        const result = await response.json();
+        
+        if (result.success && result.data?.matrix_data?.by_layer) {
+          const matrixMembers: MatrixMember[] = [];
+          
+          // 处理所有层级的成员
+          Object.entries(result.data.matrix_data.by_layer).forEach(([layer, members]: [string, any]) => {
+            (members as any[]).forEach((member: any) => {
+              matrixMembers.push({
+                walletAddress: member.wallet_address,
+                username: member.username || `User${member.wallet_address.slice(-4)}`,
+                layer: parseInt(layer),
+                position: normalizePosition(member.matrix_position),
+                isActive: member.is_activated,
+                joinDate: member.joined_at
+              });
+            });
+          });
+
+          matrixMembers.sort((a, b) => a.layer - b.layer || a.position.localeCompare(b.position));
+
+          dataContainer[matrixRoot] = {
+            ownerUsername: `User${matrixRoot.slice(-4)}`,
+            members: matrixMembers,
+            totalCount: matrixMembers.length,
+            deepestLayer: Math.max(...matrixMembers.map(m => m.layer), 0)
+          };
+        } else {
+          dataContainer[matrixRoot] = {
+            ownerUsername: `User${matrixRoot.slice(-4)}`,
+            members: [],
+            totalCount: 0,
+            deepestLayer: 0
+          };
+        }
       } else {
         dataContainer[matrixRoot] = {
           ownerUsername: `User${matrixRoot.slice(-4)}`,

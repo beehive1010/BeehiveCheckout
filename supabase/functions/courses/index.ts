@@ -268,7 +268,7 @@ async function purchaseCourse(supabase, walletAddress: string, courseId: string,
 
     // 3. 检查是否已经购买
     const { data: existingAccess } = await supabase
-      .from('course_access')
+      .from('course_activations')
       .select('id')
       .eq('wallet_address', walletAddress)
       .eq('course_id', courseId)
@@ -283,28 +283,47 @@ async function purchaseCourse(supabase, walletAddress: string, courseId: string,
       throw new Error(`价格不匹配，需要 ${course.price_bcc} BCC`)
     }
 
-    // 5. 检查BCC余额 (这里简化处理，实际应该检查用户的BCC余额)
+    // 5. 检查BCC余额
     if (course.price_bcc > 0) {
       const { data: balance } = await supabase
         .from('user_balances')
-        .select('bcc_transferable')
+        .select('bcc_balance')
         .eq('wallet_address', walletAddress)
         .maybeSingle()
 
-      if (!balance || (balance.bcc_transferable || 0) < course.price_bcc) {
-        throw new Error('BCC余额不足')
+      if (!balance || (balance.bcc_balance || 0) < course.price_bcc) {
+        throw new Error(`BCC余额不足，需要 ${course.price_bcc} BCC，当前余额 ${balance?.bcc_balance || 0} BCC`)
       }
     }
 
-    // 6. 创建课程访问记录
+    // 6. 扣除BCC余额（如果需要）
+    if (course.price_bcc > 0) {
+      const { error: balanceError } = await supabase
+        .from('user_balances')
+        .update({
+          bcc_balance: supabase.sql`bcc_balance - ${course.price_bcc}`
+        })
+        .eq('wallet_address', walletAddress)
+
+      if (balanceError) {
+        throw new Error(`BCC扣除失败: ${balanceError.message}`)
+      }
+    }
+
+    // 7. 创建课程激活记录
     const { data: courseAccess, error: accessError } = await supabase
-      .from('course_access')
+      .from('course_activations')
       .insert({
         wallet_address: walletAddress,
         course_id: courseId,
-        payment_method: course.price_bcc > 0 ? 'bcc' : 'free',
-        amount_paid: course.price_bcc,
-        access_granted_at: new Date().toISOString()
+        activation_type: course.price_bcc > 0 ? 'purchase' : 'free',
+        activated_at: new Date().toISOString(),
+        progress_percentage: 0,
+        metadata: {
+          payment_method: course.price_bcc > 0 ? 'bcc' : 'free',
+          amount_paid_bcc: course.price_bcc || 0,
+          amount_paid_usdt: 0
+        }
       })
       .select()
       .maybeSingle()
@@ -313,12 +332,7 @@ async function purchaseCourse(supabase, walletAddress: string, courseId: string,
       throw new Error(`创建课程访问记录失败: ${accessError.message}`)
     }
 
-    // 7. 如果是付费课程，扣除BCC (这里简化处理)
-    if (course.price_bcc > 0) {
-      // 实际应用中需要原子性地扣除BCC余额
-      // 这里可以调用专门的BCC扣除函数
-      console.log(`💳 扣除 ${course.price_bcc} BCC`)
-    }
+    console.log(`💳 已扣除 ${course.price_bcc} BCC`)
 
     // 8. 更新课程统计
     await supabase
@@ -333,10 +347,10 @@ async function purchaseCourse(supabase, walletAddress: string, courseId: string,
     return new Response(JSON.stringify({
       success: true,
       message: `成功购买课程: ${course.title}`,
-      courseAccess: {
+      data: {
         id: courseAccess.id,
         courseId: courseId,
-        grantedAt: courseAccess.access_granted_at
+        activated_at: courseAccess.activated_at
       }
     }), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },

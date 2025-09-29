@@ -1,15 +1,10 @@
 import React from 'react';
-import { useQuery } from '@tanstack/react-query';
-import { Card, CardHeader, CardTitle, CardContent } from '../ui/card';
-import { Badge } from '../ui/badge';
-import { 
-  Users, 
-  TrendingUp,
-  Layers,
-  Target
-} from 'lucide-react';
-import { supabase } from '../../lib/supabaseClient';
-import { useI18n } from '../../contexts/I18nContext';
+import {useQuery} from '@tanstack/react-query';
+import {Card, CardContent, CardHeader, CardTitle} from '../ui/card';
+import {Badge} from '../ui/badge';
+import {Layers, Target, TrendingUp, Users} from 'lucide-react';
+import {supabase} from '../../lib/supabaseClient';
+import {useI18n} from '../../contexts/I18nContext';
 
 interface ReferralsStatsProps {
   walletAddress: string;
@@ -17,20 +12,16 @@ interface ReferralsStatsProps {
 }
 
 interface ReferrerStatsData {
-  wallet_address: string;
-  activation_sequence: number;
-  username: string;
-  current_level: number;
-  direct_referrals: number;
-  spillover_count: number;
+  referrer: string;
+  referrer_name: string;
+  total_direct_referrals: number;
+  activated_referrals: number;
   total_team_size: number;
-  max_layer: number;
-  l_position_filled: boolean;
-  m_position_filled: boolean;
-  r_position_filled: boolean;
-  layer1_filled_count: number;
-  next_vacant_position: string;
-  referrer_category: string;
+  activated_members: number;
+  max_depth: number;
+  network_strength: number;
+  highest_referral_level: number;
+  level2_upgrade_eligible: boolean;
 }
 
 
@@ -41,11 +32,24 @@ export default function ReferralsStats({ walletAddress, className }: ReferralsSt
     queryKey: ['referrer-stats', walletAddress],
     enabled: !!walletAddress,
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from('referrer_stats')
-        .select('*')
-        .eq('wallet_address', walletAddress)
-        .single();
+      // Get referral stats by counting direct referrals from referrals_new table (correct table)
+      const { count: directReferralsCount, error: directError } = await supabase
+        .from('referrals_new')
+        .select('*', { count: 'exact', head: true })
+        .eq('referrer_wallet', walletAddress);
+      
+      if (directError) throw directError;
+      
+      // Create a stats object with the count
+      const data = {
+        referrer: walletAddress,
+        direct_referrals_count: directReferralsCount || 0,
+        total_direct_referrals: directReferralsCount || 0,
+        total_referrals: directReferralsCount || 0, // For now, same as direct
+        direct_referrals: directReferralsCount || 0
+      };
+      
+      const error = null;
 
       if (error) throw error;
       return data;
@@ -75,17 +79,16 @@ export default function ReferralsStats({ walletAddress, className }: ReferralsSt
           <div className="text-center py-8">
             <Users className="h-12 w-12 text-muted-foreground mx-auto mb-2" />
             <p className="text-muted-foreground">No referral statistics available</p>
+            <p className="text-xs text-muted-foreground mt-2">
+              Start building your network by sharing your referral link!
+            </p>
           </div>
         </CardContent>
       </Card>
     );
   }
 
-  const matrixPositionsFilled = [
-    referrerStats.l_position_filled,
-    referrerStats.m_position_filled,
-    referrerStats.r_position_filled
-  ].filter(Boolean).length;
+  const matrixPositionsFilled = Math.min(3, referrerStats.total_direct_referrals || 0);
 
   return (
     <div className={`space-y-6 ${className}`}>
@@ -98,7 +101,7 @@ export default function ReferralsStats({ walletAddress, className }: ReferralsSt
               <Users className="h-8 w-8 text-blue-500" />
               <div>
                 <div className="text-2xl font-bold text-blue-400">
-                  {referrerStats.direct_referrals}
+                  {referrerStats.total_direct_referrals}
                 </div>
                 <div className="text-xs text-muted-foreground">Direct Referrals</div>
               </div>
@@ -128,7 +131,7 @@ export default function ReferralsStats({ walletAddress, className }: ReferralsSt
               <Layers className="h-8 w-8 text-purple-500" />
               <div>
                 <div className="text-2xl font-bold text-purple-400">
-                  {referrerStats.max_layer}
+                  {referrerStats.max_depth}
                 </div>
                 <div className="text-xs text-muted-foreground">Max Layer</div>
               </div>
@@ -171,21 +174,21 @@ export default function ReferralsStats({ walletAddress, className }: ReferralsSt
                 </Badge>
               </div>
               <div className="grid grid-cols-3 gap-2">
-                <div className={`text-center p-2 rounded border ${referrerStats.l_position_filled ? 'bg-green-100 border-green-300 text-green-800' : 'bg-gray-100 border-gray-300'}`}>
-                  L {referrerStats.l_position_filled ? '✓' : '○'}
-                </div>
-                <div className={`text-center p-2 rounded border ${referrerStats.m_position_filled ? 'bg-green-100 border-green-300 text-green-800' : 'bg-gray-100 border-gray-300'}`}>
-                  M {referrerStats.m_position_filled ? '✓' : '○'}
-                </div>
-                <div className={`text-center p-2 rounded border ${referrerStats.r_position_filled ? 'bg-green-100 border-green-300 text-green-800' : 'bg-gray-100 border-gray-300'}`}>
-                  R {referrerStats.r_position_filled ? '✓' : '○'}
-                </div>
+                {[...Array(3)].map((_, i) => {
+                  const isFilled = i < matrixPositionsFilled;
+                  const position = ['L', 'M', 'R'][i];
+                  return (
+                    <div key={i} className={`text-center p-2 rounded border ${isFilled ? 'bg-green-100 border-green-300 text-green-800' : 'bg-gray-100 border-gray-300'}`}>
+                      {position} {isFilled ? '✓' : '○'}
+                    </div>
+                  );
+                })}
               </div>
-              {referrerStats.next_vacant_position && (
-                <div className="text-sm text-muted-foreground">
-                  Next vacant: <span className="font-medium">{referrerStats.next_vacant_position}</span>
-                </div>
-              )}
+              <div className="text-sm text-muted-foreground">
+                Matrix Status: <span className="font-medium">
+                  {matrixPositionsFilled < 3 ? `${3 - matrixPositionsFilled} positions available` : 'Full'}
+                </span>
+              </div>
             </div>
           </CardContent>
         </Card>

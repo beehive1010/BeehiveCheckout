@@ -1,96 +1,164 @@
-import React, { createContext, useContext, useState, useEffect } from 'react';
-import { translations } from '../lib/i18n';
+import React, {createContext, useContext, useEffect, useState} from 'react';
+import {hybridI18nService} from '../lib/services/hybridI18nService';
 
-type Language = 'en' | 'zh' | 'th' | 'ms' | 'ko' | 'ja';
+type Language = 'en' | 'zh' | 'zh-tw' | 'th' | 'ms' | 'ko' | 'ja';
 
 interface I18nContextType {
   language: Language;
   setLanguage: (lang: Language) => void;
   t: (key: string, interpolations?: Record<string, string | number>) => string;
   languages: { code: Language; name: string }[];
+  useLocalOnly: boolean;
+  setLocalOnlyMode: (localOnly: boolean) => void;
+  refreshTranslations: () => Promise<void>;
 }
 
 const I18nContext = createContext<I18nContextType | undefined>(undefined);
 
 const languageOptions = [
   { code: 'en' as Language, name: 'English' },
-  { code: 'zh' as Language, name: '中文' },
+  { code: 'zh' as Language, name: '中文简体' },
+  { code: 'zh-tw' as Language, name: '中文繁體' },
   { code: 'th' as Language, name: 'ไทย' },
-  { code: 'ms' as Language, name: 'Malay' },
+  { code: 'ms' as Language, name: 'Bahasa Malaysia' },
   { code: 'ko' as Language, name: '한국어' },
   { code: 'ja' as Language, name: '日本語' },
 ];
 
 const I18nProvider = ({ children }: { children: React.ReactNode }) => {
   const [language, setLanguageState] = useState<Language>('en');
+  const [isLoading, setIsLoading] = useState(false);
+  const [useLocalOnly, setUseLocalOnly] = useState(false);
 
-  // Initialize language from localStorage after component mounts
-  useEffect(() => {
-    const saved = localStorage.getItem('beehive-language');
-    const validLanguages: Language[] = ['en', 'zh', 'th', 'ms', 'ko', 'ja'];
-    if (saved && validLanguages.includes(saved as Language)) {
-      setLanguageState(saved as Language);
-    } else {
-      // Default to English and clear invalid stored language
-      localStorage.setItem('beehive-language', 'en');
-      setLanguageState('en');
+  // Get supported languages from hybrid service
+  const getSupportedLanguages = () => {
+    return hybridI18nService.getSupportedLanguages();
+  };
+
+  // Load translations using hybrid strategy (local + database)
+  const loadHybridTranslations = async (forceReload = false) => {
+    if (useLocalOnly) {
+      console.log('🌍 Using local-only translations mode');
+      return;
     }
+
+    setIsLoading(true);
+    try {
+      await hybridI18nService.getTranslationsForLanguage(language, forceReload);
+      console.log(`🌍 Loaded hybrid translations for ${language}`);
+    } catch (error) {
+      console.error('Failed to load hybrid translations:', error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  // Force local-only mode (for admin manual control)
+  const setLocalOnlyMode = (localOnly: boolean) => {
+    setUseLocalOnly(localOnly);
+    if (localOnly) {
+      console.log('🌍 Switched to local-only translation mode');
+    } else {
+      console.log('🌍 Switched to hybrid translation mode');
+      loadHybridTranslations(true);
+    }
+  };
+
+  // Initialize language from localStorage
+  useEffect(() => {
+    const initializeTranslations = async () => {
+      const saved = localStorage.getItem('beehive-language');
+      const savedMode = localStorage.getItem('beehive-translation-mode');
+      const supportedLanguages = getSupportedLanguages();
+      
+      let targetLanguage: Language;
+      if (saved && supportedLanguages.includes(saved)) {
+        targetLanguage = saved as Language;
+      } else {
+        localStorage.setItem('beehive-language', 'en');
+        targetLanguage = 'en';
+      }
+      setLanguageState(targetLanguage);
+
+      // Set translation mode preference
+      const isLocalOnly = savedMode === 'local-only';
+      setUseLocalOnly(isLocalOnly);
+      
+      // Always load translations for the target language, regardless of mode
+      try {
+        await hybridI18nService.getTranslationsForLanguage(targetLanguage);
+        console.log(`🌍 Initialized translations for ${targetLanguage} (mode: ${isLocalOnly ? 'local-only' : 'hybrid'})`);
+      } catch (error) {
+        console.error('Failed to initialize translations:', error);
+      }
+      
+      if (!isLocalOnly) {
+        console.log('🌍 Starting in hybrid translation mode');
+      } else {
+        console.log('🌍 Starting in local-only translation mode');
+      }
+    };
+    
+    initializeTranslations();
   }, []);
 
-  const setLanguage = (lang: Language) => {
+  const setLanguage = async (lang: Language) => {
     setLanguageState(lang);
     localStorage.setItem('beehive-language', lang);
+    
+    // Load translations for new language if not in local-only mode
+    if (!useLocalOnly) {
+      await loadHybridTranslations();
+    }
   };
 
   const t = (key: string, interpolations?: Record<string, string | number>): string => {
     try {
-      const keys = key.split('.');
-      let value: any = translations[language];
-      
-      for (const k of keys) {
-        value = value?.[k];
+      if (isLoading) {
+        return key;
       }
+
+      let result: string;
       
-      // If translation not found in current language, try English as fallback
-      if (!value && language !== 'en') {
-        let englishValue: any = translations.en;
-        for (const k of keys) {
-          englishValue = englishValue?.[k];
-        }
-        if (englishValue) {
-          value = englishValue;
-        }
-      }
-      
-      let result = value || key;
-      
-      // Force reload for dashboard.topUp if missing
-      if (key === 'dashboard.topUp' && !value) {
-        // Direct access to ensure translation works
-        const directValue = translations[language]?.dashboard?.topUp;
-        if (directValue) {
-          result = directValue;
-        } else if (language !== 'en') {
-          // Fallback to English
-          const englishValue = translations.en?.dashboard?.topUp;
-          if (englishValue) {
-            result = englishValue;
+      if (useLocalOnly) {
+        // Local-only mode: directly access local translations from hybrid service
+        const cacheInfo = hybridI18nService.getCacheInfo();
+        const currentCache = cacheInfo.cacheStatus[language];
+        
+        if (currentCache) {
+          // Use cached translations (which include local translations)
+          const cachedTranslations = hybridI18nService['cache'][language]?.translations || {};
+          result = cachedTranslations[key];
+          
+          // Fallback to English if available
+          if (!result && language !== 'en') {
+            const enCache = hybridI18nService['cache']['en']?.translations || {};
+            result = enCache[key];
           }
         }
+      } else {
+        // Hybrid mode: get translations synchronously from cache
+        const cachedTranslations = hybridI18nService['cache'][language]?.translations || {};
+        result = cachedTranslations[key];
+        
+        // Fallback to English
+        if (!result && language !== 'en') {
+          const enTranslations = hybridI18nService['cache']['en']?.translations || {};
+          result = enTranslations[key];
+        }
       }
       
-      // Ensure we always return a string, never an object
-      if (typeof result === 'object') {
-        console.warn('Translation returned object instead of string for key:', key, result);
-        return key; // Fallback to key if object found
+      if (!result) {
+        console.warn(`Translation missing for key: ${key} (language: ${language}, mode: ${useLocalOnly ? 'local' : 'hybrid'})`);
+        return key;
       }
       
-      // Handle interpolation
+      // Handle interpolation for local-only mode
       if (interpolations && typeof result === 'string') {
         for (const [placeholder, replacement] of Object.entries(interpolations)) {
-          // Handle both {placeholder} and ${placeholder} formats
-          result = result.replace(new RegExp(`\\{${placeholder}\\}`, 'g'), String(replacement));
-          result = result.replace(new RegExp(`\\$\\{${placeholder}\\}`, 'g'), String(replacement));
+          result = result.replace(new RegExp(`\\\\{\\\\{${placeholder}\\\\}\\\\}`, 'g'), String(replacement));
+          result = result.replace(new RegExp(`\\\\{${placeholder}\\\\}`, 'g'), String(replacement));
+          result = result.replace(new RegExp(`\\\\$\\\\{\\\\{${placeholder}\\\\}\\\\}`, 'g'), String(replacement));
         }
       }
       
@@ -101,11 +169,20 @@ const I18nProvider = ({ children }: { children: React.ReactNode }) => {
     }
   };
 
+  const refreshTranslations = async () => {
+    if (!useLocalOnly) {
+      await loadHybridTranslations(true);
+    }
+  };
+
   const value = {
     language,
     setLanguage,
     t,
     languages: languageOptions,
+    useLocalOnly,
+    setLocalOnlyMode,
+    refreshTranslations,
   };
 
   return (
@@ -118,8 +195,6 @@ const I18nProvider = ({ children }: { children: React.ReactNode }) => {
 const useI18n = () => {
   const context = useContext(I18nContext);
   if (context === undefined) {
-    // Provide a safe fallback instead of throwing error immediately
-    // This prevents crashes during hot reloading or timing issues
     console.warn('useI18n hook called outside I18nProvider, using fallback');
     return {
       language: 'en' as Language,
@@ -128,9 +203,16 @@ const useI18n = () => {
       },
       t: (key: string, interpolations?: Record<string, string | number>): string => {
         console.warn(`Translation fallback used for key: ${key}`);
-        return key; // Return the key as fallback
+        return key;
       },
-      languages: [{ code: 'en' as Language, name: 'English' }],
+      languages: languageOptions,
+      useLocalOnly: false,
+      setLocalOnlyMode: () => {
+        console.warn('setLocalOnlyMode called outside I18nProvider context');
+      },
+      refreshTranslations: async () => {
+        console.warn('refreshTranslations called outside I18nProvider context');
+      },
     };
   }
   return context;

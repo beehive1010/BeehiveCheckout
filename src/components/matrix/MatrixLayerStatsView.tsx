@@ -4,7 +4,7 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
 import { ChevronUp, ChevronDown, Users, Trophy, Target, Layers, CheckCircle } from 'lucide-react';
-import { supabase } from '@/lib/supabaseClient';
+import { supabase } from '../../lib/supabase';
 import { useI18n } from '@/contexts/I18nContext';
 
 interface LayerStatsData {
@@ -17,12 +17,17 @@ interface LayerStatsData {
   fillPercentage: number;
   activeMembers: number;
   completedPercentage: number;
+  activationRate?: number;
+  layerStatus?: 'completed' | 'active' | 'started' | 'empty';
+  isBalanced?: boolean;
 }
 
 interface MatrixLayerStatsViewProps {
   walletAddress: string;
   compact?: boolean;
 }
+
+// Matrix views now handle BFS logic in database - no frontend processing needed
 
 const MatrixLayerStatsView: React.FC<MatrixLayerStatsViewProps> = ({ 
   walletAddress, 
@@ -46,34 +51,112 @@ const MatrixLayerStatsView: React.FC<MatrixLayerStatsViewProps> = ({
     setError(null);
 
     try {
-      // Use optimized matrix-view edge function for better performance
-      const response = await fetch(`${import.meta.env.VITE_API_BASE}/matrix-view`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${import.meta.env.VITE_SUPABASE_ANON_KEY}`,
-          'x-wallet-address': walletAddress
-        },
-        body: JSON.stringify({ action: 'get-layer-stats' })
+      console.log('🔍 Loading matrix layer stats for:', walletAddress);
+      
+      // Use direct database view query instead of edge function
+      console.log('📊 Using direct database query for matrix stats');
+
+      // Get matrix layer statistics directly from matrix_referrals_tree_view
+      const { data: matrixData, error: matrixError } = await supabase
+        .from('matrix_referrals_tree_view')
+        .select('matrix_layer, matrix_position, is_active')
+        .eq('matrix_root_wallet', walletAddress);
+
+      if (matrixError) {
+        throw new Error(`Database error: ${matrixError.message}`);
+      }
+
+      console.log('📊 Matrix data from database:', matrixData);
+
+      // Calculate layer statistics from raw data
+      const layerCounts: Record<number, { L: number, M: number, R: number, active: number }> = {};
+
+      matrixData?.forEach(member => {
+        const layer = member.matrix_layer;
+        if (!layerCounts[layer]) {
+          layerCounts[layer] = { L: 0, M: 0, R: 0, active: 0 };
+        }
+
+        // Count positions
+        if (member.matrix_position === 'L') layerCounts[layer].L++;
+        else if (member.matrix_position === 'M') layerCounts[layer].M++;
+        else if (member.matrix_position === 'R') layerCounts[layer].R++;
+
+        // Count active members
+        if (member.is_active) layerCounts[layer].active++;
       });
 
-      if (!response.ok) {
-        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
-      }
+      // Generate layer stats for all 19 layers
+      const layer_stats = [];
+      for (let layer = 1; layer <= 19; layer++) {
+        const counts = layerCounts[layer] || { L: 0, M: 0, R: 0, active: 0 };
+        const totalMembers = counts.L + counts.M + counts.R;
+        const maxCapacity = Math.pow(3, layer);
+        const fillPercentage = maxCapacity > 0 ? (totalMembers / maxCapacity) * 100 : 0;
 
-      const result = await response.json();
+        layer_stats.push({
+          layer,
+          totalMembers,
+          leftMembers: counts.L,
+          middleMembers: counts.M,
+          rightMembers: counts.R,
+          maxCapacity,
+          fillPercentage: Math.min(fillPercentage, 100),
+          activeMembers: counts.active,
+          completedPercentage: fillPercentage,
+          activationRate: totalMembers > 0 ? (counts.active / totalMembers) * 100 : 0,
+          layerStatus: totalMembers >= maxCapacity ? 'completed' : totalMembers > 0 ? 'active' : 'empty',
+          isBalanced: Math.abs(counts.L - counts.M) <= 1 && Math.abs(counts.M - counts.R) <= 1
+        });
+      }
       
-      if (!result.success) {
-        throw new Error(result.error || 'Failed to load layer statistics');
+      // Debug: Check specific Layer 2 data
+      const layer2Data = layer_stats?.find((layer: any) => layer.layer === 2);
+      if (layer2Data) {
+        console.log('🔍 Layer 2 debug data:', {
+          layer: layer2Data.layer,
+          leftMembers: layer2Data.leftMembers,
+          middleMembers: layer2Data.middleMembers,
+          rightMembers: layer2Data.rightMembers,
+          totalMembers: layer2Data.totalMembers,
+          maxCapacity: layer2Data.maxCapacity
+        });
       }
 
-      // The optimized view returns pre-calculated layer stats
-      const layerStats = result.data.layer_stats || [];
+      // Transform data from matrix-view function response
+      const layerStats: LayerStatsData[] = layer_stats?.map((layer: any) => ({
+        layer: layer.layer || 1,
+        totalMembers: layer.totalMembers || 0,
+        leftMembers: layer.leftMembers || 0,
+        middleMembers: layer.middleMembers || 0,
+        rightMembers: layer.rightMembers || 0,
+        maxCapacity: layer.maxCapacity || Math.pow(3, layer.layer || 1),
+        fillPercentage: layer.fillPercentage || 0,
+        activeMembers: layer.activeMembers || 0,
+        completedPercentage: layer.completedPercentage || 0,
+        activationRate: layer.activationRate || 0,
+        layerStatus: layer.layerStatus || 'empty',
+        isBalanced: layer.isBalanced || false,
+      })) || [];
+
+      console.log('📊 Final layer stats:', layerStats);
+      
+      // Debug: Show layer data structure 
+      layer_stats?.forEach((layer: any) => {
+        console.log(`🔍 Layer ${layer.layer} data:`, {
+          leftMembers: layer.leftMembers,
+          middleMembers: layer.middleMembers, 
+          rightMembers: layer.rightMembers,
+          totalMembers: layer.totalMembers,
+          maxCapacity: layer.maxCapacity
+        });
+      });
+
       setLayerStats(layerStats);
       
     } catch (error: any) {
       console.error('Error loading layer stats:', error);
-      setError(error.message || 'Failed to load layer statistics');
+      setError(error.message || t('matrix.errors.loadLayerStatsFailed'));
       
       // Fallback: create empty stats
       const emptyStats: LayerStatsData[] = [];
@@ -84,7 +167,7 @@ const MatrixLayerStatsView: React.FC<MatrixLayerStatsViewProps> = ({
           leftMembers: 0,
           middleMembers: 0,
           rightMembers: 0,
-          maxCapacity: Math.pow(3, layer),
+          maxCapacity: layer === 2 ? 9 : Math.pow(3, layer),
           fillPercentage: 0,
           activeMembers: 0,
           completedPercentage: 0
@@ -96,19 +179,24 @@ const MatrixLayerStatsView: React.FC<MatrixLayerStatsViewProps> = ({
     }
   };
 
-  const getLayerStatusColor = (fillPercentage: number, completedPercentage: number) => {
-    if (completedPercentage >= 80) return 'text-green-400 bg-green-500/10 border-green-500/30';
-    if (fillPercentage >= 80) return 'text-blue-400 bg-blue-500/10 border-blue-500/30';
-    if (fillPercentage >= 50) return 'text-orange-400 bg-orange-500/10 border-orange-500/30';
-    if (fillPercentage >= 20) return 'text-yellow-400 bg-yellow-500/10 border-yellow-500/30';
-    return 'text-gray-400 bg-gray-500/10 border-gray-500/30';
+  const getLayerStatusColor = (fillPercentage: number, leftCount: number, middleCount: number, rightCount: number) => {
+    // Color based on fill percentage only - more accurate representation
+    if (fillPercentage >= 90) return 'text-green-400 bg-green-500/10 border-green-500/30'; // Complete (90%+)
+    if (fillPercentage >= 66) return 'text-blue-400 bg-blue-500/10 border-blue-500/30'; // Good progress (66%+)
+    if (fillPercentage >= 33) return 'text-orange-400 bg-orange-500/10 border-orange-500/30'; // Some progress (33%+)
+    if (fillPercentage > 0) return 'text-yellow-400 bg-yellow-500/10 border-yellow-500/30'; // Started (>0%)
+    return 'text-gray-400 bg-gray-500/10 border-gray-500/30'; // Empty (0%)
   };
 
-  const renderLayerCard = (stat: LayerStatsData) => (
-    <div
-      key={stat.layer}
-      className={`rounded-lg border-2 p-4 transition-all hover:shadow-lg ${getLayerStatusColor(stat.fillPercentage, stat.completedPercentage)}`}
-    >
+  const renderLayerCard = (stat: LayerStatsData) => {
+    // A layer is "complete" only when it has very high fill percentage
+    const isLayerComplete = stat.fillPercentage >= 90;
+    
+    return (
+      <div
+        key={stat.layer}
+        className={`rounded-lg border-2 p-4 transition-all hover:shadow-lg ${getLayerStatusColor(stat.fillPercentage, stat.leftMembers, stat.middleMembers, stat.rightMembers)}`}
+      >
       {/* Layer Header */}
       <div className="flex justify-between items-center mb-3">
         <Badge variant="outline" className="font-semibold text-xs">
@@ -121,7 +209,7 @@ const MatrixLayerStatsView: React.FC<MatrixLayerStatsViewProps> = ({
           >
             {stat.totalMembers}/{stat.maxCapacity}
           </Badge>
-          {stat.activeMembers === stat.totalMembers && stat.totalMembers > 0 && (
+          {isLayerComplete && (
             <CheckCircle className="w-4 h-4 text-green-400" />
           )}
         </div>
@@ -151,7 +239,7 @@ const MatrixLayerStatsView: React.FC<MatrixLayerStatsViewProps> = ({
         </div>
         <div className="flex items-center gap-1">
           <Target className="w-3 h-3" />
-          <span>{stat.completedPercentage.toFixed(1)}% Complete</span>
+          <span>{stat.fillPercentage.toFixed(1)}% Complete</span>
         </div>
       </div>
 
@@ -167,22 +255,26 @@ const MatrixLayerStatsView: React.FC<MatrixLayerStatsViewProps> = ({
       {/* Completion Progress */}
       <div>
         <div className="flex justify-between text-xs mb-1">
-          <span>Activation Rate</span>
-          <span>{stat.completedPercentage.toFixed(1)}%</span>
+          <span>Layer Complete</span>
+          <span>{stat.fillPercentage.toFixed(1)}%</span>
         </div>
         <Progress 
-          value={stat.completedPercentage} 
+          value={stat.fillPercentage} 
           className="h-1.5"
         />
       </div>
     </div>
   );
+  };
 
   const renderSummaryStats = () => {
     const totalMembers = layerStats.reduce((sum, stat) => sum + stat.totalMembers, 0);
     const totalActive = layerStats.reduce((sum, stat) => sum + stat.activeMembers, 0);
     const layersWithMembers = layerStats.filter(stat => stat.totalMembers > 0).length;
-    const layersCompleted = layerStats.filter(stat => stat.activeMembers === stat.totalMembers && stat.totalMembers > 0).length;
+    const layersCompleted = layerStats.filter(stat => {
+      // A layer is truly "completed" only when it has 100% fill OR very high completion
+      return stat.fillPercentage >= 90; // 90% or higher completion
+    }).length;
     const avgFillRate = layersWithMembers > 0 ? layerStats.slice(0, layersWithMembers).reduce((sum, stat) => sum + stat.fillPercentage, 0) / layersWithMembers : 0;
     const avgCompletionRate = totalMembers > 0 ? (totalActive / totalMembers) * 100 : 0;
 
@@ -208,7 +300,7 @@ const MatrixLayerStatsView: React.FC<MatrixLayerStatsViewProps> = ({
           <div className="flex items-center justify-between mb-2">
             <Layers className="w-5 h-5 text-purple-400" />
           </div>
-          <div className="text-2xl font-bold text-purple-400">{layersCompleted}/{layersWithMembers}</div>
+          <div className="text-2xl font-bold text-purple-400">{layersCompleted}/19</div>
           <div className="text-xs text-muted-foreground">Layers Completed</div>
         </div>
 
@@ -262,6 +354,17 @@ const MatrixLayerStatsView: React.FC<MatrixLayerStatsViewProps> = ({
   const maxLayerWithData = layersWithData.length > 0 ? Math.max(...layersWithData.map(s => s.layer)) : 1;
   const minLayersToShow = Math.max(5, maxLayerWithData); // Show at least 5 layers or up to the highest layer with data
   
+  // Debug logging to help diagnose the issue
+  console.log('🔍 Layer display calculation:', {
+    layersWithDataCount: layersWithData.length,
+    maxLayerWithData,
+    minLayersToShow,
+    showAllLayers,
+    totalLayerStats: layerStats.length,
+    layersWithDataDetails: layersWithData.map(l => ({ layer: l.layer, members: l.totalMembers }))
+  });
+  
+  // FIXED: Show all layers up to the highest layer with data (not slice from 0)
   const visibleLayers = showAllLayers ? layerStats : layerStats.slice(0, minLayersToShow);
 
   return (
@@ -309,7 +412,7 @@ const MatrixLayerStatsView: React.FC<MatrixLayerStatsViewProps> = ({
                 onClick={() => setShowAllLayers(!showAllLayers)}
                 className="border-honey/30 text-honey hover:bg-honey hover:text-black"
               >
-                {showAllLayers ? 'Show Less' : 'Show All 19 Layers'}
+                {showAllLayers ? t('matrix.ui.showLess') : t('matrix.ui.showAllLayers')}
               </Button>
             </div>
           </div>
@@ -326,7 +429,7 @@ const MatrixLayerStatsView: React.FC<MatrixLayerStatsViewProps> = ({
               🎯 Green layers are fully activated • Blue layers are well-filled • Yellow layers need more members
             </p>
             <p className="text-xs mt-1">
-              📊 Each layer can hold 3^layer positions (Layer 1: 3, Layer 2: 9, Layer 3: 27, etc.)
+              📊 Each layer capacity: 3^layer positions (Layer 1: 3, Layer 2: 9, Layer 3: 27, etc.)
             </p>
           </div>
         </CardContent>

@@ -3,7 +3,7 @@ import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { ChevronLeft, ChevronRight, Users, Trophy, Target, Layers } from 'lucide-react';
-import { supabase } from '@/lib/supabaseClient';
+import { supabase } from '../../lib/supabase';
 import { useI18n } from '@/contexts/I18nContext';
 
 interface LayerStats {
@@ -43,36 +43,25 @@ const MatrixLayerStats: React.FC<MatrixLayerStatsProps> = ({
     setError(null);
 
     try {
-      // 从referrals表获取matrix数据
-      const { data: referralsData, error } = await supabase
-        .from('referrals')
-        .select('matrix_layer, matrix_position, member_wallet')
-        .eq('matrix_root', walletAddress);
+      // 使用正确的matrix_layers_view获取统计数据
+      const { data: layerStatsData, error } = await supabase
+        .from('matrix_layers_view')
+        .select('*')
+        .eq('matrix_root_wallet', walletAddress)
+        .order('layer');
       
-      if (!error && referralsData) {
-        const stats: LayerStats[] = [];
-        
-        // 创建完整的19层统计
-        for (let layer = 1; layer <= 19; layer++) {
-          const layerMembers = referralsData.filter(r => r.matrix_layer === layer);
-          const leftMembers = layerMembers.filter(r => r.matrix_position === 'L').length;
-          const middleMembers = layerMembers.filter(r => r.matrix_position === 'M').length;
-          const rightMembers = layerMembers.filter(r => r.matrix_position === 'R').length;
-          const totalMembers = layerMembers.length;
-          const maxCapacity = Math.pow(3, layer);
-          const fillPercentage = maxCapacity > 0 ? (totalMembers / maxCapacity) * 100 : 0;
-          
-          stats.push({
-            layer,
-            totalMembers,
-            leftMembers,
-            middleMembers,
-            rightMembers,
-            maxCapacity,
-            fillPercentage,
-            activeMembers: totalMembers // 假设所有成员都是活跃的
-          });
-        }
+      if (!error && layerStatsData) {
+        // 直接使用view返回的统计数据，转换为组件需要的格式
+        const stats: LayerStats[] = layerStatsData.map(row => ({
+          layer: row.layer,
+          totalMembers: row.filled_slots,
+          leftMembers: row.left_count,
+          middleMembers: row.middle_count,
+          rightMembers: row.right_count,
+          maxCapacity: row.max_slots,
+          fillPercentage: parseFloat(row.completion_rate || 0),
+          activeMembers: row.activated_members
+        }));
 
         setLayerStats(stats);
       } else {

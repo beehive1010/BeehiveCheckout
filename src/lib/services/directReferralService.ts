@@ -1,43 +1,44 @@
-import { supabase } from '../supabase';
+import {supabase} from '../supabase';
 
 /**
- * 获取用户的直接推荐人数（基于 referrer_stats 视图）
- * 只计算通过该用户推荐链接直接注册的用户，不包括矩阵安置的溢出用户
+ * 获取用户的直接推荐人数（基于 referrals 表）
+ * 只计算通过该用户推荐链接直接注册的用户（is_direct_referral=true），不包括矩阵安置的溢出用户
  */
 export async function getDirectReferralCount(referrerWallet: string): Promise<number> {
   try {
-    console.log(`🔍 Fetching direct referrals from referrer_stats for wallet: ${referrerWallet}`);
+    console.log(`🔍 Fetching direct referrals for wallet: ${referrerWallet}`);
     
-    // Use referrer_stats view to get direct referral count (bypasses RLS issues) with exact matching
+    // Primary: Use referrals_matrix_stats for optimized referral stats
     const { data, error } = await supabase
-      .from('referrer_stats')
+      .from('referrals_matrix_stats')
       .select('direct_referrals')
-      .eq('wallet_address', referrerWallet)
+      .ilike('matrix_root_wallet', referrerWallet)
       .single();
 
     if (error) {
-      console.error('❌ Error fetching from referrer_stats:', error);
-      // Fallback to users table query if referrer_stats fails
-      console.log('🔄 Falling back to users table...');
+      console.error('❌ referrals_matrix_stats query failed:', error);
       
-      const { count, error: usersError } = await supabase
-        .from('users')
+      // Fallback to direct referrals_new table query
+      console.log('🔄 Falling back to referrals_new table...');
+      
+      const { count, error: fallbackError } = await supabase
+        .from('referrals_new')
         .select('*', { count: 'exact', head: true })
-        .eq('referrer_wallet', referrerWallet)
-        .neq('wallet_address', '0x0000000000000000000000000000000000000001');
-      
-      if (usersError) {
-        console.error('❌ Fallback users query also failed:', usersError);
+        .ilike('referrer_wallet', referrerWallet)
+        .neq('referred_wallet', '0x0000000000000000000000000000000000000001');
+
+      if (fallbackError) {
+        console.error('❌ referrals_new fallback failed:', fallbackError);
         return 0;
       }
-      
+
       const directCount = count || 0;
-      console.log(`✅ Direct referral count (fallback) for ${referrerWallet}: ${directCount}`);
+      console.log(`✅ Direct referral count (referrals_new fallback) for ${referrerWallet}: ${directCount}`);
       return directCount;
     }
 
     const directCount = data?.direct_referrals || 0;
-    console.log(`✅ Direct referral count from referrer_stats for ${referrerWallet}: ${directCount}`);
+    console.log(`✅ Direct referral count from view for ${referrerWallet}: ${directCount}`);
     
     return directCount;
   } catch (error) {
@@ -60,8 +61,8 @@ export async function checkLevel2DirectReferralRequirement(walletAddress: string
   const requiredCount = 3;
   const currentCount = await getDirectReferralCount(walletAddress);
   
-  const qualified = currentCount > requiredCount;
-  const shortage = Math.max(0, requiredCount + 1 - currentCount); // 需要多少人才能达标
+  const qualified = currentCount >= requiredCount;
+  const shortage = Math.max(0, requiredCount - currentCount); // 需要多少人才能达标
   
   let detailedStatus = '';
   if (qualified) {
@@ -95,61 +96,54 @@ export async function getDirectReferralDetails(referrerWallet: string): Promise<
   try {
     console.log(`🔍 Fetching detailed referral info for: ${referrerWallet}`);
     
-    // Try to get data from referrals table first (contains matrix placement info)
+    // Primary: Get referral data from referrals_new table (direct referrals tracking)
     const { data: referralData, error: referralError } = await supabase
-      .from('referrals')
+      .from('referrals_new')
       .select(`
-        member_wallet,
+        referred_wallet,
         referrer_wallet,
-        placed_at,
-        is_active
+        created_at
       `)
-      .eq('referrer_wallet', referrerWallet)
-      .order('placed_at', { ascending: false });
-
-    if (referralError) {
-      console.error('❌ Error fetching from referrals table:', referralError);
-    }
-
-    // Get user info and member info using exact matching
-    const { data: usersData, error: usersError } = await supabase
-      .from('users')
-      .select('wallet_address, username, created_at')
-      .eq('referrer_wallet', referrerWallet)
-      .neq('wallet_address', '0x0000000000000000000000000000000000000001')
+      .ilike('referrer_wallet', referrerWallet)
       .order('created_at', { ascending: false });
 
-    if (usersError) {
-      console.error('❌ Error fetching user details (fallback):', usersError);
+    if (referralError) {
+      console.error('❌ Error fetching referrals_new data:', referralError);
       return [];
     }
 
-    if (!usersData || usersData.length === 0) {
-      console.log('📭 No direct referrals found');
+    if (!referralData || referralData.length === 0) {
+      console.log('📭 No direct referrals found in referrals_new');
       return [];
     }
 
-    // Get activation status from members table
-    const walletAddresses = usersData.map(u => u.wallet_address);
-    const { data: membersData } = await supabase
-      .from('members')
-      .select('wallet_address, current_level, activation_rank')
+    // Get user details from users table for display names
+    const walletAddresses = referralData.map(r => r.referred_wallet);
+    const { data: usersData } = await supabase
+      .from('users')
+      .select('wallet_address, username')
       .in('wallet_address', walletAddresses);
 
-    console.log(`✅ Found ${usersData.length} direct referrals, ${membersData?.length || 0} activated`);
+    // Get activation status from members table
+    const { data: membersData } = await supabase
+      .from('members')
+      .select('wallet_address, current_level, activation_sequence')
+      .in('wallet_address', walletAddresses);
 
-    // Combine data
-    return usersData.map(user => {
-      const memberData = membersData?.find(m => m.wallet_address === user.wallet_address);
-      const referralInfo = referralData?.find(r => r.member_wallet === user.wallet_address);
+    console.log(`✅ Found ${referralData.length} direct referrals, ${membersData?.length || 0} activated`);
+
+    // Combine data with referrals_new table as primary source
+    return referralData.map(referral => {
+      const userData = usersData?.find(u => u.wallet_address === referral.referred_wallet);
+      const memberData = membersData?.find(m => m.wallet_address === referral.referred_wallet);
       
       return {
-        memberWallet: user.wallet_address,
-        memberName: user.username || 'Unknown',
-        referredAt: referralInfo?.placed_at || user.created_at,
+        memberWallet: referral.referred_wallet,
+        memberName: userData?.username || 'Unknown',
+        referredAt: referral.created_at || 'Unknown',
         isActivated: !!memberData && memberData.current_level > 0,
         memberLevel: memberData?.current_level || 0,
-        activationRank: memberData?.activation_rank || null
+        activationRank: memberData?.activation_sequence || null
       };
     });
   } catch (error) {

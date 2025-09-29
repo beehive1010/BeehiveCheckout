@@ -1,293 +1,188 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { Card, CardHeader, CardTitle, CardContent } from '../ui/card';
 import { Button } from '../ui/button';
 import { Badge } from '../ui/badge';
-import { ChevronRight, Users, Trophy, ArrowLeft, Home } from 'lucide-react';
-import { supabase } from '../../lib/supabaseClient';
+import { Users, User } from 'lucide-react';
+import { useLayeredMatrix, useMatrixChildren } from '../../hooks/useMatrixByLevel';
 import { useI18n } from '../../contexts/I18nContext';
-
-interface MatrixMember {
-  walletAddress: string;
-  username?: string;
-  level: number;
-  isActive: boolean;
-  layer: number;
-  position: 'L' | 'M' | 'R';
-  placedAt?: string;
-}
-
-interface MatrixNode {
-  member: MatrixMember | null;
-  left: MatrixMember[];
-  middle: MatrixMember[];
-  right: MatrixMember[];
-}
-
-interface NavigationPath {
-  walletAddress: string;
-  username: string;
-  position?: 'L' | 'M' | 'R';
-  layer: number;
-}
 
 interface DrillDownMatrixViewProps {
   rootWalletAddress: string;
   rootUser?: { username: string; currentLevel: number };
+  onNavigateToMember?: (memberWallet: string) => void;
 }
+
+interface MatrixNodeProps {
+  position: string;
+  member: {
+    wallet: string;
+    joinedAt: string;
+    type: string;
+    hasChildren?: boolean;
+    childrenCount?: number;
+    username?: string;
+    isActivated?: boolean;
+    hasChildInL?: boolean;
+    hasChildInM?: boolean;
+    hasChildInR?: boolean;
+  } | null;
+  onNavigateToMember?: (memberWallet: string) => void;
+  onToggleExpand?: (memberWallet: string) => void;
+  isExpanded?: boolean;
+  t: (key: string, options?: any) => string;
+}
+
+const MatrixNode: React.FC<MatrixNodeProps> = ({ 
+  position, 
+  member, 
+  onNavigateToMember,
+  onToggleExpand,
+  isExpanded,
+  t
+}) => {
+  const formatWallet = (wallet: string) => {
+    return `${wallet.slice(0, 6)}...${wallet.slice(-4)}`;
+  };
+
+  const formatDate = (dateStr: string) => {
+    return new Date(dateStr).toLocaleDateString();
+  };
+
+  if (!member) {
+    return (
+      <div className="border border-gray-300 rounded-md p-3 bg-gray-50 text-center">
+        <div className="text-lg font-bold text-gray-500 mb-1">{position}</div>
+        <div className="text-sm text-gray-400">空位</div>
+      </div>
+    );
+  }
+
+  const isSpillover = member.type === 'is_spillover' || member.type !== 'is_direct';
+
+  return (
+    <div 
+      className={`border rounded-md p-3 cursor-pointer ${
+        isSpillover 
+          ? 'bg-blue-50 border-blue-200 hover:bg-blue-100' 
+          : 'bg-green-50 border-green-200 hover:bg-green-100'
+      } ${isExpanded ? 'ring-2 ring-blue-400' : ''} hover:shadow-md transition-all`}
+      onClick={() => member.hasChildren && onToggleExpand?.(member.wallet)}
+    >
+      <div className="text-center">
+        {/* Position */}
+        <div className="text-lg font-bold text-gray-700 mb-2">{position}</div>
+        
+        {/* Type Badge */}
+        <div className={`inline-block px-2 py-1 rounded-full text-xs font-medium mb-2 ${
+          isSpillover 
+            ? 'bg-blue-100 text-blue-700' 
+            : 'bg-green-100 text-green-700'
+        }`}>
+          {isSpillover ? '滑落' : '直推'}
+        </div>
+        
+        {/* Username */}
+        {member.username && (
+          <div className="text-sm font-medium text-gray-800 mb-1">
+            {member.username}
+          </div>
+        )}
+        
+        {/* Wallet Address */}
+        <div className="text-xs text-gray-600 mb-2 font-mono bg-white px-2 py-1 rounded border">
+          {formatWallet(member.wallet)}
+        </div>
+        
+        {/* 下级L M R状态 */}
+        <div className="mb-2">
+          <div className="text-xs text-gray-600 mb-1">下级节点:</div>
+          <div className="flex justify-center space-x-2 text-xs">
+            <span className={`px-2 py-1 rounded ${member.hasChildInL ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-500'}`}>
+              L {member.hasChildInL ? '✓' : '○'}
+            </span>
+            <span className={`px-2 py-1 rounded ${member.hasChildInM ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-500'}`}>
+              M {member.hasChildInM ? '✓' : '○'}
+            </span>
+            <span className={`px-2 py-1 rounded ${member.hasChildInR ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-500'}`}>
+              R {member.hasChildInR ? '✓' : '○'}
+            </span>
+          </div>
+        </div>
+        
+        {/* Join Date */}
+        <div className="text-xs text-gray-500 mb-3">
+          {formatDate(member.joinedAt)}
+        </div>
+        
+        {/* Action Buttons */}
+        <div className="flex gap-1">
+          {member.hasChildren && (
+            <Button
+              variant="outline"
+              size="sm"
+              className="flex-1 text-xs text-green-600 border-green-200 hover:bg-green-50"
+              onClick={(e) => {
+                e.stopPropagation();
+                onToggleExpand?.(member.wallet);
+              }}
+            >
+              {isExpanded ? '收起 ↑' : '展开 ↓'}
+            </Button>
+          )}
+          <Button
+            variant="outline"
+            size="sm"
+            className={`${member.hasChildren ? 'flex-1' : 'w-full'} text-xs text-blue-600 border-blue-200 hover:bg-blue-50`}
+            onClick={(e) => {
+              e.stopPropagation();
+              onNavigateToMember?.(member.wallet);
+            }}
+          >
+            查看矩阵 →
+          </Button>
+        </div>
+      </div>
+    </div>
+  );
+};
+
 
 const DrillDownMatrixView: React.FC<DrillDownMatrixViewProps> = ({ 
   rootWalletAddress, 
-  rootUser 
+  rootUser,
+  onNavigateToMember
 }) => {
   const { t } = useI18n();
-  const [currentNode, setCurrentNode] = useState<MatrixNode | null>(null);
-  const [navigationPath, setNavigationPath] = useState<NavigationPath[]>([]);
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  const [expandedMember, setExpandedMember] = useState<string | null>(null);
+  
+  console.log('🏠 DrillDownMatrixView props:', { rootWalletAddress, rootUser });
+  console.log('🔍 DrillDownMatrixView - wallet address received:', rootWalletAddress);
+  console.log('🔍 DrillDownMatrixView - wallet address type:', typeof rootWalletAddress);
+  console.log('🔍 DrillDownMatrixView - wallet address length:', rootWalletAddress?.length);
+  
+  const { data: matrixData, isLoading, error } = useLayeredMatrix(rootWalletAddress);
+  const { data: childrenData } = useMatrixChildren(rootWalletAddress, expandedMember || '');
 
-  // Initialize with root user
-  useEffect(() => {
-    loadMemberMatrix(rootWalletAddress, true);
-  }, [rootWalletAddress]);
-
-  const loadMemberMatrix = async (walletAddress: string, isRoot = false) => {
-    setLoading(true);
-    setError(null);
-
-    try {
-      // Use optimized matrix-view Edge Function for better performance
-      console.log(`🔍 Loading matrix for wallet: ${walletAddress}, using optimized view`);
-      
-      const response = await fetch(`${import.meta.env.VITE_API_BASE}/matrix-view`, {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${import.meta.env.VITE_SUPABASE_ANON_KEY}`,
-          'Content-Type': 'application/json',
-          'x-wallet-address': walletAddress
-        },
-        body: JSON.stringify({
-          action: 'get-matrix-members'
-        })
-      });
-
-      const result = await response.json();
-      
-      if (!result.success) {
-        throw new Error(result.error || 'Failed to load matrix data');
-      }
-
-      const matrixData = result.data;
-      
-      console.log(`🔍 Matrix data for ${walletAddress}:`, matrixData);
-
-      if (matrixData && matrixData.matrix_data) {
-        // Parse matrix data from Edge Function response
-        const allLayers = matrixData.matrix_data.by_layer || {};
-        const currentLayer = 1; // Start with layer 1
-        
-        // Get members for the current layer (first layer by default)
-        const layerMembers = allLayers[currentLayer] || [];
-        
-        // Group members by position (L, M, R)
-        const leftMembers: MatrixMember[] = [];
-        const middleMembers: MatrixMember[] = [];
-        const rightMembers: MatrixMember[] = [];
-        
-        layerMembers.forEach((member: any) => {
-          const memberData: MatrixMember = {
-            walletAddress: member.wallet_address,
-            username: member.username || `User_${member.wallet_address.slice(-6)}`,
-            level: member.current_level || 1,
-            isActive: member.is_activated || false,
-            layer: member.matrix_layer || currentLayer,
-            position: member.matrix_position as 'L' | 'M' | 'R',
-            placedAt: member.joined_at || new Date().toISOString()
-          };
-          
-          // Include all members in the current layer for this matrix root
-          if (member.matrix_position === 'L') leftMembers.push(memberData);
-          else if (member.matrix_position === 'M') middleMembers.push(memberData);
-          else if (member.matrix_position === 'R') rightMembers.push(memberData);
-        });
-
-        // Create current member info
-        const currentMember: MatrixMember = {
-          walletAddress: walletAddress,
-          username: isRoot 
-            ? (rootUser?.username || `User_${walletAddress.slice(-6)}`) 
-            : `User_${walletAddress.slice(-6)}`,
-          level: isRoot 
-            ? (rootUser?.currentLevel || 1) 
-            : 1,
-          isActive: true,
-          layer: navigationPath.length,
-          position: navigationPath.length > 0 ? (navigationPath[navigationPath.length - 1].position || 'L') : 'L'
-        };
-
-        const nodeData: MatrixNode = {
-          member: currentMember,
-          left: leftMembers,
-          middle: middleMembers,
-          right: rightMembers
-        };
-
-        setCurrentNode(nodeData);
-        
-        if (isRoot) {
-          setNavigationPath([{
-            walletAddress: walletAddress,
-            username: currentMember.username,
-            layer: 0
-          }]);
-        }
-
-      } else {
-        // No referrals - create empty matrix
-        const currentMember: MatrixMember = {
-          walletAddress: walletAddress,
-          username: isRoot ? (rootUser?.username || `User${walletAddress.slice(-4)}`) : `User${walletAddress.slice(-4)}`,
-          level: isRoot ? (rootUser?.currentLevel || 1) : 1,
-          isActive: true,
-          layer: navigationPath.length,
-          position: navigationPath.length > 0 ? (navigationPath[navigationPath.length - 1].position || 'L') : 'L'
-        };
-
-        setCurrentNode({
-          member: currentMember,
-          left: [],
-          middle: [],
-          right: []
-        });
-        
-        if (isRoot) {
-          setNavigationPath([{
-            walletAddress: walletAddress,
-            username: currentMember.username,
-            layer: 0
-          }]);
-        }
-      }
-    } catch (error: any) {
-      console.error('Error loading matrix data:', error);
-      setError(error.message || 'Failed to load matrix data');
-    } finally {
-      setLoading(false);
-    }
+  const handleToggleExpand = (memberWallet: string) => {
+    setExpandedMember(expandedMember === memberWallet ? null : memberWallet);
   };
 
-  // transformToMatrixMember function no longer needed as we use matrix_structure_view
-
-  const handleMemberClick = async (member: MatrixMember) => {
-    if (!member.walletAddress) return;
-
-    // Add to navigation path
-    const newPath = [...navigationPath, {
-      walletAddress: member.walletAddress,
-      username: member.username || `User${member.walletAddress.slice(-4)}`,
-      position: member.position,
-      layer: member.layer
-    }];
-    
-    setNavigationPath(newPath);
-    await loadMemberMatrix(member.walletAddress);
+  const formatWallet = (wallet: string) => {
+    return `${wallet.slice(0, 6)}...${wallet.slice(-4)}`;
   };
+  
+  console.log('🔍 Matrix data status:', { 
+    hasRealData: !!matrixData
+  });
 
-  const navigateToLevel = async (pathIndex: number) => {
-    if (pathIndex >= navigationPath.length) return;
 
-    const targetPath = navigationPath.slice(0, pathIndex + 1);
-    setNavigationPath(targetPath);
-    
-    const targetWallet = targetPath[targetPath.length - 1].walletAddress;
-    await loadMemberMatrix(targetWallet);
-  };
-
-  const goToRoot = async () => {
-    setNavigationPath([navigationPath[0]]);
-    await loadMemberMatrix(rootWalletAddress, true);
-  };
-
-  const renderMemberCard = (member: MatrixMember | null, position: 'L' | 'M' | 'R') => {
-    const isEmpty = !member;
-    const positionColors = {
-      L: { bg: 'bg-green-500/10', border: 'border-green-500/30', text: 'text-green-400' },
-      M: { bg: 'bg-blue-500/10', border: 'border-blue-500/30', text: 'text-blue-400' },
-      R: { bg: 'bg-purple-500/10', border: 'border-purple-500/30', text: 'text-purple-400' }
-    };
-    const colors = positionColors[position];
-
+  if (isLoading) {
     return (
-      <div 
-        className={`
-          relative min-h-[120px] md:h-32 rounded-lg border-2 flex flex-col items-center justify-center p-3 md:p-4 transition-all cursor-pointer text-center
-          ${isEmpty 
-            ? 'border-dashed border-muted-foreground/30 bg-muted/20 hover:bg-muted/30' 
-            : `${colors.border} ${colors.bg} hover:bg-opacity-80`
-          }
-        `}
-        onClick={() => member && handleMemberClick(member)}
-        data-testid={`matrix-position-${position}`}
-      >
-        {member ? (
-          <>
-            <div className="w-12 h-12 md:w-16 md:h-16 bg-gradient-to-br from-honey to-honey/80 rounded-full flex items-center justify-center mb-2 shadow-lg flex-shrink-0">
-              <span className="text-black font-bold text-sm md:text-lg">
-                {member.username?.charAt(0).toUpperCase() || member.walletAddress?.charAt(2).toUpperCase()}
-              </span>
-            </div>
-            
-            <div className="text-center flex-1 min-w-0">
-              <div className="text-xs md:text-sm font-medium truncate w-full mb-1">
-                {member.username || `User${member.walletAddress?.slice(-4)}`}
-              </div>
-              <div className="text-xs text-muted-foreground mb-2 truncate">
-                {member.walletAddress?.slice(0, 4)}...{member.walletAddress?.slice(-4)}
-              </div>
-              <Badge 
-                variant={member.isActive ? 'default' : 'secondary'} 
-                className={`text-xs ${
-                  member.isActive 
-                    ? 'bg-green-500 text-white' 
-                    : 'bg-gray-500 text-white'
-                }`}
-              >
-                L{member.level}
-              </Badge>
-            </div>
-
-            {/* Click indicator */}
-            <div className="absolute top-2 right-2">
-              <ChevronRight className="h-3 w-3 md:h-4 md:w-4 text-honey" />
-            </div>
-          </>
-        ) : (
-          <div className="text-center flex-1">
-            <div className="w-12 h-12 md:w-16 md:h-16 border-2 border-dashed border-muted-foreground/30 rounded-full mx-auto mb-2 flex items-center justify-center flex-shrink-0">
-              <Users className="w-4 h-4 md:w-6 md:h-6 text-muted-foreground/50" />
-            </div>
-            <div className="text-xs md:text-sm text-muted-foreground">Available</div>
-            <div className="text-xs text-muted-foreground/70 mt-1">
-              Position {position}
-            </div>
-          </div>
-        )}
-      </div>
-    );
-  };
-
-  if (loading) {
-    return (
-      <Card className="bg-secondary border-border">
-        <CardHeader>
-          <CardTitle className="text-honey flex items-center space-x-2">
-            <Trophy className="h-5 w-5" />
-            <span>3×3 Matrix Network</span>
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="text-center py-8">
-            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-honey mx-auto mb-2"></div>
-            <div className="text-sm text-muted-foreground">Loading matrix data...</div>
+      <Card>
+        <CardContent className="p-6">
+          <div className="text-center text-gray-500 flex items-center justify-center">
+            <User className="animate-spin mr-2" size={20} />
+            {t('matrix.drillDown.loading')}
           </div>
         </CardContent>
       </Card>
@@ -296,25 +191,22 @@ const DrillDownMatrixView: React.FC<DrillDownMatrixViewProps> = ({
 
   if (error) {
     return (
-      <Card className="bg-secondary border-border">
-        <CardHeader>
-          <CardTitle className="text-honey flex items-center space-x-2">
-            <Trophy className="h-5 w-5" />
-            <span>3×3 Matrix Network</span>
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="text-center py-8">
-            <div className="text-red-400 mb-2">⚠️ Error loading matrix data</div>
-            <div className="text-xs text-muted-foreground">{error}</div>
-            <Button 
-              variant="outline" 
-              size="sm" 
-              className="mt-3"
-              onClick={() => loadMemberMatrix(rootWalletAddress, true)}
-            >
-              Retry
-            </Button>
+      <Card>
+        <CardContent className="p-6">
+          <div className="text-center text-red-500">
+            {t('matrix.errors.loadFailed')}: {error.message}
+          </div>
+        </CardContent>
+      </Card>
+    );
+  }
+
+  if (!matrixData) {
+    return (
+      <Card>
+        <CardContent className="p-6">
+          <div className="text-center text-gray-500">
+            {t('matrix.drillDown.noData')}
           </div>
         </CardContent>
       </Card>
@@ -322,216 +214,149 @@ const DrillDownMatrixView: React.FC<DrillDownMatrixViewProps> = ({
   }
 
   return (
-    <Card className="bg-secondary border-border">
+    <Card className="bg-white border">
       <CardHeader>
-        <CardTitle className="text-honey">
-          <div className="flex flex-col space-y-3 sm:space-y-0 sm:flex-row sm:items-center sm:justify-between">
-            <div className="flex items-center space-x-2">
-              <Trophy className="h-5 w-5 flex-shrink-0" />
-              <span className="text-sm sm:text-base">3×3 Matrix Network (19 Layers)</span>
-            </div>
-            <div className="flex items-center space-x-2 self-start sm:self-center">
-              <Badge variant="outline" className="border-honey text-honey text-xs">
-                Layer {Math.max(navigationPath.length, 1)}
-              </Badge>
-              <Badge variant="outline" className="border-blue-400 text-blue-400 text-xs">
-                Max: 19
-              </Badge>
-            </div>
+        <CardTitle className="flex items-center justify-between">
+          <div className="flex items-center">
+            <Users size={20} className="mr-2" />
+            矩阵视图
+          </div>
+          <div className="flex items-center text-sm text-gray-600">
+            <Badge variant="outline">
+              {matrixData.totalLayer1Members}/3 已填满
+            </Badge>
           </div>
         </CardTitle>
-        
-        {/* Layer Progress Indicator */}
-        <div className="flex items-center space-x-2 mt-3">
-          <span className="text-xs text-muted-foreground">Depth:</span>
-          <div className="flex-1 bg-muted rounded-full h-2">
-            <div 
-              className="bg-gradient-to-r from-honey to-orange-500 h-2 rounded-full transition-all duration-300"
-              style={{ width: `${Math.min((Math.max(navigationPath.length, 1) / 19) * 100, 100)}%` }}
-            ></div>
-          </div>
-          <span className="text-xs text-honey font-semibold">
-            {Math.max(navigationPath.length, 1)}/19
-          </span>
-        </div>
       </CardHeader>
       
-      <CardContent className="space-y-6">
-        {/* Navigation Breadcrumb - Mobile Optimized */}
-        {navigationPath.length > 1 && (
-          <div className="space-y-3">
-            <div className="flex flex-col space-y-2 sm:space-y-0 sm:flex-row sm:items-center sm:space-x-2">
+      <CardContent className="p-6">
+        {/* 根节点信息 */}
+        <div className="mb-6 p-4 bg-gray-100 rounded-lg text-center">
+          <div className="text-lg font-bold text-gray-800 mb-2">🏠 根节点 (你)</div>
+          <div className="text-sm font-mono text-gray-600 bg-white px-3 py-1 rounded border">
+            {rootWalletAddress.slice(0, 6)}...{rootWalletAddress.slice(-4)}
+          </div>
+          {rootUser && (
+            <div className="mt-2">
+              <Badge className="bg-blue-100 text-blue-800">
+                等级 {rootUser.currentLevel}
+              </Badge>
+            </div>
+          )}
+        </div>
+
+        {/* L M R 水平布局 */}
+        <div className="grid grid-cols-3 gap-4 mb-6">
+          {/* L 位置 */}
+          {(() => {
+            const leftNode = matrixData.layer1Matrix.find(n => n.position === 'L');
+            return (
+              <MatrixNode
+                key="L"
+                position="L"
+                member={leftNode?.member || null}
+                onNavigateToMember={onNavigateToMember}
+                onToggleExpand={handleToggleExpand}
+                isExpanded={expandedMember === leftNode?.member?.wallet}
+                t={t}
+              />
+            );
+          })()}
+
+          {/* M 位置 */}
+          {(() => {
+            const middleNode = matrixData.layer1Matrix.find(n => n.position === 'M');
+            return (
+              <MatrixNode
+                key="M"
+                position="M"
+                member={middleNode?.member || null}
+                onNavigateToMember={onNavigateToMember}
+                onToggleExpand={handleToggleExpand}
+                isExpanded={expandedMember === middleNode?.member?.wallet}
+                t={t}
+              />
+            );
+          })()}
+
+          {/* R 位置 */}
+          {(() => {
+            const rightNode = matrixData.layer1Matrix.find(n => n.position === 'R');
+            return (
+              <MatrixNode
+                key="R"
+                position="R"
+                member={rightNode?.member || null}
+                onNavigateToMember={onNavigateToMember}
+                onToggleExpand={handleToggleExpand}
+                isExpanded={expandedMember === rightNode?.member?.wallet}
+                t={t}
+              />
+            );
+          })()}
+        </div>
+
+        {/* 展开的子节点 */}
+        {expandedMember && childrenData && (
+          <div className="mb-6 p-4 bg-blue-50 rounded-lg border-2 border-blue-200">
+            <div className="flex items-center justify-between mb-4">
+              <h4 className="text-sm font-medium text-blue-800 flex items-center">
+                <Users size={16} className="mr-2" />
+                {childrenData.expandedMemberName || formatWallet(expandedMember)} 的下级节点
+              </h4>
               <Button
-                variant="outline"
                 size="sm"
-                onClick={goToRoot}
-                className="border-honey/30 text-honey hover:bg-honey hover:text-black w-full sm:w-auto"
+                variant="outline"
+                className="text-xs"
+                onClick={() => setExpandedMember(null)}
               >
-                <Home className="h-4 w-4 mr-1" />
-                Root
+                收起
               </Button>
-              {navigationPath.length > 2 && (
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => navigateToLevel(navigationPath.length - 2)}
-                  className="border-honey/30 text-honey hover:bg-honey hover:text-black w-full sm:w-auto"
-                >
-                  <ArrowLeft className="h-4 w-4 mr-1" />
-                  Back
-                </Button>
-              )}
             </div>
             
-            {/* Breadcrumb Path - Mobile Scrollable */}
-            <div className="bg-muted/30 rounded-lg p-3">
-              <div className="text-xs text-muted-foreground mb-2">Navigation Path:</div>
-              <div className="flex items-center space-x-2 text-sm text-muted-foreground overflow-x-auto scrollbar-hide">
-                {navigationPath.map((node, index) => (
-                  <React.Fragment key={node.walletAddress}>
-                    {index > 0 && <ChevronRight className="h-3 w-3 flex-shrink-0" />}
-                    <button
-                      onClick={() => navigateToLevel(index)}
-                      className="hover:text-honey transition-colors cursor-pointer whitespace-nowrap flex-shrink-0"
-                    >
-                      <span className="block sm:inline">{node.username}</span>
-                      {node.position && <span className="text-xs ml-1">({node.position})</span>}
-                    </button>
-                  </React.Fragment>
-                ))}
-              </div>
+            <div className="grid grid-cols-3 gap-3">
+              {['L', 'M', 'R'].map(position => {
+                const childNode = childrenData.children?.find((c: any) => 
+                  c.member && c.member.matrix_position?.endsWith(`.${position}`)
+                );
+                
+                if (childNode?.member) {
+                  return (
+                    <div key={position} className="border border-blue-200 rounded-lg p-3 bg-white">
+                      <div className="text-center">
+                        <div className="text-sm font-bold text-blue-700 mb-1">{position}</div>
+                        <div className="text-xs font-medium text-gray-800 mb-1">
+                          {childNode.member.username}
+                        </div>
+                        <div className="text-xs text-gray-600 font-mono mb-1">
+                          {formatWallet(childNode.member.wallet_address)}
+                        </div>
+                        <div className={`text-xs px-2 py-1 rounded ${
+                          childNode.member.is_spillover ? 'bg-blue-100 text-blue-700' : 'bg-green-100 text-green-700'
+                        }`}>
+                          {childNode.member.is_spillover ? '滑落' : '直推'}
+                        </div>
+                      </div>
+                    </div>
+                  );
+                } else {
+                  return (
+                    <div key={position} className="border border-gray-300 rounded-lg p-3 bg-gray-50">
+                      <div className="text-center">
+                        <div className="text-sm font-bold text-gray-500 mb-1">{position}</div>
+                        <div className="text-xs text-gray-400">空位</div>
+                      </div>
+                    </div>
+                  );
+                }
+              })}
             </div>
           </div>
         )}
 
-        {/* Current Member Info - Mobile Optimized */}
-        {currentNode?.member && (
-          <div className="text-center bg-gradient-to-r from-honey/5 to-honey/10 rounded-lg p-3 md:p-4 border border-honey/20">
-            <div className="w-16 h-16 md:w-20 md:h-20 bg-gradient-to-br from-honey to-honey/80 rounded-full mx-auto mb-3 flex items-center justify-center shadow-lg">
-              <span className="text-black font-bold text-lg md:text-xl">
-                {currentNode.member.username?.charAt(0).toUpperCase() || currentNode.member.walletAddress?.charAt(2).toUpperCase()}
-              </span>
-            </div>
-            <h3 className="text-base md:text-lg font-semibold text-honey mb-1 truncate px-2">
-              {currentNode.member.username || `User${currentNode.member.walletAddress?.slice(-4)}`}
-            </h3>
-            <div className="text-xs md:text-sm text-muted-foreground mb-2 truncate px-2">
-              {currentNode.member.walletAddress?.slice(0, 6)}...{currentNode.member.walletAddress?.slice(-4)}
-            </div>
-            <Badge className="bg-honey text-black text-xs md:text-sm">
-              Level {currentNode.member.level}
-            </Badge>
-          </div>
-        )}
-
-        {/* 19-Layer Matrix Overview - Mobile Optimized */}
-        <div className="bg-muted/30 rounded-lg p-3 md:p-4 border border-border/50">
-          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 mb-3">
-            <h4 className="text-sm font-semibold text-honey">19-Layer Network</h4>
-            <Badge variant="secondary" className="text-xs self-start sm:self-center">
-              Tap layer to explore
-            </Badge>
-          </div>
-          
-          {/* Layer visualization - First 10 layers */}
-          <div className="space-y-2">
-            <div className="flex gap-1">
-              {Array.from({ length: 10 }, (_, i) => {
-                const layer = i + 1;
-                const isCurrentLayer = layer === Math.max(navigationPath.length, 1);
-                const hasData = layer <= (Math.max(navigationPath.length, 1) + 1);
-                
-                return (
-                  <div
-                    key={layer}
-                    className={`
-                      flex-1 h-8 rounded text-xs flex items-center justify-center cursor-pointer transition-all
-                      ${isCurrentLayer 
-                        ? 'bg-honey text-black font-bold' 
-                        : hasData 
-                          ? 'bg-honey/20 text-honey hover:bg-honey/30' 
-                          : 'bg-muted text-muted-foreground hover:bg-muted/70'
-                      }
-                    `}
-                    title={`Layer ${layer}${isCurrentLayer ? ' (Current)' : ''}`}
-                  >
-                    {layer}
-                  </div>
-                );
-              })}
-            </div>
-            
-            {/* Second row - Layers 11-19 */}
-            <div className="flex gap-1">
-              {Array.from({ length: 9 }, (_, i) => {
-                const layer = i + 11;
-                const isCurrentLayer = layer === Math.max(navigationPath.length, 1);
-                const hasData = layer <= (Math.max(navigationPath.length, 1) + 1);
-                
-                return (
-                  <div
-                    key={layer}
-                    className={`
-                      flex-1 h-8 rounded text-xs flex items-center justify-center cursor-pointer transition-all
-                      ${isCurrentLayer 
-                        ? 'bg-honey text-black font-bold' 
-                        : hasData 
-                          ? 'bg-honey/20 text-honey hover:bg-honey/30' 
-                          : 'bg-muted text-muted-foreground hover:bg-muted/70'
-                      }
-                    `}
-                    title={`Layer ${layer}${isCurrentLayer ? ' (Current)' : ''}`}
-                  >
-                    {layer}
-                  </div>
-                );
-              })}
-            </div>
-          </div>
-          
-          <div className="flex justify-between text-xs text-muted-foreground mt-2">
-            <span>Layer 1</span>
-            <span>Layer 19</span>
-          </div>
-        </div>
-
-        {/* L-M-R Matrix Display - Mobile Optimized */}
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 md:gap-6">
-          {/* Left Position */}
-          <div className="space-y-2 md:space-y-4">
-            <div className="text-center">
-              <Badge variant="outline" className="bg-green-500/10 border-green-500/30 text-green-400 text-xs">
-                LEFT ({currentNode?.left.length || 0})
-              </Badge>
-            </div>
-            {renderMemberCard(currentNode?.left[0] || null, 'L')}
-          </div>
-
-          {/* Middle Position */}
-          <div className="space-y-2 md:space-y-4">
-            <div className="text-center">
-              <Badge variant="outline" className="bg-blue-500/10 border-blue-500/30 text-blue-400 text-xs">
-                MIDDLE ({currentNode?.middle.length || 0})
-              </Badge>
-            </div>
-            {renderMemberCard(currentNode?.middle[0] || null, 'M')}
-          </div>
-
-          {/* Right Position */}
-          <div className="space-y-2 md:space-y-4">
-            <div className="text-center">
-              <Badge variant="outline" className="bg-purple-500/10 border-purple-500/30 text-purple-400 text-xs">
-                RIGHT ({currentNode?.right.length || 0})
-              </Badge>
-            </div>
-            {renderMemberCard(currentNode?.right[0] || null, 'R')}
-          </div>
-        </div>
-
-        {/* Help Text */}
-        <div className="text-center text-sm text-muted-foreground bg-muted/20 rounded-lg p-3">
-          <p>点击任意会员查看其下级 L-M-R 矩阵</p>
-          <p className="text-xs mt-1">Click any member to view their L-M-R downline matrix</p>
+        {/* 简单说明 */}
+        <div className="mt-6 p-3 bg-gray-50 rounded text-sm text-gray-600 text-center">
+          💡 绿色表示直推成员，蓝色表示滑落成员。点击有下级的成员卡片可展开查看其L M R下级节点。
         </div>
       </CardContent>
     </Card>

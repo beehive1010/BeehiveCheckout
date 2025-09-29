@@ -1,0 +1,2349 @@
+{
+  "nav": {
+    "dashboard": "",
+    "referrals": "",
+    "rewards": "",
+    "tasks": "",
+    "nfts": "",
+    "membership": "",
+    "marketplace": "",
+    "education": "",
+    "discover": "",
+    "hiveworld": "",
+    "me": "",
+    "home": ""
+  },
+  "common": {
+    "backToProfile": "",
+    "cancel": ""
+  },
+  "matrixExplanation": {
+    "title": "",
+    "subtitle": "",
+    "matrixStructure": "",
+    "placementRules": {
+      "title": "",
+      "rule1": "",
+      "rule2": "",
+      "rule3": ""
+    },
+    "rewardSystem": {
+      "title": "",
+      "rule1": "",
+      "rule2": "",
+      "rule3": ""
+    },
+    "membershipLevels": {
+      "title": "",
+      "level1": {
+        "title": "",
+        "price": "",
+        "description": ""
+      },
+      "level2to19": {
+        "title": "",
+        "price": "",
+        "description": ""
+      },
+      "level19": {
+        "title": "",
+        "price": "",
+        "description": ""
+      }
+    },
+    "bccRewards": {
+      "title": "",
+      "tier1": "",
+      "levelProgression": "",
+      "activationBonus": ""
+    },
+    "specialRules": {
+      "title": "",
+      "level2Requirement": "",
+      "sequentialPurchases": "",
+      "pendingWindow": ""
+    }
+  },
+  "auth": {
+    "completingAuthentication": "",
+    "authenticationSuccessful": "",
+    "redirectingToDashboard": "",
+    "backToLogin": ""
+  },
+  "landing": {
+    "hero": {
+      "title": "",
+      "subtitle": ""
+    },
+    "getStarted": "",
+    "matrix": {
+      "explainTitle": "",
+      "explainDescription": "",
+      "explainButton": ""
+    },
+    "features": {
+      "membership": {
+        "title": "",
+        "description": ""
+      },
+      "referral": {
+        "title": "",
+        "description": ""
+      },
+      "education": {
+        "title": "",
+        "description": ""
+      },
+      "marketplace": {
+        "title": "",
+        "description": ""
+      },
+      "tokens": {
+        "title": "",
+        "description": ""
+      },
+      "rewards": {
+        "title": "",
+        "description": ""
+      }
+    },
+    "stats": {
+      "membershipLevels": "",
+      "matrixSystem": "",
+      "nftMarketplace": ""
+    },
+    "platformFeatures": {
+      "title": "",
+      "subtitle": "",
+      "exclusiveLevels": "",
+      "exclusiveCollections": "",
+      "autoPlacement": "",
+      "dualTokenSystem": "",
+      "premiumCourses": "",
+      "countdown": ""
+    },
+    "ctaStats": {
+      "membershipLevels": "",
+      "matrixSystem": "",
+      "earningPotential": ""
+    },
+    "howItWorks": {
+      "title": "",
+      "subtitle": "",
+      "step1": {
+        "title": "",
+        "description": ""
+      },
+      "step2": {
+        "title": "",
+        "description": ""
+      },
+      "step3": {
+        "title": "",
+        "description": ""
+      }
+    },
+    "cta": {
+      "title": "",
+      "description": "",
+      "button": ""
+    }
+  },
+  "dashboard": {
+    "welcomeBack": "",
+    "welcomeMember": "",
+    "loadingData": "",
+    "balance": "",
+    "network": "",
+    "rewards": "",
+    "buildNetwork": "",
+    "upgrade": "",
+    "bccBalance": "",
+    "bccLocked": "",
+    "referralNetwork": "",
+    "directReferrals": "",
+    "maxLayer": "",
+    "rewardCenter": "",
+    "totalRewards": "",
+    "pendingRewards": "",
+    "shareReferral": "",
+    "shareDescription": "",
+    "copyLink": "",
+    "linkCopied": "",
+    "quickNavigation": "",
+    "viewMatrix": "",
+    "claimRewards": "",
+    "inviteTip": "",
+    "topUp": "",
+    "totalTeamSize": "",
+    "claimableRewards": "",
+    "level2Requirements": {
+      "title": "",
+      "needLevel1": "",
+      "needReferrals": "",
+      "directReferralsOnly": "",
+      "excludesSpillover": "",
+      "howToInvite": ""
+    },
+    "errors": {
+      "dataLoadFailed": "",
+      "refreshToRetry": "",
+      "loadError": "",
+      "retry": ""
+    },
+    "success": {
+      "copied": "",
+      "linkCopiedToClipboard": "",
+      "refreshed": "",
+      "dataUpdated": ""
+    },
+    "refresh": "",
+    "refreshing": "",
+    "lastUpdated": "",
+    "activitiesWillAppear": "",
+    "noActivities": "",
+    "recentActivities": "",
+    "referralDescription": "",
+    "referrals": "",
+    "nftRequired": {
+      "title": "",
+      "description": "",
+      "requiredNft": "",
+      "nftDescription": "",
+      "level1Warrior": "",
+      "tokenId": "",
+      "price": "",
+      "priceAmount": "",
+      "benefitsTitle": "",
+      "benefits": "",
+      "premiumTitle": "",
+      "premiumDescription": "",
+      "supportText": "",
+      "purchaseSuccess": {
+        "title": "",
+        "description": ""
+      },
+      "purchaseError": {
+        "title": "",
+        "description": ""
+      },
+      "getButton": "",
+      "level1Membership": "",
+      "bumblebeeNFT": "",
+      "levelOne": "",
+      "accessTasks": "",
+      "referralRewards": "",
+      "nftClaiming": "",
+      "premiumContent": ""
+    },
+    "activation": {
+      "title": "",
+      "description": "",
+      "membershipLevel": "",
+      "price": "",
+      "priceLevel1": "",
+      "activationNote": "",
+      "success": {
+        "title": "",
+        "description": ""
+      },
+      "error": {
+        "title": "",
+        "description": ""
+      }
+    },
+    "membershipLevel": "",
+    "activateLevel1": "",
+    "activating": "",
+    "status": {
+      "active": ""
+    },
+    "balances": {
+      "bccFree": "",
+      "bccLocked": ""
+    },
+    "quickActions": {
+      "tokens": {
+        "title": "",
+        "description": "",
+        "stat": ""
+      },
+      "tasks": {
+        "description": ""
+      },
+      "education": {
+        "description": ""
+      },
+      "hiveworld": {
+        "description": ""
+      }
+    },
+    "recentActivity": "",
+    "member": "",
+    "userCentre": "",
+    "verifying": "",
+    "nftVerified": "",
+    "reward": "",
+    "nfts": "",
+    "accountOverview": "",
+    "userAvatar": "",
+    "levelText": "",
+    "priceLevel1": "",
+    "activity": {
+      "rewardReceived": "",
+      "fromReferralUpgrade": "",
+      "rewardAmount": "",
+      "nftClaimed": "",
+      "merchantNft": "",
+      "bccDeduction": "",
+      "newReferral": "",
+      "userJoined": "",
+      "activeStatus": ""
+    },
+    "referralLink": {
+      "title": "",
+      "show": "",
+      "hide": "",
+      "copy": "",
+      "copied": "",
+      "copiedDesc": ""
+    },
+    "shareToEarn": "",
+    "referralLinkCopied": "",
+    "social": {
+      "twitter": "",
+      "telegram": "",
+      "whatsapp": ""
+    },
+    "stats": {
+      "directReferrals": "",
+      "teamSize": "",
+      "totalEarnings": "",
+      "bccBalance": "",
+      "thisMonth": "",
+      "totalMembers": "",
+      "allTime": "",
+      "matrixNetwork": "",
+      "networkGrowth": "",
+      "teamPerformance": "",
+      "layerProgress": "",
+      "totalRewards": "",
+      "bccLocked": "",
+      "nftsOwned": ""
+    },
+    "tokenPurchase": {
+      "bccDescription": "",
+      "cthDescription": "",
+      "topUpDescription": ""
+    },
+    "globalStats": {
+      "title": "",
+      "totalMembers": "",
+      "totalRewardsPaid": "",
+      "pendingRewards": "",
+      "highestLevel": "",
+      "membersByLevel": "",
+      "members": ""
+    },
+    "uplineNetwork": {
+      "title": "",
+      "earnings": "",
+      "loading": "",
+      "noReferrals": "",
+      "shareMessage": ""
+    },
+    "downlineNetwork": {
+      "title": ""
+    },
+    "downlineMatrix": {
+      "title": "",
+      "placement": ""
+    },
+    "actions": {
+      "upgradeLevel": "",
+      "upgradeDescription": "",
+      "viewReferrals": "",
+      "referralsDescription": "",
+      "claimNFT": "",
+      "nftDescription": "",
+      "learnEarn": "",
+      "educationDescription": ""
+    },
+    "registrationExpiry": {
+      "warning": ""
+    },
+    "layer": {
+      "name": "",
+      "members": "",
+      "upgraded": "",
+      "placements": ""
+    }
+  },
+  "wallet": {
+    "connect": "",
+    "disconnect": "",
+    "connected": ""
+  },
+  "header": {
+    "connectWallet": ""
+  },
+  "footer": {
+    "newsletter": {
+      "title": "",
+      "description": "",
+      "placeholder": "",
+      "button": "",
+      "disclaimer": ""
+    },
+    "brand": {
+      "tagline": ""
+    },
+    "copyright": {
+      "rights": "",
+      "blockchain": ""
+    },
+    "backToTop": ""
+  },
+  "registration": {
+    "title": "",
+    "subtitle": "",
+    "description": "",
+    "walletAddress": "",
+    "email": "",
+    "emailPlaceholder": "",
+    "username": "",
+    "usernamePlaceholder": "",
+    "secondaryPassword": "",
+    "passwordPlaceholder": "",
+    "confirmPassword": "",
+    "confirmPasswordPlaceholder": "",
+    "referrer": "",
+    "register": "",
+    "registering": "",
+    "agreement": "",
+    "noReferrerInfo": {
+      "title": "",
+      "description": "",
+      "getLink": ""
+    },
+    "errors": {
+      "emailRequired": "",
+      "emailInvalid": "",
+      "usernameRequired": "",
+      "usernameTooShort": "",
+      "passwordRequired": "",
+      "passwordTooShort": "",
+      "passwordMismatch": "",
+      "referrerRequired": "",
+      "alreadyRegistered": "",
+      "alreadyRegisteredDescription": "",
+      "cannotReferSelf": "",
+      "failedToValidateReferrer": "",
+      "referrerNotValid": "",
+      "walletRequired": "",
+      "walletRequiredDescription": "",
+      "referrerRequiredDescription": "",
+      "invalidReferrer": "",
+      "invalidReferrerDescription": "",
+      "registrationFailed": "",
+      "registrationFailedDescription": ""
+    },
+    "success": "",
+    "successDescription": "",
+    "welcomeBack": "",
+    "accountExists": "",
+    "welcomeMessage": "",
+    "validatingReferrer": "",
+    "invalidReferrer": "",
+    "validReferrer": "",
+    "level": "",
+    "checkingStatus": "",
+    "connected": "",
+    "referralStatus": "",
+    "usernameLabel": "",
+    "emailLabel": "",
+    "nextSteps": "",
+    "nextStepsDescription": {
+      "step1": "",
+      "step2": "",
+      "step3": "",
+      "step4": ""
+    },
+    "registerButton": "",
+    "registeringButton": "",
+    "referralLinkRequired": "",
+    "footerText": "",
+    "referredBy": "",
+    "referralLinkExample": "",
+    "referralRequired": {
+      "title": "",
+      "description": ""
+    },
+    "failed": "",
+    "unknownError": "",
+    "error": {
+      "title": "",
+      "description": ""
+    },
+    "walletRequired": {
+      "title": "",
+      "description": ""
+    },
+    "optional": "",
+    "referrerValidationFailed": "",
+    "referrerNotActiveMember": "",
+    "checkUserError": "",
+    "memberCreated": "",
+    "memberCreatedMessage": "",
+    "registrationError": "",
+    "registrationErrorOccurred": "",
+    "usernameRequired": "",
+    "usernameMinLength": "",
+    "usernameFormat": "",
+    "emailInvalid": "",
+    "referrerRequired": "",
+    "validating": "",
+    "validationFailed": "",
+    "referrerValidated": "",
+    "directReferrals": "",
+    "teamMembers": "",
+    "nextStep1": "",
+    "nextStep2": "",
+    "nextStep3": "",
+    "matrixAdvantages": "",
+    "matrixFeature1": "",
+    "matrixFeature2": "",
+    "matrixFeature3": "",
+    "matrixFeature4": ""
+  },
+  "notifications": {
+    "title": "",
+    "tabs": {
+      "all": "",
+      "unread": "",
+      "urgent": "",
+      "action": "",
+      "archived": ""
+    },
+    "search": {
+      "placeholder": ""
+    },
+    "empty": {
+      "all": "",
+      "unread": "",
+      "urgent": "",
+      "action": "",
+      "archived": ""
+    },
+    "actions": {
+      "markAsRead": "",
+      "markAllAsRead": "",
+      "archive": "",
+      "viewDetails": "",
+      "takeAction": ""
+    },
+    "priority": {
+      "low": "",
+      "normal": "",
+      "high": "",
+      "urgent": ""
+    },
+    "types": {
+      "level_unlock": "",
+      "reward_claim": "",
+      "membership_activation": "",
+      "referral_bonus": "",
+      "withdrawal_completed": "",
+      "system_update": "",
+      "security_alert": "",
+      "payment_received": "",
+      "upgrade_reminder": "",
+      "countdown_warning": "",
+      "matrix_placement": "",
+      "notification": ""
+    },
+    "new": "",
+    "actionRequired": "",
+    "archived": "",
+    "message": "",
+    "amount": "",
+    "matrixInfo": "",
+    "level": "",
+    "levelValue": "",
+    "layer": "",
+    "layerValue": "",
+    "position": "",
+    "positionValue": "",
+    "relatedMembers": "",
+    "triggeredBy": "",
+    "relatedMember": "",
+    "timing": "",
+    "created": "",
+    "expires": "",
+    "emailSent": "",
+    "additionalInfo": "",
+    "takeAction": "",
+    "delete": "",
+    "time": {
+      "recently": "",
+      "expires": ""
+    }
+  },
+  "claim": {
+    "walletNotConnected": "",
+    "connectWalletToClaimNFT": "",
+    "referrerRequired": "",
+    "referrerRequiredDesc": "",
+    "selfReferralNotAllowed": "",
+    "selfReferralNotAllowedDesc": "",
+    "checkingRegistration": "",
+    "validatingReferrer": "",
+    "invalidReferrer": "",
+    "useValidReferrer": "",
+    "referrerMustBeRegistered": "",
+    "validationFailed": "",
+    "validationFailedDesc": "",
+    "checkingBalance": "",
+    "checkingApproval": "",
+    "waitingApproval": "",
+    "waitingApprovalConfirmation": "",
+    "mintingNFT": "",
+    "waitingNFTConfirmation": "",
+    "waitingBlockchainConfirmation": "",
+    "verifyingAndActivating": "",
+    "nftClaimedSuccessfully": "",
+    "nftClaimedAndActivated": "",
+    "nftClaimedActivatedWithBackendPending": "",
+    "nftClaimedProcessedActivationPending": "",
+    "nftClaimedBlockchainSuccess": "",
+    "nftClaimedTitle": "",
+    "rateLimited": "",
+    "welcomeBack": "",
+    "alreadyHaveNFT": "",
+    "insufficientBalance": "",
+    "need130USDC": "",
+    "tokenApprovalFailed": "",
+    "ensureApproval130USDC": "",
+    "networkError": "",
+    "switchToArbitrumSepolia": "",
+    "claimFailed": "",
+    "insufficientGasFunds": "",
+    "needETHForGas": "",
+    "claimLevel1NFT": "",
+    "claimUniqueNFTDesc": "",
+    "processing": "",
+    "claimLevel1NFT130USDC": "",
+    "doNotClosePageWarning": "",
+    "paymentRequired": "",
+    "instantActivation": "",
+    "nftMintedToWallet": "",
+    "twoTransactions": ""
+  },
+  "referrals": {
+    "title": "",
+    "activated": "",
+    "copy": "",
+    "linkDescription": "",
+    "matrixLevel": "",
+    "matrixView": "",
+    "noReferrals": "",
+    "pending": "",
+    "recentReferrals": "",
+    "subtitle": "",
+    "totalEarnings": "",
+    "totalReferrals": "",
+    "yourLink": "",
+    "copied": {
+      "title": "",
+      "description": ""
+    },
+    "tabs": {
+      "matrix": "",
+      "stats": "",
+      "rewards": ""
+    },
+    "legacySystem": "",
+    "activeMembers": "",
+    "matrixLayers": "",
+    "recentActivity": "",
+    "recentlyJoined": "",
+    "rewardSystemInfo": "",
+    "matrixRewardsTitle": "",
+    "bccTokenRewardsTitle": "",
+    "rewards": {
+      "level1Direct": "",
+      "level2Matrix": "",
+      "spilloverBonuses": "",
+      "claimWindow": ""
+    },
+    "bccRewards": {
+      "transferable": "",
+      "locked": "",
+      "multipliers": "",
+      "upgrades": ""
+    },
+    "team_overview": "",
+    "view_matrix": "",
+    "total_team": "",
+    "active_members": "",
+    "max_layers": "",
+    "network_strength": "",
+    "layer_progress": "",
+    "recent_referrals": "",
+    "share_link": "",
+    "rewardStructure": {
+      "title": "",
+      "globalMatrix": "",
+      "layerBased": "",
+      "specialRules": "",
+      "rule1": "",
+      "rule2": "",
+      "rule3": ""
+    },
+    "referralLink": {
+      "title": ""
+    },
+    "availableRewards": {
+      "title": "",
+      "withdraw": ""
+    },
+    "matrixPerformance": {
+      "title": "",
+      "status": "",
+      "active": "",
+      "currentLevel": "",
+      "level": "",
+      "matrixRewards": "",
+      "pendingRewards": "",
+      "viewMatrix": ""
+    },
+    "matrixManagement": {
+      "title": "",
+      "directReferrals": "",
+      "yourTeamPlaced": "",
+      "totalMatrix": "",
+      "members": "",
+      "yourTeam": "",
+      "upperSpillover": "",
+      "layerDetails": "",
+      "upgradeRewards": "",
+      "loadingLayers": "",
+      "noMembers": ""
+    },
+    "layerView": {
+      "layer": "",
+      "positionsFilled": "",
+      "upgradedToLevel": "",
+      "full": "",
+      "available": "",
+      "backToOverview": "",
+      "details": "",
+      "members": "",
+      "upgraded": "",
+      "filledPositions": "",
+      "upgradedMembers": "",
+      "completionRate": "",
+      "lastUpdated": ""
+    },
+    "notifications": {
+      "memberUpgraded": "",
+      "reward": "",
+      "from": "",
+      "member": "",
+      "noRecentActivity": "",
+      "activitiesAppear": "",
+      "noNotifications": "",
+      "notificationsAppear": ""
+    },
+    "upgradeRewards": {
+      "description": ""
+    },
+    "matrixVisualization": {
+      "title": "",
+      "lmrLayout": "",
+      "leftPosition": "",
+      "middlePosition": "",
+      "rightPosition": "",
+      "matrixTree": "",
+      "placement": "",
+      "spillover": "",
+      "autoPlacement": "",
+      "position": "",
+      "layer": "",
+      "level": "",
+      "empty": "",
+      "filled": "",
+      "viewDetails": "",
+      "expand": "",
+      "collapse": ""
+    },
+    "networkStats": {
+      "title": "",
+      "directReferrals": "",
+      "totalTeamSize": "",
+      "maxLayer": "",
+      "activeMembers": "",
+      "recentActivity": "",
+      "teamGrowth": "",
+      "performance": "",
+      "thisWeek": "",
+      "thisMonth": "",
+      "allTime": ""
+    },
+    "matrixPosition": {
+      "left": "",
+      "middle": "",
+      "right": "",
+      "leftPosition": "",
+      "middlePosition": "",
+      "rightPosition": "",
+      "position1": "",
+      "position2": "",
+      "position3": "",
+      "yourPosition": "",
+      "available": "",
+      "occupied": ""
+    },
+    "matrixSystem": {
+      "title": "",
+      "matrixTree": "",
+      "enhancedMatrixTree": "",
+      "layer": "",
+      "layers": "",
+      "matrixInformation": "",
+      "yourMatrixTree": "",
+      "matrixNetworkLayer": ""
+    }
+  },
+  "rewards": {
+    "title": "",
+    "subtitle": "",
+    "tabs": {
+      "overview": "",
+      "rollup": "",
+      "history": "",
+      "withdrawal": ""
+    },
+    "overview": {
+      "totalEarnings": "",
+      "availableBalance": "",
+      "pendingRewards": "",
+      "rewardsThisMonth": "",
+      "recentActivity": ""
+    },
+    "claimable": "",
+    "rollup": {
+      "title": "",
+      "subtitle": "",
+      "totalRolledUp": "",
+      "totalAmount": "",
+      "reasons": {
+        "expired_unclaimed": "",
+        "insufficient_level": "",
+        "network_spillover": "",
+        "manual_rollup": "",
+        "system_rollup": ""
+      },
+      "recentRollups": "",
+      "rollupBreakdown": "",
+      "noRollupRewards": "",
+      "noRollupDescription": "",
+      "aboutRollup": "",
+      "aboutRollupDescription": ""
+    },
+    "history": {
+      "title": "",
+      "noHistory": "",
+      "noHistoryDescription": ""
+    },
+    "available_usdt": "",
+    "available_bcc": "",
+    "total_earned": "",
+    "pending_rewards": "",
+    "withdraw": "",
+    "top_up_bcc": "",
+    "refresh": "",
+    "claim": "",
+    "no_claimable_rewards": "",
+    "withdrawRewards": "",
+    "withdrawDescription": "",
+    "withdrawAvailable": "",
+    "claimSuccess": "",
+    "claimSuccessDescription": "",
+    "claimFailed": "",
+    "claimFailedDescription": "",
+    "loading": "",
+    "error": "",
+    "totalEarned": "",
+    "thisMonth": "",
+    "pending": "",
+    "quickActions": "",
+    "claimAvailable": "",
+    "viewAnalytics": "",
+    "rewardSystemInfo": "",
+    "matrixRewardsTitle": "",
+    "bccTokenRewardsTitle": "",
+    "bccTransferable": "",
+    "bccLocked": "",
+    "bccMultipliers": "",
+    "bccUpgrades": "",
+    "recentRewards": "",
+    "noHistory": "",
+    "pendingCountdowns": "",
+    "pendingRewardTimer": "",
+    "pendingRewardDescription": "",
+    "expired": "",
+    "timeFormat": {
+      "days": "",
+      "hours": "",
+      "minutes": "",
+      "seconds": ""
+    },
+    "fetchError": "",
+    "noPendingRewards": "",
+    "superRootUpgrade": "",
+    "qualificationWait": "",
+    "from": "",
+    "timeRemaining": "",
+    "expiresAt": "",
+    "refreshCountdown": "",
+    "pendingRewards": "",
+    "information": {
+      "title": "",
+      "subtitle": "",
+      "badge": "",
+      "layerRewards": "",
+      "bccRewards": "",
+      "layerRewardsSubtitle": "",
+      "bccRewardsSubtitle": "",
+      "layerRewardsSystem": "",
+      "bccRewardsSystem": "",
+      "layerRewardsSystemDesc": "",
+      "bccRewardsSystemDesc": "",
+      "layerRewardsMobileDesc": "",
+      "bccRewardsMobileDesc": "",
+      "layerRewardsPreview": "",
+      "bccPhasesPreview": "",
+      "viewAll19Layers": "",
+      "viewAll19LayersDetails": "",
+      "viewAllPhases": "",
+      "viewAllPhasesDetails": "",
+      "layerRewardsDialogTitle": "",
+      "layerRewardsDialogDesc": "",
+      "matrixStructureExplanation": "",
+      "matrixPrinciple": "",
+      "matrixPrincipleDesc": "",
+      "triggerConditions": "",
+      "condition1": "",
+      "condition2": "",
+      "condition3": "",
+      "rewardAmounts": "",
+      "layer1Amount": "",
+      "layer2Amount": "",
+      "layer19Amount": "",
+      "complete19LayerStructure": "",
+      "layer1to5Rewards": "",
+      "layer6to10Rewards": "",
+      "layer11to15Rewards": "",
+      "layer16to19Rewards": "",
+      "levelUpgradeTriggered": "",
+      "nftPricePercent": "",
+      "highestRewardLayer": "",
+      "layerRewardsSummary": "",
+      "toLayer19Summary": "",
+      "phase": "",
+      "current": "",
+      "fourPhasesSystem": "",
+      "layerRewardsTitle": "",
+      "layerRewardsDescription": "",
+      "bccRewardsTitle": "",
+      "bccRewardsDescription": "",
+      "viewDetails": ""
+    }
+  },
+  "me": {
+    "title": "",
+    "directReferrals": "",
+    "editProfile": "",
+    "indirectReferrals": "",
+    "noReferralData": "",
+    "referrals": "",
+    "referralStats": "",
+    "rewards": "",
+    "subtitle": "",
+    "totalEarnings": "",
+    "totalReferrals": "",
+    "status": {
+      "active": "",
+      "memberSince": ""
+    },
+    "balances": {
+      "usdt": "",
+      "bccTransferable": "",
+      "bccRestricted": "",
+      "cth": ""
+    },
+    "learning": {
+      "title": "",
+      "coursesCompleted": "",
+      "studyHours": "",
+      "certificates": ""
+    },
+    "referral": {
+      "title": "",
+      "directReferrals": "",
+      "totalTeamSize": "",
+      "totalEarnings": "",
+      "thisMonth": ""
+    },
+    "settings": {
+      "title": "",
+      "language": "",
+      "languageDescription": "",
+      "notifications": "",
+      "notificationsDescription": "",
+      "twoFactor": "",
+      "twoFactorDescription": "",
+      "enabled": "",
+      "disabled": "",
+      "enable2FA": "",
+      "changePassword": "",
+      "deactivateAccount": ""
+    }
+  },
+  "tasks": {
+    "title": "",
+    "pageTitle": "",
+    "categories": {
+      "membership": "",
+      "advertisement": ""
+    },
+    "membership": {
+      "title": "",
+      "description": "",
+      "level": "",
+      "usdt": "",
+      "status": {
+        "owned": "",
+        "available": "",
+        "locked": ""
+      },
+      "getStarted": "",
+      "upgradeNow": "",
+      "lockedMessage": ""
+    },
+    "advertisement": {
+      "title": "",
+      "description": "",
+      "noNfts": "",
+      "loading": ""
+    },
+    "availableBalance": "",
+    "restrictedFirst": "",
+    "restrictedBCC": "",
+    "transferableBCC": "",
+    "claim": {
+      "checkingRegistration": "",
+      "registrationCheckFailed": "",
+      "registrationCheckFailedDesc": "",
+      "referrerRequired": "",
+      "referrerRequiredDesc": "",
+      "selfReferralNotAllowed": "",
+      "selfReferralNotAllowedDesc": "",
+      "validatingReferrer": "",
+      "invalidReferrer": "",
+      "useValidReferrer": "",
+      "validationFailed": "",
+      "validationFailedDesc": "",
+      "success": {
+        "title": "",
+        "description": ""
+      },
+      "error": {
+        "title": "",
+        "description": ""
+      }
+    },
+    "claiming": "",
+    "insufficientBCC": "",
+    "claimModal": {
+      "title": "",
+      "price": "",
+      "availableRestricted": "",
+      "availableTransferable": "",
+      "confirmation": "",
+      "confirm": "",
+      "cancel": ""
+    }
+  },
+  "membership": {
+    "title": "",
+    "subtitle": "",
+    "currentLevel": "",
+    "directReferrals": "",
+    "featured": "",
+    "exclusiveBenefits": "",
+    "purchaseSuccess": "",
+    "processing": "",
+    "notUnlocked": "",
+    "directReferralRequirement": "",
+    "directRegisterTip": "",
+    "quickUpgrade": "",
+    "nftClaimDescription": "",
+    "nftClaimNote": "",
+    "level2DirectReferralsRequired": "",
+    "currentDirectReferrals": "",
+    "level2RequiresReferrals": "",
+    "currentReferrals": "",
+    "needsActivation": "",
+    "goToWelcome": "",
+    "upgradeSuccess": "",
+    "upgradeSuccessDescription": "",
+    "maxLevelReached": "",
+    "nftDetected": "",
+    "syncingData": "",
+    "refreshNow": "",
+    "usdcPayment": "",
+    "navigating": "",
+    "levelUpgradeTitle": "",
+    "upgradeInstruction": "",
+    "status": {
+      "owned": "",
+      "available": "",
+      "locked": ""
+    },
+    "qualifiedStatus": "",
+    "statusNotQualified": "",
+    "unlockNow": "",
+    "level2Requirements": {
+      "title": "",
+      "needLevel1": "",
+      "needLevel1AndReferrals": "",
+      "tip": "",
+      "howTo": ""
+    },
+    "errors": {
+      "walletRequired": "",
+      "connectWallet": "",
+      "levelLocked": "",
+      "previousLevelRequired": "",
+      "checkReferralError": "",
+      "verificationFailed": "",
+      "claimFailed": "",
+      "sequentialUpgrade": "",
+      "alreadyOwned": "",
+      "level2Requirements": "",
+      "missingPrerequisites": "",
+      "requirementsNotMet": "",
+      "level2ReferralRequirement": ""
+    },
+    "claiming": {
+      "started": "",
+      "processing": "",
+      "success": "",
+      "successDescription": ""
+    },
+    "rewards": {
+      "distributed": "",
+      "distributionResult": "",
+      "distributionWarning": "",
+      "distributionIssue": ""
+    },
+    "progressInfo": {
+      "title": "",
+      "description": "",
+      "sequential": "",
+      "rewards": "",
+      "benefits": ""
+    }
+  },
+  "education": {
+    "title": "",
+    "subtitle": "",
+    "allLevels": "",
+    "filterByLevel": "",
+    "insufficientBalance": "",
+    "insufficientBalanceDesc": "",
+    "level": "",
+    "levelRequiredDesc": "",
+    "noCourses": "",
+    "purchaseError": "",
+    "purchaseErrorDesc": "",
+    "purchaseSuccess": "",
+    "purchaseSuccessDesc": "",
+    "searchPlaceholder": "",
+    "search": {
+      "placeholder": ""
+    },
+    "filters": {
+      "category": "",
+      "allCategories": "",
+      "level": "",
+      "allLevels": "",
+      "type": "",
+      "allTypes": "",
+      "payment": "",
+      "allCourses": "",
+      "onlineZoom": "",
+      "videoLessons": "",
+      "freeCourses": "",
+      "paidBCC": ""
+    },
+    "progress": {
+      "title": "",
+      "subtitle": "",
+      "completed": "",
+      "inProgress": "",
+      "hours": "",
+      "label": "",
+      "coursesCompleted": "",
+      "hoursLearned": ""
+    },
+    "free": "",
+    "levelRequired": "",
+    "duration": "",
+    "completed": "",
+    "continue": "",
+    "startFree": "",
+    "purchase": "",
+    "enrolling": "",
+    "insufficientBCC": "",
+    "courseType": {
+      "online": "",
+      "video": ""
+    },
+    "buttons": {
+      "viewDetails": "",
+      "claimFree": "",
+      "purchaseCourse": "",
+      "completed": "",
+      "continue": "",
+      "getAccess": "",
+      "enrollNow": "",
+      "startLearning": "",
+      "enrolled": "",
+      "levelRequired": ""
+    },
+    "status": {
+      "clickToView": "",
+      "enrolled": "",
+      "available": "",
+      "requiresUpgrade": "",
+      "requiresBCC": ""
+    },
+    "courseDetails": {
+      "overview": "",
+      "curriculum": "",
+      "lessons": "",
+      "instructor": "",
+      "requirements": "",
+      "whatYouLearn": "",
+      "courseContent": "",
+      "zoomDetails": "",
+      "meetingId": "",
+      "password": "",
+      "joinLink": ""
+    },
+    "lessons": {
+      "lesson": "",
+      "unlock": "",
+      "unlocking": "",
+      "watch": "",
+      "completed": "",
+      "locked": "",
+      "free": "",
+      "progress": ""
+    },
+    "enroll": {
+      "success": {
+        "title": "",
+        "description": ""
+      },
+      "error": {
+        "title": "",
+        "description": ""
+      }
+    },
+    "errors": {
+      "courseNotFound": "",
+      "loadingError": "",
+      "accessDenied": "",
+      "networkError": ""
+    }
+  },
+  "discover": {
+    "title": "",
+    "subtitle": "",
+    "searchPlaceholder": "",
+    "search": {
+      "placeholder": "",
+      "recent": "",
+      "trending": "",
+      "clear": ""
+    },
+    "featured": "",
+    "categories": {
+      "title": "",
+      "all": "",
+      "defi": "",
+      "nft": "",
+      "gamefi": "",
+      "dao": "",
+      "bridge": "",
+      "lending": "",
+      "dex": "",
+      "yield": "",
+      "insurance": "",
+      "social": "",
+      "tools": "",
+      "education": ""
+    },
+    "trending": "",
+    "ecosystem": {
+      "title": "",
+      "subtitle": "",
+      "membership": {
+        "title": "",
+        "subtitle": "",
+        "levels": "",
+        "members": ""
+      },
+      "matrix": {
+        "title": "",
+        "subtitle": "",
+        "structure": "",
+        "rewards": ""
+      },
+      "education": {
+        "title": "",
+        "subtitle": "",
+        "courses": "",
+        "certificates": ""
+      }
+    },
+    "networks": {
+      "title": "",
+      "subtitle": ""
+    },
+    "stats": {
+      "title": "",
+      "totalValue": "",
+      "transactions": "",
+      "users": "",
+      "protocols": ""
+    },
+    "news": {
+      "title": "",
+      "subtitle": "",
+      "readMore": "",
+      "minutes": "",
+      "matrix30": {
+        "title": "",
+        "description": ""
+      },
+      "bridge": {
+        "title": "",
+        "description": ""
+      },
+      "education": {
+        "title": "",
+        "description": ""
+      }
+    },
+    "dapps": {
+      "beehive": "",
+      "beehiveDesc": "",
+      "uniswap": "",
+      "uniswapDesc": "",
+      "opensea": "",
+      "openseaDesc": "",
+      "compound": "",
+      "compoundDesc": "",
+      "matrixRewards": "",
+      "matrixRewardsDesc": "",
+      "pancakeswap": "",
+      "pancakeswapDesc": "",
+      "axieinfinity": "",
+      "axieinfinityDesc": ""
+    },
+    "chains": {
+      "ethereum": "",
+      "polygon": "",
+      "arbitrum": "",
+      "optimism": "",
+      "bsc": "",
+      "avalanche": ""
+    }
+  },
+  "welcome": {
+    "title": "",
+    "subtitle": "",
+    "description": "",
+    "checkingMembership": "",
+    "checkingChain": "",
+    "referredBy": "",
+    "matrixPlacement": "",
+    "matrixPlacementInfo": "",
+    "instructions": {
+      "step1": "",
+      "step2": ""
+    },
+    "referralRequired": {
+      "title": "",
+      "description": "",
+      "example": "",
+      "howToGet": ""
+    },
+    "referral": {
+      "rewards": ""
+    },
+    "button": {
+      "unlock": ""
+    },
+    "nft": {
+      "title": "",
+      "description": "",
+      "tokenId": "",
+      "price": "",
+      "priceAmount": ""
+    },
+    "benefits": {
+      "title": "",
+      "dashboard": "",
+      "tasks": "",
+      "education": "",
+      "discover": "",
+      "tokens": "",
+      "hiveworld": ""
+    },
+    "premium": {
+      "title": "",
+      "description": ""
+    },
+    "success": {
+      "title": "",
+      "description": ""
+    },
+    "error": {
+      "title": "",
+      "description": ""
+    },
+    "supportText": ""
+  },
+  "tokenPurchase": {
+    "title": "",
+    "description": "",
+    "testnet": {
+      "warning": "",
+      "note": ""
+    },
+    "connectWallet": {
+      "title": "",
+      "description": ""
+    },
+    "form": {
+      "tokenType": "",
+      "paymentChain": "",
+      "tokenAmount": "",
+      "enterAmount": "",
+      "totalCost": ""
+    },
+    "tokens": {
+      "bcc": {
+        "name": "",
+        "title": "",
+        "description": "",
+        "uses": {
+          "marketplace": "",
+          "education": "",
+          "advertisement": ""
+        }
+      },
+      "cth": {
+        "name": "",
+        "title": "",
+        "description": "",
+        "uses": {
+          "gas": "",
+          "operations": "",
+          "transactions": ""
+        }
+      }
+    },
+    "buttons": {
+      "creating": "",
+      "purchase": "",
+      "cancelPayment": ""
+    },
+    "payment": {
+      "title": "",
+      "description": ""
+    },
+    "balances": {
+      "title": "",
+      "bccTotal": "",
+      "transferable": "",
+      "restricted": "",
+      "cthBalance": "",
+      "noBalances": ""
+    },
+    "history": {
+      "title": "",
+      "noPurchases": ""
+    },
+    "messages": {
+      "purchaseCreated": "",
+      "readyToPurchase": "",
+      "error": "",
+      "createFailed": "",
+      "tokensAirdropped": "",
+      "tokensAdded": "",
+      "confirmFailed": "",
+      "walletNotConnected": "",
+      "connectToPurchase": "",
+      "invalidAmount": "",
+      "enterValidAmount": ""
+    }
+  },
+  "nft": {
+    "claimError": "",
+    "claimErrorDesc": "",
+    "claimNow": "",
+    "claimSuccess": "",
+    "claimSuccessDesc": "",
+    "confirmAndClaim": "",
+    "confirmClaim": "",
+    "confirmClaimDesc": "",
+    "connectWallet": "",
+    "connectWalletDesc": "",
+    "insufficientBalance": "",
+    "insufficientBalanceDesc": "",
+    "price": "",
+    "subtitle": "",
+    "title": "",
+    "yourBalance": ""
+  },
+  "nftCenter": {
+    "title": "",
+    "description": "",
+    "backToTasks": "",
+    "noNfts": {
+      "title": "",
+      "description": "",
+      "browseButton": ""
+    },
+    "dialog": {
+      "title": ""
+    }
+  },
+  "userProfile": {
+    "username": "",
+    "level": "",
+    "userCenter": "",
+    "center": ""
+  },
+  "rewardHistory": {
+    "upgradeReward": "",
+    "rollupReward": "",
+    "completed": "",
+    "expired": "",
+    "noRewards": "",
+    "linkCopied": {
+      "title": "",
+      "description": ""
+    }
+  },
+  "ads": {
+    "title": "",
+    "description": "",
+    "nftCenter": {
+      "title": "",
+      "description": "",
+      "backToTasks": "",
+      "noNfts": {
+        "title": "",
+        "description": "",
+        "browse": ""
+      },
+      "useNft": "",
+      "activating": "",
+      "activeCode": "",
+      "serviceStatus": "",
+      "currentStatus": "",
+      "activatedOn": "",
+      "readyToActivate": "",
+      "bccLocked": "",
+      "bucketUsed": "",
+      "warning": {
+        "title": "",
+        "description": ""
+      }
+    },
+    "manageNfts": "",
+    "browseNfts": "",
+    "exploreServices": "",
+    "claimNft": "",
+    "soldOut": "",
+    "claiming": "",
+    "confirmClaim": "",
+    "bccRequired": "",
+    "available": "",
+    "cost": "",
+    "bucketSelection": "",
+    "transferableBcc": "",
+    "restrictedBcc": "",
+    "claim": {
+      "success": {
+        "title": "",
+        "description": ""
+      },
+      "error": {
+        "title": "",
+        "description": ""
+      }
+    },
+    "burn": {
+      "title": "",
+      "description": "",
+      "error": {
+        "title": "",
+        "description": ""
+      }
+    },
+    "status": {
+      "active": "",
+      "used": "",
+      "burned": "",
+      "claimed": "",
+      "serviceActivated": ""
+    }
+  },
+  "hiveworld": {
+    "title": "",
+    "noPosts": "",
+    "readMore": "",
+    "searchPlaceholder": "",
+    "subtitle": "",
+    "stats": {
+      "directReferrals": "",
+      "totalTeam": "",
+      "pending": "",
+      "totalEarned": ""
+    },
+    "matrix": {
+      "title": "",
+      "you": "",
+      "activeDirect": "",
+      "activeIndirect": "",
+      "availableSlot": ""
+    },
+    "referralLink": {
+      "title": "",
+      "copy": ""
+    },
+    "rewardHistory": {
+      "title": "",
+      "directBonus": ""
+    },
+    "blog": {
+      "title": "",
+      "subtitle": "",
+      "searchPlaceholder": "",
+      "allTopics": "",
+      "noArticles": "",
+      "noArticlesDesc": "",
+      "tags": {
+        "Web3": "",
+        "Blockchain": "",
+        "Membership": "",
+        "NFT": "",
+        "Access Control": "",
+        "Technology": "",
+        "Referrals": "",
+        "Economics": "",
+        "Strategy": "",
+        "Multi-chain": "",
+        "Payments": "",
+        "Development": "",
+        "Governance": "",
+        "Community": "",
+        "DAO": ""
+      },
+      "posts": {
+        "1": {
+          "title": "",
+          "excerpt": "",
+          "author": ""
+        },
+        "2": {
+          "title": "",
+          "excerpt": "",
+          "author": ""
+        },
+        "3": {
+          "title": "",
+          "excerpt": "",
+          "author": ""
+        },
+        "4": {
+          "title": "",
+          "excerpt": "",
+          "author": ""
+        },
+        "5": {
+          "title": "",
+          "excerpt": "",
+          "author": ""
+        }
+      }
+    }
+  },
+  "blogpost": {
+    "linkCopied": {
+      "title": "",
+      "description": ""
+    },
+    "author": "",
+    "publishedOn": "",
+    "tags": "",
+    "relatedPosts": "",
+    "sharePost": ""
+  },
+  "activity": {
+    "rewardReceived": "",
+    "fromReferralUpgrade": "",
+    "nftClaimed": "",
+    "newReferral": "",
+    "memberSince": ""
+  },
+  "errors": {
+    "walletNotConnected": "",
+    "failedToFetch": "",
+    "failedToClaim": "",
+    "failedToBurn": "",
+    "insufficientBcc": "",
+    "maxLevel": "",
+    "inactive": ""
+  },
+  "buttons": {
+    "getStarted": "",
+    "connectWallet": "",
+    "copied": "",
+    "close": "",
+    "viewInCenter": "",
+    "burnForService": "",
+    "burnNft": "",
+    "confirmBurn": "",
+    "burning": "",
+    "useNftService": "",
+    "topUp": ""
+  },
+  "selectors": {
+    "category": "",
+    "level": "",
+    "type": "",
+    "payment": "",
+    "onlineZoom": "",
+    "videoLessons": "",
+    "freeCourses": "",
+    "paidBcc": "",
+    "completed": "",
+    "enrolled": ""
+  },
+  "notificationsPage": {
+    "title": "",
+    "subtitle": "",
+    "backToDashboard": "",
+    "settings": "",
+    "stats": {
+      "total": "",
+      "unread": "",
+      "urgent": ""
+    },
+    "quickActions": {
+      "title": "",
+      "urgentNotifications": "",
+      "actionRequired": "",
+      "matrixDashboard": ""
+    },
+    "detail": {
+      "selectNotification": ""
+    },
+    "settingsDialog": {
+      "title": "",
+      "emailNotifications": "",
+      "pushNotifications": "",
+      "memberActivations": "",
+      "levelUpgrades": "",
+      "upgradeReminders": "",
+      "rewardNotifications": "",
+      "urgentNotifications": "",
+      "highPriorityOnly": "",
+      "allNotifications": "",
+      "cancel": "",
+      "saveSettings": ""
+    }
+  },
+  "profileSettings": {
+    "title": "",
+    "profileUpdated": "",
+    "profileUpdatedDesc": "",
+    "updateFailed": "",
+    "updateFailedDesc": "",
+    "profileInformation": "",
+    "profileImage": "",
+    "profileImageUpdated": "",
+    "profileImageUpdatedDesc": "",
+    "uploadFailed": "",
+    "username": "",
+    "enterUsername": "",
+    "email": "",
+    "enterEmail": "",
+    "bio": "",
+    "bioPlaceholder": "",
+    "language": "",
+    "notificationSettings": "",
+    "emailNotifications": "",
+    "emailNotificationsDesc": "",
+    "pushNotifications": "",
+    "pushNotificationsDesc": "",
+    "rewardNotifications": "",
+    "rewardNotificationsDesc": "",
+    "referralNotifications": "",
+    "referralNotificationsDesc": "",
+    "privacySettings": "",
+    "profileVisibility": "",
+    "profileVisibilityDesc": "",
+    "public": "",
+    "teamMembersOnly": "",
+    "private": "",
+    "showEarnings": "",
+    "showEarningsDesc": "",
+    "showReferralCount": "",
+    "showReferralCountDesc": "",
+    "accountSummary": "",
+    "levelMember": "",
+    "wallet": "",
+    "memberSince": "",
+    "recentlyJoined": "",
+    "saveChanges": ""
+  },
+  "membershipSystem": {
+    "wallet": {
+      "connectTitle": "",
+      "connectDescription": ""
+    },
+    "activation": {
+      "title": "",
+      "description": "",
+      "steps": {
+        "details": "",
+        "payment": "",
+        "confirm": "",
+        "complete": ""
+      },
+      "form": {
+        "username": "",
+        "usernamePlaceholder": "",
+        "email": "",
+        "emailPlaceholder": "",
+        "referrer": "",
+        "referrerPlaceholder": "",
+        "continueToPayment": "",
+        "continueToConfirmation": "",
+        "back": "",
+        "activateMembership": "",
+        "activating": ""
+      },
+      "payment": {
+        "cost": "",
+        "nftCost": "",
+        "activationFee": "",
+        "networkLabel": "",
+        "networks": {
+          "simulation": "",
+          "testnet": "",
+          "mainnet": ""
+        },
+        "transactionHashLabel": "",
+        "transactionHashPlaceholder": "",
+        "transactionHashHelper": ""
+      },
+      "confirm": {
+        "summaryTitle": "",
+        "username": "",
+        "email": "",
+        "network": "",
+        "nftLevel": "",
+        "level1": "",
+        "referrer": ""
+      },
+      "success": {
+        "welcomeTitle": "",
+        "welcomeDescription": "",
+        "continueToDashboard": "",
+        "activated": ""
+      },
+      "errors": {
+        "fillRequiredFields": "",
+        "transactionHashRequired": "",
+        "activationFailed": "",
+        "tryAgain": "",
+        "loadStatusFailed": ""
+      }
+    },
+    "rewards": {
+      "pendingTitle": "",
+      "rewardDescription": "",
+      "status": {
+        "claimable": "",
+        "pending": ""
+      },
+      "actions": {
+        "claim": ""
+      },
+      "success": {
+        "claimed": ""
+      },
+      "errors": {
+        "claimFailed": ""
+      },
+      "quickActions": {
+        "title": "",
+        "upgrade": "",
+        "withdraw": "",
+        "claimRewards": ""
+      },
+      "levelProgress": {
+        "title": "",
+        "readyToUpgrade": "",
+        "completeRequirements": ""
+      }
+    },
+    "matrix": {
+      "title": "",
+      "connectDescription": "",
+      "layerFillStatus": "",
+      "stats": {
+        "totalMembers": "",
+        "yourPosition": "",
+        "directRefs": "",
+        "matrixDepth": ""
+      },
+      "visualization": {
+        "layerRoot": "",
+        "layerNumber": "",
+        "available": "",
+        "member": "",
+        "you": "",
+        "active": "",
+        "inactive": ""
+      },
+      "controls": {
+        "viewLayer": "",
+        "zoomIn": "",
+        "zoomOut": "",
+        "reset": "",
+        "treeView": "",
+        "gridView": ""
+      },
+      "referralLink": {
+        "title": "",
+        "copy": "",
+        "share": ""
+      },
+      "quickStats": {
+        "title": "",
+        "totalMembers": "",
+        "activeLayers": "",
+        "yourDirectRefs": "",
+        "matrixDepth": "",
+        "layersCount": ""
+      },
+      "share": {
+        "title": "",
+        "text": ""
+      },
+      "errors": {
+        "loadFailed": "",
+        "copyFailed": "",
+        "loadTreeDataFailed": "",
+        "loadLayerStatsFailed": "",
+        "loadMatrixStatsFailed": "",
+        "loadRecursiveMatrixFailed": ""
+      },
+      "navigation": {
+        "home": "",
+        "features": "",
+        "howItWorks": "",
+        "education": "",
+        "getStarted": ""
+      },
+      "ui": {
+        "unknown": "",
+        "showLess": "",
+        "showAllLayers": ""
+      },
+      "success": {
+        "linkCopied": ""
+      }
+    },
+    "upgrade": {
+      "title": "",
+      "cost": "",
+      "bccUnlock": "",
+      "requirements": {
+        "notMet": "",
+        "directReferrals": ""
+      },
+      "maxLevel": {
+        "title": "",
+        "description": ""
+      },
+      "buttons": {
+        "upgrade": "",
+        "upgrading": ""
+      }
+    },
+    "withdrawal": {
+      "title": "",
+      "dailyLimit": "",
+      "monthlyLimit": "",
+      "used": "",
+      "remaining": ""
+    }
+  },
+  "connectWallet": {
+    "title": "",
+    "description": ""
+  },
+  "tabs": {
+    "overview": "",
+    "rewards": "",
+    "upgrade": "",
+    "matrix": "",
+    "withdraw": ""
+  },
+  "loading": {
+    "membershipLevels": "",
+    "data": "",
+    "processing": "",
+    "please_wait": ""
+  },
+  "error": {
+    "loadMembershipLevels": "",
+    "loadData": "",
+    "tryRefresh": "",
+    "generic": ""
+  },
+  "benefits": {
+    "basic": {
+      "platformFeatures": "",
+      "matrixEntry": "",
+      "learningMaterials": "",
+      "communityAccess": "",
+      "tokenId1": ""
+    },
+    "enhanced": {
+      "matrixRewards": "",
+      "premiumContent": "",
+      "referralBonuses": "",
+      "advancedFeatures": "",
+      "tokenId2": ""
+    },
+    "goldBee": {
+      "tier": ""
+    },
+    "platinumBee": {
+      "tier": ""
+    },
+    "diamondBee": {
+      "tier": ""
+    },
+    "masterBee": {
+      "tier": ""
+    },
+    "enhancedMatrix": "",
+    "bonusMultiplier": "",
+    "vipStatus": "",
+    "premium": "",
+    "exclusiveMerchant": "",
+    "enhancedFeatures": "",
+    "governance": "",
+    "prioritySupport": "",
+    "founderStatus": "",
+    "eliteStatus": "",
+    "tokenId": ""
+  },
+  "guard": {
+    "checkingAccess": "",
+    "verifyingMembership": "",
+    "walletRequired": "",
+    "connectWalletToContinue": "",
+    "goToHome": "",
+    "accessError": "",
+    "tryAgain": "",
+    "upgradeRequired": "",
+    "currentLevel": "",
+    "requiredLevel": "",
+    "levelRequiredMessage": "",
+    "upgradeMembership": "",
+    "redirecting": "",
+    "redirectingToActivation": ""
+  },
+  "nfts": {
+    "title": "",
+    "subtitle": "",
+    "advertisement": {
+      "title": "",
+      "subtitle": "",
+      "views": ""
+    },
+    "merchant": {
+      "title": "",
+      "subtitle": "",
+      "soldOut": "",
+      "supply": "",
+      "sold": ""
+    },
+    "myCollection": {
+      "title": "",
+      "subtitle": "",
+      "empty": "",
+      "emptyDesc": ""
+    },
+    "purchase": {
+      "button": "",
+      "purchasing": "",
+      "walletRequired": "",
+      "connectWallet": "",
+      "insufficientBcc": "",
+      "needBcc": "",
+      "success": "",
+      "successDesc": "",
+      "failed": "",
+      "failedDesc": ""
+    },
+    "errors": {
+      "loadFailed": "",
+      "loadAdvertisementFailed": "",
+      "loadMerchantFailed": "",
+      "loadPurchasesFailed": ""
+    },
+    "balance": {
+      "available": "",
+      "bccBalance": ""
+    },
+    "stats": {
+      "advertisement": "",
+      "merchant": "",
+      "owned": ""
+    },
+    "categories": {
+      "all": "",
+      "defi": "",
+      "gaming": "",
+      "art": "",
+      "utility": "",
+      "collectible": ""
+    }
+  },
+  "bccBalance": {
+    "title": "",
+    "description": "",
+    "totalBalance": "",
+    "balanceBreakdown": "",
+    "transferable": "",
+    "transferableDesc": "",
+    "rewardClaims": "",
+    "rewardClaimsDesc": "",
+    "levelUnlock": "",
+    "levelUnlockDesc": "",
+    "activationBonus": "",
+    "activationBonusDesc": "",
+    "locked": "",
+    "pending": "",
+    "tierInfo": "",
+    "currentPhase": "",
+    "tierMultiplier": "",
+    "totalLockedPhase": "",
+    "nextPhaseAt": "",
+    "activations": "",
+    "transferBcc": "",
+    "transferring": "",
+    "claimRewards": "",
+    "claiming": "",
+    "infoTitle": "",
+    "transferableInfo": "",
+    "lockedInfo": "",
+    "tierInfoDesc": ""
+  },
+  "bccDisplay": {
+    "availableBcc": "",
+    "lockedBcc": "",
+    "totalUsed": "",
+    "totalUnlockedProgress": "",
+    "progressTarget": "",
+    "nextRelease": "",
+    "every72Hours": "",
+    "willBeReleased": "",
+    "latestRelease": "",
+    "bccReleased": "",
+    "releaseReason": "",
+    "scheduledRelease": "",
+    "noLockedBcc": "",
+    "unableToLoad": ""
+  },
+  "bccPurchase": {
+    "loadingOptions": "",
+    "connectWallet": "",
+    "currentBalance": "",
+    "availableForSpending": "",
+    "purchaseTokens": "",
+    "payWithUsdc": "",
+    "purchaseMethod": "",
+    "traditional": "",
+    "web3Shuffle": "",
+    "traditionalDesc": "",
+    "web3ShuffleDesc": "",
+    "purchaseAmount": "",
+    "enterAmount": "",
+    "minAmount": "",
+    "maxAmount": "",
+    "youPay": "",
+    "youReceive": "",
+    "exchangeRate": "",
+    "paymentNetwork": "",
+    "paymentMethod": "",
+    "thirdwebShuffle": "",
+    "directTransfer": "",
+    "chainId": "",
+    "usdcContract": "",
+    "shuffleSupport": "",
+    "yes": "",
+    "no": "",
+    "estimatedTime": "",
+    "createOrder": "",
+    "creatingOrder": "",
+    "orderCreated": "",
+    "completePayment": "",
+    "orderId": "",
+    "amountToPay": "",
+    "youllReceive": "",
+    "network": "",
+    "companyWallet": "",
+    "sendExactly": "",
+    "afterSending": "",
+    "backToConfig": "",
+    "confirmPaymentSent": "",
+    "processingPayment": "",
+    "confirmingPayment": "",
+    "purchaseCompleted": "",
+    "tokensCredited": "",
+    "addedToBalance": "",
+    "buyMoreBcc": "",
+    "browseNfts": "",
+    "web3Buy": {
+      "title": "",
+      "description": "",
+      "instantProcessing": "",
+      "noManualTransfer": "",
+      "autoCredited": "",
+      "supportedNetworks": "",
+      "howItWorks": "",
+      "step1": "",
+      "step2": "",
+      "step3": "",
+      "step4": "",
+      "launchPurchase": "",
+      "useTraditional": "",
+      "invalidConfig": "",
+      "connectWalletAndAmount": "",
+      "purchaseSuccessful": "",
+      "purchaseSuccess": "",
+      "purchaseFailed": "",
+      "purchaseFailedDesc": ""
+    }
+  },
+  "fees": {
+    "calculator": {
+      "title": "",
+      "subtitle": "",
+      "description": "",
+      "transactionDetails": "",
+      "transactionAmount": "",
+      "enterAmount": "",
+      "transactionType": "",
+      "types": {
+        "withdrawal": "",
+        "transfer": "",
+        "bridge": "",
+        "swap": ""
+      },
+      "sourceChain": "",
+      "targetChain": "",
+      "selectTargetChain": "",
+      "transactionPriority": "",
+      "priorities": {
+        "slow": "",
+        "standard": "",
+        "fast": ""
+      },
+      "includeApproval": "",
+      "autoCalculate": "",
+      "calculateFees": "",
+      "calculating": "",
+      "results": {
+        "title": "",
+        "failed": "",
+        "totalCost": "",
+        "percentage": "",
+        "breakdown": "",
+        "networkFee": "",
+        "platformFee": "",
+        "bridgeFee": "",
+        "tokenApproval": "",
+        "estimatedTime": "",
+        "timeMinutes": "",
+        "confirmations": "",
+        "recommendations": ""
+      },
+      "urgency": {
+        "low": "",
+        "medium": "",
+        "high": ""
+      },
+      "chainInfo": {
+        "chainId": "",
+        "usdcContract": "",
+        "bridgeSupport": "",
+        "yes": "",
+        "no": ""
+      },
+      "processing": "",
+      "error": ""
+    }
+  },
+  "guards": {
+    "route": {
+      "checkingAccess": "",
+      "verifyingMembership": "",
+      "walletRequired": "",
+      "connectWalletMessage": "",
+      "goToHome": "",
+      "accessError": "",
+      "tryAgain": "",
+      "loadingUserData": "",
+      "redirecting": "",
+      "accessDenied": ""
+    },
+    "admin": {
+      "verifyingAccess": "",
+      "notAuthenticated": "",
+      "unauthorized": "",
+      "insufficientPermissions": "",
+      "roleRequired": "",
+      "permissionRequired": ""
+    }
+  }
+}

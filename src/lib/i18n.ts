@@ -1,6 +1,7 @@
 // Import all translation files
 import en from '../translations/en.json';
 import zh from '../translations/zh.json';
+import zhTw from '../translations/zh-tw.json';
 import th from '../translations/th.json';
 import ms from '../translations/ms.json';
 import ko from '../translations/ko.json';
@@ -9,6 +10,7 @@ import ja from '../translations/ja.json';
 export const translations = {
   en,
   zh,
+  'zh-tw': zhTw,
   th,
   ms,
   ko,
@@ -34,6 +36,7 @@ export const formatNumber = (num: number, locale: SupportedLanguage): string => 
   const localeMap = {
     en: 'en-US',
     zh: 'zh-CN',
+    'zh-tw': 'zh-TW',
     th: 'th-TH',
     ms: 'ms-MY',
     ko: 'ko-KR',
@@ -51,6 +54,7 @@ export const formatCurrency = (
   const localeMap = {
     en: 'en-US',
     zh: 'zh-CN',
+    'zh-tw': 'zh-TW',
     th: 'th-TH',
     ms: 'ms-MY',
     ko: 'ko-KR',
@@ -71,6 +75,7 @@ export const formatDate = (
   const localeMap = {
     en: 'en-US',
     zh: 'zh-CN',
+    'zh-tw': 'zh-TW',
     th: 'th-TH',
     ms: 'ms-MY',
     ko: 'ko-KR',

@@ -190,7 +190,7 @@ export function CTASection() {
             
             {/* Subtitle */}
             <p className="text-gray-400 mt-8 text-lg font-light">
-              🎆 Join thousands of members earning passive income
+              🎆 {t('landing.cta.subtitle')}
             </p>
           </div>
         </CardContent>

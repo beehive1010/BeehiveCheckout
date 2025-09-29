@@ -1,10 +1,10 @@
-import React, { useState, useEffect } from 'react';
-import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
-import { ChevronLeft, ChevronRight, Users, Trophy } from 'lucide-react';
-import { supabase } from '@/lib/supabaseClient';
-import { useI18n } from '@/contexts/I18nContext';
+import React, {useEffect, useState} from 'react';
+import {Card, CardContent, CardHeader, CardTitle} from '@/components/ui/card';
+import {Button} from '@/components/ui/button';
+import {Badge} from '@/components/ui/badge';
+import {ChevronLeft, ChevronRight, Trophy, Users} from 'lucide-react';
+import {supabase} from '../../lib/supabase';
+import {useI18n} from '@/contexts/I18nContext';
 
 interface MatrixMember {
   walletAddress: string;
@@ -13,6 +13,9 @@ interface MatrixMember {
   isActive: boolean;
   layer: number;
   position: string;
+  isDirect?: boolean;
+  isSpillover?: boolean;
+  referrerWallet?: string;
 }
 
 interface MatrixLayerData {
@@ -33,7 +36,7 @@ const SimpleMatrixView: React.FC<SimpleMatrixViewProps> = ({ walletAddress, root
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  // Load matrix data from Supabase
+  // Load matrix data from Supabase using optimized tree view
   useEffect(() => {
     const loadMatrixData = async () => {
       if (!walletAddress) return;
@@ -42,13 +45,28 @@ const SimpleMatrixView: React.FC<SimpleMatrixViewProps> = ({ walletAddress, root
       setError(null);
       
       try {
-        // Get matrix data from referrals table
-        const { data: referralsData, error } = await supabase
+        // Get complete 19-layer matrix tree from referrals table with direct/spillover info
+        const { data: treeData, error } = await supabase
           .from('referrals')
-          .select('*')
-          .eq('matrix_root', walletAddress);
+          .select(`
+            member_wallet,
+            matrix_root_wallet,
+            matrix_layer,
+            matrix_position,
+            is_direct_referral,
+            is_spillover_placement,
+            placed_at,
+            referrer_wallet,
+            member_activation_sequence
+          `)
+          .ilike('matrix_root_wallet', walletAddress) // Use ilike for case-insensitive comparison
+          .order('matrix_layer')
+          .order('member_activation_sequence');
         
-        if (!error && referralsData) {
+        if (!error && treeData) {
+          console.log(`🔍 SimpleMatrixView: Raw tree data for ${walletAddress}:`, treeData.length, 'records');
+          console.log(`🔍 SimpleMatrixView: Sample data:`, treeData.slice(0, 5));
+          
           const organizedData: { [key: number]: MatrixLayerData } = {};
           
           // Initialize all 19 layers
@@ -56,35 +74,97 @@ const SimpleMatrixView: React.FC<SimpleMatrixViewProps> = ({ walletAddress, root
             organizedData[i] = { left: [], middle: [], right: [] };
           }
           
-          // Organize referrals by layer and position
-          referralsData.forEach((referral: any) => {
-            const layer = referral.matrix_layer;
-            const position = referral.matrix_position;
+          // Get user and member information
+          const memberWallets = treeData.map(node => node.member_wallet);
+          let usersData = [];
+          let membersDetailData = [];
+
+          if (memberWallets.length > 0) {
+            const [usersResult, membersResult] = await Promise.allSettled([
+              supabase
+                .from('users')
+                .select('wallet_address, username')
+                .in('wallet_address', memberWallets),
+              supabase
+                .from('members')
+                .select('wallet_address, current_level')
+                .in('wallet_address', memberWallets)
+            ]);
+
+            if (usersResult.status === 'fulfilled' && usersResult.value.data) {
+              usersData = usersResult.value.data;
+            }
+            if (membersResult.status === 'fulfilled' && membersResult.value.data) {
+              membersDetailData = membersResult.value.data;
+            }
+          }
+
+          // Organize matrix data by layer and position (from referrals table)
+          treeData.forEach((node: any) => {
+            const layer = node.matrix_layer;
+            const position = node.matrix_position;
+            
+            console.log(`🔍 Processing node:`, { 
+              layer, 
+              position, 
+              member_wallet: node.member_wallet,
+              isDirect: node.is_direct_referral,
+              isSpillover: node.is_spillover_placement
+            });
+
+            const userData = usersData.find(u => 
+              u.wallet_address.toLowerCase() === node.member_wallet.toLowerCase()
+            );
+            const memberDetail = membersDetailData.find(m => 
+              m.wallet_address.toLowerCase() === node.member_wallet.toLowerCase()
+            );
             
             const member: MatrixMember = {
-              walletAddress: referral.member_wallet,
-              username: `User${referral.member_wallet.slice(-4)}`,
-              level: 1,
-              isActive: true,
+              walletAddress: node.member_wallet,
+              username: userData?.username || `User${node.member_wallet.slice(-4)}`,
+              level: memberDetail?.current_level || 1,
+              isActive: true, // All in matrix are active
               layer: layer,
-              position: position
+              position: position,
+              isDirect: node.is_direct_referral || false,
+              isSpillover: node.is_spillover_placement || false,
+              referrerWallet: node.referrer_wallet
             };
             
-            // Distribute to L-M-R based on position - use proper mapping
+            // Distribute to L-M-R based on position
             if (organizedData[layer]) {
-              const pos = String(position).toLowerCase();
+              const pos = String(position).toUpperCase();
               
-              if (['l', '1', 'left'].includes(pos)) {
+              if (pos === 'L') {
                 organizedData[layer].left.push(member);
-              } else if (['m', '2', 'middle', 'center'].includes(pos)) {
+              } else if (pos === 'M') {
                 organizedData[layer].middle.push(member);
-              } else if (['r', '3', 'right'].includes(pos)) {
+              } else if (pos === 'R') {
                 organizedData[layer].right.push(member);
-              } else {
-                // Default to left if position is unclear
-                organizedData[layer].left.push(member);
               }
             }
+          });
+          
+          // Debug: Log layer data summary with detailed info
+          const layersWithData = Object.keys(organizedData)
+            .map(layer => parseInt(layer))
+            .filter(layer => {
+              const data = organizedData[layer];
+              return (data.left.length + data.middle.length + data.right.length) > 0;
+            });
+          
+          console.log(`🔍 SimpleMatrixView: Layers with data:`, layersWithData);
+          console.log(`🔍 SimpleMatrixView: Highest layer with data:`, Math.max(...layersWithData, 0));
+          
+          // Log detailed layer breakdown
+          layersWithData.forEach(layer => {
+            const data = organizedData[layer];
+            console.log(`🔍 Layer ${layer} details:`, {
+              left: data.left.length,
+              middle: data.middle.length,
+              right: data.right.length,
+              total: data.left.length + data.middle.length + data.right.length
+            });
           });
           
           setMatrixData(organizedData);
@@ -97,8 +177,8 @@ const SimpleMatrixView: React.FC<SimpleMatrixViewProps> = ({ walletAddress, root
           setMatrixData(emptyData);
         }
       } catch (error: any) {
-        console.error('Error loading matrix data:', error);
-        setError(error.message || 'Failed to load matrix data');
+        console.error('Error loading matrix tree data:', error);
+        setError(error.message || t('matrix.errors.loadTreeDataFailed'));
         
         // Initialize empty matrix on error
         const emptyData: { [key: number]: MatrixLayerData } = {};
@@ -123,7 +203,7 @@ const SimpleMatrixView: React.FC<SimpleMatrixViewProps> = ({ walletAddress, root
           {member.username?.charAt(0).toUpperCase() || 'U'}
         </span>
       </div>
-      <div className="text-sm font-medium truncate">{member.username || 'Unknown'}</div>
+      <div className="text-sm font-medium truncate">{member.username || t('matrix.ui.unknown')}</div>
       <div className="text-xs text-muted-foreground">
         {member.walletAddress?.slice(0, 6)}...{member.walletAddress?.slice(-4)}
       </div>

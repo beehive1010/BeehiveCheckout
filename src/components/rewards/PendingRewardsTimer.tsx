@@ -2,14 +2,14 @@ import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Clock, Trophy, User, AlertCircle } from 'lucide-react';
-import { supabase } from '@/lib/supabase';
+import { supabase } from '../../lib/supabase';
 import { useI18n } from '../../contexts/I18nContext';
 
 interface PendingReward {
   reward_id: string;
   reward_amount: number;
   triggering_member_username: string;
-  timer_type: 'super_root_upgrade' | 'qualification_wait';
+  timer_type: string; // More flexible type to handle different timer types
   time_remaining_seconds: number;
   expires_at: string;
   status_description: string;
@@ -53,25 +53,49 @@ export function PendingRewardsTimer({ walletAddress, onRewardClaimable }: Pendin
     }
   };
 
-  // 获取倒计时状态颜色
+  // 获取倒计时状态颜色和样式
   const getTimerColor = (seconds: number, timerType: string) => {
     if (seconds <= 0) return 'destructive';
-    if (seconds <= 3600) return 'destructive'; // 1小时内
-    if (seconds <= 86400) return 'warning'; // 24小时内
-    if (timerType === 'super_root_upgrade') return 'secondary';
+    if (seconds <= 3600) return 'destructive'; // 1小时内红色警告
+    if (seconds <= 86400) return 'warning'; // 24小时内黄色提醒
+    if (timerType === 'layer_r_upgrade_incentive') return 'secondary'; // R位置升级激励
     return 'default';
+  };
+
+  // 获取timer类型的显示文本和图标
+  const getTimerTypeDisplay = (timerType: string) => {
+    switch (timerType) {
+      case 'layer_r_upgrade_incentive':
+        return {
+          label: 'R位置升级激励',
+          color: 'bg-purple-100 text-purple-800 border-purple-300',
+          icon: '🚀'
+        };
+      case 'layer_qualification_wait':
+        return {
+          label: '等级资格等待',
+          color: 'bg-blue-100 text-blue-800 border-blue-300',
+          icon: '⏳'
+        };
+      default:
+        return {
+          label: '资格等待',
+          color: 'bg-gray-100 text-gray-800 border-gray-300',
+          icon: '⏱️'
+        };
+    }
   };
 
   // 获取pending奖励
   const fetchPendingRewards = async () => {
     try {
-      const { data, error } = await supabase.rpc('get_user_pending_rewards', {
+      const { data, error } = await supabase.rpc('get_user_pending_rewards' as any, {
         p_wallet_address: walletAddress
       });
 
       if (error) throw error;
 
-      setPendingRewards(data || []);
+      setPendingRewards((data as PendingReward[]) || []);
     } catch (err) {
       console.error('Error fetching pending rewards:', err);
       setError(err instanceof Error ? err.message : t('rewards.fetchError'));
@@ -80,13 +104,18 @@ export function PendingRewardsTimer({ walletAddress, onRewardClaimable }: Pendin
     }
   };
 
-  // 更新倒计时
+  // 稳定的更新倒计时函数，减少闪烁
   const updateCountdown = useCallback(() => {
     setPendingRewards(prev => 
       prev.map(reward => {
         const now = new Date().getTime();
         const expiry = new Date(reward.expires_at).getTime();
         const remaining = Math.max(0, Math.floor((expiry - now) / 1000));
+        
+        // 只有秒数发生变化时才更新，减少不必要的重新渲染
+        if (reward.time_remaining_seconds === remaining) {
+          return reward;
+        }
         
         // 如果倒计时结束且可以领取，触发回调
         if (remaining === 0 && reward.can_claim && onRewardClaimableRef.current) {
@@ -108,12 +137,38 @@ export function PendingRewardsTimer({ walletAddress, onRewardClaimable }: Pendin
     }
   }, [walletAddress]);
 
+  // 创建定时器，只在有pending rewards时运行
   useEffect(() => {
     if (pendingRewards.length === 0) return;
 
-    const interval = setInterval(updateCountdown, 1000);
+    const interval = setInterval(() => {
+      setPendingRewards(prev => 
+        prev.map(reward => {
+          const now = new Date().getTime();
+          const expiry = new Date(reward.expires_at).getTime();
+          const remaining = Math.max(0, Math.floor((expiry - now) / 1000));
+          
+          // 只有秒数发生变化时才更新
+          if (reward.time_remaining_seconds === remaining) {
+            return reward;
+          }
+          
+          // 如果倒计时结束且可以领取，触发回调
+          if (remaining === 0 && reward.can_claim && onRewardClaimableRef.current) {
+            onRewardClaimableRef.current(reward.reward_id);
+          }
+          
+          return {
+            ...reward,
+            time_remaining_seconds: remaining,
+            can_claim: remaining === 0 || reward.can_claim
+          };
+        })
+      );
+    }, 1000);
+
     return () => clearInterval(interval);
-  }, [pendingRewards.length, updateCountdown]); // Now updateCountdown is stable
+  }, [pendingRewards.length]); // 只依赖rewards数量变化
 
   if (loading) {
     return (
@@ -185,25 +240,43 @@ export function PendingRewardsTimer({ walletAddress, onRewardClaimable }: Pendin
           >
             {/* 奖励信息 */}
             <div className="flex justify-between items-start">
-              <div className="space-y-1">
+              <div className="space-y-2">
                 <div className="flex items-center gap-2">
                   <Trophy className="w-4 h-4 text-yellow-500" />
-                  <span className="font-semibold">{reward.reward_amount} USDT</span>
-                  <Badge variant="outline" size="sm">
-                    {reward.timer_type === 'super_root_upgrade' ? t('rewards.superRootUpgrade') : t('rewards.qualificationWait')}
-                  </Badge>
+                  <span className="font-semibold text-lg">{reward.reward_amount} USDT</span>
                 </div>
+                
+                {/* Timer类型标签 */}
+                <div className="flex items-center gap-2">
+                  <span className="text-lg">{getTimerTypeDisplay(reward.timer_type).icon}</span>
+                  <Badge variant="outline" className={getTimerTypeDisplay(reward.timer_type).color}>
+                    {getTimerTypeDisplay(reward.timer_type).label}
+                  </Badge>
+                  {reward.timer_type === 'layer_r_upgrade_incentive' && (
+                    <Badge variant="outline" className="bg-orange-100 text-orange-800 border-orange-300">
+                      升级激励
+                    </Badge>
+                  )}
+                </div>
+                
                 <div className="flex items-center gap-1 text-sm text-gray-600">
                   <User className="w-3 h-3" />
-                  {t('rewards.from')}: {reward.triggering_member_username}
+                  触发者: {reward.triggering_member_username}
                 </div>
               </div>
               
-              {reward.can_claim && (
-                <Badge variant="default" className="bg-green-500">
-                  {t('rewards.claimable')}
-                </Badge>
-              )}
+              <div className="flex flex-col items-end gap-2">
+                {reward.can_claim && (
+                  <Badge variant="default" className="bg-green-500">
+                    可领取
+                  </Badge>
+                )}
+                {reward.timer_type === 'layer_r_upgrade_incentive' && !reward.can_claim && (
+                  <Badge variant="outline" className="bg-purple-50 text-purple-600">
+                    需要升级
+                  </Badge>
+                )}
+              </div>
             </div>
 
             {/* 倒计时 */}
@@ -221,7 +294,7 @@ export function PendingRewardsTimer({ walletAddress, onRewardClaimable }: Pendin
               {/* 进度条 */}
               <div className="w-full bg-gray-200 rounded-full h-2">
                 <div
-                  className={`h-2 rounded-full transition-all duration-1000 ${
+                  className={`h-2 rounded-full transition-all duration-500 ${
                     reward.time_remaining_seconds <= 0
                       ? 'bg-red-500'
                       : reward.time_remaining_seconds <= 3600
@@ -231,9 +304,7 @@ export function PendingRewardsTimer({ walletAddress, onRewardClaimable }: Pendin
                       : 'bg-blue-500'
                   }`}
                   style={{
-                    width: reward.timer_type === 'super_root_upgrade'
-                      ? `${Math.max(0, (reward.time_remaining_seconds / (72 * 3600)) * 100)}%`
-                      : `${Math.max(0, (reward.time_remaining_seconds / (30 * 24 * 3600)) * 100)}%`
+                    width: `${Math.max(0, (reward.time_remaining_seconds / (72 * 3600)) * 100)}%`
                   }}
                 ></div>
               </div>

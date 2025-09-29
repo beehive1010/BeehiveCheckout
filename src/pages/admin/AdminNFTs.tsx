@@ -28,6 +28,7 @@ import {
 } from 'lucide-react';
 import { useAdminAuth } from '../../hooks/useAdminAuth';
 import { useToast } from '../../hooks/use-toast';
+import { useIsMobile } from '../../hooks/use-mobile';
 
 interface MerchantNFT {
   id: string;

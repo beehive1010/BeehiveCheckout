@@ -1,35 +1,15 @@
-import React, { useState, useEffect } from 'react';
-import { useWallet } from '../hooks/useWallet';
-import { useI18n } from '../contexts/I18nContext';
-import { useLocation } from 'wouter';
-import { Card, CardContent, CardHeader, CardTitle } from '../components/ui/card';
-import { Button } from '../components/ui/button';
-import { Badge } from '../components/ui/badge';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '../components/ui/tabs';
-import { Avatar, AvatarImage, AvatarFallback } from '../components/ui/avatar';
-import { useToast } from '../hooks/use-toast';
-import { supabase } from '../lib/supabase';
-import { 
-  UsersIcon, 
-  Edit, 
-  User, 
-  DollarSign, 
-  Activity, 
-  TrendingUp, 
-  Target, 
-  Crown, 
-  Layers, 
-  ArrowUpRight,
-  RefreshCw,
-  Award,
-  Timer,
-  Coins,
-  BarChart3,
-  Settings,
-  Wallet,
-  History,
-  Loader2
-} from 'lucide-react';
+import React, {useEffect, useState} from 'react';
+import {useWallet} from '../hooks/useWallet';
+import {useI18n} from '../contexts/I18nContext';
+import {useLocation} from 'wouter';
+import {Card, CardContent, CardHeader, CardTitle} from '../components/ui/card';
+import {Button} from '../components/ui/button';
+import {Badge} from '../components/ui/badge';
+import {Tabs, TabsContent, TabsList, TabsTrigger} from '../components/ui/tabs';
+import {Avatar, AvatarFallback, AvatarImage} from '../components/ui/avatar';
+import {useToast} from '../hooks/use-toast';
+import {supabase} from '../lib/supabase';
+import {Edit, Layers, Loader2, RefreshCw, Settings, Timer} from 'lucide-react';
 
 // Enhanced interfaces based on Me page components
 interface UserProfile {
@@ -88,7 +68,7 @@ interface RewardsDetails {
 // Enhanced data calling functions
 const callSupabaseFunction = async (functionName: string, action: string, data: any = {}, walletAddress?: string) => {
   const baseUrl = 'https://cvqibjcbfrwsgkvthccp.supabase.co/functions/v1';
-  const anonKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImN2cWliamNiZnJ3c2drdnRoY2NwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MjQ1MjUwMTYsImV4cCI6MjA0MDEwMTAxNn0.gBWZUvwCJgP1lsVQlZNDsYXDxBEr31QfRtNEgYzS6NA';
+  const anonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
   
   const headers: Record<string, string> = {
     'Content-Type': 'application/json',
@@ -137,11 +117,21 @@ const getComprehensiveUserData = async (walletAddress: string, method: string) =
       
     } else if (method === 'views') {
       // Method 2: Supabase Views
-      const [balanceView, memberView, matrixView] = await Promise.all([
+      const [balanceView, memberView, referralCountResult] = await Promise.all([
         supabase.from('user_bcc_balance_overview').select('*').eq('wallet_address', walletAddress).single(),
         supabase.from('member_requirements_view').select('*').eq('wallet_address', walletAddress).single(),
-        supabase.from('matrix_layer_summary').select('*').eq('root_wallet', walletAddress).single()
+        supabase.from('referrals_new').select('*', { count: 'exact', head: true }).eq('referrer_wallet', walletAddress)
       ]);
+      
+      // Create matrix view data structure
+      const matrixView = {
+        data: {
+          referrer: walletAddress,
+          direct_referrals_count: referralCountResult.count || 0,
+          total_direct_referrals: referralCountResult.count || 0
+        },
+        error: referralCountResult.error
+      };
       
       return {
         profile: {
@@ -160,7 +150,7 @@ const getComprehensiveUserData = async (walletAddress: string, method: string) =
         supabase.from('users').select('*').eq('wallet_address', walletAddress).single(),
         supabase.from('members').select('*').eq('wallet_address', walletAddress).single(),
         supabase.from('user_balances').select('*').eq('wallet_address', walletAddress).single(),
-        supabase.from('referrals').select('*').eq('referrer_wallet', walletAddress),
+        supabase.from('referrals_new').select('*').eq('referrer_wallet', walletAddress),
         supabase.from('layer_rewards').select('*').eq('recipient_wallet', walletAddress).limit(20)
       ]);
       

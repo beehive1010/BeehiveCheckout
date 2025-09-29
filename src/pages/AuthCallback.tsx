@@ -3,6 +3,7 @@ import React, { useEffect, useState } from 'react'
 import { useLocation } from 'wouter'
 import { supabase } from '../lib/supabase'
 import { useWeb3 } from '../contexts/Web3Context'
+import { useI18n } from '../contexts/I18nContext'
 
 interface AuthCallbackState {
   loading: boolean
@@ -11,6 +12,7 @@ interface AuthCallbackState {
 }
 
 export const AuthCallback: React.FC = () => {
+  const { t } = useI18n()
   const [location, setLocation] = useLocation()
   const { walletAddress, checkMembershipStatus } = useWeb3()
   const [state, setState] = useState<AuthCallbackState>({
@@ -81,8 +83,8 @@ export const AuthCallback: React.FC = () => {
       <div className="min-h-screen bg-gray-900 flex items-center justify-center">
         <div className="text-center">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-yellow-500 mx-auto mb-4"></div>
-          <p className="text-white text-lg">Completing authentication...</p>
-          <p className="text-gray-400 text-sm mt-2">This may take a few seconds</p>
+          <p className="text-white text-lg">{t('auth.completingAuthentication')}</p>
+          <p className="text-gray-400 text-sm mt-2">{t('common.thisMayTakeAFewSeconds')}</p>
         </div>
       </div>
     )
@@ -93,13 +95,13 @@ export const AuthCallback: React.FC = () => {
       <div className="min-h-screen bg-gray-900 flex items-center justify-center">
         <div className="text-center max-w-md mx-auto p-6">
           <div className="text-red-500 text-6xl mb-4">⚠️</div>
-          <h1 className="text-white text-xl mb-4">Authentication Failed</h1>
+          <h1 className="text-white text-xl mb-4">{t('common.authenticationFailed')}</h1>
           <p className="text-gray-400 mb-6">{state.error}</p>
           <button 
-            onClick={() => navigate('/login')}
+            onClick={() => setLocation('/auth')}
             className="bg-yellow-500 text-black px-6 py-2 rounded-lg hover:bg-yellow-400 transition-colors"
           >
-            Back to Login
+            {t('auth.backToLogin')}
           </button>
         </div>
       </div>
@@ -111,8 +113,8 @@ export const AuthCallback: React.FC = () => {
       <div className="min-h-screen bg-gray-900 flex items-center justify-center">
         <div className="text-center">
           <div className="text-green-500 text-6xl mb-4">✅</div>
-          <h1 className="text-white text-xl mb-4">Authentication Successful!</h1>
-          <p className="text-gray-400 mb-4">Redirecting to your dashboard...</p>
+          <h1 className="text-white text-xl mb-4">{t('auth.authenticationSuccessful')}</h1>
+          <p className="text-gray-400 mb-4">{t('auth.redirectingToDashboard')}</p>
           <div className="animate-pulse text-yellow-500">●●●</div>
         </div>
       </div>

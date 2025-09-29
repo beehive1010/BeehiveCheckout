@@ -29,8 +29,8 @@ const AdminAuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }
           const { data: adminData, error } = await supabase
             .from('admins')
             .select('*')
-            .eq('id', session.user.id)
-            .eq('active', true)
+            .eq('wallet_address', session.user.id)
+            .eq('is_active', true)
             .single();
 
           if (!error && adminData) {
@@ -69,8 +69,8 @@ const AdminAuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }
           const { data: adminData, error } = await supabase
             .from('admins')
             .select('*')
-            .eq('id', session.user.id)
-            .eq('active', true)
+            .eq('wallet_address', session.user.id)
+            .eq('is_active', true)
             .single();
 
           if (!error && adminData) {
@@ -118,8 +118,8 @@ const AdminAuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }
       const { data: adminData, error: adminError } = await supabase
         .from('admins')
         .select('*')
-        .eq('id', data.user.id)
-        .eq('active', true)
+        .eq('wallet_address', data.user.id)
+        .eq('is_active', true)
         .single();
 
       if (adminError || !adminData) {

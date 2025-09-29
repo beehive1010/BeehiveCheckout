@@ -69,11 +69,11 @@ export default function HiveWorld() {
           <div className="flex items-center gap-3 mb-2">
             <HexagonIcon className="w-10 h-10 text-honey" />
             <h1 className="text-3xl lg:text-4xl font-bold text-honey">
-              {t('hiveworld.title') || 'Hive World'}
+              {t('hiveworld.title')}
             </h1>
           </div>
           <p className="text-lg text-muted-foreground">
-            {t('hiveworld.subtitle') || 'Discover insights, tutorials, and the latest news from the Beehive ecosystem'}
+            {t('hiveworld.subtitle')}
           </p>
         </div>
         <UserProfileCard variant="compact" />
@@ -84,7 +84,7 @@ export default function HiveWorld() {
         <div className="relative">
           <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground w-4 h-4" />
           <Input
-            placeholder={t('hiveworld.searchPlaceholder') || 'Search articles...'}
+            placeholder={t('hiveworld.searchPlaceholder')}
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
             className="pl-10 bg-secondary border-border"
@@ -147,7 +147,7 @@ export default function HiveWorld() {
                     className="w-full mt-4 bg-honey text-secondary hover:bg-honey/90 group"
                     onClick={() => setLocation(`/blog/${post.id}`)}
                   >
-                    {t('hiveworld.readMore') || 'Read More'}
+                    {t('hiveworld.readMore')}
                     <ArrowRight className="w-4 h-4 ml-2 group-hover:translate-x-1 transition-transform" />
                   </Button>
                 </div>
@@ -160,7 +160,7 @@ export default function HiveWorld() {
       {filteredPosts.length === 0 && !isLoading && (
         <div className="text-center py-12">
           <p className="text-muted-foreground">
-            {t('hiveworld.noPosts') || 'No articles found'}
+            {t('hiveworld.noPosts')}
           </p>
         </div>
       )}

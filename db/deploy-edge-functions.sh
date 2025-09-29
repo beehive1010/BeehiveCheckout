@@ -18,6 +18,7 @@ echo "Supabase URL: https://$PROJECT_REF.supabase.co"
 FUNCTIONS_TO_DEPLOY=(
     "auth"
     "activate-membership" 
+    "level-upgrade"
     "member-management"
     "balance"
     "matrix"

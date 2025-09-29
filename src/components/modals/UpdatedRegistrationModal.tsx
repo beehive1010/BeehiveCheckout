@@ -7,7 +7,7 @@ import { Card, CardContent } from '../ui/card';
 import { Badge } from '../ui/badge';
 import { Loader2, User, Mail, Users, Crown, Gift, AlertCircle } from 'lucide-react';
 import { useToast } from '../../hooks/use-toast';
-import { supabase } from '../../lib/supabase';
+import { authService } from '../../lib/supabase-unified';
 import { useI18n } from '../../contexts/I18nContext';
 
 interface UpdatedRegistrationModalProps {
@@ -65,26 +65,13 @@ export default function UpdatedRegistrationModal({
     
     setValidatingReferrer(true);
     try {
-      // 使用新的auth函数验证推荐人
-      const response = await fetch(`${supabase.supabaseUrl}/functions/v1/auth`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${supabase.supabaseKey}`,
-          'x-wallet-address': walletAddress,
-        },
-        body: JSON.stringify({
-          action: 'validate-referrer',
-          referrerWallet: referrerWallet
-        })
-      });
-
-      const result = await response.json();
+      // Use unified authService for referrer validation
+      const { isValid, referrer, error } = await authService.validateReferrer(referrerWallet);
       
-      if (result.success && result.isValid) {
-        setReferrerInfo(result.referrer);
+      if (isValid && referrer) {
+        setReferrerInfo(referrer);
       } else {
-        throw new Error(result.error || 'Invalid referrer');
+        throw new Error(error?.message || 'Invalid referrer');
       }
     } catch (error: any) {
       console.error('推荐人验证失败:', error);
@@ -101,22 +88,10 @@ export default function UpdatedRegistrationModal({
 
   const checkUserExists = async () => {
     try {
-      // 使用新的auth函数检查用户
-      const response = await fetch(`${supabase.supabaseUrl}/functions/v1/auth`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${supabase.supabaseKey}`,
-          'x-wallet-address': walletAddress,
-        },
-        body: JSON.stringify({
-          action: 'get-user'
-        })
-      });
-
-      const result = await response.json();
+      // Use unified authService to check user existence
+      const { exists } = await authService.userExists(walletAddress);
       
-      if (result.success && result.isRegistered) {
+      if (exists) {
         // 用户已存在，关闭模态框
         onClose();
         onRegistrationComplete();
@@ -160,40 +135,30 @@ export default function UpdatedRegistrationModal({
     setIsLoading(true);
 
     try {
-      // 使用新的auth函数注册用户
-      const response = await fetch(`${supabase.supabaseUrl}/functions/v1/auth`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${supabase.supabaseKey}`,
-          'x-wallet-address': walletAddress,
-        },
-        body: JSON.stringify({
-          action: 'register',
-          username: formData.username.trim(),
-          email: formData.email.trim() || undefined,
-          referrerWallet: referrerWallet
-        })
-      });
+      // Use unified authService for registration
+      const { data: result, error, isExisting } = await authService.registerUser(
+        walletAddress,
+        formData.username.trim(),
+        formData.email.trim() || undefined,
+        referrerWallet
+      );
 
-      const result: RegistrationResult = await response.json();
-
-      if (!response.ok || !result.success) {
-        throw new Error(result.error || result.message || '注册失败');
+      if (error || !result) {
+        throw new Error(error?.message || '注册失败');
       }
 
       // 注册成功
       toast({
-        title: result.action === 'existing_user' ? '欢迎回来!' : '注册成功!',
-        description: result.message,
+        title: isExisting ? '欢迎回来!' : '注册成功!',
+        description: isExisting ? '您已经是注册用户' : '新用户注册成功',
         duration: 4000,
       });
 
-      // 显示激活序列信息
-      if (result.activation_sequence !== undefined) {
+      // Note: activation_sequence is handled by the Edge Function internally
+      if (!isExisting) {
         toast({
-          title: '激活序列分配',
-          description: `您的激活序列是 #${result.activation_sequence}`,
+          title: '用户配置完成',
+          description: '您的账户配置已设置完成',
           duration: 4000,
         });
       }
@@ -230,13 +195,18 @@ export default function UpdatedRegistrationModal({
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="sm:max-w-md">
+      <DialogContent className="sm:max-w-md" aria-describedby="updated-registration-description">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2 text-honey">
             <User className="h-5 w-5" />
             加入BEEHIVE平台
           </DialogTitle>
         </DialogHeader>
+        
+        {/* Hidden description for accessibility */}
+        <p id="updated-registration-description" className="sr-only">
+          Complete your registration to join the BEEHIVE community
+        </p>
 
         <div className="space-y-6">
           {/* 钱包信息 */}

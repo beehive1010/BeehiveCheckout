@@ -2,6 +2,8 @@ import { useQuery } from '@tanstack/react-query';
 import AdvertisementNFTCard, { AdvertisementNFT } from './AdvertisementNFTCard';
 import { Card, CardContent } from '../ui/card';
 import { useToast } from '../../hooks/use-toast';
+import { useI18n } from '../../contexts/I18nContext';
+import { nftsApi } from '../../api/nfts/nfts.api';
 import { Megaphone, Sparkles } from 'lucide-react';
 
 interface AdvertisementNFTGridProps {
@@ -12,35 +14,23 @@ interface AdvertisementNFTGridProps {
 
 export default function AdvertisementNFTGrid({ onPurchaseSuccess, className = '', maxItems }: AdvertisementNFTGridProps) {
   const { toast } = useToast();
+  const { currentLanguage } = useI18n();
 
-  // Fetch advertisement NFTs from API
+  // Fetch advertisement NFTs from our real API
   const { data: advertisementNFTs = [], isLoading, error } = useQuery({
-    queryKey: ['/api/nfts/advertisement'],
+    queryKey: ['advertisement-nfts', currentLanguage],
     queryFn: async (): Promise<AdvertisementNFT[]> => {
-      const response = await fetch('/api/nfts/advertisement');
-      if (!response.ok) throw new Error('Failed to fetch advertisement NFTs');
-      return response.json();
+      const nfts = await nftsApi.getAdvertisementNFTs(currentLanguage);
+      console.log('📢 Loaded advertisement NFTs:', nfts.length);
+      return nfts;
     },
+    staleTime: 30000, // 30 seconds
   });
 
   const handlePurchase = async (nft: AdvertisementNFT) => {
-    try {
-      // Here you would implement the actual purchase logic
-      // For now, we'll show a success toast
-      toast({
-        title: 'Purchase Initiated',
-        description: `Starting purchase process for ${nft.title}`,
-      });
-
-      // Call success callback
-      onPurchaseSuccess?.();
-    } catch (error) {
-      toast({
-        title: 'Purchase Failed',
-        description: 'Failed to initiate purchase. Please try again.',
-        variant: 'destructive',
-      });
-    }
+    // Purchase is handled in the AdvertisementNFTCard component
+    // This callback is for additional actions after successful purchase
+    onPurchaseSuccess?.();
   };
 
   const displayNFTs = maxItems ? advertisementNFTs.slice(0, maxItems) : advertisementNFTs;
@@ -85,10 +75,10 @@ export default function AdvertisementNFTGrid({ onPurchaseSuccess, className = ''
               <Sparkles className="w-16 h-16 text-muted-foreground group-hover:text-blue-400 transition-colors duration-300" />
             </div>
             <h3 className="text-xl font-semibold text-muted-foreground mb-2">
-              New Services Coming Soon
+              No Advertisement NFTs Available
             </h3>
             <p className="text-muted-foreground max-w-md">
-              Exciting new service NFTs with exclusive features and partnerships are being developed. Stay tuned for updates!
+              There are currently no advertisement NFTs available. Check back soon for new opportunities!
             </p>
           </CardContent>
         </Card>

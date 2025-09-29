@@ -16,7 +16,7 @@ import {
   UserPlus
 } from 'lucide-react';
 import { useWallet } from '@/hooks/useWallet';
-import { supabase } from '@/lib/supabase';
+import { supabase } from '../../lib/supabase';
 import { toast } from 'react-hot-toast';
 import { useI18n } from '@/contexts/I18nContext';
 
@@ -78,71 +78,70 @@ export default function ReferralMatrixVisualization({
     try {
       setLoading(true);
 
-      // Get referral data from users table (fallback since individual_matrix_placements doesn't exist)
+      // Get referral data from matrix_referrals_tree_view
       const { data: matrixPlacements, error } = await supabase
-        .from('users')
+        .from('matrix_referrals_tree_view')
         .select(`
-          wallet_address,
-          username,
-          created_at
+          member_wallet,
+          matrix_root_wallet,
+          matrix_layer,
+          matrix_position,
+          referral_type,
+          placed_at
         `)
-        .eq('referrer_wallet', effectiveRootWallet)
-        .order('created_at');
+        .eq('matrix_root_wallet', effectiveRootWallet)
+        .order('placed_at');
 
       if (error) {
         throw new Error(`Failed to load matrix data: ${error.message}`);
       }
 
-      // Get additional member info separately
-      const memberWallets = matrixPlacements?.map(p => p.member_wallet) || [];
-      let memberInfo = new Map();
-      let userInfo = new Map();
-
+      // Get additional member and user info
+      const memberWallets = matrixPlacements?.map(p => p.member_wallet).filter((w): w is string => Boolean(w)) || [];
+      
+      let membersData: any[] = [];
+      let usersData: any[] = [];
+      
       if (memberWallets.length > 0) {
-        // Get member data
-        const { data: membersData } = await supabase
-          .from('members')
-          .select('wallet_address, current_level, activation_rank')
-          .in('wallet_address', memberWallets);
-
-        // Get user data  
-        const { data: usersData } = await supabase
-          .from('users')
-          .select('wallet_address, username')
-          .in('wallet_address', memberWallets);
-
-        membersData?.forEach(member => {
-          memberInfo.set(member.wallet_address, member);
-        });
-
-        usersData?.forEach(user => {
-          userInfo.set(user.wallet_address, user);
-        });
+        const [membersResult, usersResult] = await Promise.allSettled([
+          supabase.from('members').select('wallet_address, current_level').in('wallet_address', memberWallets),
+          supabase.from('users').select('wallet_address, username').in('wallet_address', memberWallets)
+        ]);
+        
+        if (membersResult.status === 'fulfilled' && membersResult.value.data) {
+          membersData = membersResult.value.data;
+        }
+        if (usersResult.status === 'fulfilled' && usersResult.value.data) {
+          usersData = usersResult.value.data;
+        }
       }
 
-      // Transform data to MatrixMember format
+      const membersMap = new Map(membersData.map(m => [m.wallet_address, m]));
+      const usersMap = new Map(usersData.map(u => [u.wallet_address, u]));
+
+      // Transform data to MatrixMember format using matrix_referrals_tree_view data
       const members: MatrixMember[] = matrixPlacements?.map(placement => {
         // Convert position from L/M/R to 1/2/3 for internal use
         let positionNumber = 0;
-        if (placement.position_in_layer === 'L') positionNumber = 1;
-        else if (placement.position_in_layer === 'M') positionNumber = 2;
-        else if (placement.position_in_layer === 'R') positionNumber = 3;
-        else positionNumber = parseInt(placement.position_in_layer || '0');
+        if (placement.matrix_position === 'L') positionNumber = 1;
+        else if (placement.matrix_position === 'M') positionNumber = 2;
+        else if (placement.matrix_position === 'R') positionNumber = 3;
+        else positionNumber = parseInt(placement.matrix_position || '0');
 
-        const member = memberInfo.get(placement.member_wallet);
-        const user = userInfo.get(placement.member_wallet);
+        const memberInfo = membersMap.get(placement.member_wallet || '');
+        const userInfo = usersMap.get(placement.member_wallet || '');
 
         return {
-          walletAddress: placement.member_wallet,
-          username: user?.username,
-          level: member?.current_level || 1,
-          layer: placement.layer_in_owner_matrix,
+          walletAddress: placement.member_wallet || '',
+          username: userInfo?.username || undefined,
+          level: memberInfo?.current_level || 1,
+          layer: placement.matrix_layer || 1,
           position: positionNumber,
-          isActive: (member?.current_level || 0) > 0,
-          placedAt: placement.placed_at,
+          isActive: Boolean(memberInfo && memberInfo.current_level && memberInfo.current_level > 0),
+          placedAt: placement.placed_at || new Date().toISOString(),
           downlineCount: 0 // TODO: Calculate downline count
         };
-      }) || [];
+      }).filter(member => member.walletAddress) || [];
 
       // Create matrix data structure
       const totalLayers = Math.max(...members.map(m => m.layer), 0);

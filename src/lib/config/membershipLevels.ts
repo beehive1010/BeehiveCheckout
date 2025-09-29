@@ -280,9 +280,9 @@ export async function getMembershipLevelsWithDynamicPricing(): Promise<Membershi
       if (dbLevel) {
         return {
           ...level,
-          dynamicPriceUSDT: dbLevel.price_usdc, // 价格以分为单位存储
-          bccRelease: dbLevel.bcc_release,
-          unlockLayer: dbLevel.unlock_layer
+          dynamicPriceUSDT: Math.round(dbLevel.total_cost_usdt * 100), // 转换为分为单位
+          bccRelease: dbLevel.reward_usdt || 0,
+          unlockLayer: dbLevel.max_layer_members || 0
         };
       }
       return level; // 如果数据库中没有，使用硬编码价格
@@ -303,7 +303,7 @@ export async function getMembershipPrice(level: number): Promise<number> {
   try {
     const dbLevel = await getMembershipLevelFromDB(level);
     if (dbLevel) {
-      return dbLevel.price_usdc;
+      return Math.round(dbLevel.total_cost_usdt * 100); // 转换为分为单位
     }
     
     // 回退到硬编码价格

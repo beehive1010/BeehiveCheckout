@@ -44,7 +44,7 @@ serve(async (req) => {
       .from('reward_timers')
       .select(`
         id,
-        recipient_wallet,
+        reward_recipient_wallet,
         timer_type,
         expires_at,
         layer_rewards!inner(reward_amount)
@@ -61,7 +61,7 @@ serve(async (req) => {
       
       // Send notifications (notification system integration can be added here)
       for (const timer of upcomingTimers) {
-        console.log(`Expiring soon: wallet ${timer.recipient_wallet}, type ${timer.timer_type}`)
+        console.log(`Expiring soon: wallet ${timer.reward_recipient_wallet}, type ${timer.timer_type}`)
         
         // Mark notification as sent
         await supabase

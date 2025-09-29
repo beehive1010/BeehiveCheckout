@@ -5,9 +5,10 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Clock, Gift, DollarSign, CheckCircle, ExternalLink, Loader2, ArrowUpLeft } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
-import { supabase } from '@/lib/supabase';
+import { supabase } from '../../lib/supabase';
 import { useWeb3 } from '@/contexts/Web3Context';
 import { useWallet } from '@/hooks/useWallet';
+import { useI18n } from '@/contexts/I18nContext';
 import { apiRequest } from '@/lib/queryClient';
 
 interface ClaimableReward {
@@ -40,6 +41,7 @@ interface ClaimResponse {
 }
 
 export default function ClaimableRewardsCard({ walletAddress }: { walletAddress: string }) {
+  const { t } = useI18n();
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const [claimingRewards, setClaimingRewards] = useState<string[]>([]);
@@ -64,24 +66,23 @@ export default function ClaimableRewardsCard({ walletAddress }: { walletAddress:
         .from('layer_rewards')
         .select(`
           id,
-          amount_usdt,
-          layer,
-          reward_type,
-          payer_wallet,
+          reward_amount,
+          matrix_layer,
+          layer_position,
+          triggering_member_wallet,
+          status,
           created_at,
-          is_claimed
+          claimed_at
         `)
-        .ilike('recipient_wallet', memberWalletAddress)
-        .eq('is_claimed', false)
-        .in('reward_type', ['layer_reward', 'pending_layer_reward'])
+        .ilike('reward_recipient_wallet', memberWalletAddress)
+        .in('status', ['claimable', 'pending'])
         .order('created_at', { ascending: false });
 
-      // Simplified matrix position handling (removed dependency on non-existent table)
+      // Matrix positions are now included in the layer_rewards table
       const matrixPositions = new Map();
       if (layerRewards && layerRewards.length > 0) {
-        // Set default positions since individual_matrix_placements table doesn't exist
         layerRewards.forEach(reward => {
-          matrixPositions.set(`${reward.payer_wallet}-${reward.layer}`, 'L');
+          matrixPositions.set(`${reward.triggering_member_wallet}-${reward.matrix_layer}`, reward.layer_position || 'L');
         });
       }
 
@@ -96,25 +97,25 @@ export default function ClaimableRewardsCard({ walletAddress }: { walletAddress:
       let totalPending = 0;
 
       layerRewards?.forEach(reward => {
-        const positionKey = `${reward.payer_wallet}-${reward.layer}`;
+        const positionKey = `${reward.triggering_member_wallet}-${reward.matrix_layer}`;
         const position = matrixPositions.get(positionKey) || '?';
         
         const transformedReward: ClaimableReward = {
           id: reward.id,
-          rewardAmount: reward.amount_usdt || 0,
-          triggerLevel: reward.layer,
-          payoutLayer: reward.layer,
-          matrixPosition: `Layer ${reward.layer} (${position})`,
-          sourceWallet: reward.payer_wallet || '',
-          status: reward.reward_type === 'layer_reward' ? 'confirmed' : 'pending',
+          rewardAmount: reward.reward_amount || 0,
+          triggerLevel: reward.matrix_layer,
+          payoutLayer: reward.matrix_layer,
+          matrixPosition: `Layer ${reward.matrix_layer} (${position})`,
+          sourceWallet: reward.triggering_member_wallet || '',
+          status: reward.status === 'claimable' ? 'confirmed' : 'pending',
           createdAt: reward.created_at,
-          expiresAt: reward.expires_at || undefined
+          expiresAt: undefined // expires_at not included in select, would need to add if needed
         };
 
-        if (reward.reward_type === 'layer_reward') {
+        if (reward.status === 'claimable') {
           claimableRewards.push(transformedReward);
           totalClaimable += transformedReward.rewardAmount;
-        } else if (reward.reward_type === 'pending_layer_reward') {
+        } else if (reward.status === 'pending') {
           pendingRewards.push(transformedReward);
           totalPending += transformedReward.rewardAmount;
         }
@@ -147,12 +148,12 @@ export default function ClaimableRewardsCard({ walletAddress }: { walletAddress:
       });
       
       if (!response.ok) {
-        throw new Error('Failed to claim reward');
+        throw new Error(t('rewards.claimable.failedToClaim'));
       }
       
       const result = await response.json();
       if (!result.success) {
-        throw new Error(result.error || 'Failed to claim reward');
+        throw new Error(result.error || t('rewards.claimable.failedToClaim'));
       }
       
       return {
@@ -167,7 +168,7 @@ export default function ClaimableRewardsCard({ walletAddress }: { walletAddress:
     },
     onSuccess: (data: ClaimResponse, rewardId) => {
       toast({
-        title: "Reward Claimed Successfully! 🎉",
+        title: t('rewards.claimable.claimSuccess'),
         description: data.transactionHash 
           ? `USDT sent to your wallet. Transaction: ${data.transactionHash.slice(0, 10)}...`
           : data.message,
@@ -186,8 +187,8 @@ export default function ClaimableRewardsCard({ walletAddress }: { walletAddress:
     },
     onError: (error: Error, rewardId) => {
       toast({
-        title: "Claim Failed",
-        description: error.message || "Failed to claim reward. Please try again.",
+        title: t('rewards.claimable.claimFailed'),
+        description: error.message || t('rewards.claimable.claimFailedDescription'),
         variant: "destructive",
       });
     },
@@ -215,17 +216,17 @@ export default function ClaimableRewardsCard({ walletAddress }: { walletAddress:
       });
       
       if (!response.ok) {
-        throw new Error('Failed to initiate withdrawal');
+        throw new Error(t('rewards.claimable.failedToWithdraw'));
       }
       
       const result = await response.json();
       if (!result.success) {
-        throw new Error(result.error || 'Failed to initiate withdrawal');
+        throw new Error(result.error || t('rewards.claimable.failedToWithdraw'));
       }
       
       return {
         success: true,
-        message: result.message || 'Withdrawal successful'
+        message: result.message || t('rewards.claimable.withdrawalSuccessful')
       };
     },
     onMutate: () => {
@@ -233,7 +234,7 @@ export default function ClaimableRewardsCard({ walletAddress }: { walletAddress:
     },
     onSuccess: (data) => {
       toast({
-        title: "Withdrawal Successful",
+        title: t('rewards.claimable.withdrawSuccess'),
         description: data.message || `Successfully initiated withdrawal to your wallet.`,
         variant: "default",
       });
@@ -242,8 +243,8 @@ export default function ClaimableRewardsCard({ walletAddress }: { walletAddress:
     },
     onError: (error: Error) => {
       toast({
-        title: "Withdrawal Failed",
-        description: error.message || "Failed to withdraw rewards. Please try again.",
+        title: t('rewards.claimable.withdrawFailed'),
+        description: error.message || t('rewards.claimable.withdrawFailedDescription'),
         variant: "destructive",
       });
     },
@@ -255,8 +256,8 @@ export default function ClaimableRewardsCard({ walletAddress }: { walletAddress:
   const handleWithdraw = () => {
     if (!isConnected) {
       toast({
-        title: "Wallet Not Connected",
-        description: "Please connect your wallet to withdraw rewards.",
+        title: t('rewards.claimable.walletNotConnected'),
+        description: t('rewards.claimable.walletRequiredWithdraw'),
         variant: "destructive",
       });
       return;
@@ -264,8 +265,8 @@ export default function ClaimableRewardsCard({ walletAddress }: { walletAddress:
 
     if (!totalClaimable || totalClaimable <= 0) {
       toast({
-        title: "No Balance Available",
-        description: "You need to have claimed rewards to withdraw.",
+        title: t('rewards.claimable.noBalanceAvailable'),
+        description: t('rewards.claimable.noBalanceDescription'),
         variant: "destructive",
       });
       return;
@@ -277,8 +278,8 @@ export default function ClaimableRewardsCard({ walletAddress }: { walletAddress:
   const handleClaimReward = (reward: ClaimableReward) => {
     if (!isConnected) {
       toast({
-        title: "Wallet Not Connected",
-        description: "Please connect your wallet to claim rewards.",
+        title: t('rewards.claimable.walletNotConnected'),
+        description: t('rewards.claimable.walletRequiredClaim'),
         variant: "destructive",
       });
       return;
@@ -292,8 +293,8 @@ export default function ClaimableRewardsCard({ walletAddress }: { walletAddress:
     
     if (!isConnected) {
       toast({
-        title: "Wallet Not Connected",
-        description: "Please connect your wallet to claim rewards.",
+        title: t('rewards.claimable.walletNotConnected'),
+        description: t('rewards.claimable.walletRequiredClaim'),
         variant: "destructive",
       });
       return;

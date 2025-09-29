@@ -7,7 +7,7 @@ import { useWallet } from '../../hooks/useWallet';
 import { useI18n } from '../../contexts/I18nContext';
 import { useLocation } from 'wouter';
 import { WelcomeLevel1ClaimButton } from '../membership';
-import { authService } from '../../lib/supabaseClient';
+import { authService } from '../../lib/supabase-unified';
 import RegistrationModal from '../modals/RegistrationModal';
 
 interface WelcomeState {

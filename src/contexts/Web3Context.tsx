@@ -3,7 +3,7 @@ import { ThirdwebProvider, useActiveAccount, useActiveWallet, useActiveWalletCha
 import { client, supportedChains, arbitrum } from '../lib/web3';
 import { inAppWallet, createWallet } from 'thirdweb/wallets';
 import { createSponsoredInAppWallet, connectWithGasSponsorship, gasSponsorshipUtils } from '../lib/web3/enhanced-wallets';
-import { supabase, supabaseApi, authService } from '../lib/supabase';
+import { supabase, authService } from '../lib/supabase-unified';
 import { useLocation } from 'wouter';
 
 interface Web3ContextType {
@@ -272,9 +272,12 @@ function Web3ContextProvider({ children }: { children: React.ReactNode }) {
             return;
           }
           
-          // If user doesn't exist, redirect to registration page
-          if (error.message?.includes('not found') || error.message?.includes('404')) {
-            console.log('👤 User not found, redirecting to registration...');
+          // If user doesn't exist or needs registration, redirect to registration page
+          if (error.message?.includes('not found') || 
+              error.message?.includes('404') ||
+              error.message?.includes('REGISTRATION REQUIRED') ||
+              error.message?.includes('User not found in database')) {
+            console.log('👤 User needs registration, redirecting to registration...');
             setIsMember(false);
             setLocation('/register');
           } else {
@@ -488,12 +491,14 @@ export function Web3Provider({ children }: { children: React.ReactNode }) {
   );
 }
 
+// Add displayName for Fast Refresh compatibility
 Web3Provider.displayName = 'Web3Provider';
 
-export function useWeb3() {
+// Export hook with Fast Refresh compatibility
+export const useWeb3 = () => {
   const context = useContext(Web3Context);
   if (context === undefined) {
     throw new Error('useWeb3 must be used within a Web3Provider');
   }
   return context;
-}
+};

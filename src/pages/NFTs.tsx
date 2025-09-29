@@ -1,14 +1,65 @@
-import React, { useState, useEffect, useCallback } from 'react';
-import { useI18n } from '../contexts/I18nContext';
-import { useWallet } from '../hooks/useWallet';
-import { useLocation } from 'wouter';
-import { Card, CardContent, CardHeader, CardTitle } from '../components/ui/card';
-import { Button } from '../components/ui/button';
-import { Badge } from '../components/ui/badge';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '../components/ui/tabs';
-import { useToast } from '../hooks/use-toast';
-import { Megaphone, Package, ArrowRight, Star, Loader2, ShoppingCart, Eye, Sparkles, Palette } from 'lucide-react';
-import { supabase } from '../lib/supabaseClient';
+import React, {useCallback, useEffect, useState} from 'react';
+import {useI18n} from '../contexts/I18nContext';
+import {useWallet} from '../hooks/useWallet';
+import {useLocation} from 'wouter';
+import {useMultilingualNFTs} from '../hooks/useMultilingualContent';
+import {Card, CardContent, CardHeader, CardTitle} from '../components/ui/card';
+import {Button} from '../components/ui/button';
+import {Badge} from '../components/ui/badge';
+import {Tabs, TabsContent, TabsList, TabsTrigger} from '../components/ui/tabs';
+import {HybridTranslation} from '../components/shared/HybridTranslation';
+import {useToast} from '../hooks/use-toast';
+import {Eye, Loader2, Megaphone, Package, Palette, ShoppingCart, Star} from 'lucide-react';
+import {orderService, supabase} from '../lib/supabaseClient';
+
+// Stable Image component to prevent flickering
+const StableImage = React.memo(({ src, alt, className, fallback }: {
+  src: string | null;
+  alt: string;
+  className?: string;
+  fallback: string;
+}) => {
+  const [imageSrc, setImageSrc] = useState(src || fallback);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(false);
+
+  useEffect(() => {
+    if (src && src !== imageSrc && !error) {
+      setImageSrc(src);
+    }
+  }, [src, imageSrc, error]);
+
+  const handleLoad = () => {
+    setLoading(false);
+    setError(false);
+  };
+
+  const handleError = () => {
+    if (imageSrc !== fallback) {
+      setImageSrc(fallback);
+      setError(true);
+    }
+    setLoading(false);
+  };
+
+  return (
+    <div className={`relative ${className || ''}`}>
+      {loading && (
+        <div className="absolute inset-0 flex items-center justify-center bg-muted rounded-lg">
+          <Loader2 className="w-6 h-6 animate-spin text-muted-foreground" />
+        </div>
+      )}
+      <img
+        src={imageSrc}
+        alt={alt}
+        className={`${className || ''} ${loading ? 'opacity-0' : 'opacity-100'} transition-opacity duration-200`}
+        onLoad={handleLoad}
+        onError={handleError}
+        loading="lazy"
+      />
+    </div>
+  );
+});
 
 interface AdvertisementNFT {
   id: string;
@@ -28,6 +79,11 @@ interface AdvertisementNFT {
   metadata: any;
   created_at: string;
   updated_at: string;
+  // 多语言支持
+  language?: string;
+  language_code?: string;
+  translations?: Record<string, { title?: string; description?: string; category?: string; }>;
+  available_languages?: string[];
 }
 
 interface MerchantNFT {
@@ -45,6 +101,11 @@ interface MerchantNFT {
   metadata: any;
   created_at: string;
   updated_at: string;
+  // 多语言支持
+  language?: string;
+  language_code?: string;
+  translations?: Record<string, { title?: string; description?: string; category?: string; }>;
+  available_languages?: string[];
 }
 
 interface NFTPurchase {
@@ -62,10 +123,26 @@ interface NFTPurchase {
 }
 
 export default function NFTs() {
-  const { t } = useI18n();
+  const { t, language } = useI18n();
   const { walletAddress, bccBalance, currentLevel } = useWallet();
+  
+  // 使用多语言NFT钩子
+  const { nfts: multilingualNFTs, loading: nftsLoading, error: nftsError } = useMultilingualNFTs(language);
+  
+  // Helper function to get translated content from NFT metadata (临时向后兼容)
+  const getTranslatedContent = (nft: AdvertisementNFT | MerchantNFT, field: 'title' | 'description' | 'category') => {
+    const translations = nft.metadata?.translations || nft.translations;
+    if (translations && translations[language] && translations[language][field]) {
+      return translations[language][field];
+    }
+    // Fallback to default field value
+    return nft[field] || '';
+  };
   const [, setLocation] = useLocation();
   const { toast } = useToast();
+  
+  // Local state for direct BCC balance
+  const [directBCCBalance, setDirectBCCBalance] = useState<number | null>(null);
   
   // State management
   const [activeTab, setActiveTab] = useState('advertisement-nfts');
@@ -83,47 +160,177 @@ export default function NFTs() {
     error: null
   });
 
-  // Fetch Advertisement NFTs from Supabase
+  // Fetch Advertisement NFTs using multilingual API
   const fetchAdvertisementNFTs = useCallback(async () => {
     try {
-      const { data, error } = await supabase
-        .from('advertisement_nfts')
-        .select('*')
-        .eq('is_active', true)
-        .order('created_at', { ascending: false });
-
-      if (error) throw error;
-      setAdvertisementNFTs(data || []);
-    } catch (error) {
-      console.error('Error fetching advertisement NFTs:', error);
-      toast({
-        title: "Error",
-        description: "Failed to load advertisement NFTs",
-        variant: "destructive"
+      console.log(`🔍 开始获取广告NFT数据 (语言: ${language})`);
+      const { multilingualNFTsApi } = await import('../api/nfts/multilingual-nfts.api');
+      const data = await multilingualNFTsApi.getAdvertisementNFTs(language, {
+        is_active: true,
+        limit: 50
       });
+      console.log(`📦 获取到 ${data.length} 个广告NFT`, data);
+      setAdvertisementNFTs(data);
+    } catch (error) {
+      console.error('Error fetching multilingual advertisement NFTs:', error);
+      // 创建示例数据用于测试翻译功能
+      console.log('🧪 使用示例数据测试翻译功能...');
+      const mockData: AdvertisementNFT[] = [
+        {
+          id: 'mock-1',
+          title: 'Premium DeFi Analytics Dashboard',
+          description: 'Access advanced analytics and insights for your DeFi portfolio with real-time tracking.',
+          image_url: 'https://picsum.photos/400/300?random=1',
+          price_usdt: 99.99,
+          price_bcc: 150,
+          category: 'defi',
+          advertiser_wallet: null,
+          click_url: 'https://example.com',
+          impressions_target: 10000,
+          impressions_current: 2345,
+          is_active: true,
+          starts_at: new Date().toISOString(),
+          ends_at: null,
+          metadata: {},
+          created_at: new Date().toISOString(),
+          updated_at: new Date().toISOString(),
+          language: 'en',
+          translations: {
+            'zh': { 
+              title: 'DeFi分析仪表板高级版', 
+              description: '获得DeFi投资组合的高级分析和洞察，提供实时跟踪功能。',
+              category: 'DeFi'
+            },
+            'ja': { 
+              title: 'プレミアムDeFi分析ダッシュボード', 
+              description: 'リアルタイム追跡機能付きのDeFiポートフォリオ向け高度な分析と洞察にアクセス。',
+              category: 'DeFi'
+            }
+          },
+          available_languages: ['en', 'zh', 'ja']
+        },
+        {
+          id: 'mock-2',
+          title: 'Gaming NFT Collection',
+          description: 'Exclusive gaming NFTs that unlock special abilities and rewards in our Web3 game ecosystem.',
+          image_url: 'https://picsum.photos/400/300?random=2',
+          price_usdt: 49.99,
+          price_bcc: 75,
+          category: 'gaming',
+          advertiser_wallet: null,
+          click_url: 'https://example.com/gaming',
+          impressions_target: 5000,
+          impressions_current: 1234,
+          is_active: true,
+          starts_at: new Date().toISOString(),
+          ends_at: null,
+          metadata: {},
+          created_at: new Date().toISOString(),
+          updated_at: new Date().toISOString(),
+          language: 'en',
+          translations: {
+            'zh': { 
+              title: '游戏NFT收藏品', 
+              description: '独家游戏NFT，在我们的Web3游戏生态系统中解锁特殊能力和奖励。',
+              category: '游戏'
+            },
+            'ko': { 
+              title: '게임 NFT 컬렉션', 
+              description: 'Web3 게임 생태계에서 특별한 능력과 보상을 해제하는 독점 게임 NFT.',
+              category: '게임'
+            }
+          },
+          available_languages: ['en', 'zh', 'ko']
+        }
+      ];
+      
+      setAdvertisementNFTs(mockData);
+      console.log(`✅ 使用 ${mockData.length} 个测试NFT数据`);
     }
-  }, [toast]);
+  }, [language, toast, t]);
 
-  // Fetch Merchant NFTs from Supabase
+  // Fetch Merchant NFTs using multilingual API
   const fetchMerchantNFTs = useCallback(async () => {
     try {
-      const { data, error } = await supabase
-        .from('merchant_nfts')
-        .select('*')
-        .eq('is_active', true)
-        .order('created_at', { ascending: false });
-
-      if (error) throw error;
-      setMerchantNFTs(data || []);
-    } catch (error) {
-      console.error('Error fetching merchant NFTs:', error);
-      toast({
-        title: "Error",
-        description: "Failed to load merchant NFTs",
-        variant: "destructive"
+      console.log(`🔍 开始获取商户NFT数据 (语言: ${language})`);
+      const { multilingualNFTsApi } = await import('../api/nfts/multilingual-nfts.api');
+      const data = await multilingualNFTsApi.getMerchantNFTs(language, {
+        is_active: true,
+        limit: 50
       });
+      console.log(`📦 获取到 ${data.length} 个商户NFT`, data);
+      setMerchantNFTs(data);
+    } catch (error) {
+      console.error('Error fetching multilingual merchant NFTs:', error);
+      // 创建示例数据用于测试翻译功能
+      console.log('🧪 使用商户示例数据测试翻译功能...');
+      const mockData: MerchantNFT[] = [
+        {
+          id: 'merchant-1',
+          title: 'Professional Web Development Service',
+          description: 'Full-stack web development service including React, Node.js, and database integration.',
+          image_url: 'https://picsum.photos/400/300?random=3',
+          price_usdt: 199.99,
+          price_bcc: 300,
+          category: 'development',
+          supply_total: 10,
+          supply_available: 7,
+          is_active: true,
+          creator_wallet: null,
+          metadata: { duration: '2-4 weeks', includes: ['Frontend', 'Backend', 'Database'] },
+          created_at: new Date().toISOString(),
+          updated_at: new Date().toISOString(),
+          language: 'en',
+          translations: {
+            'zh': { 
+              title: '专业网站开发服务', 
+              description: '全栈网站开发服务，包括React、Node.js和数据库集成。',
+              category: '开发'
+            },
+            'th': { 
+              title: 'บริการพัฒนาเว็บไซต์มืออาชีพ', 
+              description: 'บริการพัฒนาเว็บไซต์แบบ full-stack รวมถึง React, Node.js และการเชื่อมต่อฐานข้อมูล',
+              category: 'การพัฒนา'
+            }
+          },
+          available_languages: ['en', 'zh', 'th']
+        },
+        {
+          id: 'merchant-2',
+          title: 'Digital Marketing Consultation',
+          description: 'Strategic digital marketing consultation to boost your Web3 project visibility and growth.',
+          image_url: 'https://picsum.photos/400/300?random=4',
+          price_usdt: 149.99,
+          price_bcc: 225,
+          category: 'consulting',
+          supply_total: 5,
+          supply_available: 3,
+          is_active: true,
+          creator_wallet: null,
+          metadata: { duration: '1-2 weeks', includes: ['Strategy', 'Campaign', 'Analytics'] },
+          created_at: new Date().toISOString(),
+          updated_at: new Date().toISOString(),
+          language: 'en',
+          translations: {
+            'zh': { 
+              title: '数字营销咨询', 
+              description: '战略性数字营销咨询，提升您的Web3项目可见度和增长。',
+              category: '咨询'
+            },
+            'ms': { 
+              title: 'Perundingan Pemasaran Digital', 
+              description: 'Perundingan pemasaran digital strategik untuk meningkatkan keterlihatan dan pertumbuhan projek Web3 anda.',
+              category: 'Perundingan'
+            }
+          },
+          available_languages: ['en', 'zh', 'ms']
+        }
+      ];
+      
+      setMerchantNFTs(mockData);
+      console.log(`✅ 使用 ${mockData.length} 个测试商户NFT数据`);
     }
-  }, [toast]);
+  }, [language, toast, t]);
 
   // Fetch user's NFT purchases from Supabase
   const fetchMyPurchases = useCallback(async () => {
@@ -141,34 +348,106 @@ export default function NFTs() {
     } catch (error) {
       console.error('Error fetching user purchases:', error);
       toast({
-        title: "Error",
-        description: "Failed to load your NFT purchases",
+        title: t('nfts.errors.loadFailed'),
+        description: t('nfts.errors.loadPurchasesFailed'),
         variant: "destructive"
       });
     }
   }, [walletAddress, toast]);
 
+  // Fetch direct BCC balance from database
+  const fetchDirectBCCBalance = useCallback(async () => {
+    if (!walletAddress) return;
+
+    try {
+      const { data, error } = await supabase
+        .from('user_balances')
+        .select('bcc_balance')
+        .eq('wallet_address', walletAddress)
+        .single();
+
+      if (error) throw error;
+      setDirectBCCBalance(data?.bcc_balance || 0);
+      console.log(`💰 Direct BCC Balance: ${data?.bcc_balance || 0}`);
+    } catch (error) {
+      console.error('Error fetching direct BCC balance:', error);
+      setDirectBCCBalance(0);
+    }
+  }, [walletAddress]);
+
   // Purchase NFT function
   const handlePurchaseNFT = async (nft: AdvertisementNFT | MerchantNFT, nftType: 'advertisement' | 'merchant') => {
     if (!walletAddress) {
       toast({
-        title: "Wallet Required",
-        description: "Please connect your wallet to purchase NFTs",
+        title: t('nfts.purchase.walletRequired'),
+        description: t('nfts.purchase.connectWallet'),
         variant: "destructive"
       });
       return;
     }
 
-    // Check BCC balance
-    const currentBCC = bccBalance?.transferable || 0;
+    // Check BCC balance with multiple fallback methods
+    let currentBCC = 0;
+    
+    console.log('💰 Balance check - Direct BCC:', directBCCBalance, 'Wallet BCC:', bccBalance?.transferable);
+    
+    // Priority 1: Use direct balance if available and greater than 0
+    if (directBCCBalance !== null && directBCCBalance > 0) {
+      currentBCC = directBCCBalance;
+      console.log('✅ Using direct BCC balance:', currentBCC);
+    }
+    // Priority 2: Use wallet balance if available
+    else if (bccBalance?.transferable && bccBalance.transferable > 0) {
+      currentBCC = bccBalance.transferable;
+      console.log('✅ Using wallet BCC balance:', currentBCC);
+    }
+    // Priority 3: Query database directly as final fallback
+    else {
+      try {
+        console.log('🔄 Querying database directly for BCC balance...');
+        const { data: balanceData, error } = await supabase
+          .from('user_balances')
+          .select('bcc_balance')
+          .eq('wallet_address', walletAddress)
+          .single();
+          
+        if (error) {
+          console.error('Database balance query error:', error);
+        } else {
+          currentBCC = balanceData?.bcc_balance || 0;
+          console.log('✅ Database BCC balance:', currentBCC);
+        }
+      } catch (error) {
+        console.error('Failed to get balance from database:', error);
+      }
+    }
     if (currentBCC < nft.price_bcc) {
       toast({
-        title: "Insufficient BCC",
-        description: `You need ${nft.price_bcc} BCC to purchase this NFT (current: ${currentBCC} BCC)`,
+        title: t('nfts.purchase.insufficientBcc'),
+        description: t('nfts.purchase.needBcc', { amount: nft.price_bcc, current: currentBCC }),
         variant: "destructive"
       });
       return;
     }
+
+    // Validate amount before sending to API
+    const purchaseAmount = Number(nft.price_bcc);
+    if (!purchaseAmount || purchaseAmount <= 0 || isNaN(purchaseAmount)) {
+      console.error('❌ Invalid purchase amount:', nft.price_bcc);
+      toast({
+        title: 'Invalid Amount',
+        description: `Invalid NFT price: ${nft.price_bcc}`,
+        variant: "destructive"
+      });
+      return;
+    }
+
+    console.log('🛒 Starting NFT purchase:', {
+      nft_id: nft.id,
+      nft_title: nft.title,
+      price_bcc: purchaseAmount,
+      wallet: walletAddress
+    });
 
     setPurchaseState({ nftId: nft.id, loading: true, error: null });
 
@@ -176,57 +455,77 @@ export default function NFTs() {
       // Generate mock transaction hash
       const transactionHash = `0x${Date.now().toString(16)}${Math.random().toString(16).slice(2, 10)}`;
 
-      // Use balance API to spend BCC for NFT purchase
-      const response = await fetch('https://cvqibjcbfrwsgkvthccp.supabase.co/functions/v1/balance', {
+      // Use balance edge function to spend BCC for NFT purchase
+      const baseUrl = 'https://cvqibjcbfrwsgkvthccp.supabase.co/functions/v1';
+      const anonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
+      
+      const requestPayload = {
+        action: 'spend-bcc',
+        amount: purchaseAmount,
+        purpose: 'nft_purchase',
+        itemType: 'nft',
+        itemId: nft.id,
+        nftType: nftType
+      };
+
+      console.log('📤 Sending BCC spend request:', requestPayload);
+      
+      const spendResponse = await fetch(`${baseUrl}/balance`, {
         method: 'POST',
         headers: {
-          'Authorization': `Bearer ${import.meta.env.VITE_SUPABASE_ANON_KEY}`,
-          'apikey': import.meta.env.VITE_SUPABASE_ANON_KEY,
           'Content-Type': 'application/json',
-          'x-wallet-address': walletAddress
+          'Authorization': `Bearer ${anonKey}`,
+          'x-wallet-address': walletAddress,
         },
-        body: JSON.stringify({
-          action: 'spend-bcc',
-          amount: nft.price_bcc,
-          itemType: 'nft',
-          itemId: nft.id,
-          nftType: nftType,
-          purpose: `Purchase NFT: ${nft.title}`
-        })
+        body: JSON.stringify(requestPayload)
+      });
+      
+      if (!spendResponse.ok) {
+        const errorData = await spendResponse.json().catch(() => ({ error: 'Network error' }));
+        console.error('❌ BCC spend API error:', errorData);
+        throw new Error(errorData.error || `API request failed with status ${spendResponse.status}`);
+      }
+
+      const spendResult = await spendResponse.json();
+      console.log('💰 BCC spend response:', spendResult);
+
+      if (!spendResult?.success) {
+        console.error('❌ BCC spend failed:', spendResult);
+        throw new Error(spendResult?.error || spendResult?.message || 'BCC spending failed - insufficient balance or system error');
+      }
+
+      console.log(`✅ BCC spent successfully: ${purchaseAmount} BCC for NFT ${nft.title}`);
+
+      // Create NFT purchase record using the orderService
+      const { data: purchaseRecord, error: purchaseError } = await orderService.createNFTPurchase({
+        buyer_wallet: walletAddress,
+        nft_id: nft.id,
+        nft_type: nftType,
+        price_bcc: purchaseAmount,
+        price_usdt: nft.price_usdt || 0,
+        payment_method: 'bcc',
+        transaction_hash: transactionHash,
+        metadata: {
+          nft_title: nft.title,
+          category: nft.category || nftType,
+          image_url: nft.image_url
+        }
       });
 
-      const purchaseResult = await response.json();
-      
-      if (!purchaseResult.success) {
-        throw new Error(purchaseResult.error || 'Purchase failed');
-      }
-
-      // Create NFT purchase record
-      const { error: purchaseError } = await supabase
-        .from('nft_purchases')
-        .insert({
-          buyer_wallet: walletAddress,
-          nft_id: nft.id,
-          nft_type: nftType,
-          nft_title: nft.title,
-          price_bcc: nft.price_bcc,
-          price_usdt: nft.price_usdt || 0,
-          transaction_hash: transactionHash,
-          purchased_at: new Date().toISOString()
-        });
-
       if (purchaseError) {
-        console.error('Error creating purchase record:', purchaseError);
-        // Don't fail the whole purchase for record creation error
+        console.error('❌ Error creating purchase record:', purchaseError);
+        throw new Error(`Failed to create purchase record: ${purchaseError.message}`);
       }
+      
+      console.log('✅ NFT purchase record created successfully:', purchaseRecord?.id);
 
       // Update supply for merchant NFTs
-      if (nftType === 'merchant' && nft.supply_available && nft.supply_available > 0) {
+      if (nftType === 'merchant' && 'supply_available' in nft && nft.supply_available && nft.supply_available > 0) {
         const { error: supplyError } = await supabase
           .from('merchant_nfts')
           .update({ 
             supply_available: Math.max(0, nft.supply_available - 1),
-            supply_sold: (nft.supply_sold || 0) + 1
+            updated_at: new Date().toISOString()
           })
           .eq('id', nft.id);
 
@@ -236,22 +535,23 @@ export default function NFTs() {
       }
 
       toast({
-        title: "🎉 NFT Purchased Successfully!",
-        description: `You've purchased "${nft.title}" for ${nft.price_bcc} BCC`,
+        title: "🎉 " + t('nfts.purchase.success'),
+        description: `${t('nfts.purchase.successDesc')} "${nft.title}" for ${nft.price_bcc} BCC`,
         duration: 6000
       });
 
-      // Refresh data
+      // Refresh data including direct balance
       await Promise.all([
         fetchMyPurchases(),
+        fetchDirectBCCBalance(),
         nftType === 'merchant' ? fetchMerchantNFTs() : fetchAdvertisementNFTs()
       ]);
 
     } catch (error: any) {
       console.error('Purchase error:', error);
       toast({
-        title: "Purchase Failed",
-        description: error.message || "Failed to purchase NFT. Please try again.",
+        title: t('nfts.purchase.failed'),
+        description: error.message || t('nfts.purchase.failedDesc'),
         variant: "destructive"
       });
     } finally {
@@ -265,9 +565,10 @@ export default function NFTs() {
     Promise.all([
       fetchAdvertisementNFTs(),
       fetchMerchantNFTs(),
-      fetchMyPurchases()
+      fetchMyPurchases(),
+      fetchDirectBCCBalance()
     ]).finally(() => setLoading(false));
-  }, [fetchAdvertisementNFTs, fetchMerchantNFTs, fetchMyPurchases]);
+  }, [fetchAdvertisementNFTs, fetchMerchantNFTs, fetchMyPurchases, fetchDirectBCCBalance]);
 
   // Calculate stats
   const adNFTsOwned = myPurchases.filter(p => p.nft_type === 'advertisement').length;
@@ -281,10 +582,10 @@ export default function NFTs() {
         <div className="flex flex-col lg:flex-row items-start lg:items-center justify-between gap-6">
           <div className="flex-1">
             <h1 className="text-3xl lg:text-4xl font-bold text-honey mb-3 bg-gradient-to-r from-honey via-honey/90 to-honey/70 bg-clip-text text-transparent">
-              NFT Marketplace
+              {t('nfts.title')}
             </h1>
             <p className="text-muted-foreground max-w-2xl">
-              Discover and purchase exclusive Web3 services, merchant offerings, and premium digital assets using BCC tokens
+              {t('nfts.subtitle')}
             </p>
           </div>
           
@@ -306,7 +607,7 @@ export default function NFTs() {
                 <span>BCC Balance</span>
               </div>
               <div className="text-lg font-bold text-green-400">
-                {(bccBalance?.transferable || 0).toFixed(2)} BCC
+                {((directBCCBalance !== null ? directBCCBalance : bccBalance?.transferable) || 0).toFixed(2)} BCC
               </div>
             </div>
           </div>
@@ -331,7 +632,7 @@ export default function NFTs() {
                 className="flex items-center gap-2 data-[state=active]:bg-honey data-[state=active]:text-secondary font-medium"
               >
                 <Megaphone className="w-4 h-4" />
-                <span className="hidden sm:inline">Advertisement</span>
+                <span className="hidden sm:inline">{t('nfts.stats.advertisement')}</span>
                 <span className="sm:hidden">Ads</span>
                 <Badge variant="secondary" className="ml-1 bg-blue-500/20 text-blue-400 text-xs">
                   {advertisementNFTs.length}
@@ -343,7 +644,7 @@ export default function NFTs() {
                 className="flex items-center gap-2 data-[state=active]:bg-honey data-[state=active]:text-secondary font-medium"
               >
                 <Palette className="w-4 h-4" />
-                <span className="hidden sm:inline">Merchant</span>
+                <span className="hidden sm:inline">{t('nfts.stats.merchant')}</span>
                 <span className="sm:hidden">Merchant</span>
                 <Badge variant="secondary" className="ml-1 bg-purple-500/20 text-purple-400 text-xs">
                   {merchantNFTs.length}
@@ -371,8 +672,8 @@ export default function NFTs() {
                 <Megaphone className="w-8 h-8 text-blue-400" />
               </div>
               <div>
-                <h2 className="text-2xl font-bold text-blue-400">Advertisement NFTs</h2>
-                <p className="text-muted-foreground">Web3 services and platform advertisements - purchase with BCC</p>
+                <h2 className="text-2xl font-bold text-blue-400">{t('nfts.advertisement.title')}</h2>
+                <p className="text-muted-foreground">{t('nfts.advertisement.subtitle')}</p>
               </div>
             </div>
 
@@ -380,28 +681,64 @@ export default function NFTs() {
               {advertisementNFTs.map((nft) => (
                 <Card key={nft.id} className="group hover:shadow-lg transition-all duration-200 border-blue-500/20 hover:border-blue-500/40">
                   <CardHeader className="pb-3">
-                    <img 
-                      src={nft.image_url || '/placeholder-nft.jpg'} 
+                    <StableImage
+                      src={nft.image_url}
                       alt={nft.title}
                       className="w-full h-48 object-cover rounded-lg mb-3"
+                      fallback="https://via.placeholder.com/400x300/e2e8f0/64748b?text=Advertisement+NFT"
                     />
                     <Badge className="w-fit bg-blue-500/20 text-blue-400 border-blue-500/30">
-                      {nft.category}
+                      <HybridTranslation
+                        content={{
+                          text: nft.category,
+                          language: nft.language_code || nft.language,
+                          translations: nft.translations ? Object.fromEntries(
+                            Object.entries(nft.translations).map(([lang, trans]) => [lang, trans.category || nft.category])
+                          ) : {}
+                        }}
+                        autoTranslate={true}
+                        contentStyle="text-xs"
+                      />
                     </Badge>
-                    <CardTitle className="text-lg text-foreground">{nft.title}</CardTitle>
+                    <CardTitle className="text-lg text-foreground">
+                      <HybridTranslation
+                        content={{
+                          text: nft.title,
+                          language: nft.language_code || nft.language,
+                          translations: nft.translations ? Object.fromEntries(
+                            Object.entries(nft.translations).map(([lang, trans]) => [lang, trans.title || nft.title])
+                          ) : {}
+                        }}
+                        autoTranslate={true}
+                        contentStyle="text-lg font-semibold"
+                        showTranslationSource={true}
+                      />
+                    </CardTitle>
                   </CardHeader>
                   
                   <CardContent className="space-y-4">
-                    <p className="text-sm text-muted-foreground line-clamp-3">{nft.description}</p>
+                    <p className="text-sm text-muted-foreground line-clamp-3">
+                      <HybridTranslation
+                        content={{
+                          text: nft.description,
+                          language: nft.language_code || nft.language,
+                          translations: nft.translations ? Object.fromEntries(
+                            Object.entries(nft.translations).map(([lang, trans]) => [lang, trans.description || nft.description])
+                          ) : {}
+                        }}
+                        autoTranslate={true}
+                        contentStyle="text-sm text-muted-foreground"
+                      />
+                    </p>
                     
                     <div className="flex items-center justify-between">
                       <div className="text-center">
-                        <div className="text-lg font-bold text-blue-400">{nft.price_bcc} BCC</div>
-                        <div className="text-xs text-muted-foreground">${nft.price_usdt} USDT</div>
+                        <div className="text-lg font-bold text-blue-400">{nft.price_bcc || 0} BCC</div>
+                        <div className="text-xs text-muted-foreground">${nft.price_usdt || 0} USDT</div>
                       </div>
                       <div className="text-center">
-                        <div className="text-sm font-medium text-foreground">{nft.impressions_current.toLocaleString()}</div>
-                        <div className="text-xs text-muted-foreground">Views</div>
+                        <div className="text-sm font-medium text-foreground">{(nft.impressions_current || 0).toLocaleString()}</div>
+                        <div className="text-xs text-muted-foreground">{t('nfts.advertisement.views')}</div>
                       </div>
                     </div>
 
@@ -414,12 +751,12 @@ export default function NFTs() {
                         {purchaseState.loading && purchaseState.nftId === nft.id ? (
                           <>
                             <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                            Purchasing...
+                            {t('nfts.purchase.purchasing')}
                           </>
                         ) : (
                           <>
                             <ShoppingCart className="mr-2 h-4 w-4" />
-                            Purchase
+                            {t('nfts.purchase.button')}
                           </>
                         )}
                       </Button>
@@ -454,8 +791,8 @@ export default function NFTs() {
                 <Palette className="w-8 h-8 text-purple-400" />
               </div>
               <div>
-                <h2 className="text-2xl font-bold text-purple-400">Merchant NFTs</h2>
-                <p className="text-muted-foreground">Professional services and digital products from verified merchants</p>
+                <h2 className="text-2xl font-bold text-purple-400">{t('nfts.merchant.title')}</h2>
+                <p className="text-muted-foreground">{t('nfts.merchant.subtitle')}</p>
               </div>
             </div>
 
@@ -463,14 +800,25 @@ export default function NFTs() {
               {merchantNFTs.map((nft) => (
                 <Card key={nft.id} className="group hover:shadow-lg transition-all duration-200 border-purple-500/20 hover:border-purple-500/40">
                   <CardHeader className="pb-3">
-                    <img 
-                      src={nft.image_url || '/placeholder-nft.jpg'} 
+                    <StableImage
+                      src={nft.image_url}
                       alt={nft.title}
                       className="w-full h-48 object-cover rounded-lg mb-3"
+                      fallback="https://via.placeholder.com/400x300/9333ea/e9d5ff?text=Merchant+NFT"
                     />
                     <div className="flex items-center justify-between">
                       <Badge className="bg-purple-500/20 text-purple-400 border-purple-500/30">
-                        {nft.category}
+                        <HybridTranslation
+                          content={{
+                            text: nft.category,
+                            language: nft.language_code || nft.language,
+                            translations: nft.translations ? Object.fromEntries(
+                              Object.entries(nft.translations).map(([lang, trans]) => [lang, trans.category || nft.category])
+                            ) : {}
+                          }}
+                          autoTranslate={true}
+                          contentStyle="text-xs"
+                        />
                       </Badge>
                       {nft.supply_total && (
                         <Badge variant="outline" className="text-xs">
@@ -478,16 +826,41 @@ export default function NFTs() {
                         </Badge>
                       )}
                     </div>
-                    <CardTitle className="text-lg text-foreground">{nft.title}</CardTitle>
+                    <CardTitle className="text-lg text-foreground">
+                      <HybridTranslation
+                        content={{
+                          text: nft.title,
+                          language: nft.language_code || nft.language,
+                          translations: nft.translations ? Object.fromEntries(
+                            Object.entries(nft.translations).map(([lang, trans]) => [lang, trans.title || nft.title])
+                          ) : {}
+                        }}
+                        autoTranslate={true}
+                        contentStyle="text-lg font-semibold"
+                        showTranslationSource={true}
+                      />
+                    </CardTitle>
                   </CardHeader>
                   
                   <CardContent className="space-y-4">
-                    <p className="text-sm text-muted-foreground line-clamp-3">{nft.description}</p>
+                    <p className="text-sm text-muted-foreground line-clamp-3">
+                      <HybridTranslation
+                        content={{
+                          text: nft.description,
+                          language: nft.language_code || nft.language,
+                          translations: nft.translations ? Object.fromEntries(
+                            Object.entries(nft.translations).map(([lang, trans]) => [lang, trans.description || nft.description])
+                          ) : {}
+                        }}
+                        autoTranslate={true}
+                        contentStyle="text-sm text-muted-foreground"
+                      />
+                    </p>
                     
                     <div className="flex items-center justify-between">
                       <div className="text-center">
-                        <div className="text-lg font-bold text-purple-400">{nft.price_bcc} BCC</div>
-                        <div className="text-xs text-muted-foreground">${nft.price_usdt} USDT</div>
+                        <div className="text-lg font-bold text-purple-400">{nft.price_bcc || 0} BCC</div>
+                        <div className="text-xs text-muted-foreground">${nft.price_usdt || 0} USDT</div>
                       </div>
                       {nft.supply_total && (
                         <div className="text-center">
@@ -508,14 +881,14 @@ export default function NFTs() {
                       {purchaseState.loading && purchaseState.nftId === nft.id ? (
                         <>
                           <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                          Purchasing...
+                          {t('nfts.purchase.purchasing')}
                         </>
                       ) : nft.supply_available !== null && nft.supply_available <= 0 ? (
-                        'Sold Out'
+                        t('nfts.merchant.soldOut')
                       ) : (
                         <>
                           <ShoppingCart className="mr-2 h-4 w-4" />
-                          Purchase ({nft.price_bcc} BCC)
+                          {t('nfts.purchase.button')} ({nft.price_bcc} BCC)
                         </>
                       )}
                     </Button>
@@ -539,8 +912,8 @@ export default function NFTs() {
                 <Star className="w-8 h-8 text-green-400" />
               </div>
               <div>
-                <h2 className="text-2xl font-bold text-green-400">My NFT Collection</h2>
-                <p className="text-muted-foreground">Your purchased NFTs and active services</p>
+                <h2 className="text-2xl font-bold text-green-400">{t('nfts.myCollection.title')}</h2>
+                <p className="text-muted-foreground">{t('nfts.myCollection.subtitle')}</p>
               </div>
             </div>
 
@@ -556,10 +929,11 @@ export default function NFTs() {
                 return (
                   <Card key={purchase.id} className="border-green-500/20">
                     <CardHeader className="pb-3">
-                      <img 
-                        src={nft.image_url} 
+                      <StableImage
+                        src={nft.image_url}
                         alt={nft.title}
                         className="w-full h-48 object-cover rounded-lg mb-3"
+                        fallback="https://via.placeholder.com/400x300/10b981/dcfce7?text=My+NFT"
                       />
                       <div className="flex items-center justify-between">
                         <Badge className={`${
@@ -567,21 +941,44 @@ export default function NFTs() {
                             ? 'bg-blue-500/20 text-blue-400 border-blue-500/30' 
                             : 'bg-purple-500/20 text-purple-400 border-purple-500/30'
                         }`}>
-                          {nft.category}
+                          <HybridTranslation
+                            content={{
+                              text: nft.category,
+                              language: nft.language_code || nft.language,
+                              translations: nft.translations ? Object.fromEntries(
+                                Object.entries(nft.translations).map(([lang, trans]) => [lang, trans.category || nft.category])
+                              ) : {}
+                            }}
+                            autoTranslate={true}
+                            contentStyle="text-xs"
+                          />
                         </Badge>
                         <Badge className="bg-green-500/20 text-green-400 border-green-500/30">
                           Owned
                         </Badge>
                       </div>
-                      <CardTitle className="text-lg text-foreground">{nft.title}</CardTitle>
+                      <CardTitle className="text-lg text-foreground">
+                        <HybridTranslation
+                          content={{
+                            text: nft.title,
+                            language: nft.language_code || nft.language,
+                            translations: nft.translations ? Object.fromEntries(
+                              Object.entries(nft.translations).map(([lang, trans]) => [lang, trans.title || nft.title])
+                            ) : {}
+                          }}
+                          autoTranslate={true}
+                          contentStyle="text-lg font-semibold"
+                          showTranslationSource={true}
+                        />
+                      </CardTitle>
                     </CardHeader>
                     
                     <CardContent className="space-y-4">
-                      <p className="text-sm text-muted-foreground line-clamp-2">{nft.description}</p>
+                      <p className="text-sm text-muted-foreground line-clamp-2">{getTranslatedContent(nft, 'description')}</p>
                       
                       <div className="text-xs text-muted-foreground space-y-1">
                         <div>Purchased: {new Date(purchase.purchased_at).toLocaleDateString()}</div>
-                        <div>Paid: {purchase.price_usdt} USDT</div>
+                        <div>Paid: {purchase.price_usdt || 0} USDT</div>
                         <div>Type: {purchase.nft_type}</div>
                       </div>
 
@@ -606,7 +1003,7 @@ export default function NFTs() {
                 <div className="w-20 h-20 rounded-full border-2 border-dashed border-green-400/30 mx-auto mb-4 flex items-center justify-center">
                   <Package className="w-8 h-8 text-green-400/30" />
                 </div>
-                <p className="text-muted-foreground mb-4">No NFTs in your collection yet</p>
+                <p className="text-muted-foreground mb-4">{t('nfts.myCollection.empty')}</p>
                 <div className="flex flex-wrap justify-center gap-2">
                   <Button
                     variant="outline"

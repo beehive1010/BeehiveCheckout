@@ -24,17 +24,17 @@ export default function MatrixExplanation() {
 
         <div className="text-center mb-8">
           <h1 className="text-2xl md:text-4xl font-bold text-honey mb-2">
-            3×3 Matrix System
+            {t('matrixExplanation.title')}
           </h1>
           <p className="text-sm md:text-base text-gray-400 max-w-xl mx-auto">
-            Understanding the Beehive 19-Layer Referral System
+            {t('matrixExplanation.subtitle')}
           </p>
         </div>
 
         {/* Matrix Visualization */}
         <div className="bg-gray-900/30 rounded-lg p-4 md:p-6 mb-8 border border-gray-700">
           <h2 className="text-lg md:text-xl font-semibold text-center mb-4 text-honey">
-            Matrix Structure
+            {t('matrixExplanation.matrixStructure')}
           </h2>
           <div className="flex justify-center">
             <MatrixVisualization maxLevels={3} showAnimation={false} compact={true} />
@@ -46,24 +46,24 @@ export default function MatrixExplanation() {
           <div className="bg-gray-900/30 rounded-lg p-4 border border-gray-700">
             <div className="flex items-center gap-2 mb-3">
               <Users className="w-5 h-5 text-honey" />
-              <h3 className="text-lg font-semibold">Placement Rules</h3>
+              <h3 className="text-lg font-semibold">{t('matrixExplanation.placementRules.title')}</h3>
             </div>
             <ul className="text-gray-300 text-sm space-y-1">
-              <li>• L → M → R priority placement</li>
-              <li>• Find first incomplete downline layer</li>
-              <li>• Each member maintains 19-layer matrix</li>
+              <li>• {t('matrixExplanation.placementRules.rule1')}</li>
+              <li>• {t('matrixExplanation.placementRules.rule2')}</li>
+              <li>• {t('matrixExplanation.placementRules.rule3')}</li>
             </ul>
           </div>
 
           <div className="bg-gray-900/30 rounded-lg p-4 border border-gray-700">
             <div className="flex items-center gap-2 mb-3">
               <TrendingUp className="w-5 h-5 text-honey" />
-              <h3 className="text-lg font-semibold">Reward System</h3>
+              <h3 className="text-lg font-semibold">{t('matrixExplanation.rewardSystem.title')}</h3>
             </div>
             <ul className="text-gray-300 text-sm space-y-1">
-              <li>• Layer Rewards = NFT price of that level</li>
-              <li>• Root must hold ≥ that level to claim</li>
-              <li>• 72-hour upgrade window for pending rewards</li>
+              <li>• {t('matrixExplanation.rewardSystem.rule1')}</li>
+              <li>• {t('matrixExplanation.rewardSystem.rule2')}</li>
+              <li>• {t('matrixExplanation.rewardSystem.rule3')}</li>
             </ul>
           </div>
         </div>
@@ -71,30 +71,30 @@ export default function MatrixExplanation() {
         {/* Membership Levels */}
         <div className="bg-gray-900/30 rounded-lg p-4 mb-8 border border-gray-700">
           <h2 className="text-lg font-semibold text-center mb-4 text-honey">
-            Membership Levels
+            {t('matrixExplanation.membershipLevels.title')}
           </h2>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <div className="text-center p-3 bg-honey/10 rounded-lg border border-honey/30">
-              <div className="text-lg font-bold text-honey mb-1">Level 1</div>
-              <div className="text-base font-semibold mb-1">130 USDC</div>
+              <div className="text-lg font-bold text-honey mb-1">{t('matrixExplanation.membershipLevels.level1.title')}</div>
+              <div className="text-base font-semibold mb-1">{t('matrixExplanation.membershipLevels.level1.price')}</div>
               <div className="text-xs text-gray-400">
-                100 USDC NFT + 30 USDC activation
+                {t('matrixExplanation.membershipLevels.level1.description')}
               </div>
             </div>
             
             <div className="text-center p-3 bg-honey/10 rounded-lg border border-honey/30">
-              <div className="text-lg font-bold text-honey mb-1">Level 2-19</div>
-              <div className="text-base font-semibold mb-1">+50 USDC each</div>
+              <div className="text-lg font-bold text-honey mb-1">{t('matrixExplanation.membershipLevels.level2to19.title')}</div>
+              <div className="text-base font-semibold mb-1">{t('matrixExplanation.membershipLevels.level2to19.price')}</div>
               <div className="text-xs text-gray-400">
-                Sequential upgrade required
+                {t('matrixExplanation.membershipLevels.level2to19.description')}
               </div>
             </div>
 
             <div className="text-center p-3 bg-honey/10 rounded-lg border border-honey/30">
-              <div className="text-lg font-bold text-honey mb-1">Level 19</div>
-              <div className="text-base font-semibold mb-1">1000 USDC</div>
+              <div className="text-lg font-bold text-honey mb-1">{t('matrixExplanation.membershipLevels.level19.title')}</div>
+              <div className="text-base font-semibold mb-1">{t('matrixExplanation.membershipLevels.level19.price')}</div>
               <div className="text-xs text-gray-400">
-                Maximum level
+                {t('matrixExplanation.membershipLevels.level19.description')}
               </div>
             </div>
           </div>
@@ -105,24 +105,24 @@ export default function MatrixExplanation() {
           <div className="bg-gray-900/30 rounded-lg p-4 border border-gray-700">
             <div className="flex items-center gap-2 mb-3">
               <Gift className="w-5 h-5 text-honey" />
-              <h3 className="text-lg font-semibold">BCC Token Rewards</h3>
+              <h3 className="text-lg font-semibold">{t('matrixExplanation.bccRewards.title')}</h3>
             </div>
             <ul className="text-gray-300 text-sm space-y-1">
-              <li>• Tier 1 (1-9,999): 10,450 BCC total</li>
-              <li>• Level 1: 100 BCC → Level 19: 1000 BCC</li>
-              <li>• 500 BCC activation bonus</li>
+              <li>• {t('matrixExplanation.bccRewards.tier1')}</li>
+              <li>• {t('matrixExplanation.bccRewards.levelProgression')}</li>
+              <li>• {t('matrixExplanation.bccRewards.activationBonus')}</li>
             </ul>
           </div>
 
           <div className="bg-gray-900/30 rounded-lg p-4 border border-gray-700">
             <div className="flex items-center gap-2 mb-3">
               <Clock className="w-5 h-5 text-honey" />
-              <h3 className="text-lg font-semibold">Special Rules</h3>
+              <h3 className="text-lg font-semibold">{t('matrixExplanation.specialRules.title')}</h3>
             </div>
             <ul className="text-gray-300 text-sm space-y-1">
-              <li>• Level 2: Requires 3 direct referrals</li>
-              <li>• Sequential NFT purchases required</li>
-              <li>• 72-hour pending reward window</li>
+              <li>• {t('matrixExplanation.specialRules.level2Requirement')}</li>
+              <li>• {t('matrixExplanation.specialRules.sequentialPurchases')}</li>
+              <li>• {t('matrixExplanation.specialRules.pendingWindow')}</li>
             </ul>
           </div>
         </div>
@@ -134,7 +134,7 @@ export default function MatrixExplanation() {
               className="bg-honey text-black px-6 py-3 rounded-lg font-semibold hover:bg-yellow-400 transition-colors"
               data-testid="get-started-matrix"
             >
-              Get Started
+              {t('landing.getStarted')}
             </button>
           </Link>
         </div>

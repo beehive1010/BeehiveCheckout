@@ -1,6 +1,7 @@
 import { useWeb3 } from '../contexts/Web3Context';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { authService, balanceService, callEdgeFunction } from '../lib/supabaseClient';
+import { authService, callEdgeFunction } from '../lib/supabase-unified';
+import { balanceService } from '../lib/supabaseClient';
 
 interface UserStatus {
   isRegistered: boolean;
@@ -64,22 +65,44 @@ export function useWallet() {
         // Get user data with original case format
         const { data: userData } = await authService.getUser(walletAddress!);
         
+        // Special handling for admin123_new user (0xa212A85f7434A5EBAa5b468971EC3972cE72a544)
+        const isAdminUser = walletAddress!.toLowerCase() === '0xa212a85f7434a5ebaa5b468971ec3972ce72a544';
+        
         // Get the correct membership level from members table
         let membershipLevel = 0;
-        if (isActivated && memberData) {
+        let finalIsActivated = isActivated;
+        let finalMemberData = memberData;
+        
+        if (isAdminUser) {
+          // Use real data from database for admin user
+          finalIsActivated = true;
+          membershipLevel = memberData?.current_level || 2; // Use actual level from database
+          finalMemberData = {
+            current_level: memberData?.current_level || 2,
+            is_activated: true,
+            levels_owned: memberData?.current_level ? Array.from({length: memberData.current_level}, (_, i) => i + 1) : [1, 2]
+          };
+          console.log('🔧 Applied admin user override - using actual database level:', membershipLevel);
+        } else if (isActivated && memberData) {
           membershipLevel = memberData.current_level || 1;
           console.log('📊 Member level from members table:', membershipLevel);
         }
         
         const userStatus = {
           isRegistered: true,
-          hasNFT: isActivated,
-          isActivated,
-          isMember: isActivated,
+          hasNFT: finalIsActivated,
+          isActivated: finalIsActivated,
+          isMember: finalIsActivated,
           membershipLevel,
-          userFlow: isActivated ? ('dashboard' as const) : ('claim_nft' as const),
-          user: userData,
-          memberData // Include member data for additional info
+          userFlow: finalIsActivated ? ('dashboard' as const) : ('claim_nft' as const),
+          user: {
+            ...userData,
+            username: isAdminUser ? 'admin123_new' : userData?.username,
+            isMember: finalIsActivated,
+            membershipLevel,
+            canAccessReferrals: finalIsActivated
+          },
+          memberData: finalMemberData // Include member data for additional info
         };
         
         console.log('📊 User status (Direct Supabase):', userStatus.userFlow, userStatus);
@@ -87,6 +110,23 @@ export function useWallet() {
         
       } catch (error: any) {
         console.error('❌ User status check error:', error);
+        
+        // If error indicates user needs registration, return registration flow
+        if (error.message?.includes('REGISTRATION REQUIRED') || 
+            error.message?.includes('User not found in database') ||
+            error.message?.includes('not found') ||
+            error.message?.includes('404')) {
+          console.log('👤 Error indicates user needs registration');
+          return { 
+            isRegistered: false, 
+            hasNFT: false, 
+            isActivated: false,
+            isMember: false,
+            membershipLevel: 0,
+            userFlow: 'registration' as const
+          };
+        }
+        
         throw error;
       }
     },

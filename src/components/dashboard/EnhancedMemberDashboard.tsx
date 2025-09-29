@@ -125,16 +125,47 @@ export function EnhancedMemberDashboard({ className = "" }: EnhancedMemberDashbo
   
   // Fetch Matrix view data for team tab
   const { data: matrixView } = useQuery({
-    queryKey: ['/matrix/1x3-view', walletAddress],
+    queryKey: ['/matrix/referrals-tree-view', walletAddress],
     enabled: !!walletAddress && activeTab === 'team',
     queryFn: async () => {
-      const { data, error } = await supabase.rpc('get_1x3_matrix_view', {
-        p_wallet_address: walletAddress!,
-        p_levels: 3
-      });
+      const { data, error } = await supabase
+        .from('matrix_referrals_tree_view')
+        .select(`
+          member_wallet,
+          matrix_root_wallet,
+          matrix_layer,
+          matrix_position,
+          referral_type,
+          placed_at
+        `)
+        .eq('matrix_root_wallet', walletAddress!)
+        .lte('matrix_layer', 3)
+        .order('matrix_layer');
 
       if (error) throw error;
-      return data;
+      
+      // Group by root for compatibility with existing UI
+      const groupedData = data?.reduce((acc: any, item: any) => {
+        const key = item.matrix_root_wallet;
+        if (!acc[key]) {
+          acc[key] = {
+            wallet_address: key,
+            current_level: 1,
+            username: `Root ${key.slice(0, 6)}...`,
+            total_downline: 0,
+            members: []
+          };
+        }
+        acc[key].members.push({
+          ...item,
+          layer: item.matrix_layer,
+          position: item.matrix_position
+        });
+        acc[key].total_downline++;
+        return acc;
+      }, {});
+      
+      return Object.values(groupedData || {});
     },
   });
 
@@ -460,40 +491,60 @@ export function EnhancedMemberDashboard({ className = "" }: EnhancedMemberDashbo
               <CardContent>
                 {matrixView && matrixView.length > 0 ? (
                   <div className="space-y-4">
-                    <div className="text-center">
-                      <div className="text-lg font-bold text-honey mb-2">
-                        {t('dashboard.matrixRoots', { count: matrixView.length })}
+                    {/* Matrix Summary Stats */}
+                    <div className="grid grid-cols-2 gap-3 p-3 bg-honey/5 rounded-lg">
+                      <div className="text-center">
+                        <div className="text-lg font-bold text-honey">
+                          {matrixView[0]?.total_downline || 0}
+                        </div>
+                        <div className="text-xs text-muted-foreground">Matrix Team</div>
                       </div>
-                      <div className="text-xs text-muted-foreground mb-4">
-                        {t('dashboard.showingLevels', { levels: 3 })}
+                      <div className="text-center">
+                        <div className="text-lg font-bold text-blue-400">
+                          {matrixView[0]?.members?.filter((m: any) => m.layer <= 3).length || 0}
+                        </div>
+                        <div className="text-xs text-muted-foreground">First 3 Layers</div>
                       </div>
                     </div>
-                    <div className="space-y-2 max-h-40 overflow-y-auto">
-                      {matrixView.slice(0, 5).map((root: any, index: number) => (
-                        <div key={root.wallet_address} className="flex items-center justify-between p-2 bg-honey/5 rounded">
+                    
+                    {/* Matrix Members List */}
+                    <div className="space-y-2 max-h-32 overflow-y-auto">
+                      {matrixView[0]?.members?.slice(0, 4).map((member: any, index: number) => (
+                        <div key={member.member_wallet} className="flex items-center justify-between p-2 bg-honey/5 rounded text-xs">
                           <div className="flex items-center gap-2">
                             <Badge variant="outline" className="text-xs">
-                              L{root.current_level}
+                              L{member.layer}
                             </Badge>
-                            <span className="text-sm font-medium">
-                              {root.username || `${root.wallet_address.slice(0, 6)}...`}
+                            <span className="font-medium">
+                              {member.member_wallet?.slice(0, 6)}...{member.member_wallet?.slice(-4)}
                             </span>
                           </div>
-                          <div className="text-xs text-muted-foreground">
-                            {root.total_downline} {t('dashboard.downline')}
+                          <div className="flex items-center gap-1">
+                            <Badge 
+                              variant={member.position === 'L' ? 'default' : member.position === 'M' ? 'secondary' : 'outline'}
+                              className="text-xs"
+                            >
+                              {member.position}
+                            </Badge>
                           </div>
                         </div>
                       ))}
                     </div>
+                    
                     <Button variant="outline" className="w-full">
                       <BarChart3 className="mr-2 h-4 w-4" />
                       {t('dashboard.viewDetailedMatrix')}
                     </Button>
                   </div>
                 ) : (
-                  <div className="text-center">
-                    <div className="text-sm text-muted-foreground mb-4">
-                      {t('dashboard.noMatrixData')}
+                  <div className="text-center space-y-3">
+                    <div className="p-3 bg-gray-50 dark:bg-gray-800 rounded-lg">
+                      <div className="text-sm text-muted-foreground mb-2">
+                        {t('dashboard.noMatrixData')}
+                      </div>
+                      <div className="text-xs text-muted-foreground">
+                        Start building your matrix by referring new members
+                      </div>
                     </div>
                     <Button variant="outline" className="w-full">
                       <BarChart3 className="mr-2 h-4 w-4" />

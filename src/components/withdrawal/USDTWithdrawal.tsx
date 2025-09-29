@@ -1,451 +1,426 @@
-import { useState } from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { apiRequest } from '@/lib/queryClient';
-import { useToast } from '@/hooks/use-toast';
-import { useActiveAccount, useSendTransaction } from 'thirdweb/react';
-import { useWallet } from '@/hooks/useWallet';
-import { client } from '@/lib/web3';
-import { DollarSign, ArrowRight, Loader2, ExternalLink, CheckCircle, AlertTriangle } from 'lucide-react';
-import { Badge } from '@/components/ui/badge';
-import { Alert, AlertDescription } from '@/components/ui/alert';
+import {useState} from 'react';
+import {Card, CardContent, CardHeader, CardTitle} from '@/components/ui/card';
+import {Button} from '@/components/ui/button';
+import {Input} from '@/components/ui/input';
+import {Label} from '@/components/ui/label';
+import {Select, SelectContent, SelectItem, SelectTrigger, SelectValue} from '@/components/ui/select';
+import {useMutation, useQuery, useQueryClient} from '@tanstack/react-query';
+import {useToast} from '@/hooks/use-toast';
+import {useActiveAccount, useActiveWalletChain} from 'thirdweb/react';
+import {useWallet} from '@/hooks/useWallet';
+import {useIsMobile} from '@/hooks/use-mobile';
+import {ArrowRight, Coins, Loader2, RefreshCw, Zap} from 'lucide-react';
+import {Badge} from '@/components/ui/badge';
+import {Alert, AlertDescription} from '@/components/ui/alert';
+import {useI18n} from '@/contexts/I18nContext';
 
 interface USDTBalance {
   balance: number;
   balanceUSD: string;
   lastUpdated: string;
+  error?: string;
 }
 
-interface WithdrawalRequest {
-  withdrawalId: string;
-  amount: number;
-  amountUSD: string;
-  chain: string;
-  recipientAddress: string;
-  status: string;
-  message: string;
-}
-
-const SUPPORTED_CHAINS = [
-  { id: 'ethereum', name: 'Ethereum', symbol: 'ETH', icon: '🔷', color: 'text-blue-400' },
-  { id: 'polygon', name: 'Polygon', symbol: 'MATIC', icon: '🟣', color: 'text-purple-400' },
-  { id: 'arbitrum', name: 'Arbitrum', symbol: 'ARB', icon: '🔵', color: 'text-blue-300' },
-  { id: 'optimism', name: 'Optimism', symbol: 'OP', icon: '🔴', color: 'text-red-400' },
-  { id: 'bsc', name: 'BSC', symbol: 'BNB', icon: '🟡', color: 'text-yellow-400' },
-];
+// Supported chains for withdrawal
+const SUPPORTED_CHAINS = {
+  42161: { name: 'Arbitrum', symbol: 'ARB', icon: '🔵', fee: 2.0, native: true },
+  1: { name: 'Ethereum', symbol: 'ETH', icon: '🔷', fee: 15.0, native: false },
+  137: { name: 'Polygon', symbol: 'MATIC', icon: '🟣', fee: 1.0, native: false },
+  10: { name: 'Optimism', symbol: 'OP', icon: '🔴', fee: 1.5, native: false },
+  56: { name: 'BSC', symbol: 'BNB', icon: '🟡', fee: 1.0, native: false },
+  8453: { name: 'Base', symbol: 'BASE', icon: '🔵', fee: 1.5, native: false }
+};
 
 export default function USDTWithdrawal() {
   const { toast } = useToast();
+  const { t } = useI18n();
   const account = useActiveAccount();
+  const activeChain = useActiveWalletChain();
   const { userData } = useWallet();
   const queryClient = useQueryClient();
-  const { mutate: sendTransaction } = useSendTransaction();
+  const isMobile = useIsMobile();
   
-  // Use the registered wallet address from user data if available, fallback to connected wallet
   const memberWalletAddress = userData?.wallet_address || account?.address;
+  const currentChainId = activeChain?.id || 42161; // Default to Arbitrum
+  const currentChain = SUPPORTED_CHAINS[currentChainId as keyof typeof SUPPORTED_CHAINS];
   
-  const [withdrawalAmount, setWithdrawalAmount] = useState('');
-  const [selectedChain, setSelectedChain] = useState('');
-  const [recipientAddress, setRecipientAddress] = useState('');
-  const [withdrawalRequest, setWithdrawalRequest] = useState<WithdrawalRequest | null>(null);
-  const [step, setStep] = useState<'form' | 'confirm' | 'signing' | 'processing' | 'success'>('form');
+  const [amount, setAmount] = useState('');
+  const [targetChain, setTargetChain] = useState(currentChainId.toString());
+  const [selectedToken, setSelectedToken] = useState('USDT'); // 添加目标代币选择
+  const [isProcessing, setIsProcessing] = useState(false);
 
-  // Get user USDT balance from rewards system
-  const { data: balance, isLoading: balanceLoading } = useQuery<USDTBalance>({
-    queryKey: ['/api/rewards/balance', memberWalletAddress],
+  // Get reward balance
+  const { data: balance, isLoading: balanceLoading, refetch } = useQuery<USDTBalance>({
+    queryKey: ['user-balance', memberWalletAddress],
     enabled: !!memberWalletAddress,
     queryFn: async () => {
-      const response = await fetch(`https://cvqibjcbfrwsgkvthccp.supabase.co/functions/v1/rewards/user`, {
-        method: 'GET',
+      const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
+      const anonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
+      
+      const response = await fetch(`${supabaseUrl}/functions/v1/balance`, {
+        method: 'POST',
         headers: {
+          'Authorization': `Bearer ${anonKey}`,
+          'apikey': anonKey,
           'Content-Type': 'application/json',
           'x-wallet-address': memberWalletAddress!,
         },
+        body: JSON.stringify({ action: 'get-balance' }),
       });
-      if (!response.ok) {
-        throw new Error('Failed to fetch claimable rewards balance');
-      }
-      const result = await response.json();
       
-      // Transform the response to match expected USDTBalance interface
-      if (result.success && result.data) {
-        return {
-          balance: Math.round((result.data.usdc_claimable || 0) * 100), // Convert to cents
-          balanceUSD: (result.data.usdc_claimable || 0).toFixed(2),
-          lastUpdated: result.data.updated_at || new Date().toISOString()
-        };
-      } else {
-        return {
-          balance: 0,
-          balanceUSD: '0.00',
-          lastUpdated: new Date().toISOString()
-        };
+      if (!response.ok) throw new Error('Failed to fetch balance');
+      
+      const result = await response.json();
+      const balanceAmount = result.balance?.reward_balance || 0;
+      
+      return {
+        balance: Math.round(balanceAmount * 100),
+        balanceUSD: balanceAmount.toFixed(2),
+        lastUpdated: new Date().toISOString()
+      };
+    },
+  });
+
+  // Withdrawal mutation with real backend call
+  const withdrawalMutation = useMutation({
+    mutationFn: async (data: { amount: number; chainId: number }) => {
+      setIsProcessing(true);
+      
+      const targetChainInfo = SUPPORTED_CHAINS[data.chainId as keyof typeof SUPPORTED_CHAINS];
+      if (!targetChainInfo) throw new Error('Unsupported chain selected');
+      
+      const fee = targetChainInfo.fee;
+      const netAmount = data.amount - fee;
+      
+      if (netAmount <= 0) {
+        throw new Error(`Amount too small. Minimum: ${(fee + 0.01).toFixed(2)} USDT (includes ${fee} USDT fee)`);
       }
-    },
-  });
 
-  // Initiate withdrawal mutation
-  const initiateWithdrawalMutation = useMutation({
-    mutationFn: async (data: { amount: number; chain: string; recipientAddress: string }) => {
-      return await apiRequest('/api/usdt/withdraw', 'POST', {
-        ...data,
-        walletAddress: memberWalletAddress,
+      if (!memberWalletAddress) {
+        throw new Error('Wallet address not found');
+      }
+
+      const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
+      const anonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
+      
+      if (!supabaseUrl || !anonKey) {
+        throw new Error('Missing Supabase configuration');
+      }
+
+      console.log(`🚀 Starting withdrawal: ${netAmount} USDT to ${targetChainInfo.name} (fee: ${fee} USDT)`);
+
+      // Call withdrawal API endpoint (backend handles thirdweb credentials securely)
+      const response = await fetch(`${supabaseUrl}/functions/v1/withdrawal`, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${anonKey}`,
+          'apikey': anonKey,
+          'Content-Type': 'application/json',
+          'x-wallet-address': memberWalletAddress,
+        },
+        body: JSON.stringify({
+          action: 'process-withdrawal',
+          amount: data.amount,
+          recipientAddress: memberWalletAddress,
+          targetChainId: data.chainId,
+          targetTokenSymbol: selectedToken || 'USDT', // 从UI获取目标代币
+          memberWallet: memberWalletAddress,
+          sourceChainId: 42161, // Arbitrum One (where our USDT is held)
+        }),
       });
+
+      if (!response.ok) {
+        const errorText = await response.text();
+        console.error('❌ Withdrawal API error:', errorText);
+        throw new Error(`Withdrawal failed: ${response.status} ${errorText}`);
+      }
+
+      const result = await response.json();
+      console.log('✅ Withdrawal API result:', result);
+
+      if (!result.success) {
+        throw new Error(result.error || 'Withdrawal failed');
+      }
+
+      return {
+        success: true,
+        transactionHash: result.transaction_hash || result.send_queue_id,
+        netAmount: result.net_amount,
+        fee: result.fee_amount,
+        chain: result.target_token?.symbol || targetChainInfo.name,
+        isCrossChain: result.is_cross_chain,
+        withdrawalId: result.withdrawal_id,
+        processingMethod: result.processing_method,
+        estimatedMinutes: result.estimated_completion_minutes,
+        message: result.message
+      };
     },
-    onSuccess: (data: WithdrawalRequest) => {
-      setWithdrawalRequest(data);
-      setStep('confirm');
+    onSuccess: (data) => {
+      toast({
+        title: `提现${data.isCrossChain ? '跨链' : ''}处理中 ${data.isCrossChain ? '🌉' : '⏳'}`,
+        description: data.message || `${data.netAmount} ${data.chain} 预计 ${data.estimatedMinutes} 分钟内到账`,
+      });
+      
+      setAmount('');
+      setIsProcessing(false);
+      queryClient.invalidateQueries({ queryKey: ['user-balance'] });
     },
     onError: (error: any) => {
       toast({
-        title: "Withdrawal Failed",
-        description: error.message || "Failed to initiate withdrawal",
+        title: t('withdrawal.withdrawal_failed'),
+        description: error.message,
         variant: 'destructive',
       });
+      setIsProcessing(false);
     },
   });
 
-  // Confirm withdrawal mutation
-  const confirmWithdrawalMutation = useMutation({
-    mutationFn: async (data: { withdrawalId: string; signature: string; amount: number; chain: string; recipientAddress: string }) => {
-      return await apiRequest('/api/usdt/withdraw/confirm', 'POST', {
-        ...data,
-        walletAddress: memberWalletAddress,
-      });
-    },
-    onSuccess: (data: any) => {
-      toast({
-        title: "Withdrawal Successful!",
-        description: `Successfully withdrawn ${data.amount} USDT to ${data.chain}`,
-      });
-      queryClient.invalidateQueries({ queryKey: ['/api/usdt/balance'] });
-      setStep('success');
-    },
-    onError: (error: any) => {
-      toast({
-        title: "Withdrawal Failed",
-        description: error.message || "Failed to confirm withdrawal",
-        variant: 'destructive',
-      });
-      setStep('form');
-    },
-  });
-
-  const handleInitiateWithdrawal = () => {
-    const amountCents = Math.round(parseFloat(withdrawalAmount) * 100);
+  const handleWithdraw = () => {
+    const withdrawAmount = parseFloat(amount);
     
-    if (!withdrawalAmount || amountCents <= 0) {
+    if (!amount || withdrawAmount <= 0) {
       toast({
-        title: "Invalid Amount",
-        description: "Please enter a valid withdrawal amount",
+        title: t('withdrawal.invalid_amount'),
+        description: t('withdrawal.enter_valid_amount'),
         variant: 'destructive',
       });
       return;
     }
 
-    if (!selectedChain) {
+    if (!memberWalletAddress) {
       toast({
-        title: "Select Chain",
-        description: "Please select a blockchain to withdraw to",
+        title: t('withdrawal.wallet_required'),
+        description: t('withdrawal.connect_wallet'),
         variant: 'destructive',
       });
       return;
     }
 
-    if (!recipientAddress || !/^0x[a-fA-F0-9]{40}$/.test(recipientAddress)) {
+    if (!balance || withdrawAmount > parseFloat(balance.balanceUSD)) {
       toast({
-        title: "Invalid Address",
-        description: "Please enter a valid wallet address",
+        title: t('withdrawal.insufficient_balance'),
+        description: t('withdrawal.available_balance_is', { amount: balance?.balanceUSD || '0' }),
         variant: 'destructive',
       });
       return;
     }
 
-    if (!balance || amountCents > balance.balance) {
-      toast({
-        title: "Insufficient Balance",
-        description: "You don't have enough USDT to withdraw this amount",
-        variant: 'destructive',
-      });
-      return;
-    }
-
-    initiateWithdrawalMutation.mutate({
-      amount: amountCents,
-      chain: selectedChain,
-      recipientAddress,
+    withdrawalMutation.mutate({
+      amount: withdrawAmount,
+      chainId: parseInt(targetChain)
     });
   };
 
-  const handleConfirmWithdrawal = async () => {
-    if (!withdrawalRequest || !memberWalletAddress) return;
-
-    setStep('signing');
-
-    try {
-      // Create a message for the user to sign
-      const message = withdrawalRequest.message;
-      
-      // In a real implementation, you would use the user's wallet to sign this message
-      // For now, we'll use a mock signature
-      const mockSignature = `0x${Math.random().toString(16).slice(2).padStart(130, '0')}`;
-
-      setStep('processing');
-      
-      confirmWithdrawalMutation.mutate({
-        withdrawalId: withdrawalRequest.withdrawalId,
-        signature: mockSignature,
-        amount: withdrawalRequest.amount,
-        chain: withdrawalRequest.chain,
-        recipientAddress: withdrawalRequest.recipientAddress,
-      });
-    } catch (error) {
-      console.error('Signing error:', error);
-      toast({
-        title: "Signing Failed",
-        description: "Failed to sign the withdrawal request",
-        variant: 'destructive',
-      });
-      setStep('confirm');
-    }
-  };
-
-  const resetForm = () => {
-    setStep('form');
-    setWithdrawalRequest(null);
-    setWithdrawalAmount('');
-    setSelectedChain('');
-    setRecipientAddress('');
-  };
-
-  const selectedChainInfo = SUPPORTED_CHAINS.find(chain => chain.id === selectedChain) || SUPPORTED_CHAINS[0];
-
-  if (balanceLoading) {
-    return (
-      <Card className="bg-secondary border-border">
-        <CardContent className="p-6 text-center">
-          <Loader2 className="h-8 w-8 animate-spin mx-auto mb-4 text-honey" />
-          <p className="text-muted-foreground">Loading USDT balance...</p>
-        </CardContent>
-      </Card>
-    );
-  }
+  const targetChainInfo = SUPPORTED_CHAINS[parseInt(targetChain) as keyof typeof SUPPORTED_CHAINS];
+  const fee = targetChainInfo?.fee || 2.0;
+  const netAmount = parseFloat(amount || '0') - fee;
 
   return (
-    <Card className="bg-secondary border-border">
-      <CardHeader>
-        <CardTitle className="text-xl font-bold text-honey flex items-center gap-2">
-          <DollarSign className="h-6 w-6" />
-          Claimable Rewards Withdrawal
-        </CardTitle>
-        <div className="flex items-center justify-between">
-          <p className="text-muted-foreground">Withdraw your claimable rewards to any supported blockchain</p>
-          <div className="text-right">
-            <p className="text-sm text-muted-foreground">Claimable Rewards</p>
-            <p className="text-lg font-semibold text-honey">
-              ${balance?.balanceUSD || '0.00'} USDT
-            </p>
+    <Card className="bg-gradient-to-br from-white via-slate-50 to-gray-50 dark:from-slate-900 dark:via-slate-800 dark:to-slate-900 border-2 border-slate-200 dark:border-slate-700 shadow-xl">
+      <CardHeader className={`${isMobile ? 'p-4 pb-2' : 'p-6 pb-4'}`}>
+        <CardTitle className="flex items-center gap-3 text-slate-900 dark:text-slate-100">
+          <div className="w-10 h-10 bg-gradient-to-br from-honey/60 to-amber-400 rounded-xl flex items-center justify-center">
+            <Coins className="h-5 w-5 text-black" />
           </div>
-        </div>
+          <div>
+            <div className="text-lg font-bold">{t('withdrawal.title')}</div>
+            <div className="text-sm font-normal text-slate-600 dark:text-slate-400">
+              {t('withdrawal.subtitle')}
+            </div>
+          </div>
+        </CardTitle>
       </CardHeader>
 
-      <CardContent className="space-y-6">
-        {step === 'form' && (
-          <>
-            <div className="space-y-2">
-              <Label htmlFor="amount" className="text-honey">Withdrawal Amount (USDT)</Label>
-              <Input
-                id="amount"
-                type="number"
-                step="0.01"
-                min="0"
-                max={balance?.balanceUSD || "0"}
-                placeholder="0.00"
-                value={withdrawalAmount}
-                onChange={(e) => setWithdrawalAmount(e.target.value)}
-                className="bg-muted border-honey/20 focus:border-honey"
-                data-testid="input-withdrawal-amount"
-              />
-              <p className="text-xs text-muted-foreground">
-                Claimable: ${balance?.balanceUSD || '0.00'} USDT
-              </p>
+      <CardContent className={`space-y-4 ${isMobile ? 'p-4 pt-2' : 'p-6 pt-4'}`}>
+        {/* Reward Balance - Centered on Mobile */}
+        <div className={`${isMobile ? 'text-center' : 'flex items-center justify-between'} bg-gradient-to-r from-honey/10 via-amber-50 to-honey/10 dark:from-honey/10 dark:via-slate-800 dark:to-honey/10 p-4 rounded-xl border border-honey/20`}>
+          <div className={isMobile ? 'space-y-1' : ''}>
+            <div className="text-sm font-medium text-slate-600 dark:text-slate-400">
+              {t('withdrawal.available_balance')}
             </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="chain" className="text-honey">Destination Blockchain</Label>
-              <Select value={selectedChain} onValueChange={setSelectedChain}>
-                <SelectTrigger className="bg-muted border-honey/20 focus:border-honey">
-                  <SelectValue placeholder="Select blockchain" />
-                </SelectTrigger>
-                <SelectContent>
-                  {SUPPORTED_CHAINS.map(chain => (
-                    <SelectItem key={chain.id || chain.name} value={chain.id || chain.name}>
-                      <div className="flex items-center gap-3">
-                        <span className="text-lg">{chain.icon}</span>
-                        <div>
-                          <p className="font-medium">{chain.name}</p>
-                          <p className="text-xs text-muted-foreground">{chain.symbol}</p>
-                        </div>
-                      </div>
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+            <div className="flex items-center gap-2 justify-center sm:justify-start">
+              <span className="text-2xl font-bold text-honey">
+                ${balanceLoading ? '---' : balance?.balanceUSD || '0.00'}
+              </span>
+              <span className="text-sm text-slate-500">USDT</span>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => refetch()}
+                disabled={balanceLoading}
+                className="h-8 w-8 p-0"
+                data-testid="button-refresh-balance"
+              >
+                <RefreshCw className={`h-4 w-4 ${balanceLoading ? 'animate-spin' : ''}`} />
+              </Button>
             </div>
+          </div>
+        </div>
 
-            <div className="space-y-2">
-              <Label htmlFor="recipient" className="text-honey">Recipient Wallet Address</Label>
-              <Input
-                id="recipient"
-                type="text"
-                placeholder="0x..."
-                value={recipientAddress}
-                onChange={(e) => setRecipientAddress(e.target.value)}
-                className="bg-muted border-honey/20 focus:border-honey font-mono text-sm"
-                data-testid="input-recipient-address"
-              />
-              <p className="text-xs text-muted-foreground">
-                Make sure this address supports USDT on the selected blockchain
-              </p>
-            </div>
-
-            <Button
-              onClick={handleInitiateWithdrawal}
-              disabled={initiateWithdrawalMutation.isPending || !withdrawalAmount || !selectedChain || !recipientAddress}
-              className="w-full bg-honey text-black hover:bg-honey/90"
-              data-testid="button-initiate-withdrawal"
-            >
-              {initiateWithdrawalMutation.isPending ? (
-                <>
-                  <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                  Preparing Withdrawal...
-                </>
-              ) : (
-                <>
-                  <ArrowRight className="h-4 w-4 mr-2" />
-                  Initiate Withdrawal
-                </>
-              )}
-            </Button>
-          </>
+        {/* Wallet Address - Centered on Mobile */}
+        {memberWalletAddress && (
+          <div className={`${isMobile ? 'text-center' : ''} text-sm text-slate-600 dark:text-slate-400`}>
+            <span className="font-medium">{t('withdrawal.wallet')}: </span>
+            <span className="font-mono">
+              {`${memberWalletAddress.slice(0, 6)}...${memberWalletAddress.slice(-4)}`}
+            </span>
+          </div>
         )}
 
-        {step === 'confirm' && withdrawalRequest && (
-          <div className="space-y-4">
-            <Alert>
-              <AlertTriangle className="h-4 w-4" />
-              <AlertDescription>
-                Please review your withdrawal details carefully. This action cannot be undone.
-              </AlertDescription>
-            </Alert>
+        {/* Multi-chain Info */}
+        <Alert className="border-honey/30 bg-honey/5">
+          <Zap className="h-4 w-4 text-honey" />
+          <AlertDescription className="text-sm">
+            <strong>{t('withdrawal.multi_chain_support')}:</strong> {t('withdrawal.multi_chain_description')}
+          </AlertDescription>
+        </Alert>
 
-            <div className="bg-muted/30 rounded-lg p-4 space-y-3">
-              <div className="flex justify-between items-center">
-                <span className="text-muted-foreground">Amount:</span>
-                <span className="font-semibold text-honey">{withdrawalRequest.amountUSD} USDT</span>
-              </div>
-              <div className="flex justify-between items-center">
-                <span className="text-muted-foreground">To Chain:</span>
+        {/* Chain Selection */}
+        <div className="space-y-2">
+          <Label htmlFor="target-chain" className="text-sm font-medium">
+            {t('withdrawal.withdrawal_chain')}
+          </Label>
+          <Select value={targetChain} onValueChange={setTargetChain}>
+            <SelectTrigger data-testid="select-chain">
+              <SelectValue placeholder={t('withdrawal.select_target_chain')} />
+            </SelectTrigger>
+            <SelectContent>
+              {Object.entries(SUPPORTED_CHAINS).map(([chainId, info]) => (
+                <SelectItem key={chainId} value={chainId}>
+                  <div className="flex items-center gap-2">
+                    <span>{info.icon}</span>
+                    <span>{info.name}</span>
+                    <Badge variant="outline" className="ml-auto">
+                      {info.fee} USDT fee
+                    </Badge>
+                    {info.native && (
+                      <Badge className="bg-honey text-black">Native</Badge>
+                    )}
+                  </div>
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+
+        {/* Token Selection - 根据选择的链动态显示可用代币 */}
+        <div className="space-y-2">
+          <Label htmlFor="target-token" className="text-sm font-medium">
+            {t('withdrawal.target_token')}
+          </Label>
+          <Select value={selectedToken} onValueChange={setSelectedToken}>
+            <SelectTrigger data-testid="select-token">
+              <SelectValue placeholder={t('withdrawal.select_target_token')} />
+            </SelectTrigger>
+            <SelectContent>
+              {/* 始终支持 USDT */}
+              <SelectItem value="USDT">
                 <div className="flex items-center gap-2">
-                  <span>{selectedChainInfo?.icon}</span>
-                  <span>{selectedChainInfo?.name}</span>
-                  <Badge className={selectedChainInfo?.color}>{selectedChainInfo?.symbol}</Badge>
+                  <span>💰</span>
+                  <span>USDT</span>
+                  <Badge variant="outline">Stablecoin</Badge>
                 </div>
+              </SelectItem>
+              
+              {/* 根据选择的链显示原生代币 */}
+              {targetChainInfo?.native && (
+                <SelectItem value={targetChainInfo.symbol}>
+                  <div className="flex items-center gap-2">
+                    <span>{targetChainInfo.icon}</span>
+                    <span>{targetChainInfo.symbol}</span>
+                    <Badge className="bg-honey text-black">Native Token</Badge>
+                    {parseInt(targetChain) !== 42161 && (
+                      <Badge variant="outline" className="text-xs">Cross-chain</Badge>
+                    )}
+                  </div>
+                </SelectItem>
+              )}
+
+              {/* USDC 支持 */}
+              {[1, 137, 42161, 10, 8453].includes(parseInt(targetChain)) && (
+                <SelectItem value="USDC">
+                  <div className="flex items-center gap-2">
+                    <span>🔵</span>
+                    <span>USDC</span>
+                    <Badge variant="outline">Stablecoin</Badge>
+                  </div>
+                </SelectItem>
+              )}
+            </SelectContent>
+          </Select>
+          
+          {/* 代币切换提示 */}
+          {selectedToken !== 'USDT' && (
+            <div className="text-xs text-amber-600 dark:text-amber-400 bg-amber-50 dark:bg-amber-950/20 p-2 rounded-lg">
+              <Zap className="h-3 w-3 inline mr-1" />
+              Cross-chain conversion: USDT → {selectedToken} on {targetChainInfo?.name}
+            </div>
+          )}
+        </div>
+
+        {/* Amount Input */}
+        <div className="space-y-2">
+          <Label htmlFor="amount" className="text-sm font-medium">
+            {t('withdrawal.withdrawal_amount')} (USDT)
+          </Label>
+          <Input
+            id="amount"
+            type="number"
+            value={amount}
+            onChange={(e) => setAmount(e.target.value)}
+            placeholder={t('withdrawal.enter_amount')}
+            min="0"
+            step="0.01"
+            className="text-lg"
+            data-testid="input-amount"
+          />
+          {amount && (
+            <div className="text-sm text-slate-600 dark:text-slate-400 space-y-1">
+              <div className="flex justify-between">
+                <span>{t('withdrawal.amount')}:</span>
+                <span>{parseFloat(amount).toFixed(2)} USDT</span>
               </div>
-              <div className="flex justify-between items-start">
-                <span className="text-muted-foreground">Recipient:</span>
-                <span className="font-mono text-xs text-right max-w-[200px] break-all">
-                  {withdrawalRequest.recipientAddress}
+              <div className="flex justify-between">
+                <span>{t('withdrawal.network_fee')}:</span>
+                <span>-{fee.toFixed(2)} USDT</span>
+              </div>
+              <div className="flex justify-between font-semibold border-t pt-1">
+                <span>{t('withdrawal.you_receive')}:</span>
+                <span className={netAmount > 0 ? 'text-green-600' : 'text-red-500'}>
+                  {Math.max(0, netAmount).toFixed(2)} USDT
                 </span>
               </div>
             </div>
-
-            <div className="flex gap-3">
-              <Button
-                onClick={resetForm}
-                variant="outline"
-                className="flex-1"
-                data-testid="button-cancel-withdrawal"
-              >
-                Cancel
-              </Button>
-              <Button
-                onClick={handleConfirmWithdrawal}
-                className="flex-1 bg-honey text-black hover:bg-honey/90"
-                data-testid="button-confirm-withdrawal"
-              >
-                <CheckCircle className="h-4 w-4 mr-2" />
-                Confirm & Sign
-              </Button>
-            </div>
-          </div>
-        )}
-
-        {step === 'signing' && (
-          <div className="text-center space-y-4">
-            <div className="bg-muted/30 rounded-lg p-6">
-              <Loader2 className="h-8 w-8 animate-spin mx-auto mb-4 text-honey" />
-              <h3 className="text-lg font-semibold text-honey mb-2">Waiting for Signature</h3>
-              <p className="text-muted-foreground text-sm">
-                Please sign the withdrawal request in your wallet to authorize the transaction.
-              </p>
-            </div>
-          </div>
-        )}
-
-        {step === 'processing' && (
-          <div className="text-center space-y-4">
-            <div className="bg-muted/30 rounded-lg p-6">
-              <Loader2 className="h-8 w-8 animate-spin mx-auto mb-4 text-honey" />
-              <h3 className="text-lg font-semibold text-honey mb-2">Processing Withdrawal</h3>
-              <p className="text-muted-foreground text-sm">
-                Your withdrawal is being processed on the blockchain. This may take a few moments.
-              </p>
-            </div>
-          </div>
-        )}
-
-        {step === 'success' && (
-          <div className="text-center space-y-4">
-            <div className="bg-green-500/10 border border-green-500/20 rounded-lg p-6">
-              <CheckCircle className="h-12 w-12 mx-auto mb-4 text-green-400" />
-              <h3 className="text-lg font-semibold text-green-400 mb-2">Withdrawal Complete!</h3>
-              <p className="text-muted-foreground text-sm mb-4">
-                Your USDT withdrawal has been successfully processed.
-              </p>
-              
-              {/* Transaction details would be shown here in a real implementation */}
-              <Button
-                onClick={resetForm}
-                className="bg-honey text-black hover:bg-honey/90"
-                data-testid="button-new-withdrawal"
-              >
-                New Withdrawal
-              </Button>
-            </div>
-          </div>
-        )}
-
-        {/* Network fees info */}
-        <div className="bg-blue-500/10 border border-blue-500/20 rounded-lg p-4">
-          <div className="flex items-start gap-3">
-            <div className="text-blue-400 mt-1">
-              <svg className="h-4 w-4" fill="currentColor" viewBox="0 0 20 20">
-                <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clipRule="evenodd" />
-              </svg>
-            </div>
-            <div>
-              <h4 className="text-sm font-medium text-blue-400 mb-1">Network Fees</h4>
-              <p className="text-xs text-muted-foreground">
-                Network fees will be paid by the platform. You receive the full withdrawal amount.
-              </p>
-            </div>
-          </div>
+          )}
         </div>
+
+        {/* Withdrawal Button */}
+        <Button
+          onClick={handleWithdraw}
+          disabled={!amount || parseFloat(amount) <= 0 || isProcessing || !memberWalletAddress}
+          className="w-full h-12 bg-gradient-to-r from-honey to-amber-400 hover:from-honey/90 hover:to-amber-400/90 text-black font-semibold"
+          data-testid="button-withdraw"
+        >
+          {isProcessing ? (
+            <>
+              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+              {t('withdrawal.processing')}
+            </>
+          ) : (
+            <>
+              {t('withdrawal.withdraw_to')} {targetChainInfo?.name || t('withdrawal.selected_chain')}
+              <ArrowRight className="ml-2 h-4 w-4" />
+            </>
+          )}
+        </Button>
+
+        {/* Cross-chain Note */}
+        {parseInt(targetChain) !== 42161 && (
+          <div className="text-xs text-slate-500 dark:text-slate-400 text-center p-3 bg-slate-50 dark:bg-slate-800 rounded-lg">
+            <Zap className="h-3 w-3 inline mr-1" />
+            {t('withdrawal.cross_chain_note', { targetChain: targetChainInfo?.name })}
+          </div>
+        )}
       </CardContent>
     </Card>
   );

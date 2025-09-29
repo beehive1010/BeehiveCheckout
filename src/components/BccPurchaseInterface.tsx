@@ -1,31 +1,29 @@
-import React, { useState, useEffect, useCallback } from 'react';
-import { useActiveAccount } from 'thirdweb/react';
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { Card, CardContent, CardHeader, CardTitle } from './ui/card';
-import { Button } from './ui/button';
-import { Badge } from './ui/badge';
-import { Input } from './ui/input';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from './ui/select';
-import { useToast } from '../hooks/use-toast';
-import { useI18n } from '../contexts/I18nContext';
-import { client } from '../lib/web3';
-import { ethereum, polygon, arbitrum, base } from 'thirdweb/chains';
+import React, {useCallback, useState} from 'react';
+import {useActiveAccount} from 'thirdweb/react';
+import {useMutation, useQuery, useQueryClient} from '@tanstack/react-query';
+import {Card, CardContent, CardHeader, CardTitle} from './ui/card';
+import {Button} from './ui/button';
+import {Badge} from './ui/badge';
+import {Input} from './ui/input';
+import {Select, SelectContent, SelectItem, SelectTrigger, SelectValue} from './ui/select';
+import {useToast} from '../hooks/use-toast';
+import {useI18n} from '../contexts/I18nContext';
+import {arbitrum, base, ethereum, polygon} from 'thirdweb/chains';
 import Web3BuyModal from './Web3BuyModal';
-import { 
-  Coins, 
-  CreditCard,
-  ArrowRight,
-  Loader2, 
-  CheckCircle, 
-  ExternalLink,
-  DollarSign,
-  Wallet,
-  Network,
-  Clock,
-  Info,
-  Zap,
-  ShoppingCart,
-  Shuffle
+import {
+    ArrowRight,
+    CheckCircle,
+    Clock,
+    Coins,
+    CreditCard,
+    ExternalLink,
+    Info,
+    Loader2,
+    Network,
+    ShoppingCart,
+    Shuffle,
+    Wallet,
+    Zap
 } from 'lucide-react';
 
 interface BccPurchaseConfig {
@@ -89,14 +87,22 @@ export function BccPurchaseInterface({
     queryKey: ['/api/bcc/purchase-config', account?.address],
     enabled: !!account?.address,
     queryFn: async (): Promise<{ success: boolean; config: BccPurchaseConfig }> => {
-      const response = await fetch('/api/bcc/purchase-config', {
+      const baseUrl = 'https://cvqibjcbfrwsgkvthccp.supabase.co/functions/v1';
+      const anonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
+      
+      const response = await fetch(`${baseUrl}/bcc-purchase`, {
+        method: 'POST',
         headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${anonKey}`,
           'X-Wallet-Address': account!.address,
         },
+        body: JSON.stringify({ action: 'get-config' })
       });
       
       if (!response.ok) {
-        throw new Error('Failed to fetch purchase configuration');
+        const errorText = await response.text();
+        throw new Error(`Failed to fetch purchase configuration: ${errorText}`);
       }
       
       return response.json();
@@ -108,14 +114,22 @@ export function BccPurchaseInterface({
     queryKey: ['/api/bcc/spending-balance', account?.address],
     enabled: !!account?.address && showBalance,
     queryFn: async () => {
-      const response = await fetch('/api/bcc/spending-balance', {
+      const baseUrl = 'https://cvqibjcbfrwsgkvthccp.supabase.co/functions/v1';
+      const anonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
+      
+      const response = await fetch(`${baseUrl}/balance`, {
+        method: 'POST',
         headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${anonKey}`,
           'X-Wallet-Address': account!.address,
         },
+        body: JSON.stringify({ action: 'get-balance' })
       });
       
       if (!response.ok) {
-        throw new Error('Failed to fetch BCC balance');
+        const errorText = await response.text();
+        throw new Error(`Failed to fetch BCC balance: ${errorText}`);
       }
       
       return response.json();
@@ -125,13 +139,17 @@ export function BccPurchaseInterface({
   // Create BCC purchase order
   const createPurchaseMutation = useMutation({
     mutationFn: async (purchaseData: any) => {
-      const response = await fetch('/api/bcc/purchase', {
+      const baseUrl = 'https://cvqibjcbfrwsgkvthccp.supabase.co/functions/v1';
+      const anonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
+      
+      const response = await fetch(`${baseUrl}/bcc-purchase`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
+          'Authorization': `Bearer ${anonKey}`,
           'X-Wallet-Address': account!.address
         },
-        body: JSON.stringify(purchaseData)
+        body: JSON.stringify({ action: 'create-purchase', ...purchaseData })
       });
 
       if (!response.ok) {
@@ -162,13 +180,17 @@ export function BccPurchaseInterface({
   // Confirm payment
   const confirmPaymentMutation = useMutation({
     mutationFn: async (confirmData: any) => {
-      const response = await fetch('/api/bcc/confirm-payment', {
+      const baseUrl = 'https://cvqibjcbfrwsgkvthccp.supabase.co/functions/v1';
+      const anonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
+      
+      const response = await fetch(`${baseUrl}/bcc-purchase`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
+          'Authorization': `Bearer ${anonKey}`,
           'X-Wallet-Address': account!.address
         },
-        body: JSON.stringify(confirmData)
+        body: JSON.stringify({ action: 'confirm-payment', ...confirmData })
       });
 
       if (!response.ok) {

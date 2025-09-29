@@ -1,24 +1,126 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Users, TrendingUp, Activity, Layers, Target, Crown, ArrowUpRight, Loader2 } from 'lucide-react';
 import { useI18n } from '@/contexts/I18nContext';
-import { useDashboardV2, useMatrixTreeV2, useGlobalPoolStatsV2 } from '@/hooks/useDashboardV2';
 
 interface MatrixNetworkStatsV2Props {
   walletAddress: string;
 }
 
+interface MatrixStatsData {
+  totalMembers: number;
+  activeMembers: number;
+  deepestLayer: number;
+  layersWithData: number;
+  directReferrals: number;
+  layerBreakdown: Array<{
+    layer: number;
+    totalMembers: number;
+    leftMembers: number;
+    middleMembers: number;
+    rightMembers: number;
+    maxCapacity: number;
+    fillPercentage: number;
+    activeMembers: number;
+  }>;
+}
+
 export function MatrixNetworkStatsV2({ walletAddress }: MatrixNetworkStatsV2Props) {
   const { t } = useI18n();
   
-  // Use v2 hooks for enhanced data
-  const { data: dashboardData, isLoading: isDashboardLoading } = useDashboardV2(walletAddress);
-  const { data: matrixTree, isLoading: isMatrixLoading } = useMatrixTreeV2(walletAddress, 5); // First 5 layers for overview
-  const { data: globalStats } = useGlobalPoolStatsV2();
+  // Direct API state management
+  const [matrixStats, setMatrixStats] = useState<MatrixStatsData | null>(null);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
-  const isLoading = isDashboardLoading || isMatrixLoading;
+  useEffect(() => {
+    if (walletAddress) {
+      loadMatrixStats();
+    }
+  }, [walletAddress]);
+
+  const loadMatrixStats = async () => {
+    setLoading(true);
+    setError(null);
+
+    try {
+      console.log('🚀 Loading matrix stats directly from Supabase for:', walletAddress);
+      
+      // Import supabase client 
+      const { supabase } = await import('../../lib/supabaseClient');
+      
+      // Get layer statistics directly from matrix_layers_view
+      const { data: matrixData, error: layerError } = await supabase
+        .from('matrix_layers_view')
+        .select('*')
+        .eq('matrix_root_wallet', walletAddress)
+        .order('layer', { ascending: true });
+
+      if (layerError) {
+        console.error('❌ Matrix layers query error:', layerError);
+        throw new Error(`Matrix layers error: ${layerError.message}`);
+      }
+
+      console.log('📊 Matrix layers data:', matrixData);
+
+      // Transform data for all 19 layers
+      const layerStats = [];
+      for (let layer = 1; layer <= 19; layer++) {
+        const layerData = matrixData?.find((l: any) => l.layer === layer);
+        
+        if (layerData) {
+          layerStats.push({
+            layer: layerData.layer,
+            totalMembers: layerData.filled_slots || 0,
+            leftMembers: layerData.left_count || 0,
+            middleMembers: layerData.middle_count || 0,
+            rightMembers: layerData.right_count || 0,
+            maxCapacity: layerData.max_slots || Math.pow(3, layer),
+            fillPercentage: parseFloat(layerData.completion_rate || 0),
+            activeMembers: layerData.activated_members || 0
+          });
+        } else {
+          layerStats.push({
+            layer,
+            totalMembers: 0,
+            leftMembers: 0,
+            middleMembers: 0,
+            rightMembers: 0,
+            maxCapacity: Math.pow(3, layer),
+            fillPercentage: 0,
+            activeMembers: 0
+          });
+        }
+      }
+
+      // Calculate summary
+      const totalMembers = layerStats.reduce((sum, stat) => sum + stat.totalMembers, 0);
+      const totalActive = layerStats.reduce((sum, stat) => sum + stat.activeMembers, 0);
+      const deepestLayer = Math.max(...layerStats.filter(s => s.totalMembers > 0).map(s => s.layer), 0);
+      const layersWithData = layerStats.filter(s => s.totalMembers > 0).length;
+
+      const statsData: MatrixStatsData = {
+        totalMembers,
+        activeMembers: totalActive,
+        deepestLayer,
+        layersWithData,
+        directReferrals: layerStats.find((l: any) => l.layer === 1)?.totalMembers || 0,
+        layerBreakdown: layerStats.slice(0, 5) // Show first 5 layers
+      };
+
+      setMatrixStats(statsData);
+
+    } catch (error: any) {
+      console.error('❌ Matrix stats loading error:', error);
+      setError(error.message || t('matrix.errors.loadMatrixStatsFailed'));
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const isLoading = loading;
 
   const renderLoadingState = () => (
     <div className="grid grid-cols-1 gap-4">
@@ -40,11 +142,11 @@ export function MatrixNetworkStatsV2({ walletAddress }: MatrixNetworkStatsV2Prop
   );
 
   const renderMatrixLayerStats = () => {
-    if (!matrixTree?.layerSummary) return null;
+    if (!matrixStats?.layerBreakdown) return null;
 
-    return matrixTree.layerSummary.slice(0, 5).map((layer) => {
+    return matrixStats.layerBreakdown.map((layer) => {
       const fillRate = layer.fillPercentage;
-      const activatedMembers = layer.members.filter((m: any) => m.activated).length;
+      const activatedMembers = layer.activeMembers;
       
       return (
         <div 
@@ -63,7 +165,7 @@ export function MatrixNetworkStatsV2({ walletAddress }: MatrixNetworkStatsV2Prop
                 variant="secondary" 
                 className={`${fillRate > 80 ? 'bg-green-500/10 text-green-400' : fillRate > 50 ? 'bg-orange-500/10 text-orange-400' : 'bg-muted'}`}
               >
-                {layer.members.length} members
+                {layer.totalMembers} members
               </Badge>
             </div>
             <div className="flex items-center gap-2">
@@ -74,15 +176,15 @@ export function MatrixNetworkStatsV2({ walletAddress }: MatrixNetworkStatsV2Prop
           
           <div className="grid grid-cols-3 gap-3 mb-3">
             <div className="text-center">
-              <div className="text-lg font-bold text-green-400">{layer.members.filter((m: any) => m.position === 'L').length}</div>
+              <div className="text-lg font-bold text-green-400">{layer.leftMembers}</div>
               <div className="text-xs text-muted-foreground">{t('referrals.matrixPosition.left')}</div>
             </div>
             <div className="text-center">
-              <div className="text-lg font-bold text-blue-400">{layer.members.filter((m: any) => m.position === 'M').length}</div>
+              <div className="text-lg font-bold text-blue-400">{layer.middleMembers}</div>
               <div className="text-xs text-muted-foreground">{t('referrals.matrixPosition.middle')}</div>
             </div>
             <div className="text-center">
-              <div className="text-lg font-bold text-purple-400">{layer.members.filter((m: any) => m.position === 'R').length}</div>
+              <div className="text-lg font-bold text-purple-400">{layer.rightMembers}</div>
               <div className="text-xs text-muted-foreground">{t('referrals.matrixPosition.right')}</div>
             </div>
           </div>
@@ -112,7 +214,7 @@ export function MatrixNetworkStatsV2({ walletAddress }: MatrixNetworkStatsV2Prop
   };
 
   const renderNetworkOverview = () => {
-    if (!dashboardData) return null;
+    if (!matrixStats) return null;
 
     return (
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
@@ -122,7 +224,7 @@ export function MatrixNetworkStatsV2({ walletAddress }: MatrixNetworkStatsV2Prop
             <ArrowUpRight className="w-4 h-4 text-green-400" />
           </div>
           <div className="text-2xl font-bold text-green-400">
-            {dashboardData.matrix.totalTeamSize}
+            {matrixStats.totalMembers}
           </div>
           <div className="text-xs text-muted-foreground">Total Team</div>
         </div>
@@ -131,11 +233,11 @@ export function MatrixNetworkStatsV2({ walletAddress }: MatrixNetworkStatsV2Prop
           <div className="flex items-center justify-between mb-2">
             <Target className="w-5 h-5 text-blue-400" />
             <Badge variant="outline" className="text-xs border-blue-500/30 text-blue-400 px-1">
-              L{dashboardData.matrix.deepestLayer}
+              L{matrixStats.deepestLayer}
             </Badge>
           </div>
           <div className="text-2xl font-bold text-blue-400">
-            {dashboardData.matrix.directReferrals}
+            {matrixStats.directReferrals}
           </div>
           <div className="text-xs text-muted-foreground">Direct Refs</div>
         </div>
@@ -144,11 +246,11 @@ export function MatrixNetworkStatsV2({ walletAddress }: MatrixNetworkStatsV2Prop
           <div className="flex items-center justify-between mb-2">
             <Layers className="w-5 h-5 text-purple-400" />
             <span className="text-xs text-purple-400">
-              {dashboardData.matrix.averageLayerFillRate.toFixed(1)}%
+              {matrixStats.layersWithData}
             </span>
           </div>
           <div className="text-2xl font-bold text-purple-400">
-            {Object.keys(dashboardData.matrix.layerCounts).length}
+            {matrixStats.layersWithData}
           </div>
           <div className="text-xs text-muted-foreground">Active Layers</div>
         </div>
@@ -157,65 +259,70 @@ export function MatrixNetworkStatsV2({ walletAddress }: MatrixNetworkStatsV2Prop
           <div className="flex items-center justify-between mb-2">
             <Crown className="w-5 h-5 text-honey" />
             <span className="text-xs text-honey">
-              {dashboardData.matrix.activationRate.toFixed(1)}%
+              {matrixStats.totalMembers > 0 ? ((matrixStats.activeMembers / matrixStats.totalMembers) * 100).toFixed(1) : 0}%
             </span>
           </div>
           <div className="text-2xl font-bold text-honey">
-            {globalStats?.globalPool.totalMembersActivated || 0}
+            {matrixStats.activeMembers}
           </div>
-          <div className="text-xs text-muted-foreground">Global Active</div>
+          <div className="text-xs text-muted-foreground">Active Members</div>
         </div>
       </div>
     );
   };
 
   const renderPerformanceMetrics = () => {
-    if (!dashboardData?.performance) return null;
+    if (!matrixStats) return null;
+
+    const activationRate = matrixStats.totalMembers > 0 ? (matrixStats.activeMembers / matrixStats.totalMembers) * 100 : 0;
+    const averageFillRate = matrixStats.layerBreakdown.length > 0 
+      ? matrixStats.layerBreakdown.reduce((sum, layer) => sum + layer.fillPercentage, 0) / matrixStats.layerBreakdown.length 
+      : 0;
 
     return (
       <div className="space-y-3">
         <h4 className="font-medium text-honey flex items-center gap-2">
           <Activity className="w-4 h-4" />
-          Performance Metrics
+          Performance Metrics (Direct from Views)
         </h4>
         
         <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
           <div className="bg-muted/30 rounded-lg p-3">
             <div className="flex items-center justify-between mb-1">
-              <span className="text-sm text-muted-foreground">Spillover Rate</span>
+              <span className="text-sm text-muted-foreground">Activation Rate</span>
               <TrendingUp className="w-4 h-4 text-honey" />
             </div>
             <div className="text-lg font-bold text-honey">
-              {dashboardData.performance.spilloverRate.toFixed(1)}%
+              {activationRate.toFixed(1)}%
             </div>
             <div className="w-full bg-muted/50 rounded-full h-1 mt-2">
               <div 
                 className="bg-honey h-1 rounded-full transition-all"
-                style={{ width: `${Math.min(dashboardData.performance.spilloverRate, 100)}%` }}
+                style={{ width: `${Math.min(activationRate, 100)}%` }}
               />
             </div>
           </div>
 
           <div className="bg-muted/30 rounded-lg p-3">
             <div className="flex items-center justify-between mb-1">
-              <span className="text-sm text-muted-foreground">Growth Velocity</span>
+              <span className="text-sm text-muted-foreground">Avg Fill Rate</span>
               <ArrowUpRight className="w-4 h-4 text-green-400" />
             </div>
             <div className="text-lg font-bold text-green-400">
-              {dashboardData.performance.growthVelocity.toFixed(1)}
+              {averageFillRate.toFixed(1)}%
             </div>
-            <div className="text-xs text-muted-foreground">members/day</div>
+            <div className="text-xs text-muted-foreground">across layers</div>
           </div>
 
           <div className="bg-muted/30 rounded-lg p-3">
             <div className="flex items-center justify-between mb-1">
-              <span className="text-sm text-muted-foreground">Reward Efficiency</span>
+              <span className="text-sm text-muted-foreground">Team Depth</span>
               <Target className="w-4 h-4 text-blue-400" />
             </div>
             <div className="text-lg font-bold text-blue-400">
-              ${dashboardData.performance.rewardEfficiency.toFixed(2)}
+              {matrixStats.deepestLayer}
             </div>
-            <div className="text-xs text-muted-foreground">per member</div>
+            <div className="text-xs text-muted-foreground">layers deep</div>
           </div>
         </div>
       </div>
@@ -236,9 +343,9 @@ export function MatrixNetworkStatsV2({ walletAddress }: MatrixNetworkStatsV2Prop
               <Layers className="h-5 w-5" />
               Enhanced Matrix Network
             </div>
-            {dashboardData && (
+            {matrixStats && (
               <Badge variant="outline" className="bg-honey/10 text-honey border-honey/30">
-                {dashboardData.matrix.totalTeamSize} members
+                {matrixStats.totalMembers} members
               </Badge>
             )}
           </CardTitle>
@@ -259,7 +366,7 @@ export function MatrixNetworkStatsV2({ walletAddress }: MatrixNetworkStatsV2Prop
         </CardHeader>
         <CardContent>
           <div className="space-y-4 max-h-96 overflow-y-auto custom-scrollbar">
-            {matrixTree?.layerSummary && matrixTree.layerSummary.length > 0 ? (
+            {matrixStats?.layerBreakdown && matrixStats.layerBreakdown.length > 0 ? (
               renderMatrixLayerStats()
             ) : (
               <div className="text-center py-8 text-muted-foreground">
@@ -272,41 +379,21 @@ export function MatrixNetworkStatsV2({ walletAddress }: MatrixNetworkStatsV2Prop
         </CardContent>
       </Card>
 
-      {/* Global Network Statistics */}
-      {globalStats && (
+      {/* Add retry button for failed loads */}
+      {error && (
         <Card className="bg-secondary border-border">
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2 text-honey">
-              <Crown className="h-5 w-5" />
-              Global Network Statistics
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-              <div className="text-center p-3 bg-honey/5 rounded-lg border border-honey/20">
-                <div className="text-2xl font-bold text-honey">
-                  {globalStats.globalPool.totalMembersActivated.toLocaleString()}
-                </div>
-                <div className="text-xs text-muted-foreground">Global Members</div>
-              </div>
-              <div className="text-center p-3 bg-green-500/5 rounded-lg border border-green-500/20">
-                <div className="text-2xl font-bold text-green-400">
-                  {globalStats.tierBreakdown.tier1.toLocaleString()}
-                </div>
-                <div className="text-xs text-muted-foreground">Tier 1 Members</div>
-              </div>
-              <div className="text-center p-3 bg-blue-500/5 rounded-lg border border-blue-500/20">
-                <div className="text-2xl font-bold text-blue-400">
-                  {globalStats.globalPool.currentTier}
-                </div>
-                <div className="text-xs text-muted-foreground">Current Global Tier</div>
-              </div>
-              <div className="text-center p-3 bg-purple-500/5 rounded-lg border border-purple-500/20">
-                <div className="text-2xl font-bold text-purple-400">
-                  {globalStats.globalPool.totalBccLocked.toLocaleString()}
-                </div>
-                <div className="text-xs text-muted-foreground">BCC Locked</div>
-              </div>
+          <CardContent className="p-6">
+            <div className="text-center py-8">
+              <div className="text-red-400 mb-2">⚠️ Failed to load matrix statistics</div>
+              <div className="text-xs text-muted-foreground mb-4">{error}</div>
+              <Button 
+                variant="outline" 
+                size="sm" 
+                onClick={loadMatrixStats}
+                className="border-honey/30 text-honey hover:bg-honey hover:text-black"
+              >
+                Retry Loading
+              </Button>
             </div>
           </CardContent>
         </Card>

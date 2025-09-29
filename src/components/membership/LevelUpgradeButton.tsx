@@ -57,7 +57,7 @@ export function LevelUpgradeButton({ onSuccess, targetLevel, className = '' }: L
       const { data: memberData, error } = await supabase
         .from('members')
         .select('current_level')
-        .eq('wallet_address', account.address)
+        .ilike('wallet_address', account.address)
         .single();
       
       if (!error && memberData) {
@@ -90,9 +90,8 @@ export function LevelUpgradeButton({ onSuccess, targetLevel, className = '' }: L
         }
         
         const result = await sendTransaction({
-          transaction,
-          account,
-          gasless: useGasless, // Enable/disable gas sponsorship based on parameter
+          transaction: transaction as any,
+          account: account as any,
         });
         
         console.log(`✅ ${description} successful ${gasMode} on attempt ${attempt}`);
@@ -299,9 +298,7 @@ export function LevelUpgradeButton({ onSuccess, targetLevel, className = '' }: L
         contract: nftContract,
         to: account.address,
         tokenId: BigInt(upgradeLevel),
-        quantity: BigInt(1),
-        pricePerToken: finalAmount,
-        currency: PAYMENT_TOKEN_CONTRACT
+        quantity: BigInt(1)
       });
 
       const claimTxResult = await sendTransactionWithRetry(
@@ -317,8 +314,7 @@ export function LevelUpgradeButton({ onSuccess, targetLevel, className = '' }: L
         client,
         chain: arbitrum,
         transactionHash: claimTxResult.transactionHash,
-        maxBlocksWaitTime: 50,
-        pollingInterval: 2000,
+        maxBlocksWaitTime: 50
       });
       
       console.log(`✅ Level ${upgradeLevel} NFT claim confirmed`);
@@ -328,6 +324,7 @@ export function LevelUpgradeButton({ onSuccess, targetLevel, className = '' }: L
       console.log('✅ Receipt status:', receipt.status);
 
       // Step 7: Process upgrade with database recording (same as original ERC5115ClaimComponent)
+      let activationSuccess = false;
       if (claimTxResult?.transactionHash) {
         console.log(`🚀 Processing Level ${upgradeLevel} upgrade...`);
         setCurrentStep('Processing upgrade...');
@@ -363,7 +360,7 @@ export function LevelUpgradeButton({ onSuccess, targetLevel, className = '' }: L
           console.log('🚀 Activating membership with retry logic...');
           setCurrentStep('Activating membership...');
           
-          let activationSuccess = false;
+          activationSuccess = false;
           const maxRetries = 5;
           const retryDelay = 10000; // 10 seconds
           
@@ -489,6 +486,44 @@ export function LevelUpgradeButton({ onSuccess, targetLevel, className = '' }: L
   const isLoading = isLevelLoading || isLoadingLevel;
   const upgradeLevel = levelInfo.tokenId;
   const canUpgrade = levelInfo.canClaim && upgradeLevel >= 3 && upgradeLevel <= 19;
+  
+  // Enhanced debug logging - ALWAYS output for troubleshooting
+  console.log('🔧 LevelUpgradeButton CRITICAL DEBUG:', {
+    currentUserLevel,
+    upgradeLevel,
+    'levelInfo.canClaim': levelInfo.canClaim,
+    'upgradeLevel >= 3': upgradeLevel >= 3,
+    'upgradeLevel <= 19': upgradeLevel <= 19,
+    canUpgrade,
+    isLoading,
+    isProcessing,
+    isLevelLoading,
+    isLoadingLevel,
+    accountAddress: account?.address,
+    activeChain: activeChain?.id,
+    buttonDisabled: isProcessing || !account?.address || isLoading || !canUpgrade,
+    disabledReasons: {
+      'isProcessing': isProcessing,
+      'noAccount': !account?.address,
+      'isLoading (combined)': isLoading,
+      'isLevelLoading': isLevelLoading,
+      'isLoadingLevel': isLoadingLevel,
+      'cantUpgrade': !canUpgrade,
+      'cantClaim': !levelInfo.canClaim,
+      'wrongLevel': !(upgradeLevel >= 3 && upgradeLevel <= 19)
+    },
+    'Raw levelInfo': levelInfo
+  });
+  
+  // Alert if button is disabled
+  if (isProcessing || !account?.address || isLoading || !canUpgrade) {
+    console.warn('⚠️ UPGRADE BUTTON IS DISABLED:', {
+      reason: !account?.address ? 'NO_WALLET' : 
+              isLoading ? 'LOADING' : 
+              isProcessing ? 'PROCESSING' : 
+              !canUpgrade ? 'CANT_UPGRADE' : 'UNKNOWN'
+    });
+  }
 
   return (
     <Card className={`bg-gradient-to-br from-blue/5 to-blue/15 border-blue/30 ${className}`}>
@@ -549,6 +584,7 @@ export function LevelUpgradeButton({ onSuccess, targetLevel, className = '' }: L
           <Button 
             onClick={handleUpgradeLevel}
             disabled={isProcessing || !account?.address || isLoading || !canUpgrade}
+            data-testid="level-upgrade-button"
             className="w-full h-12 bg-gradient-to-r from-blue-400 to-blue-600 hover:from-blue-400/90 hover:to-blue-600/90 text-white font-semibold text-lg shadow-lg disabled:opacity-50"
           >
             {!account?.address ? (

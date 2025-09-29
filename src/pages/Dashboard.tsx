@@ -1,19 +1,11 @@
-import React, { useState, useEffect, useCallback, useRef } from 'react';
-import { useWallet } from '../hooks/useWallet';
-import { useI18n } from '../contexts/I18nContext';
-import { useLocation } from 'wouter';
-import { useToast } from '../hooks/use-toast';
+import React, {useCallback, useEffect, useRef, useState} from 'react';
+import {useWallet} from '../hooks/useWallet';
+import {useI18n} from '../contexts/I18nContext';
+import {useLocation} from 'wouter';
+import {useToast} from '../hooks/use-toast';
 import Navigation from '../components/shared/Navigation';
-import { 
-  supabase
-} from '../lib/supabase';
-import { 
-  Users, 
-  DollarSign,
-  Award,
-  Plus,
-  RefreshCw
-} from 'lucide-react';
+import {supabase} from '../lib/supabase';
+import {Award, DollarSign, Plus, RefreshCw, Users} from 'lucide-react';
 import UserProfile from '../components/dashboard/UserProfile';
 import PremiumDataCard from '../components/dashboard/PremiumDataCard';
 import ReferralLinkCard from '../components/dashboard/ReferralLinkCard';
@@ -67,43 +59,54 @@ export default function Dashboard() {
   const retryCountRef = useRef(0);
   const maxRetries = 3;
 
-  // 加载余额数据 - 直接使用Supabase数据库查询
+  // Debug effect to log data changes
+  useEffect(() => {
+    console.log('🔄 Dashboard data state changed:', {
+      directReferrals: data.directReferrals,
+      totalTeamSize: data.totalTeamSize,
+      timestamp: new Date().toISOString()
+    });
+  }, [data.directReferrals, data.totalTeamSize]);
+
+  // 加载余额数据 - 使用balance Supabase函数
   const loadBalanceData = useCallback(async () => {
     if (!walletAddress) return null;
 
     setLoadingState(prev => ({ ...prev, balance: true }));
     try {
-      console.log('💰 Fetching balance from database for:', walletAddress);
+      console.log('💰 Fetching balance using balance function for:', walletAddress);
       
-      // 直接查询用户余额表
-      const { data: balanceData, error: balanceError } = await supabase
-        .from('user_balances')
-        .select('*')
-        .eq('wallet_address', walletAddress)
-        .single();
+      // 使用balance Supabase函数获取数据
+      const { data: result, error: functionError } = await supabase.functions.invoke('balance', {
+        body: {
+          action: 'get-balance'
+        },
+        headers: {
+          'x-wallet-address': walletAddress
+        }
+      });
 
-      if (balanceError && balanceError.code !== 'PGRST116') {
-        console.error('❌ Balance query error:', balanceError);
-        throw new Error(`Database error: ${balanceError.message}`);
+      if (functionError) {
+        console.error('❌ Balance function error:', functionError);
+        throw new Error(`Function error: ${functionError.message}`);
       }
 
-      console.log('💰 Raw balance data from DB:', balanceData);
+      console.log('💰 Raw balance data from function:', result);
 
-      if (balanceData) {
-        const transferable = balanceData.bcc_balance || 0;
-        const locked = balanceData.bcc_locked || 0;
+      if (result.success && result.balance) {
+        const balance = result.balance;
         return {
-          bccTotal: transferable,
-          bccLocked: locked,
-          bccTransferable: transferable
+          bccTotal: balance.bcc_transferable || 0,
+          bccLocked: balance.bcc_locked || 0,
+          bccTransferable: balance.bcc_transferable || 0
         };
       }
 
       // 如果没有余额记录，返回默认值 (新成员默认余额)
       return {
-        bccTotal: 600, // 显示可用余额
+        bccTotal: 500, // 显示可用余额
         bccLocked: 10350,
-        bccTransferable: 600
+        bccTransferable: 500
       };
     } catch (error) {
       console.error('❌ Balance load error:', error);
@@ -113,61 +116,70 @@ export default function Dashboard() {
     }
   }, [walletAddress]);
 
-  // 加载矩阵数据 - 直接使用Supabase数据库查询
+  // 加载矩阵数据 - 使用改进的referrals_stats_view
   const loadMatrixData = useCallback(async () => {
     if (!walletAddress) return null;
 
     setLoadingState(prev => ({ ...prev, matrix: true }));
     try {
-      console.log('🌐 Fetching matrix data from database for:', walletAddress);
+      console.log('🌐 Fetching matrix data from referrals table for:', walletAddress);
       
-      // 并行查询直推人数和总团队人数
-      const [directReferralsResult, totalTeamResult, maxLayerResult] = await Promise.allSettled([
-        // 查询直推人数 - 从members表查询referrer_wallet
+      // 从多个表获取数据进行综合统计
+      const [
+        { data: directReferralsData },
+        { data: matrixTeamData }, 
+        { data: memberData }
+      ] = await Promise.all([
+        // 直接推荐统计
         supabase
           .from('members')
-          .select('*', { count: 'exact', head: true })
+          .select('wallet_address, current_level, activation_time')
           .eq('referrer_wallet', walletAddress),
-        
-        // 查询总团队人数 - 使用优化的matrix-view
-        fetch(`${import.meta.env.VITE_API_BASE}/matrix-view`, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${import.meta.env.VITE_SUPABASE_ANON_KEY}`,
-            'x-wallet-address': walletAddress
-          },
-          body: JSON.stringify({ action: 'get-layer-stats' })
-        }).then(res => res.json()),
-        
-        // 查询最大层级
+          
+        // Matrix团队统计 
         supabase
           .from('referrals')
-          .select('matrix_layer')
-          .eq('matrix_root_wallet', walletAddress)
-          .order('matrix_layer', { ascending: false })
-          .limit(1)
+          .select('member_wallet, matrix_layer, is_direct_referral, is_spillover_placement')
+          .eq('matrix_root_wallet', walletAddress),
+          
+        // 当前用户信息
+        supabase
+          .from('members')
+          .select('wallet_address, current_level, activation_time')
+          .eq('wallet_address', walletAddress)
+          .single()
       ]);
 
-      const directReferrals = directReferralsResult.status === 'fulfilled' 
-        ? (directReferralsResult.value.count || 0) 
+      // 计算直接推荐数据
+      const directReferrals = directReferralsData?.length || 0;
+      const activatedDirectReferrals = directReferralsData?.filter(m => m.current_level > 0).length || 0;
+      
+      // 计算Matrix团队数据
+      const totalTeamSize = matrixTeamData?.length || 0;
+      const maxLayer = matrixTeamData && matrixTeamData.length > 0 
+        ? Math.max(...matrixTeamData.map(m => m.matrix_layer)) 
+        : 0;
+      const activeLayers = matrixTeamData && matrixTeamData.length > 0
+        ? new Set(matrixTeamData.map(m => m.matrix_layer)).size
         : 0;
 
-      const totalTeamSize = totalTeamResult.status === 'fulfilled' && totalTeamResult.value.success && totalTeamResult.value.data?.summary
-        ? (totalTeamResult.value.data.summary.total_members || 0) 
-        : 0;
-
-      // 从matrix view summary中获取最大层级，如果失败则从直接查询中获取
-      const maxLayer = (totalTeamResult.status === 'fulfilled' && totalTeamResult.value.success && totalTeamResult.value.data?.summary?.deepest_layer) ||
-        (maxLayerResult.status === 'fulfilled' && maxLayerResult.value.data?.[0]?.matrix_layer) ||
-        0;
-
-      console.log('🌐 Matrix data from DB:', { directReferrals, totalTeamSize, maxLayer });
+      console.log('🌐 Matrix data calculated:', {
+        directReferrals,
+        activatedDirectReferrals,
+        totalTeamSize,
+        maxLayer,
+        activeLayers
+      });
 
       return {
         directReferrals,
         totalTeamSize,
-        maxLayer
+        maxLayer,
+        activatedReferrals: activatedDirectReferrals,
+        totalNetworkSize: directReferrals + totalTeamSize,
+        hasMatrixTeam: totalTeamSize > 0,
+        activeLayers,
+        totalActivatedMembers: totalTeamSize // 假设matrix团队都是激活的
       };
     } catch (error) {
       console.error('❌ Matrix load error:', error);
@@ -177,7 +189,7 @@ export default function Dashboard() {
     }
   }, [walletAddress]);
 
-  // 加载奖励数据 - 直接使用Supabase数据库查询
+  // 加载奖励数据 - 保持简单的数据库查询
   const loadRewardData = useCallback(async () => {
     if (!walletAddress) return null;
 
@@ -194,9 +206,11 @@ export default function Dashboard() {
           status,
           created_at,
           expires_at,
-          claimed_at
+          claimed_at,
+          matrix_layer,
+          triggering_member_wallet
         `)
-        .eq('reward_recipient_wallet', walletAddress)
+        .ilike('reward_recipient_wallet', walletAddress) // Use correct column name
         .order('created_at', { ascending: false });
 
       if (rewardError) {
@@ -283,12 +297,30 @@ export default function Dashboard() {
       };
 
       console.log('📈 Final dashboard data:', dashboardData);
-      setData(dashboardData);
+      console.log('🔍 Matrix data in final dashboard:', {
+        directReferrals: dashboardData.directReferrals,
+        totalTeamSize: dashboardData.totalTeamSize,
+        matrixResult: results.matrix
+      });
+      
+      // Use functional update to ensure we get the latest state
+      setData(prevData => {
+        const newData = { ...dashboardData };
+        console.log('🔄 State update: Previous data:', {
+          directReferrals: prevData.directReferrals,
+          totalTeamSize: prevData.totalTeamSize
+        });
+        console.log('🔄 State update: New data:', {
+          directReferrals: newData.directReferrals,
+          totalTeamSize: newData.totalTeamSize
+        });
+        return newData;
+      });
       retryCountRef.current = 0; // 重置重试计数
 
     } catch (error: unknown) {
       console.error('❌ Failed to load dashboard data:', error);
-      const errorMessage = error instanceof Error ? error.message : 'Failed to load dashboard data';
+      const errorMessage = error instanceof Error ? error.message : t('dashboard.errors.dataLoadFailed');
       setError(errorMessage);
       
       // 重试逻辑

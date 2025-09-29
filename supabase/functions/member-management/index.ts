@@ -340,12 +340,12 @@ async function getMemberStats(supabase: any, walletAddress: string) {
   // Get reward statistics
   const { data: rewardStats, error: rewardError } = await supabase
     .from('layer_rewards')
-    .select('reward_amount, is_claimed, created_at')
+    .select('reward_amount, status, created_at')
     .eq('reward_recipient_wallet', walletAddress)
 
   const directReferrals = referralStats?.length || 0
   const totalRewards = rewardStats?.reduce((sum: number, reward: any) => sum + (reward.reward_amount || 0), 0) || 0
-  const claimedRewards = rewardStats?.filter((r: any) => r.is_claimed)?.length || 0
+  const claimedRewards = rewardStats?.filter((r: any) => r.status === 'claimed')?.length || 0
 
   return new Response(JSON.stringify({
     success: true,

@@ -96,12 +96,12 @@ async function getDashboardStats(supabaseClient: any) {
     // Get total revenue (sum of all NFT purchases)
     const { data: revenueData, error: revenueError } = await supabaseClient
       .from('orders')
-      .select('amount_usdt')
+      .select('reward_amount')
       .eq('status', 'completed');
 
     if (revenueError) throw revenueError;
 
-    const totalRevenue = revenueData?.reduce((sum: number, order: any) => sum + (order.amount_usdt || 0), 0) || 0;
+    const totalRevenue = revenueData?.reduce((sum: number, order: any) => sum + (order.reward_amount || 0), 0) || 0;
 
     // Get pending rewards
     const { count: pendingRewards, error: pendingError } = await supabaseClient
@@ -404,7 +404,7 @@ async function getRewardsAnalytics(supabaseClient: any) {
 
     // Rewards by layer
     const rewardsByLayer = rewardStats?.reduce((acc: any, reward: any) => {
-      const layer = reward.layer || 0;
+      const layer = reward.matrix_layer || 0;
       if (!acc[layer]) acc[layer] = { count: 0, amount: 0 };
       acc[layer].count += 1;
       acc[layer].amount += reward.reward_amount_usdc || 0;

@@ -1,28 +1,31 @@
-import { useState } from 'react';
+import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '../ui/card';
 import { Button } from '../ui/button';
 import { Badge } from '../ui/badge';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '../ui/dialog';
 import { useToast } from '../../hooks/use-toast';
-import { useBalance } from '../../hooks/useBalance';
 import { useI18n } from '../../contexts/I18nContext';
-import { ShoppingCart, Eye, Package, Star, Zap } from 'lucide-react';
+import { useActiveAccount } from 'thirdweb/react';
+import PaymentConfirmationModal from '../education/PaymentConfirmationModal';
+import { nftsApi } from '../../api/nfts/nfts.api';
+import { supabase } from '../../lib/supabase';
+import { ShoppingCart, Eye, Package, Star, Zap, Loader2 } from 'lucide-react';
 import { IconBriefcase, IconPalette, IconCode, IconSchool } from '@tabler/icons-react';
 
 export interface MerchantNFT {
   id: string;
   title: string;
   description: string;
-  image_url: string;
-  price_usdt: number;
-  price_bcc: number;
+  imageUrl: string | null;
   category: string;
-  supply_total?: number;
-  supply_available?: number;
-  is_active: boolean;
-  creator_wallet?: string;
+  priceBCC: number;
+  priceUSDT: number;
+  supplyTotal: number | null;
+  supplyAvailable: number | null;
+  creatorWallet: string | null;
   metadata: any;
-  created_at: string;
+  createdAt: string;
+  type: 'merchant';
 }
 
 interface MerchantNFTCardProps {
@@ -40,12 +43,38 @@ export default function MerchantNFTCard({
   isOwned = false,
   className = '' 
 }: MerchantNFTCardProps) {
-  const { getBalanceBreakdown } = useBalance();
+  const activeAccount = useActiveAccount();
   const { toast } = useToast();
   const { t } = useI18n();
   const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [showPaymentModal, setShowPaymentModal] = useState(false);
+  const [userBalance, setUserBalance] = useState({ bcc_balance: 0, usdt_balance: 0 });
+  const [purchasing, setPurchasing] = useState(false);
   
-  // Get BCC balance from useBalance hook with fallback
+  // Load user balance when component mounts
+  React.useEffect(() => {
+    if (activeAccount?.address) {
+      loadUserBalance();
+    }
+  }, [activeAccount?.address]);
+
+  const loadUserBalance = async () => {
+    if (!activeAccount?.address) return;
+    
+    try {
+      const { data: balance } = await supabase
+        .from('user_balances')
+        .select('bcc_balance, usdt_balance')
+        .eq('wallet_address', activeAccount.address)
+        .maybeSingle();
+      
+      if (balance) {
+        setUserBalance(balance);
+      }
+    } catch (error) {
+      console.error('Failed to load user balance:', error);
+    }
+  };
   const balanceBreakdown = getBalanceBreakdown();
   const bccBalance = balanceBreakdown ? {
     transferable: balanceBreakdown.transferable
@@ -135,7 +164,17 @@ export default function MerchantNFTCard({
           <Badge variant="secondary" className={`bg-black/70 text-white border-0 ${getCategoryColor(nft.category)}`}>
             <div className="flex items-center gap-1">
               {getCategoryIcon(nft.category)}
-              <span className="text-xs">{nft.category}</span>
+              <HybridTranslation
+                content={{
+                  text: nft.category,
+                  language: nft.language,
+                  translations: nft.translations ? Object.fromEntries(
+                    Object.entries(nft.translations).map(([lang, trans]) => [lang, trans.category || nft.category])
+                  ) : {}
+                }}
+                autoTranslate={true}
+                contentStyle="text-xs"
+              />
             </div>
           </Badge>
         </div>
@@ -216,7 +255,18 @@ export default function MerchantNFTCard({
       <CardHeader className="pb-3">
         <div className="flex items-center justify-between">
           <CardTitle className="text-purple-400 group-hover:text-purple-300 transition-colors text-lg">
-            {nft.title}
+            {/* NFT标题 - 使用DeepL翻译 */}
+            <HybridTranslation
+              content={{
+                text: nft.title,
+                language: nft.language,
+                translations: nft.translations ? Object.fromEntries(
+                  Object.entries(nft.translations).map(([lang, trans]) => [lang, trans.title || nft.title])
+                ) : {}
+              }}
+              autoTranslate={true}
+              contentStyle="text-lg font-semibold text-purple-400 group-hover:text-purple-300 transition-colors"
+            />
           </CardTitle>
           {nft.metadata?.certification && (
             <Badge variant="outline" className="text-xs">
@@ -226,7 +276,18 @@ export default function MerchantNFTCard({
           )}
         </div>
         <p className="text-sm text-muted-foreground line-clamp-2">
-          {nft.description}
+          {/* NFT描述 - 使用DeepL翻译 */}
+          <HybridTranslation
+            content={{
+              text: nft.description,
+              language: nft.language,
+              translations: nft.translations ? Object.fromEntries(
+                Object.entries(nft.translations).map(([lang, trans]) => [lang, trans.description || nft.description])
+              ) : {}
+            }}
+            autoTranslate={true}
+            contentStyle="text-sm text-muted-foreground"
+          />
         </p>
       </CardHeader>
 

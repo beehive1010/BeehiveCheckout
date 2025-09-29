@@ -11,7 +11,7 @@ out
 
 # Environment variables (sensitive)
 .env
-.env.local
+.env
 .env.development.local
 .env.test.local
 .env.production.local
@@ -25,7 +25,7 @@ secrets.json
 config/secrets.*
 
 # Database
-*.db
+
 *.sqlite
 *.sqlite3
 
@@ -128,9 +128,9 @@ tmp/
 server/public
 vite.config.ts.*
 
-# Supabase
+# Supabase - complete directory
 .supabase/
-supabase/config.toml
+supabase/
 
 # Wallet and blockchain sensitive files
 wallet.json
@@ -141,3 +141,13 @@ keystore/
 # Test files with sensitive data
 test-data/
 mock-data/secrets.*
+
+# Documentation and project files
+docs/
+db/
+scripts/
+types/
+
+# Additional environment files
+*.env
+.env*

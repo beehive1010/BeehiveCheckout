@@ -1,8 +1,6 @@
-import { useQuery } from '@tanstack/react-query';
-import { useWallet } from './useWallet';
-import { membershipLevels } from '../lib/config/membershipLevels';
-import { apiRequest } from '../lib/queryClient';
-import { supabase } from '../lib/supabaseClient';
+import {useQuery} from '@tanstack/react-query';
+import {useWallet} from './useWallet';
+import {supabase} from '../lib/supabaseClient';
 
 interface MemberData {
   current_level: number;
@@ -44,16 +42,15 @@ export function useUserReferralStats() {
     queryFn: async () => {
       if (!walletAddress) throw new Error('No wallet address');
       
-      // Get direct referrals count using matrix_root_wallet (first layer members)
+      // Get direct referrals count using new MasterSpec referrals_new table (URL direct referrals)
       const { count: directReferrals } = await supabase
-        .from('referrals')
+        .from('referrals_new')
         .select('*', { count: 'exact', head: true })
-        .eq('matrix_root_wallet', walletAddress)
-        .in('matrix_position', ['L', 'M', 'R']); // Only first layer L-M-R positions
+        .eq('referrer_wallet', walletAddress);
 
-      // Get total team count from all matrix members under this root
+      // Get total team count from matrix_referrals table (all matrix members under this root)
       const { count: totalTeam } = await supabase
-        .from('referrals')
+        .from('matrix_referrals')
         .select('*', { count: 'exact', head: true })
         .eq('matrix_root_wallet', walletAddress);
 
@@ -68,34 +65,45 @@ export function useUserReferralStats() {
         console.error('Error fetching member data:', memberError);
       }
 
-      // Get total earnings from layer rewards using exact matching
+      // Get total earnings from layer_rewards using correct column names
       const { data: rewardsData } = await supabase
         .from('layer_rewards')
-        .select('amount_usdt')
-        .eq('recipient_wallet', walletAddress)
-        .eq('is_claimed', true);
+        .select('reward_amount')
+        .eq('reward_recipient_wallet', walletAddress)
+        .eq('status', 'claimed');
 
-      const totalEarnings = rewardsData?.reduce((sum, reward) => sum + (reward.amount_usdt || 0), 0) || 0;
+      const totalEarnings = rewardsData?.reduce((sum, reward) => sum + (Number(reward.reward_amount) || 0), 0) || 0;
 
-      // Get recent referrals with activation status using matrix_root_wallet
+      // Get recent referrals with activation status - use matrix_referrals table directly
       const { data: recentReferralsData } = await supabase
-        .from('referrals')
+        .from('matrix_referrals')
         .select(`
           member_wallet,
-          placed_at,
-          matrix_position,
-          members!fk_referrals_member_to_members(current_level)
+          created_at,
+          position,
+          parent_depth
         `)
         .eq('matrix_root_wallet', walletAddress)
-        .in('matrix_position', ['L', 'M', 'R']) // Only direct layer 1 members
-        .order('placed_at', { ascending: false })
+        .eq('parent_depth', 1) // Only direct layer 1 members
+        .order('created_at', { ascending: false })
         .limit(5);
 
-      const recentReferrals = recentReferralsData?.map(referral => ({
-        walletAddress: referral.member_wallet,
-        joinedAt: referral.placed_at || new Date().toISOString(),
-        activated: (referral.members as any)?.current_level > 0
-      })) || [];
+      // Get activation status for recent referrals
+      const recentReferrals = await Promise.all(
+        (recentReferralsData || []).map(async (referral) => {
+          const { data: memberData } = await supabase
+            .from('members')
+            .select('current_level')
+            .eq('wallet_address', referral.member_wallet)
+            .single();
+
+          return {
+            walletAddress: referral.member_wallet,
+            joinedAt: referral.created_at || new Date().toISOString(),
+            activated: (memberData?.current_level || 0) > 0
+          };
+        })
+      );
 
       return {
         directReferralCount: directReferrals || 0,
@@ -130,17 +138,17 @@ export function useUserMatrixStats() {
     queryFn: async () => {
       if (!walletAddress) throw new Error('No wallet address');
       
-      // Get matrix placements by layer using referrals table with exact matching
+      // Get matrix placements by layer using matrix_referrals table directly
       const { data: matrixData } = await supabase
-        .from('referrals')
-        .select('matrix_layer, matrix_position, member_wallet')
+        .from('matrix_referrals')
+        .select('layer, position, member_wallet, parent_wallet')
         .eq('matrix_root_wallet', walletAddress)
-        .order('matrix_layer');
+        .order('layer');
 
       // Group by layer and count
       const layerStats = matrixData?.reduce((acc, placement) => {
-        const layer = placement.matrix_layer;
-        const position = placement.matrix_position;
+        const layer = placement.layer;
+        const position = placement.position;
         if (layer !== null && layer !== undefined && position !== null && position !== undefined) {
           if (!acc[layer]) {
             acc[layer] = { members: 0, positions: [] };
@@ -154,12 +162,76 @@ export function useUserMatrixStats() {
       return {
         totalLayers: Object.keys(layerStats).length,
         layerStats,
-        totalMembers: matrixData?.length || 0
+        totalMembers: matrixData?.length || 0,
+        matrixData: matrixData || [] // 原始数据供详细显示
       };
     },
     enabled: !!walletAddress,
     staleTime: 5000,
     refetchInterval: 15000,
+  });
+}
+
+// 19层递归矩阵详细数据hook
+export function useFullMatrixStructure() {
+  const { walletAddress } = useWallet();
+
+  return useQuery({
+    queryKey: ['/api/matrix/full-structure', walletAddress],
+    queryFn: async () => {
+      if (!walletAddress) throw new Error('No wallet address');
+      
+      // 获取完整的19层矩阵结构
+      const { data: fullMatrixData } = await supabase
+        .from('matrix_referrals')
+        .select(`
+          layer,
+          position,
+          member_wallet,
+          parent_wallet,
+          parent_depth,
+          referral_type,
+          created_at
+        `)
+        .eq('matrix_root_wallet', walletAddress)
+        .order('layer, position');
+
+      // 按层级组织数据
+      const matrixByLayers = fullMatrixData?.reduce((acc, member) => {
+        const layer = member.layer;
+        if (!acc[layer]) {
+          acc[layer] = [];
+        }
+        acc[layer].push(member);
+        return acc;
+      }, {} as Record<number, typeof fullMatrixData>) || {};
+
+      // 计算每层统计
+      const layerSummary = Object.entries(matrixByLayers).map(([layer, members]) => ({
+        layer: parseInt(layer),
+        memberCount: members.length,
+        maxCapacity: Math.pow(3, parseInt(layer)), // Layer n可容纳3^n个成员
+        fillPercentage: (members.length / Math.pow(3, parseInt(layer))) * 100,
+        positions: members.map(m => ({
+          position: m.position,
+          wallet: m.member_wallet,
+          parent: m.parent_wallet,
+          joinedAt: m.created_at,
+          type: m.referral_type
+        }))
+      }));
+
+      return {
+        matrixByLayers,
+        layerSummary,
+        totalMembers: fullMatrixData?.length || 0,
+        totalLayers: Object.keys(matrixByLayers).length,
+        fullMatrixData: fullMatrixData || []
+      };
+    },
+    enabled: !!walletAddress,
+    staleTime: 3000,
+    refetchInterval: 10000,
   });
 }
 
@@ -176,15 +248,25 @@ export function useUserRewardStats() {
       const { data: rewardsData } = await supabase
         .from('layer_rewards')
         .select('*')
-        .eq('recipient_wallet', walletAddress);
+        .eq('reward_recipient_wallet', walletAddress);
 
-      const claimableRewards = rewardsData?.filter(r => !r.is_claimed && r.reward_type === 'layer_reward') || [];
-      const pendingRewards = rewardsData?.filter(r => r.reward_type === 'pending_layer_reward') || [];
-      const claimedRewards = rewardsData?.filter(r => r.is_claimed) || [];
+      // 区分 direct rewards (matrix_layer = 0) 和 layer rewards (matrix_layer >= 1)
+      const directRewards = rewardsData?.filter(r => r.matrix_layer === 0) || [];
+      const layerRewards = rewardsData?.filter(r => r.matrix_layer >= 1) || [];
 
-      const totalClaimableAmount = claimableRewards.reduce((sum, r) => sum + (r.amount_usdt || 0), 0);
-      const totalPendingAmount = pendingRewards.reduce((sum, r) => sum + (r.amount_usdt || 0), 0);
-      const totalClaimedAmount = claimedRewards.reduce((sum, r) => sum + (r.amount_usdt || 0), 0);
+      const claimableRewards = rewardsData?.filter(r => r.status === 'claimable') || [];
+      const pendingRewards = rewardsData?.filter(r => r.status === 'pending') || [];
+      const claimedRewards = rewardsData?.filter(r => r.status === 'claimed') || [];
+
+      const claimableDirectRewards = directRewards.filter(r => r.status === 'claimable');
+      const claimableLayerRewards = layerRewards.filter(r => r.status === 'claimable');
+
+      const totalClaimableAmount = claimableRewards.reduce((sum, r) => sum + (Number(r.reward_amount) || 0), 0);
+      const totalPendingAmount = pendingRewards.reduce((sum, r) => sum + (Number(r.reward_amount) || 0), 0);
+      const totalClaimedAmount = claimedRewards.reduce((sum, r) => sum + (Number(r.reward_amount) || 0), 0);
+
+      const directRewardsAmount = directRewards.reduce((sum, r) => sum + (Number(r.reward_amount) || 0), 0);
+      const layerRewardsAmount = layerRewards.reduce((sum, r) => sum + (Number(r.reward_amount) || 0), 0);
 
       return {
         claimableRewards: claimableRewards.length,
@@ -193,6 +275,19 @@ export function useUserRewardStats() {
         totalClaimableAmount,
         totalPendingAmount,
         totalClaimedAmount,
+        // Direct vs Layer rewards breakdown
+        directRewards: {
+          count: directRewards.length,
+          claimableCount: claimableDirectRewards.length,
+          totalAmount: directRewardsAmount,
+          claimableAmount: claimableDirectRewards.reduce((sum, r) => sum + (Number(r.reward_amount) || 0), 0)
+        },
+        layerRewards: {
+          count: layerRewards.length,
+          claimableCount: claimableLayerRewards.length,
+          totalAmount: layerRewardsAmount,
+          claimableAmount: claimableLayerRewards.reduce((sum, r) => sum + (Number(r.reward_amount) || 0), 0)
+        },
         recentRewards: rewardsData?.slice(0, 10) || []
       };
     },
