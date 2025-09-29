@@ -36,11 +36,19 @@ interface RewardInformationCardProps {
 const LAYER_REWARDS = Array.from({ length: 19 }, (_, i) => ({
   layer: i + 1,
   levelPrice: 100 + (i * 50), // Level 1: $100, Level 2: $150, etc.
-  percentage: 100, // 100% of NFT price
-  description: `Layer ${i + 1} reward triggered when Level ${i + 1} members upgrade`,
+  activationFee: i === 0 ? 30 : 0, // Level 1 has 30 USDC activation fee
+  percentage: 100, // 100% of NFT price goes to referrer (minus activation fee for Level 1)
+  description: i === 0 
+    ? `Level 1: $${100 + (i * 50)} NFT (100% to referrer) + $30 activation fee`
+    : `Layer ${i + 1} reward triggered when Level ${i + 1} members upgrade`,
   conditions: {
-    firstSecond: `Level must equal Layer ${i + 1}`,
-    third: `Level must be greater than Layer ${i + 1}`
+    firstSecond: `Referrer level must equal Layer ${i + 1}`,
+    third: `Referrer level must be greater than Layer ${i + 1}`
+  },
+  rewardStates: {
+    claimable: `Instant if referrer level >= ${i + 1}`,
+    pending: `72-hour pending if referrer level < ${i + 1}`,
+    rollup: `Rolls up to qualified upline if expired`
   }
 }));
 
@@ -569,15 +577,33 @@ export const RewardInformationCard: React.FC<RewardInformationCardProps> = ({
                   </h5>
                   <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 justify-items-center">
                     {LAYER_REWARDS.slice(0, 5).map((reward) => (
-                      <div key={reward.layer} className="bg-slate-800/50 rounded-lg p-3 border border-slate-600 w-full max-w-xs">
+                      <div key={reward.layer} className={`rounded-lg p-3 border w-full max-w-xs ${
+                        reward.layer === 1 
+                          ? 'bg-gradient-to-r from-green-500/20 to-emerald-500/15 border-green-500/50' 
+                          : 'bg-slate-800/50 border-slate-600'
+                      }`}>
                         <div className="flex items-center justify-between">
                           <div>
-                            <div className="font-semibold text-honey text-sm">Layer {reward.layer}</div>
-                            <div className="text-xs text-muted-foreground">{t('rewards.information.levelUpgradeTrigger', { level: reward.layer })}</div>
+                            <div className="font-semibold text-honey text-sm">
+                              Layer {reward.layer}
+                              {reward.layer === 1 && <span className="text-green-400 ml-1">(Direct)</span>}
+                            </div>
+                            <div className="text-xs text-muted-foreground">
+                              {reward.layer === 1 
+                                ? t('rewards.information.referralRewardToUpline')
+                                : t('rewards.information.levelUpgradeTrigger', { level: reward.layer })}
+                            </div>
+                            {reward.layer === 1 && (
+                              <div className="text-xs text-amber-400 mt-1">
+                                {t('rewards.information.activationFeePerMember')}
+                              </div>
+                            )}
                           </div>
                           <div className="text-right">
                             <div className="font-bold text-green-400">${reward.levelPrice}</div>
-                            <div className="text-xs text-muted-foreground">{t('rewards.information.percentageNftPrice')}</div>
+                            <div className="text-xs text-muted-foreground">
+                              {reward.layer === 1 ? '100% to referrer' : t('rewards.information.percentageNftPrice')}
+                            </div>
                           </div>
                         </div>
                       </div>
@@ -687,6 +713,61 @@ export const RewardInformationCard: React.FC<RewardInformationCardProps> = ({
                     <div className="bg-slate-800/50 rounded-lg p-3 w-full max-w-xs">
                       <div className="font-bold text-honey text-lg">$800-$1,000</div>
                       <div className="text-xs text-muted-foreground">Layer 16-19</div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Reward Status & Verification System */}
+            <div className="bg-gradient-to-r from-indigo-500/10 to-purple-500/10 rounded-xl p-6 border border-indigo-500/30 shadow-xl">
+              <h4 className="font-semibold text-indigo-400 mb-4 flex items-center gap-2 text-lg">
+                <Clock className="h-5 w-5" />
+                {t('rewards.information.rewardStatusSystem')}
+              </h4>
+              <div className="grid md:grid-cols-3 gap-6">
+                <div className="space-y-3">
+                  <h5 className="font-medium text-green-400 flex items-center gap-2">
+                    <CheckCircle className="h-4 w-4" />
+                    {t('rewards.information.claimableInstant')}
+                  </h5>
+                  <div className="text-sm text-muted-foreground space-y-1">
+                    <p>• {t('rewards.information.referrerLevelRequired')}</p>
+                    <p>• {t('rewards.information.levelVerificationPassed')}</p>
+                    <p>• {t('rewards.information.rewardDistributedImmediately')}</p>
+                    <div className="mt-2 p-2 bg-green-500/10 rounded border border-green-500/30">
+                      <div className="text-xs text-green-400 font-medium">{t('rewards.information.exampleLayer3Reward')}</div>
+                      <div className="text-xs text-muted-foreground">{t('rewards.information.referrerHasLevel3')}</div>
+                    </div>
+                  </div>
+                </div>
+                <div className="space-y-3">
+                  <h5 className="font-medium text-orange-400 flex items-center gap-2">
+                    <Clock className="h-4 w-4" />
+                    {t('rewards.information.pendingHours')}
+                  </h5>
+                  <div className="text-sm text-muted-foreground space-y-1">
+                    <p>• {t('rewards.information.referrerLevelInsufficient')}</p>
+                    <p>• {t('rewards.information.hourUpgradeWindow')}</p>
+                    <p>• {t('rewards.information.canClaimByUpgrading')}</p>
+                    <div className="mt-2 p-2 bg-orange-500/10 rounded border border-orange-500/30">
+                      <div className="text-xs text-orange-400 font-medium">{t('rewards.information.exampleLayer3Reward')}</div>
+                      <div className="text-xs text-muted-foreground">{t('rewards.information.referrerHasLevel1')}</div>
+                    </div>
+                  </div>
+                </div>
+                <div className="space-y-3">
+                  <h5 className="font-medium text-purple-400 flex items-center gap-2">
+                    <ArrowRight className="h-4 w-4" />
+                    {t('rewards.information.rollupSystem')}
+                  </h5>
+                  <div className="text-sm text-muted-foreground space-y-1">
+                    <p>• {t('rewards.information.expiredRewards')}</p>
+                    <p>• {t('rewards.information.rollsUpToQualified')}</p>
+                    <p>• {t('rewards.information.ensuresNoRewardLost')}</p>
+                    <div className="mt-2 p-2 bg-purple-500/10 rounded border border-purple-500/30">
+                      <div className="text-xs text-purple-400 font-medium">{t('rewards.information.exampleLayer3Reward')}</div>
+                      <div className="text-xs text-muted-foreground">{t('rewards.information.noUpgradeRollup')}</div>
                     </div>
                   </div>
                 </div>

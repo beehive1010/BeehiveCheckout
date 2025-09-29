@@ -40,17 +40,40 @@ interface RewardsInformationProps {
   className?: string;
 }
 
+// Calculate matrix slots for each layer (3x3 structure)
+const getLayerSlots = (layer: number) => {
+  if (layer === 1) return 3; // Direct referrals
+  return Math.pow(3, layer); // 3^layer slots
+};
+
 // Layer reward data structure
-const LAYER_REWARDS = Array.from({ length: 19 }, (_, i) => ({
-  layer: i + 1,
-  levelPrice: 100 + (i * 50), // Level 1: $100, Level 2: $150, etc.
-  percentage: 100, // 100% of NFT price
-  description: `Layer ${i + 1} reward triggered when Level ${i + 1} members upgrade`,
-  conditions: {
-    firstSecond: `Level must equal Layer ${i + 1}`,
-    third: `Level must be greater than Layer ${i + 1}`
-  }
-}));
+const LAYER_REWARDS = Array.from({ length: 19 }, (_, i) => {
+  const layer = i + 1;
+  const nftPrice = 100 + (i * 50); // Level 1: $100, Level 2: $150, etc.
+  const layerSlots = getLayerSlots(layer);
+  const totalPotentialReward = nftPrice * layerSlots;
+  
+  return {
+    layer,
+    levelPrice: nftPrice,
+    layerSlots,
+    totalPotentialReward,
+    activationFee: i === 0 ? 30 : 0, // Level 1 has 30 USDC activation fee
+    percentage: 100, // 100% of NFT price goes to referrer (minus activation fee for Level 1)
+    description: i === 0 
+      ? `Layer 1: ${layerSlots} direct referrals × $${nftPrice} each = $${totalPotentialReward} + $30 activation fee per member`
+      : `Layer ${layer}: ${layerSlots} members × $${nftPrice} each = $${totalPotentialReward} when they upgrade to Level ${layer}`,
+    conditions: {
+      firstSecond: `Referrer level must equal Layer ${layer}`,
+      third: `Referrer level must be greater than Layer ${layer}`
+    },
+    rewardStates: {
+      claimable: `Instant if referrer level >= ${layer}`,
+      pending: `72-hour pending if referrer level < ${layer}`,
+      rollup: `Rolls up to qualified upline if expired`
+    }
+  };
+});
 
 // BCC staking phases data
 const BCC_PHASES = [
