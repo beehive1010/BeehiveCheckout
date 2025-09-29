@@ -242,12 +242,11 @@ serve(async (req: Request) => {
       console.log(`📊 Matrix layer data for ${walletAddress}:`, matrixData)
       console.log(`📊 Matrix layer data retrieved: ${matrixData?.length || 0} layers`)
 
-      // Use referrals table directly for accurate layer statistics
+      // Use matrix_referrals table directly for accurate layer statistics
       const { data: membersData, error: membersError } = await supabase
-        .from('referrals')
-        .select('matrix_layer, matrix_position')
+        .from('matrix_referrals')
+        .select('layer, position')
         .eq('matrix_root_wallet', walletAddress)
-        .not('matrix_position', 'is', null)
 
       console.log(`📊 Direct referrals query result for ${walletAddress}:`, { 
         memberCount: membersData?.length || 0,
@@ -255,14 +254,15 @@ serve(async (req: Request) => {
         sampleData: membersData?.slice(0, 5)
       })
 
-      // Count positions by layer using actual referrals data
+      // Count positions by layer using actual matrix_referrals data
       const positionCounts: any = {}
       membersData?.forEach(member => {
-        if (!positionCounts[member.matrix_layer]) {
-          positionCounts[member.matrix_layer] = { L: 0, M: 0, R: 0 }
+        if (!positionCounts[member.layer]) {
+          positionCounts[member.layer] = { total: 0 }
         }
-        if (member.matrix_position && ['L', 'M', 'R'].includes(member.matrix_position)) {
-          positionCounts[member.matrix_layer][member.matrix_position]++
+        // Count all positions in this layer
+        if (member.position) {
+          positionCounts[member.layer].total++
         }
       })
 
@@ -274,7 +274,7 @@ serve(async (req: Request) => {
       // Initialize all 19 layers
       for (let layer = 1; layer <= 19; layer++) {
         const layerData = matrixData?.find((l: any) => l.layer === layer)
-        const posData = positionCounts[layer] || { L: 0, M: 0, R: 0 }
+        const posData = positionCounts[layer] || { total: 0 }
         
         if (layerData) {
           // Use data directly from matrix_layer_view (already calculated)
@@ -311,9 +311,10 @@ serve(async (req: Request) => {
             isBalanced: layerData.is_balanced || false
           })
         } else {
-          // Layer not in matrix_layer_details - use fallback calculation
+          // Layer not in matrix_layer_details - use correct matrix calculation
+          // Layer 1 = 3 positions (L,M,R), Layer 2 = 9 positions, Layer 3 = 27 positions, etc.
           const maxCapacity = Math.pow(3, layer);
-          const totalMembers = posData.L + posData.M + posData.R;
+          const totalMembers = posData.total || 0;
           const calculatedPercentage = maxCapacity > 0 ? (totalMembers / maxCapacity) * 100 : 0;
           const safePercentage = Math.min(Math.max(calculatedPercentage, 0), 100);
           
@@ -328,9 +329,9 @@ serve(async (req: Request) => {
           completeStats.push({
             layer,
             totalMembers: totalMembers,
-            leftMembers: posData.L,
-            middleMembers: posData.M,
-            rightMembers: posData.R,
+            leftMembers: 0,   // We'll calculate these separately if needed
+            middleMembers: 0,
+            rightMembers: 0,
             maxCapacity,
             fillPercentage: safePercentage,
             activeMembers: totalMembers,
@@ -338,7 +339,7 @@ serve(async (req: Request) => {
             emptySlots: Math.max(maxCapacity - totalMembers, 0),
             activationRate: totalMembers > 0 ? 100 : 0,
             layerStatus: totalMembers > 0 ? 'active' : 'empty',
-            isBalanced: Math.abs(posData.L - posData.M) <= 1 && Math.abs(posData.M - posData.R) <= 1
+            isBalanced: true // We'll calculate this properly later if needed
           })
         }
       }
@@ -386,23 +387,22 @@ serve(async (req: Request) => {
       
       console.log(`👥 Querying referrals table directly with deduplication for wallet: ${walletAddress}`)
       
-      // Use direct referrals query with proper deduplication to handle position conflicts
+      // Use matrix_referrals table to get complete 19-layer matrix structure
       const { data: matrixMembers, error: membersError } = await supabase
-        .from('referrals')
+        .from('matrix_referrals')
         .select(`
           member_wallet,
           matrix_root_wallet,
-          matrix_layer,
-          matrix_position,
-          placed_at,
-          referrer_wallet,
-          is_direct_referral
+          layer,
+          position,
+          created_at,
+          parent_wallet,
+          referral_type
         `)
         .eq('matrix_root_wallet', walletAddress)
-        .not('matrix_position', 'is', null)
-        .order('matrix_layer')
-        .order('matrix_position')
-        .order('placed_at')
+        .order('layer')
+        .order('position')
+        .order('created_at')
       
       // Get user and member data separately to avoid join issues
       const memberWallets = matrixMembers?.map(r => r.member_wallet) || []
@@ -475,16 +475,17 @@ serve(async (req: Request) => {
       const treeMembers: any [] = []
       const positionTracker: any = {} // Track positions to handle conflicts
       
-      // Process members with deduplication logic for position conflicts
+      // Process members with deduplication logic for position conflicts  
       matrixMembers?.forEach((member: any) => {
-        const layerKey = member.matrix_layer
-        const positionKey = `${layerKey}_${member.matrix_position}`
+        const layerKey = member.layer
+        const positionKey = `${layerKey}_${member.position}`
         
         // For position conflicts, prefer direct referrals over spillovers, and earlier timestamps
+        const isDirect = member.referral_type === 'is_direct'
         const shouldInclude = !positionTracker[positionKey] || 
-                             (member.is_direct_referral && !positionTracker[positionKey].is_direct_referral) ||
-                             (member.is_direct_referral === positionTracker[positionKey].is_direct_referral && 
-                              new Date(member.placed_at) < new Date(positionTracker[positionKey].placed_at))
+                             (isDirect && positionTracker[positionKey].referral_type !== 'is_direct') ||
+                             (isDirect === (positionTracker[positionKey].referral_type === 'is_direct') && 
+                              new Date(member.created_at) < new Date(positionTracker[positionKey].created_at))
         
         if (shouldInclude) {
           // Find corresponding user and member data
@@ -494,21 +495,21 @@ serve(async (req: Request) => {
           const memberData = {
             wallet_address: member.member_wallet,
             username: userData?.username || `User${member.member_wallet?.slice(-4) || ''}`,
-            matrix_position: member.matrix_position,  // L, M, R from matrix placement
+            matrix_position: member.position,  // Position from matrix_referrals (L, M, R, L.L, etc.)
             current_level: memberInfo?.current_level || 1,
             is_activated: Boolean(memberInfo?.current_level >= 1),
-            joined_at: member.placed_at,  // Use placed_at time
-            is_spillover: !Boolean(member.is_direct_referral),  // Spillover = not direct referral
-            layer: member.matrix_layer,  // Use layer from referrals table
-            parent_wallet: member.referrer_wallet,  // Use referrer as parent
-            placement_type: member.is_direct_referral ? 'direct_referral' : 'spillover_placement',
-            referral_depth: 1  // Simplified depth
+            joined_at: member.created_at,  // Use created_at time
+            is_spillover: member.referral_type === 'is_spillover',  // Spillover based on referral_type
+            layer: member.layer,  // Use layer from matrix_referrals table
+            parent_wallet: member.parent_wallet,  // Use parent_wallet
+            placement_type: member.referral_type === 'is_direct' ? 'direct_referral' : 'spillover_placement',
+            referral_depth: member.layer  // Use layer as depth
           }
 
           // Update position tracker
           positionTracker[positionKey] = {
-            is_direct_referral: member.is_direct_referral,
-            placed_at: member.placed_at,
+            referral_type: member.referral_type,
+            created_at: member.created_at,
             member_data: memberData
           }
         }
