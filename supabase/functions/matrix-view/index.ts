@@ -372,29 +372,30 @@ serve(async (req: Request) => {
     }
 
     if (action === 'get-matrix-members' || action === 'get-matrix-tree') {
-      // Get detailed matrix member data using matrix_referrals_tree_view (now shows complete 19-layer recursive data)
+      // Get detailed matrix member data using corrected referrals table query to handle position conflicts
       console.log(`👥 Getting complete 19-layer matrix members for wallet: ${walletAddress}`)
       
-      console.log(`👥 Querying matrix_referrals_tree_view (complete 19-layer data) for wallet: ${walletAddress}`)
+      console.log(`👥 Querying referrals table directly with deduplication for wallet: ${walletAddress}`)
       
+      // Use direct referrals query with proper deduplication to handle position conflicts
       const { data: matrixMembers, error: membersError } = await supabase
-        .from('matrix_referrals_tree_view')
+        .from('referrals')
         .select(`
           member_wallet,
           matrix_root_wallet,
           matrix_layer,
           matrix_position,
           placed_at,
-          parent_wallet,
-          username,
-          current_level,
-          is_active,
-          is_spillover,
-          referral_depth
+          referrer_wallet,
+          is_direct_referral,
+          users:member_wallet (username),
+          members:member_wallet (current_level)
         `)
         .eq('matrix_root_wallet', walletAddress)
+        .not('matrix_position', 'is', null)
         .order('matrix_layer')
         .order('matrix_position')
+        .order('placed_at')
 
       console.log(`👥 Matrix query result:`, { 
         memberCount: matrixMembers?.length || 0,
@@ -441,30 +442,55 @@ serve(async (req: Request) => {
         })
       }
 
-      // Data is already enriched from matrix_referrals_tree_view
+      // Process data from referrals table with deduplication for position conflicts
       const byLayer: any = {}
       const treeMembers: any [] = []
-
+      const positionTracker: any = {} // Track positions to handle conflicts
+      
+      // Process members with deduplication logic for position conflicts
       matrixMembers?.forEach((member: any) => {
-        const memberData = {
-          wallet_address: member.member_wallet,
-          username: member.username || `User${member.member_wallet?.slice(-4) || ''}`,
-          matrix_position: member.matrix_position,  // L, M, R from matrix placement
-          current_level: member.current_level || 1,
-          is_activated: Boolean(member.is_active),
-          joined_at: member.placed_at,  // Use placed_at time
-          is_spillover: Boolean(member.is_spillover),  // Actual spillover status from view
-          layer: member.matrix_layer,  // Use layer from view
-          parent_wallet: member.parent_wallet,  // Include parent info
-          placement_type: 'matrix_placement',  // Default placement type
-          referral_depth: member.referral_depth  // Original referral depth
-        }
+        const layerKey = member.matrix_layer
+        const positionKey = `${layerKey}_${member.matrix_position}`
+        
+        // For position conflicts, prefer direct referrals over spillovers, and earlier timestamps
+        const shouldInclude = !positionTracker[positionKey] || 
+                             (member.is_direct_referral && !positionTracker[positionKey].is_direct_referral) ||
+                             (member.is_direct_referral === positionTracker[positionKey].is_direct_referral && 
+                              new Date(member.placed_at) < new Date(positionTracker[positionKey].placed_at))
+        
+        if (shouldInclude) {
+          const memberData = {
+            wallet_address: member.member_wallet,
+            username: member.users?.username || `User${member.member_wallet?.slice(-4) || ''}`,
+            matrix_position: member.matrix_position,  // L, M, R from matrix placement
+            current_level: member.members?.current_level || 1,
+            is_activated: Boolean(member.members?.current_level >= 1),
+            joined_at: member.placed_at,  // Use placed_at time
+            is_spillover: !Boolean(member.is_direct_referral),  // Spillover = not direct referral
+            layer: member.matrix_layer,  // Use layer from referrals table
+            parent_wallet: member.referrer_wallet,  // Use referrer as parent
+            placement_type: member.is_direct_referral ? 'direct_referral' : 'spillover_placement',
+            referral_depth: 1  // Simplified depth
+          }
 
-        // Add to layer organization
-        if (!byLayer[member.matrix_layer]) {
-          byLayer[member.matrix_layer] = []
+          // Update position tracker
+          positionTracker[positionKey] = {
+            is_direct_referral: member.is_direct_referral,
+            placed_at: member.placed_at,
+            member_data: memberData
+          }
         }
-        byLayer[member.matrix_layer].push(memberData)
+      })
+      
+      // Organize final deduplicated results
+      Object.values(positionTracker).forEach((trackedMember: any) => {
+        const memberData = trackedMember.member_data
+        
+        // Add to layer organization
+        if (!byLayer[memberData.layer]) {
+          byLayer[memberData.layer] = []
+        }
+        byLayer[memberData.layer].push(memberData)
 
         // Add to tree members
         treeMembers.push(memberData)
