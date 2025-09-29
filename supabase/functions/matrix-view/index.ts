@@ -242,13 +242,20 @@ serve(async (req: Request) => {
       console.log(`📊 Matrix layer data for ${walletAddress}:`, matrixData)
       console.log(`📊 Matrix layer data retrieved: ${matrixData?.length || 0} layers`)
 
-      // Get detailed member positions for L/M/R breakdown from matrix_referrals_tree_view if matrix_layer_details data is incomplete
-      const { data: membersData } = await supabase
-        .from('matrix_referrals_tree_view')
+      // Use referrals table directly for accurate layer statistics
+      const { data: membersData, error: membersError } = await supabase
+        .from('referrals')
         .select('matrix_layer, matrix_position')
         .eq('matrix_root_wallet', walletAddress)
+        .not('matrix_position', 'is', null)
 
-      // Count positions by layer as fallback
+      console.log(`📊 Direct referrals query result for ${walletAddress}:`, { 
+        memberCount: membersData?.length || 0,
+        error: membersError,
+        sampleData: membersData?.slice(0, 5)
+      })
+
+      // Count positions by layer using actual referrals data
       const positionCounts: any = {}
       membersData?.forEach(member => {
         if (!positionCounts[member.matrix_layer]) {
@@ -258,6 +265,8 @@ serve(async (req: Request) => {
           positionCounts[member.matrix_layer][member.matrix_position]++
         }
       })
+
+      console.log(`📊 Position counts by layer:`, positionCounts)
 
       // Transform data from matrix_layer_details (optimized)
       const completeStats = []

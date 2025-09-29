@@ -112,6 +112,10 @@ const MatrixNode: React.FC<MatrixNodeProps> = ({
           variant="outline"
           size="sm"
           className="w-full text-xs text-blue-600 border-blue-200 hover:bg-blue-50"
+          onClick={(e) => {
+            e.stopPropagation();
+            onNavigateToMember?.(member.wallet);
+          }}
         >
           查看矩阵 →
         </Button>

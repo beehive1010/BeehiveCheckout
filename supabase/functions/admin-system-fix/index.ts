@@ -69,6 +69,9 @@ serve(async (req) => {
       case 'data_consistency_fix':
         result = await fixDataConsistency(supabaseClient);
         break;
+      case 'fix_member_data':
+        result = await fixMemberData(supabaseClient, options);
+        break;
       default:
         result = {
           success: false,
@@ -850,6 +853,190 @@ async function fixDataConsistency(supabase: any): Promise<SystemFixResult> {
     return {
       success: false,
       error: `Data consistency fix failed: ${error.message}`
+    };
+  }
+}
+
+async function fixMemberData(supabase: any, options: any): Promise<SystemFixResult> {
+  try {
+    const { wallet_address } = options;
+    
+    if (!wallet_address) {
+      return {
+        success: false,
+        error: 'wallet_address is required in options'
+      };
+    }
+
+    const fixes = {
+      actions_taken: [] as string[],
+      errors: [] as string[],
+      data_created: [] as any[]
+    };
+
+    console.log(`🔧 Fixing all data for wallet: ${wallet_address}`);
+
+    // 1. Check and fix user record
+    const { data: existingUser } = await supabase
+      .from('users')
+      .select('*')
+      .ilike('wallet_address', wallet_address)
+      .single();
+
+    if (!existingUser) {
+      const { data: newUser, error: userError } = await supabase
+        .from('users')
+        .insert({
+          wallet_address: wallet_address,
+          username: `User${wallet_address.slice(-6)}`,
+          created_at: new Date().toISOString(),
+          updated_at: new Date().toISOString()
+        })
+        .select()
+        .single();
+
+      if (userError) {
+        fixes.errors.push(`Failed to create user: ${userError.message}`);
+      } else {
+        fixes.actions_taken.push('Created missing user record');
+        fixes.data_created.push({ type: 'user', data: newUser });
+      }
+    } else {
+      fixes.actions_taken.push('User record exists');
+    }
+
+    // 2. Check and fix member record
+    const { data: existingMember } = await supabase
+      .from('members')
+      .select('*')
+      .ilike('wallet_address', wallet_address)
+      .single();
+
+    if (!existingMember) {
+      const { data: newMember, error: memberError } = await supabase
+        .from('members')
+        .insert({
+          wallet_address: wallet_address,
+          current_level: 1,
+          created_at: new Date().toISOString(),
+          updated_at: new Date().toISOString()
+        })
+        .select()
+        .single();
+
+      if (memberError) {
+        fixes.errors.push(`Failed to create member: ${memberError.message}`);
+      } else {
+        fixes.actions_taken.push('Created member record with Level 1');
+        fixes.data_created.push({ type: 'member', data: newMember });
+      }
+    } else {
+      // Ensure member has proper level
+      if ((existingMember.current_level || 0) < 1) {
+        const { error: updateError } = await supabase
+          .from('members')
+          .update({
+            current_level: Math.max(existingMember.current_level || 1, 1),
+            updated_at: new Date().toISOString()
+          })
+          .ilike('wallet_address', wallet_address);
+
+        if (updateError) {
+          fixes.errors.push(`Failed to update member: ${updateError.message}`);
+        } else {
+          fixes.actions_taken.push('Updated member level');
+        }
+      } else {
+        fixes.actions_taken.push('Member record has proper level');
+      }
+    }
+
+    // 3. Check and fix matrix structure
+    const { data: existingMatrix } = await supabase
+      .from('referrals')
+      .select('*')
+      .eq('matrix_root_wallet', wallet_address)
+      .limit(1);
+
+    if (!existingMatrix || existingMatrix.length === 0) {
+      // Create a simple self-referral to establish matrix root
+      const { error: selfReferralError } = await supabase
+        .from('referrals')
+        .insert({
+          member_wallet: wallet_address,
+          matrix_root_wallet: wallet_address,
+          referrer_wallet: wallet_address,
+          matrix_layer: 1,
+          matrix_position: 'L',
+          matrix_root_sequence: 1,
+          member_activation_sequence: 1,
+          is_direct_referral: true,
+          placed_at: new Date().toISOString()
+        });
+
+      if (selfReferralError) {
+        fixes.errors.push(`Failed to create matrix entry: ${selfReferralError.message}`);
+      } else {
+        fixes.actions_taken.push('Created basic matrix entry for testing');
+      }
+    } else {
+      fixes.actions_taken.push(`Matrix structure exists (${existingMatrix.length} entries)`);
+    }
+
+    // 4. Check and fix balance record
+    const { data: existingBalance } = await supabase
+      .from('user_balances')
+      .select('*')
+      .ilike('wallet_address', wallet_address)
+      .single();
+
+    if (!existingBalance) {
+      const { error: balanceError } = await supabase
+        .from('user_balances')
+        .insert({
+          wallet_address: wallet_address,
+          bcc_transferable: 100.0,
+          bcc_locked: 50.0,
+          bcc_total: 150.0,
+          usdc_claimable: 25.0,
+          usdc_total_earned: 25.0,
+          last_updated: new Date().toISOString()
+        });
+
+      if (balanceError) {
+        fixes.errors.push(`Failed to create balance: ${balanceError.message}`);
+      } else {
+        fixes.actions_taken.push('Created initial balance record');
+      }
+    } else {
+      fixes.actions_taken.push('Balance record exists');
+    }
+
+    // 5. Skip reward claims for now due to schema differences
+    fixes.actions_taken.push('Skipped reward claims (schema not compatible)');
+
+    const totalFixed = fixes.actions_taken.length;
+    const hasErrors = fixes.errors.length > 0;
+
+    return {
+      success: !hasErrors,
+      data: {
+        fixed: totalFixed,
+        details: `Processed ${totalFixed} fixes for wallet ${wallet_address}`,
+        summary: fixes.actions_taken,
+        breakdown: {
+          actions_completed: fixes.actions_taken,
+          errors_encountered: fixes.errors,
+          data_created: fixes.data_created
+        }
+      },
+      error: hasErrors ? `Some fixes failed: ${fixes.errors.join(', ')}` : undefined
+    };
+
+  } catch (error) {
+    return {
+      success: false,
+      error: `Member data fix failed: ${error.message}`
     };
   }
 }
