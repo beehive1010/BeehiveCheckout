@@ -22,13 +22,15 @@ interface MatrixNodeProps {
   } | null;
   onExpand?: (memberWallet: string) => void;
   isExpanded?: boolean;
+  t: (key: string, options?: any) => string;
 }
 
 const MatrixNode: React.FC<MatrixNodeProps> = ({ 
   position, 
   member, 
   onExpand, 
-  isExpanded = false 
+  isExpanded = false,
+  t
 }) => {
   const formatWallet = (wallet: string) => {
     return `${wallet.slice(0, 6)}...${wallet.slice(-4)}`;
@@ -116,7 +118,8 @@ const ChildrenMatrix: React.FC<{
   parentWallet: string; 
   matrixRootWallet: string; 
   onClose: () => void;
-}> = ({ parentWallet, matrixRootWallet, onClose }) => {
+  t: (key: string, options?: any) => string;
+}> = ({ parentWallet, matrixRootWallet, onClose, t }) => {
   const { data: childrenData, isLoading, error } = useMatrixChildren(matrixRootWallet, parentWallet);
 
   if (isLoading) {
@@ -294,6 +297,7 @@ const DrillDownMatrixView: React.FC<DrillDownMatrixViewProps> = ({
                 member={leftNode?.member || null}
                 onExpand={handleExpand}
                 isExpanded={expandedMember === leftNode?.member?.wallet}
+                t={t}
               />
             );
           })()}
@@ -324,6 +328,7 @@ const DrillDownMatrixView: React.FC<DrillDownMatrixViewProps> = ({
                 member={rightNode?.member || null}
                 onExpand={handleExpand}
                 isExpanded={expandedMember === rightNode?.member?.wallet}
+                t={t}
               />
             );
           })()}
@@ -339,6 +344,7 @@ const DrillDownMatrixView: React.FC<DrillDownMatrixViewProps> = ({
                 member={middleNode?.member || null}
                 onExpand={handleExpand}
                 isExpanded={expandedMember === middleNode?.member?.wallet}
+                t={t}
               />
             );
           })()}
