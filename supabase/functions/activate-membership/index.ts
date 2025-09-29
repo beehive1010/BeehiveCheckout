@@ -262,7 +262,7 @@ serve(async (req) => {
         
         // Use the matrix function to place member and create referral record
         const matrixPlacementResult = await supabase.rpc(
-          'place_new_member_in_matrix_correct',
+          'place_member_in_recursive_matrix',
           {
             p_member_wallet: walletAddress,
             p_referrer_wallet: normalizedReferrerWallet

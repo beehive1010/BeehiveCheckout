@@ -262,7 +262,7 @@ export function useLayeredMatrix(matrixRootWallet: string) {
             member: {
               wallet: member.wallet_address,
               joinedAt: member.joined_at,
-              type: member.is_spillover ? 'is_spillover' : 'is_direct',
+              type: (member.is_spillover || member.placement_type === 'spillover_placement') ? 'is_spillover' : 'is_direct',
               hasChildren: childrenCount > 0,
               childrenCount: childrenCount,
               username: member.username,
