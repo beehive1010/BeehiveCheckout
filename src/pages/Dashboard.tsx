@@ -208,9 +208,9 @@ export default function Dashboard() {
           expires_at,
           claimed_at,
           matrix_layer,
-          reward_recipient_wallet
+          triggering_member_wallet
         `)
-        .eq('reward_recipient_wallet', walletAddress) // Use correct column name
+        .ilike('reward_recipient_wallet', walletAddress) // Use correct column name
         .order('created_at', { ascending: false });
 
       if (rewardError) {
