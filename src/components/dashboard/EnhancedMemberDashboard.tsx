@@ -133,14 +133,14 @@ export function EnhancedMemberDashboard({ className = "" }: EnhancedMemberDashbo
         .select(`
           member_wallet,
           matrix_root_wallet,
-          layer,
-          position,
+          matrix_layer,
+          matrix_position,
           referral_type,
-          child_activation_time
+          placed_at
         `)
         .eq('matrix_root_wallet', walletAddress!)
-        .lte('layer', 3)
-        .order('layer');
+        .lte('matrix_layer', 3)
+        .order('matrix_layer');
 
       if (error) throw error;
       
@@ -156,7 +156,11 @@ export function EnhancedMemberDashboard({ className = "" }: EnhancedMemberDashbo
             members: []
           };
         }
-        acc[key].members.push(item);
+        acc[key].members.push({
+          ...item,
+          layer: item.matrix_layer,
+          position: item.matrix_position
+        });
         acc[key].total_downline++;
         return acc;
       }, {});

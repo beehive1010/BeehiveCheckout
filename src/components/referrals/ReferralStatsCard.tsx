@@ -53,13 +53,13 @@ export default function ReferralStatsCard({ className, onViewMatrix }: ReferralS
           .select(`
             member_wallet,
             matrix_root_wallet,
-            layer,
-            position,
-            child_activation_time,
+            matrix_layer,
+            matrix_position,
+            placed_at,
             referral_type
           `)
           .eq('matrix_root_wallet', walletAddress)
-          .order('child_activation_time', { ascending: false })
+          .order('placed_at', { ascending: false })
           .limit(10)
           .then(({ data, error }) => {
             if (error) throw error;
@@ -170,10 +170,10 @@ export default function ReferralStatsCard({ className, onViewMatrix }: ReferralS
           return {
             member_wallet: member.member_wallet,
             member_name: userInfo?.username || `User${member.member_wallet?.slice(-4) || ''}`,
-            layer: member.layer || 1,
-            position: member.position,
+            layer: member.matrix_layer || 1,
+            position: member.matrix_position,
             placement_type: member.referral_type === 'direct' ? 'direct' : 'spillover',
-            placed_at: member.child_activation_time,
+            placed_at: member.placed_at,
             is_active: true, // Assume active if in tree
             member_level: 1 // Default level
           };

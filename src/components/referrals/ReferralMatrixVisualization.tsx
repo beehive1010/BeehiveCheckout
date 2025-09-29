@@ -84,13 +84,13 @@ export default function ReferralMatrixVisualization({
         .select(`
           member_wallet,
           matrix_root_wallet,
-          layer,
-          position,
+          matrix_layer,
+          matrix_position,
           referral_type,
-          child_activation_time
+          placed_at
         `)
         .eq('matrix_root_wallet', effectiveRootWallet)
-        .order('child_activation_time');
+        .order('placed_at');
 
       if (error) {
         throw new Error(`Failed to load matrix data: ${error.message}`);
@@ -123,10 +123,10 @@ export default function ReferralMatrixVisualization({
       const members: MatrixMember[] = matrixPlacements?.map(placement => {
         // Convert position from L/M/R to 1/2/3 for internal use
         let positionNumber = 0;
-        if (placement.position === 'L') positionNumber = 1;
-        else if (placement.position === 'M') positionNumber = 2;
-        else if (placement.position === 'R') positionNumber = 3;
-        else positionNumber = parseInt(placement.position || '0');
+        if (placement.matrix_position === 'L') positionNumber = 1;
+        else if (placement.matrix_position === 'M') positionNumber = 2;
+        else if (placement.matrix_position === 'R') positionNumber = 3;
+        else positionNumber = parseInt(placement.matrix_position || '0');
 
         const memberInfo = membersMap.get(placement.member_wallet || '');
         const userInfo = usersMap.get(placement.member_wallet || '');
@@ -135,10 +135,10 @@ export default function ReferralMatrixVisualization({
           walletAddress: placement.member_wallet || '',
           username: userInfo?.username || undefined,
           level: memberInfo?.current_level || 1,
-          layer: placement.layer || 1,
+          layer: placement.matrix_layer || 1,
           position: positionNumber,
           isActive: Boolean(memberInfo && memberInfo.current_level && memberInfo.current_level > 0),
-          placedAt: placement.child_activation_time || new Date().toISOString(),
+          placedAt: placement.placed_at || new Date().toISOString(),
           downlineCount: 0 // TODO: Calculate downline count
         };
       }).filter(member => member.walletAddress) || [];
