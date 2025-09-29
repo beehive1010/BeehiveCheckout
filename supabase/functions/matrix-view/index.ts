@@ -32,7 +32,137 @@ serve(async (req: Request) => {
       throw new Error('Wallet address required')
     }
 
-    const { action } = await req.json()
+    const { action, matrixRoot, maxLayers } = await req.json()
+
+    if (action === 'get-matrix-slots-detailed') {
+      // Get detailed matrix slots data for comprehensive view
+      console.log(`🎯 Getting detailed matrix slots for: ${matrixRoot}`)
+      
+      try {
+        // Get matrix_referrals data organized by layers and positions
+        const { data: matrixReferrals, error: matrixError } = await supabase
+          .from('matrix_referrals')
+          .select(`
+            member_wallet,
+            parent_wallet,
+            layer,
+            position,
+            referral_type,
+            created_at
+          `)
+          .eq('matrix_root_wallet', matrixRoot)
+          .lte('layer', maxLayers || 3)
+          .order('layer')
+          .order('position')
+
+        if (matrixError) {
+          console.error('Matrix referrals query error:', matrixError)
+          throw matrixError
+        }
+
+        // Get user and member data separately to avoid join issues
+        const memberWallets = matrixReferrals?.map(r => r.member_wallet) || []
+        
+        let usersData = []
+        let membersData = []
+        
+        if (memberWallets.length > 0) {
+          const { data: users } = await supabase
+            .from('users')
+            .select('wallet_address, username')
+            .in('wallet_address', memberWallets)
+
+          const { data: members } = await supabase
+            .from('members')
+            .select('wallet_address, current_level')
+            .in('wallet_address', memberWallets)
+
+          usersData = users || []
+          membersData = members || []
+        }
+
+        // Organize data by layers and create slot structure
+        const organizedData = {
+          layer1: [],
+          layer2: [],
+          layer3: []
+        }
+
+        // Process each layer
+        for (let layer = 1; layer <= (maxLayers || 3); layer++) {
+          const layerData = matrixReferrals?.filter(r => r.layer === layer) || []
+          const slotsForLayer = []
+
+          // Generate slot numbers for this layer
+          const slotsCount = Math.pow(3, layer)
+          
+          for (let slotNum = 1; slotNum <= slotsCount; slotNum++) {
+            // Find if this slot is occupied
+            const slotData = layerData.find((_, index) => index + 1 === slotNum)
+            
+            if (slotData) {
+              // Find corresponding user and member data
+              const userData = usersData.find(u => u.wallet_address === slotData.member_wallet)
+              const memberData = membersData.find(m => m.wallet_address === slotData.member_wallet)
+              
+              slotsForLayer.push({
+                slot_number: slotNum,
+                position: slotData.position,
+                slot_status: 'occupied',
+                member_wallet: slotData.member_wallet,
+                member_username: userData?.username,
+                member_level: memberData?.current_level,
+                parent_wallet: slotData.parent_wallet,
+                referral_type: slotData.referral_type,
+                created_at: slotData.created_at
+              })
+            } else {
+              // Calculate position for empty slot
+              let position = ''
+              if (layer === 1) {
+                position = ['L', 'M', 'R'][slotNum - 1]
+              } else {
+                const parentIndex = Math.floor((slotNum - 1) / 3)
+                const childIndex = (slotNum - 1) % 3
+                const childPos = ['L', 'M', 'R'][childIndex]
+                // This is a simplified position calculation
+                position = `${parentIndex + 1}.${childPos}`
+              }
+              
+              slotsForLayer.push({
+                slot_number: slotNum,
+                position: position,
+                slot_status: 'empty',
+                member_wallet: null,
+                member_username: null,
+                member_level: null,
+                parent_wallet: null,
+                referral_type: null,
+                created_at: null
+              })
+            }
+          }
+
+          organizedData[`layer${layer}` as keyof typeof organizedData] = slotsForLayer
+        }
+
+        return new Response(
+          JSON.stringify({ 
+            success: true, 
+            data: organizedData,
+            matrixRoot: matrixRoot,
+            totalLayers: maxLayers || 3
+          }), 
+          { 
+            headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
+          }
+        )
+
+      } catch (error) {
+        console.error('Detailed matrix slots error:', error)
+        throw error
+      }
+    }
 
     if (action === 'get-layer-stats') {
       // Get layer statistics using matrix_layers_view and referrals_stats_view

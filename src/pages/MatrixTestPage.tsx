@@ -482,16 +482,106 @@ const MatrixTestPage: React.FC = () => {
             </Card>
           </div>
 
-          {/* 右侧：矩阵显示 */}
+          {/* 右侧：矩阵显示 - 用Tabs展示所有组件 */}
           <div className="xl:col-span-2">
-            {viewMode === 'simple' ? (
-              <SimpleMatrixView currentWallet={currentWallet} />
-            ) : (
-              <DrillDownMatrixView 
-                rootWalletAddress={currentWallet}
-                onNavigateToMember={(memberWallet) => setCurrentWallet(memberWallet)}
-              />
-            )}
+            <Tabs defaultValue="detailed-slots" className="w-full">
+              <TabsList className="grid w-full grid-cols-6">
+                <TabsTrigger value="detailed-slots">详细Slots</TabsTrigger>
+                <TabsTrigger value="original">原始视图</TabsTrigger>
+                <TabsTrigger value="enhanced">增强视图</TabsTrigger>
+                <TabsTrigger value="drill-down">钻取视图</TabsTrigger>
+                <TabsTrigger value="stats">统计视图</TabsTrigger>
+                <TabsTrigger value="components">所有组件</TabsTrigger>
+              </TabsList>
+              
+              {/* 详细Slots视图 - 新增，显示正确的滑落层级 */}
+              <TabsContent value="detailed-slots">
+                <DetailedMatrixSlotsView currentWallet={currentWallet} />
+              </TabsContent>
+              
+              {/* 原始简洁视图 */}
+              <TabsContent value="original">
+                <OriginalMatrixView currentWallet={currentWallet} />
+              </TabsContent>
+              
+              {/* 增强矩阵视图 */}
+              <TabsContent value="enhanced">
+                <EnhancedMatrixView rootWalletAddress={currentWallet} />
+              </TabsContent>
+              
+              {/* 钻取矩阵视图 */}
+              <TabsContent value="drill-down">
+                <DrillDownMatrixView 
+                  rootWalletAddress={currentWallet}
+                  onNavigateToMember={(memberWallet) => setCurrentWallet(memberWallet)}
+                />
+              </TabsContent>
+              
+              {/* 统计视图 */}
+              <TabsContent value="stats">
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+                  <MatrixNetworkStatsV2 rootWalletAddress={currentWallet} />
+                  <DirectMatrixStatsView walletAddress={currentWallet} />
+                </div>
+              </TabsContent>
+              
+              {/* 所有组件展示 */}
+              <TabsContent value="components">
+                <div className="space-y-6">
+                  {/* 第一行：递归视图和层级视图 */}
+                  <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+                    <div>
+                      <h3 className="text-lg font-semibold mb-3">递归矩阵视图</h3>
+                      <RecursiveMatrixViewer 
+                        walletAddress={currentWallet}
+                        maxDepth={3}
+                      />
+                    </div>
+                    <div>
+                      <h3 className="text-lg font-semibold mb-3">层级矩阵视图</h3>
+                      <LayeredMatrixView rootWalletAddress={currentWallet} />
+                    </div>
+                  </div>
+                  
+                  {/* 第二行：简单视图和层级状态 */}
+                  <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+                    <div>
+                      <h3 className="text-lg font-semibold mb-3">简单矩阵视图</h3>
+                      <SimpleMatrixView rootWalletAddress={currentWallet} />
+                    </div>
+                    <div>
+                      <h3 className="text-lg font-semibold mb-3">层级状态卡片</h3>
+                      <LayerLevelStatusCard 
+                        rootWalletAddress={currentWallet}
+                        maxLayers={5}
+                      />
+                    </div>
+                  </div>
+                  
+                  {/* 第三行：统计组件 */}
+                  <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+                    <div>
+                      <h3 className="text-lg font-semibold mb-3">矩阵层级统计</h3>
+                      <MatrixLayerStats rootWalletAddress={currentWallet} />
+                    </div>
+                    <div>
+                      <h3 className="text-lg font-semibold mb-3">层级统计视图</h3>
+                      <MatrixLayerStatsView rootWalletAddress={currentWallet} />
+                    </div>
+                    <div>
+                      <h3 className="text-lg font-semibold mb-3">直推统计视图</h3>
+                      <DirectMatrixStatsView walletAddress={currentWallet} />
+                    </div>
+                  </div>
+                  
+                  {/* 第四行：网络统计 */}
+                  <div>
+                    <h3 className="text-lg font-semibold mb-3">网络统计 V2</h3>
+                    <MatrixNetworkStatsV2 rootWalletAddress={currentWallet} />
+                  </div>
+                </div>
+              </TabsContent>
+            </Tabs>
           </div>
         </div>
       </div>
