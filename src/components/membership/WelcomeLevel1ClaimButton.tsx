@@ -9,7 +9,7 @@ import {Card, CardContent, CardHeader, CardTitle} from '../ui/card';
 import {Badge} from '../ui/badge';
 import {useToast} from '../../hooks/use-toast';
 import {Clock, Coins, Crown, Gift, Loader2, Zap} from 'lucide-react';
-import {authService, supabase} from '../../lib/supabaseClient';
+import {supabase} from '../../lib/supabaseClient';
 import {useI18n} from '../../contexts/I18nContext';
 import RegistrationModal from '../modals/RegistrationModal';
 
@@ -122,12 +122,9 @@ export function WelcomeLevel1ClaimButton({ onSuccess, referrerWallet, className 
   const handleRegistrationComplete = () => {
     console.log('✅ Registration completed - closing modal and retrying claim');
     setShowRegistrationModal(false);
-    
-    // Add a longer delay to ensure the database is updated
     setTimeout(() => {
-      console.log('🔄 Starting NFT claim after registration completion...');
       handleClaimLevel1NFT();
-    }, 2000); // Increased delay to 2 seconds
+    }, 500);
   };
 
   const handleClaimLevel1NFT = async () => {
@@ -165,11 +162,15 @@ export function WelcomeLevel1ClaimButton({ onSuccess, referrerWallet, className 
     setIsProcessing(true);
 
     try {
-      // Step 1: Check if user is registered using authService
+      // Step 1: Check if user is registered
       console.log('🔍 Checking user registration status...');
       setCurrentStep(t('claim.checkingRegistration') || 'Checking registration status...');
       
-      const { data: userData, error: userError } = await authService.getUser(account.address);
+      const { data: userData, error: userError } = await supabase
+        .from('users')
+        .select('*')
+        .eq('wallet_address', account.address)
+        .single();
       
       if (userError || !userData) {
         console.log('❌ User not registered:', {
@@ -298,7 +299,7 @@ export function WelcomeLevel1ClaimButton({ onSuccess, referrerWallet, className 
         const { data: membershipData } = await supabase
           .from('members')
           .select('current_level')
-          .ilike('wallet_address', account.address)
+          .eq('wallet_address', account.address)
           .gte('current_level', 1)
           .single();
           
