@@ -74,18 +74,18 @@ export function useUserReferralStats() {
 
       const totalEarnings = rewardsData?.reduce((sum, reward) => sum + (Number(reward.reward_amount) || 0), 0) || 0;
 
-      // Get recent referrals with activation status - use tree view for position data
+      // Get recent referrals with activation status - use matrix_referrals table directly
       const { data: recentReferralsData } = await supabase
-        .from('matrix_referrals_tree_view')
+        .from('matrix_referrals')
         .select(`
           member_wallet,
-          child_activation_time,
+          created_at,
           position,
-          layer
+          parent_depth
         `)
         .eq('matrix_root_wallet', walletAddress)
-        .eq('layer', 1) // Only direct layer 1 members
-        .order('child_activation_time', { ascending: false })
+        .eq('parent_depth', 1) // Only direct layer 1 members
+        .order('created_at', { ascending: false })
         .limit(5);
 
       // Get activation status for recent referrals
@@ -99,7 +99,7 @@ export function useUserReferralStats() {
 
           return {
             walletAddress: referral.member_wallet,
-            joinedAt: referral.child_activation_time || new Date().toISOString(),
+            joinedAt: referral.created_at || new Date().toISOString(),
             activated: (memberData?.current_level || 0) > 0
           };
         })
@@ -138,16 +138,16 @@ export function useUserMatrixStats() {
     queryFn: async () => {
       if (!walletAddress) throw new Error('No wallet address');
       
-      // Get matrix placements by layer using matrix_referrals_tree_view (now shows actual placement)
+      // Get matrix placements by layer using matrix_referrals table directly
       const { data: matrixData } = await supabase
-        .from('matrix_referrals_tree_view')
-        .select('layer, position, member_wallet')
+        .from('matrix_referrals')
+        .select('parent_depth, position, member_wallet')
         .eq('matrix_root_wallet', walletAddress)
-        .order('layer');
+        .order('parent_depth');
 
-      // Group by layer and count
+      // Group by layer and count (using parent_depth as layer)
       const layerStats = matrixData?.reduce((acc, placement) => {
-        const layer = placement.layer;
+        const layer = placement.parent_depth;
         const position = placement.position;
         if (layer !== null && layer !== undefined && position !== null && position !== undefined) {
           if (!acc[layer]) {

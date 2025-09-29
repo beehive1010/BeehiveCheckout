@@ -506,9 +506,9 @@ export const matrixService = {
         .select('*', { count: 'exact', head: true })
         .ilike('matrix_root_wallet', walletAddress);
 
-      // Get max depth from matrix_referrals_tree_view
+      // Get max depth from matrix_referrals
       const { data: maxDepthData } = await supabase
-        .from('matrix_referrals_tree_view')
+        .from('matrix_referrals')
         .select('layer')
         .ilike('matrix_root_wallet', walletAddress)
         .order('layer', { ascending: false })
@@ -521,13 +521,13 @@ export const matrixService = {
         .from('matrix_referrals_tree_view')
         .select(`
           member_wallet,
-          child_activation_time,
-          layer,
-          position,
+          placed_at,
+          matrix_layer,
+          matrix_position,
           referral_type
         `)
         .ilike('matrix_root_wallet', walletAddress)
-        .order('child_activation_time', { ascending: false })
+        .order('placed_at', { ascending: false })
         .limit(10);
 
       return {

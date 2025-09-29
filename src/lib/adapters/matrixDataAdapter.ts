@@ -283,15 +283,15 @@ export function buildMatrixQuery(supabase: any, rootWallet: string, options: {
   offset?: number;
 } = {}) {
   let query = supabase
-    .from('matrix_referrals_tree_view')
+    .from('matrix_referrals')
     .select('*')
     .eq('matrix_root_wallet', rootWallet);
 
   if (options.layer) {
-    query = query.eq('matrix_layer', options.layer);
+    query = query.eq('parent_depth', options.layer);
   }
 
-  query = query.order('matrix_layer').order('matrix_position');
+  query = query.order('parent_depth').order('position');
 
   if (options.limit) {
     query = query.limit(options.limit);
@@ -309,8 +309,8 @@ export function buildMatrixQuery(supabase: any, rootWallet: string, options: {
  */
 export function buildLayerStatsQuery(supabase: any, rootWallet: string) {
   return supabase
-    .from('matrix_layer_stats_view')
-    .select('*')
+    .from('matrix_referrals')
+    .select('parent_depth, position, member_wallet')
     .eq('matrix_root_wallet', rootWallet)
-    .order('layer');
+    .order('parent_depth');
 }

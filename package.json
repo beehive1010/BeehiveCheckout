@@ -13,9 +13,20 @@
     "lint": "eslint src --ext ts,tsx --report-unused-disable-directives --max-warnings 0",
     "lint:fix": "eslint src --ext ts,tsx --fix",
     "supabase:status": "supabase status",
-    "db:generate": "supabase gen types typescript --project-id PROJECT_ID > types/database.types.ts",
+    "db:generate": "supabase gen types typescript --project-id cvqibjcbfrwsgkvthccp > types/database.types.ts",
     "sync:types": "./scripts/sync-types.sh",
-    "functions:deploy": "supabase functions deploy --project-ref PROJECT_ID"
+    "functions:deploy": "./db/deploy-edge-functions.sh",
+    "functions:deploy:all": "SUPABASE_ACCESS_TOKEN=sbp_537d0dbe16b7a13c92181067507bd4cb32bd1302 ./db/deploy-edge-functions.sh",
+    "db:check": "./db/check_db_integrity.sh",
+    "db:fix": "./scripts/fix_wallet_case_queries.sh",
+    "test:flow": "./scripts/test-complete-flow.sh",
+    "test:matrix": "./scripts/check-data-integrity.sh",
+    "setup:db": "./scripts/supabase-ipv4-management.sh setup",
+    "matrix:cleanup": "./scripts/cleanup-matrix-views.sh",
+    "matrix:deploy": "./scripts/deploy-complete-matrix-system.sh",
+    "rewards:fix": "./scripts/fix-layer-rewards-columns.sh",
+    "data:populate": "./scripts/populate-translations.js",
+    "tools:hygiene": "./scripts/check-file-hygiene.sh"
   },
   "dependencies": {
     "@heroicons/react": "^2.2.0",
