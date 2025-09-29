@@ -387,7 +387,25 @@ serve(async (req: Request) => {
       
       console.log(`👥 Querying referrals table directly with deduplication for wallet: ${walletAddress}`)
       
-      // Use matrix_referrals table to get complete 19-layer matrix structure
+      // Get matrix data from both tables to ensure complete coverage
+      // First get from referrals table (main source for new users)
+      const { data: referralMembers, error: referralError } = await supabase
+        .from('referrals')
+        .select(`
+          member_wallet,
+          matrix_root_wallet,
+          matrix_layer,
+          matrix_position,
+          placed_at,
+          referrer_wallet,
+          is_spillover_placement
+        `)
+        .eq('matrix_root_wallet', walletAddress)
+        .not('matrix_position', 'is', null)
+        .order('matrix_layer')
+        .order('placed_at')
+
+      // Also get from matrix_referrals table for backward compatibility
       const { data: matrixMembers, error: membersError } = await supabase
         .from('matrix_referrals')
         .select(`
@@ -404,8 +422,40 @@ serve(async (req: Request) => {
         .order('position')
         .order('created_at')
       
+      // Combine and normalize data from both sources
+      const allMatrixMembers = []
+      
+      // Add referrals data (main source)
+      if (referralMembers && !referralError) {
+        referralMembers.forEach(ref => {
+          allMatrixMembers.push({
+            member_wallet: ref.member_wallet,
+            matrix_root_wallet: ref.matrix_root_wallet,
+            layer: ref.matrix_layer,
+            position: ref.matrix_position,
+            created_at: ref.placed_at,
+            parent_wallet: ref.referrer_wallet,
+            referral_type: ref.is_spillover_placement ? 'is_spillover' : 'is_direct'
+          })
+        })
+      }
+      
+      // Add matrix_referrals data (legacy support)
+      if (matrixMembers && !membersError) {
+        matrixMembers.forEach(matrix => {
+          // Only add if not already present from referrals table
+          const exists = allMatrixMembers.some(m => 
+            m.member_wallet === matrix.member_wallet && 
+            m.position === matrix.position
+          )
+          if (!exists) {
+            allMatrixMembers.push(matrix)
+          }
+        })
+      }
+      
       // Get user and member data separately to avoid join issues
-      const memberWallets = matrixMembers?.map(r => r.member_wallet) || []
+      const memberWallets = allMatrixMembers?.map(r => r.member_wallet) || []
       
       let usersData = []
       let membersData = []
@@ -426,12 +476,13 @@ serve(async (req: Request) => {
       }
 
       console.log(`👥 Matrix query result:`, { 
-        memberCount: matrixMembers?.length || 0,
-        error: membersError,
-        sampleData: matrixMembers?.slice(0, 2)
+        memberCount: allMatrixMembers?.length || 0,
+        referralError: referralError,
+        matrixError: membersError,
+        sampleData: allMatrixMembers?.slice(0, 2)
       })
 
-      if (membersError) {
+      if (membersError && referralError) {
         console.error('❌ Error fetching matrix members:', membersError)
         // Don't throw, return empty data instead
         return new Response(JSON.stringify({
@@ -451,7 +502,7 @@ serve(async (req: Request) => {
         })
       }
       
-      if (!matrixMembers || matrixMembers.length === 0) {
+      if (!allMatrixMembers || allMatrixMembers.length === 0) {
         console.log('⚠️ No matrix members found for wallet:', walletAddress)
         return new Response(JSON.stringify({
           success: true,
@@ -476,7 +527,7 @@ serve(async (req: Request) => {
       const positionTracker: any = {} // Track positions to handle conflicts
       
       // Process members with deduplication logic for position conflicts  
-      matrixMembers?.forEach((member: any) => {
+      allMatrixMembers?.forEach((member: any) => {
         const layerKey = member.layer
         const positionKey = `${layerKey}_${member.position}`
         
