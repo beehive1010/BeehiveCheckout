@@ -1,0 +1,124 @@
+{
+  "translation_additions": {
+    "referrals_tabs": {
+      "en": {
+        "team": "My Team",
+        "matrix": "3x3 Matrix", 
+        "stats": "Statistics"
+      },
+      "zh": {
+        "team": "我的团队",
+        "matrix": "3x3矩阵",
+        "stats": "统计"
+      },
+      "th": {
+        "team": "ทีมของฉัน",
+        "matrix": "Matrix 3x3",
+        "stats": "สถิติ"
+      },
+      "ms": {
+        "team": "Pasukan Saya",
+        "matrix": "Matriks 3x3",
+        "stats": "Statistik"
+      },
+      "ko": {
+        "team": "내 팀",
+        "matrix": "3x3 매트릭스",
+        "stats": "통계"
+      },
+      "ja": {
+        "team": "私のチーム", 
+        "matrix": "3x3マトリックス",
+        "stats": "統計"
+      }
+    },
+    "rewards_tabs": {
+      "en": {
+        "overview": "Overview",
+        "claimable": "Claimable",
+        "history": "History"
+      },
+      "zh": {
+        "overview": "概览",
+        "claimable": "可领取", 
+        "history": "历史"
+      },
+      "th": {
+        "overview": "ภาพรวม",
+        "claimable": "รับได้",
+        "history": "ประวัติ"
+      },
+      "ms": {
+        "overview": "Gambaran Keseluruhan",
+        "claimable": "Boleh Dituntut",
+        "history": "Sejarah"
+      },
+      "ko": {
+        "overview": "개요",
+        "claimable": "청구 가능",
+        "history": "기록"
+      },
+      "ja": {
+        "overview": "概要",
+        "claimable": "請求可能",
+        "history": "履歴"
+      }
+    },
+    "discover_education_keys": {
+      "en": {
+        "discover": {
+          "title": "Discover Web3 DApps",
+          "subtitle": "Explore the best decentralized applications",
+          "categories": {
+            "defi": "DeFi",
+            "nft": "NFT Marketplaces", 
+            "gaming": "Gaming",
+            "trading": "Trading",
+            "tools": "Tools",
+            "social": "Social",
+            "analytics": "Analytics"
+          }
+        },
+        "education": {
+          "title": "Education Center",
+          "subtitle": "Learn Web3 and blockchain technology",
+          "categories": {
+            "web3_basics": "Web3 Basics",
+            "defi": "DeFi",
+            "nft": "NFT",
+            "trading": "Trading Strategy", 
+            "blockchain": "Blockchain Technology",
+            "business": "Web3 Business"
+          }
+        }
+      },
+      "zh": {
+        "discover": {
+          "title": "发现Web3 DApp",
+          "subtitle": "探索最好的去中心化应用",
+          "categories": {
+            "defi": "DeFi",
+            "nft": "NFT市场",
+            "gaming": "游戏",
+            "trading": "交易",
+            "tools": "工具",
+            "social": "社交",
+            "analytics": "分析"
+          }
+        },
+        "education": {
+          "title": "教育中心", 
+          "subtitle": "学习Web3和区块链技术",
+          "categories": {
+            "web3_basics": "Web3基础",
+            "defi": "DeFi",
+            "nft": "NFT",
+            "trading": "交易策略",
+            "blockchain": "区块链技术", 
+            "business": "Web3商业"
+          }
+        }
+      }
+    }
+  }
+}
