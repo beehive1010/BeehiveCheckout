@@ -357,6 +357,7 @@ const DrillDownMatrixView: React.FC<DrillDownMatrixViewProps> = ({
             parentWallet={expandedMember}
             matrixRootWallet={rootWalletAddress}
             onClose={() => setExpandedMember(null)}
+            t={t}
           />
         )}
 
