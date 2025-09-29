@@ -59,6 +59,15 @@ export default function Dashboard() {
   const retryCountRef = useRef(0);
   const maxRetries = 3;
 
+  // Debug effect to log data changes
+  useEffect(() => {
+    console.log('🔄 Dashboard data state changed:', {
+      directReferrals: data.directReferrals,
+      totalTeamSize: data.totalTeamSize,
+      timestamp: new Date().toISOString()
+    });
+  }, [data.directReferrals, data.totalTeamSize]);
+
   // 加载余额数据 - 使用balance Supabase函数
   const loadBalanceData = useCallback(async () => {
     if (!walletAddress) return null;
@@ -286,7 +295,25 @@ export default function Dashboard() {
       };
 
       console.log('📈 Final dashboard data:', dashboardData);
-      setData(dashboardData);
+      console.log('🔍 Matrix data in final dashboard:', {
+        directReferrals: dashboardData.directReferrals,
+        totalTeamSize: dashboardData.totalTeamSize,
+        matrixResult: results.matrix
+      });
+      
+      // Use functional update to ensure we get the latest state
+      setData(prevData => {
+        const newData = { ...dashboardData };
+        console.log('🔄 State update: Previous data:', {
+          directReferrals: prevData.directReferrals,
+          totalTeamSize: prevData.totalTeamSize
+        });
+        console.log('🔄 State update: New data:', {
+          directReferrals: newData.directReferrals,
+          totalTeamSize: newData.totalTeamSize
+        });
+        return newData;
+      });
       retryCountRef.current = 0; // 重置重试计数
 
     } catch (error: unknown) {
@@ -500,7 +527,10 @@ export default function Dashboard() {
             data={[
               { value: data.directReferrals.toString(), label: t('dashboard.directReferrals'), color: 'text-blue-400' },
               { value: data.totalTeamSize.toString(), label: t('dashboard.totalTeamSize'), color: 'text-purple-400' }
-            ]}
+            ].map(item => {
+              console.log('🎯 Rendering referral data:', item.label, '=', item.value);
+              return item;
+            })}
           />
         </div>
 
