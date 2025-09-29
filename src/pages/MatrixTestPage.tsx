@@ -118,7 +118,7 @@ const MatrixTestPage: React.FC = () => {
                 </span>
               )}
             </div>
-            {userQuery.data && (
+            {userQuery?.data && (
               <div className="flex flex-wrap gap-2">
                 <Badge variant={userQuery.data.isRegistered ? "default" : "secondary"}>
                   {userQuery.data.isRegistered ? "✅ Registered" : "❌ Not Registered"}
