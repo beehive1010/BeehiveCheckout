@@ -17,7 +17,7 @@ import MatrixLayerStatsView from '../components/matrix/MatrixLayerStatsView';
 import EnhancedMatrixView from '../components/matrix/EnhancedMatrixView';
 import SimpleMatrixView from '../components/matrix/SimpleMatrixView';
 import LayeredMatrixView from '../components/matrix/LayeredMatrixView';
-import MatrixNetworkStatsV2 from '../components/matrix/MatrixNetworkStatsV2';
+import { MatrixNetworkStatsV2 } from '../components/matrix/MatrixNetworkStatsV2';
 
 import { CubeIcon } from '@heroicons/react/24/outline';
 
@@ -520,7 +520,7 @@ const MatrixTestPage: React.FC = () => {
               {/* 统计视图 */}
               <TabsContent value="stats">
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-                  <MatrixNetworkStatsV2 rootWalletAddress={currentWallet} />
+                  <MatrixNetworkStatsV2 walletAddress={currentWallet} />
                   <DirectMatrixStatsView walletAddress={currentWallet} />
                 </div>
               </TabsContent>
@@ -577,7 +577,7 @@ const MatrixTestPage: React.FC = () => {
                   {/* 第四行：网络统计 */}
                   <div>
                     <h3 className="text-lg font-semibold mb-3">网络统计 V2</h3>
-                    <MatrixNetworkStatsV2 rootWalletAddress={currentWallet} />
+                    <MatrixNetworkStatsV2 walletAddress={currentWallet} />
                   </div>
                 </div>
               </TabsContent>
