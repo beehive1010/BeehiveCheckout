@@ -3,7 +3,7 @@ import {useQuery} from '@tanstack/react-query';
 import {Card, CardContent, CardHeader, CardTitle} from '../ui/card';
 import {Badge} from '../ui/badge';
 import {Layers, Target, TrendingUp, Users} from 'lucide-react';
-import {supabase} from '../../lib/supabaseClient';
+import {supabase} from '../../lib/supabase';
 import {useI18n} from '../../contexts/I18nContext';
 
 interface ReferralsStatsProps {

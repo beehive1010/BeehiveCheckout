@@ -1,6 +1,6 @@
 import {useQuery} from '@tanstack/react-query';
 import {useWallet} from './useWallet';
-import {supabase} from '../lib/supabaseClient';
+import {supabase} from '../lib/supabase';
 
 interface MemberData {
   current_level: number;
