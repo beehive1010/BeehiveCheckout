@@ -142,7 +142,17 @@ const DrillDownMatrixView: React.FC<DrillDownMatrixViewProps> = ({
   console.log('🏠 DrillDownMatrixView current root:', currentRoot);
   console.log('🔍 DrillDownMatrixView - navigation history:', navigationHistory.length);
   
-  const { data: matrixData, isLoading, error } = useLayeredMatrix(currentRoot);
+  // 根据当前根节点获取数据
+  const isViewingChildren = currentRoot !== rootWalletAddress;
+  
+  // 如果查看的是子节点，使用useMatrixChildren，否则使用useLayeredMatrix
+  const { data: rootMatrixData, isLoading: isLoadingRoot, error: rootError } = useLayeredMatrix(rootWalletAddress, undefined, 1);
+  const { data: childrenMatrixData, isLoading: isLoadingChildren, error: childrenError } = useMatrixChildren(rootWalletAddress, currentRoot);
+  
+  // 根据当前状态选择数据源
+  const matrixData = isViewingChildren ? childrenMatrixData : rootMatrixData;
+  const isLoading = isViewingChildren ? isLoadingChildren : isLoadingRoot;
+  const error = isViewingChildren ? childrenError : rootError;
 
   const handleNavigateToMember = (memberWallet: string, memberData?: any) => {
     // 保存当前根到历史记录
@@ -227,7 +237,10 @@ const DrillDownMatrixView: React.FC<DrillDownMatrixViewProps> = ({
           </div>
           <div className="flex items-center text-sm text-gray-600">
             <Badge variant="outline">
-              {matrixData.totalLayer1Members}/3 已填满
+              {isViewingChildren 
+                ? `${matrixData?.totalChildren || 0}/3 已填满`
+                : `${matrixData?.totalLayer1Members || 0}/3 已填满`
+              }
             </Badge>
           </div>
         </CardTitle>
@@ -274,7 +287,9 @@ const DrillDownMatrixView: React.FC<DrillDownMatrixViewProps> = ({
         <div className="grid grid-cols-3 gap-4 mb-6">
           {/* L 位置 */}
           {(() => {
-            const leftNode = matrixData.layer1Matrix.find(n => n.position === 'L');
+            const leftNode = isViewingChildren 
+              ? matrixData?.children?.find(n => n.position === 'L')
+              : matrixData?.layer1Matrix?.find(n => n.position === 'L');
             return (
               <MatrixNode
                 key="L"
@@ -288,7 +303,9 @@ const DrillDownMatrixView: React.FC<DrillDownMatrixViewProps> = ({
 
           {/* M 位置 */}
           {(() => {
-            const middleNode = matrixData.layer1Matrix.find(n => n.position === 'M');
+            const middleNode = isViewingChildren 
+              ? matrixData?.children?.find(n => n.position === 'M')
+              : matrixData?.layer1Matrix?.find(n => n.position === 'M');
             return (
               <MatrixNode
                 key="M"
@@ -302,7 +319,9 @@ const DrillDownMatrixView: React.FC<DrillDownMatrixViewProps> = ({
 
           {/* R 位置 */}
           {(() => {
-            const rightNode = matrixData.layer1Matrix.find(n => n.position === 'R');
+            const rightNode = isViewingChildren 
+              ? matrixData?.children?.find(n => n.position === 'R')
+              : matrixData?.layer1Matrix?.find(n => n.position === 'R');
             return (
               <MatrixNode
                 key="R"
