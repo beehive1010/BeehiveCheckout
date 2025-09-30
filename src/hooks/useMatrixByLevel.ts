@@ -9,33 +9,33 @@ export function useMatrixByLevel(matrixRootWallet: string, parentWallet?: string
       if (!matrixRootWallet) throw new Error('No matrix root wallet');
       
       let query = supabase
-        .from('referrals')
+        .from('matrix_referrals')
         .select(`
-          matrix_layer,
-          matrix_position,
+          layer,
+          position,
           member_wallet,
-          referrer_wallet,
-          member_activation_sequence,
-          is_spillover_placement,
-          placed_at
+          parent_wallet,
+          parent_depth,
+          referral_type,
+          created_at
         `)
         .eq('matrix_root_wallet', matrixRootWallet);
       
       if (currentLevel === 1) {
         // Level 1: 只显示直接挂在matrix root下的L, M, R
         query = query
-          .eq('matrix_layer', 1)
-          .in('matrix_position', ['L', 'M', 'R']);
+          .eq('layer', 1)
+          .in('position', ['L', 'M', 'R']);
       } else {
         // Level 2+: 显示特定parent下的子成员
         if (!parentWallet) throw new Error('Parent wallet required for level 2+');
         
         query = query
-          .eq('referrer_wallet', parentWallet)
-          .eq('matrix_layer', currentLevel);
+          .eq('parent_wallet', parentWallet)
+          .eq('layer', currentLevel);
       }
       
-      const { data: membersData, error } = await query.order('matrix_position');
+      const { data: membersData, error } = await query.order('position');
       
       if (error) {
         console.error('Matrix query error:', error);
@@ -54,14 +54,14 @@ export function useMatrixByLevel(matrixRootWallet: string, parentWallet?: string
           targetPosition = `${parentPosition}.${position}`;
         }
         
-        const member = membersData?.find(m => m.matrix_position === targetPosition);
+        const member = membersData?.find(m => m.position === targetPosition);
         
         return {
           position: targetPosition,
           member: member ? {
             wallet: member.member_wallet,
-            joinedAt: member.placed_at,
-            type: member.is_spillover_placement ? 'is_spillover' : 'is_direct',
+            joinedAt: member.created_at,
+            type: member.referral_type,
             canExpand: false // 暂时设为false，后面会在useLayeredMatrix中正确设置
           } : null
         };
@@ -84,10 +84,10 @@ export function useMatrixByLevel(matrixRootWallet: string, parentWallet?: string
 // 检查成员是否有下级
 async function hasChildren(memberWallet: string, matrixRootWallet: string): Promise<boolean> {
   const { count } = await supabase
-    .from('referrals')
+    .from('matrix_referrals')
     .select('*', { count: 'exact', head: true })
     .eq('matrix_root_wallet', matrixRootWallet)
-    .eq('referrer_wallet', memberWallet);
+    .eq('parent_wallet', memberWallet);
   
   return (count || 0) > 0;
 }
@@ -95,13 +95,13 @@ async function hasChildren(memberWallet: string, matrixRootWallet: string): Prom
 // 获取parent的位置信息
 async function getParentPosition(parentWallet: string, matrixRootWallet: string): Promise<string> {
   const { data } = await supabase
-    .from('referrals')
-    .select('matrix_position')
+    .from('matrix_referrals')
+    .select('position')
     .eq('matrix_root_wallet', matrixRootWallet)
     .eq('member_wallet', parentWallet)
     .single();
   
-  return data?.matrix_position || 'L';
+  return data?.position || 'L';
 }
 
 // 获取特定成员的下级成员
@@ -121,18 +121,18 @@ export function useMatrixChildren(matrixRootWallet: string, parentWallet: string
         console.log('🔍 Looking for children of parent:', parentWallet, 'in matrix root:', matrixRootWallet);
         
         const { data: childrenData, error: childrenError } = await supabase
-          .from('referrals')
+          .from('matrix_referrals')
           .select(`
-            matrix_layer,
-            matrix_position,
+            layer,
+            position,
             member_wallet,
-            referrer_wallet,
-            is_spillover_placement,
-            placed_at
+            parent_wallet,
+            referral_type,
+            created_at
           `)
           .eq('matrix_root_wallet', matrixRootWallet)
-          .eq('referrer_wallet', parentWallet)
-          .order('matrix_position');
+          .eq('parent_wallet', parentWallet)
+          .order('position');
           
         if (childrenError) {
           console.error('❌ Error fetching children:', childrenError);
@@ -148,7 +148,7 @@ export function useMatrixChildren(matrixRootWallet: string, parentWallet: string
         const children3x3 = childPositions.map(pos => {
           // 查找该位置对应的子成员
           const child = childrenData?.find((c: any) => {
-            const position = c.matrix_position || '';
+            const position = c.position || '';
             // 对于第二层数据，直接匹配position（L, M, R）或者以.L .M .R结尾的
             return position === pos || position.endsWith(`.${pos}`);
           });
@@ -157,9 +157,9 @@ export function useMatrixChildren(matrixRootWallet: string, parentWallet: string
             position: pos,
             member: child ? {
               wallet: child.member_wallet,
-              joinedAt: child.placed_at,
-              type: child.is_spillover_placement ? 'is_spillover' : 'is_direct',
-              fullPosition: child.matrix_position,
+              joinedAt: child.created_at,
+              type: child.referral_type,
+              fullPosition: child.position,
               hasChildren: false, // TODO: 可以后续查询
               childrenCount: 0
             } : null
@@ -188,45 +188,121 @@ export function useMatrixChildren(matrixRootWallet: string, parentWallet: string
   });
 }
 
-// 主要的分层矩阵显示hook - 支持多层显示
-export function useLayeredMatrix(matrixRootWallet: string, targetLayer: number = 1) {
-  return useQuery({
-    queryKey: ['layered-matrix', matrixRootWallet, targetLayer],
-    queryFn: async () => {
-      if (!matrixRootWallet) throw new Error('No matrix root wallet');
+// 获取用户完整递归网络成员列表的辅助函数
+async function getUserNetworkMembers(userWallet: string): Promise<string[]> {
+  try {
+    // 使用递归CTE查询获取完整网络
+    const { data: networkData, error: networkError } = await supabase.rpc('sql', {
+      query: `
+        WITH RECURSIVE referral_tree AS (
+          SELECT wallet_address, referrer_wallet, 1 as level
+          FROM users 
+          WHERE referrer_wallet = '${userWallet}'
+          
+          UNION ALL
+          
+          SELECT u.wallet_address, u.referrer_wallet, rt.level + 1
+          FROM users u
+          INNER JOIN referral_tree rt ON u.referrer_wallet = rt.wallet_address
+          WHERE rt.level < 10
+        )
+        SELECT rt.wallet_address
+        FROM referral_tree rt
+        INNER JOIN members m ON rt.wallet_address = m.wallet_address
+      `
+    });
+    
+    if (networkError) {
+      console.log('RPC query failed, using direct approach');
+      // 回退到简单的直接推荐查询
+      const { data: directReferrals, error: directError } = await supabase
+        .from('users')
+        .select('wallet_address')
+        .eq('referrer_wallet', userWallet);
+        
+      if (directError) {
+        console.error('Error fetching direct referrals:', directError);
+        return [];
+      }
       
-      console.log('🔍 Getting matrix data from DB for root:', matrixRootWallet, 'layer:', targetLayer);
+      const addresses = directReferrals?.map(u => u.wallet_address) || [];
+      
+      // 检查哪些是已激活的成员
+      if (addresses.length === 0) return [];
+      
+      const { data: membersData, error: membersError } = await supabase
+        .from('members')
+        .select('wallet_address')
+        .in('wallet_address', addresses);
+        
+      return membersData?.map(m => m.wallet_address) || [];
+    }
+    
+    return networkData?.map((row: any) => row.wallet_address) || [];
+  } catch (error) {
+    console.error('Error in getUserNetworkMembers:', error);
+    return [];
+  }
+}
+
+// 主要的分层矩阵显示hook - 显示用户在全局矩阵中的网络
+export function useLayeredMatrix(userWallet: string, targetLayer: number = 1) {
+  return useQuery({
+    queryKey: ['layered-matrix-network', userWallet, targetLayer],
+    queryFn: async () => {
+      if (!userWallet) throw new Error('No user wallet');
+      
+      console.log('🔍 Getting user network matrix data for wallet:', userWallet, 'layer:', targetLayer);
       
       try {
-        // 从数据库获取指定层的数据
+        // 获取用户的网络成员
+        const networkMembers = await getUserNetworkMembers(userWallet);
+        
+        if (networkMembers.length === 0) {
+          console.log('No network members found for user:', userWallet);
+          return {
+            matrixRootWallet: userWallet,
+            targetLayer,
+            layer1Matrix: [],
+            totalLayer1Members: 0,
+            currentLayerMatrix: [],
+            totalCurrentLayerMembers: 0
+          };
+        }
+        
+        // 获取这些成员在全局矩阵中的位置数据
         const { data: layerData, error: layerError } = await supabase
-          .from('referrals')
+          .from('matrix_referrals')
           .select(`
-            matrix_layer,
-            matrix_position,
+            layer,
+            position,
             member_wallet,
-            referrer_wallet,
-            is_spillover_placement,
-            placed_at
+            parent_wallet,
+            referral_type,
+            created_at
           `)
-          .eq('matrix_root_wallet', matrixRootWallet)
-          .eq('matrix_layer', targetLayer)
-          .order('matrix_position');
+          .in('member_wallet', networkMembers)
+          .eq('layer', targetLayer)
+          .order('position');
           
         if (layerError) {
-          console.error('❌ Error fetching layer data:', layerError);
+          console.error('❌ Error fetching user network matrix data:', layerError);
           throw layerError;
         }
         
-        console.log(`📊 Layer ${targetLayer} data from DB:`, layerData);
+        console.log(`📊 User network layer ${targetLayer} data:`, layerData);
 
-        // 组织成标准3x3格式 - 查找基本位置 L, M, R
+        // 组织成标准3x3格式 - 根据位置分组显示
         const matrixPositions = ['L', 'M', 'R'];
         
         const matrix3x3 = matrixPositions.map(position => {
-          // 对于第一层，直接匹配 L, M, R
-          // 对于第二层及以上，也查找直接的 L, M, R 位置（不包含点号的）
-          const member = layerData?.find((m: any) => m.matrix_position === position);
+          // 查找匹配该位置的成员（可能有多个，因为全局矩阵中位置格式如 L.M.R）
+          const members = layerData?.filter((m: any) => 
+            m.position === position || m.position?.startsWith(`${position}.`) || m.position?.endsWith(`.${position}`)
+          ) || [];
+          
+          // 如果有多个成员，选择第一个作为代表
+          const member = members[0];
           
           if (!member) {
             return {
@@ -239,23 +315,24 @@ export function useLayeredMatrix(matrixRootWallet: string, targetLayer: number =
             position,
             member: {
               wallet: member.member_wallet,
-              joinedAt: member.placed_at,
-              type: member.is_spillover_placement ? 'is_spillover' : 'is_direct',
-              hasChildren: true, // 可以后续优化检查
-              childrenCount: 0,
+              joinedAt: member.created_at,
+              type: member.referral_type,
+              hasChildren: members.length > 1, // 如果有多个成员在此位置，表示有子节点
+              childrenCount: members.length - 1,
               username: `User${member.member_wallet.slice(-4)}`,
               isActivated: true,
               hasChildInL: false,
               hasChildInM: false,
-              hasChildInR: false
+              hasChildInR: false,
+              allMembers: members // 保存所有在此位置的成员
             }
           };
         });
 
-        console.log(`📊 Organized layer ${targetLayer} matrix 3x3:`, matrix3x3);
+        console.log(`📊 Organized user network layer ${targetLayer} matrix 3x3:`, matrix3x3);
 
         return {
-          matrixRootWallet,
+          matrixRootWallet: userWallet,
           targetLayer,
           layer1Matrix: matrix3x3, // 保持兼容性
           totalLayer1Members: layerData?.length || 0,
@@ -265,11 +342,11 @@ export function useLayeredMatrix(matrixRootWallet: string, targetLayer: number =
         };
         
       } catch (error) {
-        console.error('❌ Matrix DB error:', error);
+        console.error('❌ User network matrix error:', error);
         throw error;
       }
     },
-    enabled: !!matrixRootWallet,
+    enabled: !!userWallet,
     staleTime: 5000,
     refetchInterval: 15000,
   });
