@@ -141,16 +141,16 @@ export function useMatrixChildren(matrixRootWallet: string, parentWallet: string
         
         console.log('📊 Raw children data from DB:', childrenData);
         
-        console.log('📊 Children found for parent', parentWallet, ':', childrenMembers);
+        console.log('📊 Children found for parent', parentWallet, ':', childrenData?.length || 0);
 
         // 组织成3x3子矩阵 - 查找直接子位置
         const childPositions = ['L', 'M', 'R'];
         const children3x3 = childPositions.map(pos => {
-          // 查找该位置对应的子成员（查找以.L .M .R结尾的位置）
+          // 查找该位置对应的子成员
           const child = childrenData?.find((c: any) => {
             const position = c.matrix_position || '';
-            // 匹配 position.L, position.M, position.R 的格式
-            return position.endsWith(`.${pos}`) || position === pos;
+            // 对于第二层数据，直接匹配position（L, M, R）或者以.L .M .R结尾的
+            return position === pos || position.endsWith(`.${pos}`);
           });
           
           return {
@@ -188,18 +188,18 @@ export function useMatrixChildren(matrixRootWallet: string, parentWallet: string
   });
 }
 
-// 主要的分层矩阵显示hook
-export function useLayeredMatrix(matrixRootWallet: string) {
+// 主要的分层矩阵显示hook - 支持多层显示
+export function useLayeredMatrix(matrixRootWallet: string, targetLayer: number = 1) {
   return useQuery({
-    queryKey: ['layered-matrix', matrixRootWallet],
+    queryKey: ['layered-matrix', matrixRootWallet, targetLayer],
     queryFn: async () => {
       if (!matrixRootWallet) throw new Error('No matrix root wallet');
       
-      console.log('🔍 Getting matrix data from DB for root:', matrixRootWallet);
+      console.log('🔍 Getting matrix data from DB for root:', matrixRootWallet, 'layer:', targetLayer);
       
       try {
-        // 直接从数据库获取Layer 1数据
-        const { data: layer1Data, error: layer1Error } = await supabase
+        // 从数据库获取指定层的数据
+        const { data: layerData, error: layerError } = await supabase
           .from('referrals')
           .select(`
             matrix_layer,
@@ -210,22 +210,23 @@ export function useLayeredMatrix(matrixRootWallet: string) {
             placed_at
           `)
           .eq('matrix_root_wallet', matrixRootWallet)
-          .eq('matrix_layer', 1)
-          .in('matrix_position', ['L', 'M', 'R'])
+          .eq('matrix_layer', targetLayer)
           .order('matrix_position');
           
-        if (layer1Error) {
-          console.error('❌ Error fetching layer 1 data:', layer1Error);
-          throw layer1Error;
+        if (layerError) {
+          console.error('❌ Error fetching layer data:', layerError);
+          throw layerError;
         }
         
-        console.log('📊 Layer 1 data from DB:', layer1Data);
+        console.log(`📊 Layer ${targetLayer} data from DB:`, layerData);
 
-        // 组织成标准3x3格式
+        // 组织成标准3x3格式 - 查找基本位置 L, M, R
         const matrixPositions = ['L', 'M', 'R'];
         
         const matrix3x3 = matrixPositions.map(position => {
-          const member = layer1Data?.find((m: any) => m.matrix_position === position);
+          // 对于第一层，直接匹配 L, M, R
+          // 对于第二层及以上，也查找直接的 L, M, R 位置（不包含点号的）
+          const member = layerData?.find((m: any) => m.matrix_position === position);
           
           if (!member) {
             return {
@@ -234,16 +235,15 @@ export function useLayeredMatrix(matrixRootWallet: string) {
             };
           }
 
-          // 检查该成员是否有子节点
           return {
             position,
             member: {
               wallet: member.member_wallet,
               joinedAt: member.placed_at,
               type: member.is_spillover_placement ? 'is_spillover' : 'is_direct',
-              hasChildren: true, // 暂时设为true，实际检查可以后续优化
-              childrenCount: 0, // 暂时设为0
-              username: `User${member.member_wallet.slice(-4)}`, // 临时用户名
+              hasChildren: true, // 可以后续优化检查
+              childrenCount: 0,
+              username: `User${member.member_wallet.slice(-4)}`,
               isActivated: true,
               hasChildInL: false,
               hasChildInM: false,
@@ -252,12 +252,16 @@ export function useLayeredMatrix(matrixRootWallet: string) {
           };
         });
 
-        console.log('📊 Organized matrix 3x3:', matrix3x3);
+        console.log(`📊 Organized layer ${targetLayer} matrix 3x3:`, matrix3x3);
 
         return {
           matrixRootWallet,
-          layer1Matrix: matrix3x3,
-          totalLayer1Members: layer1Data?.length || 0
+          targetLayer,
+          layer1Matrix: matrix3x3, // 保持兼容性
+          totalLayer1Members: layerData?.length || 0,
+          // 新增字段
+          currentLayerMatrix: matrix3x3,
+          totalCurrentLayerMembers: layerData?.length || 0
         };
         
       } catch (error) {

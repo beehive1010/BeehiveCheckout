@@ -137,22 +137,20 @@ const DrillDownMatrixView: React.FC<DrillDownMatrixViewProps> = ({
   const { t } = useI18n();
   const [currentRoot, setCurrentRoot] = useState<string>(rootWalletAddress);
   const [currentRootUser, setCurrentRootUser] = useState(rootUser);
+  const [currentLayer, setCurrentLayer] = useState<number>(1);
   const [navigationHistory, setNavigationHistory] = useState<Array<{wallet: string, user?: any}>>([]);
   
-  console.log('🏠 DrillDownMatrixView current root:', currentRoot);
+  console.log('🏠 DrillDownMatrixView current root:', currentRoot, 'layer:', currentLayer);
   console.log('🔍 DrillDownMatrixView - navigation history:', navigationHistory.length);
   
   // 根据当前根节点获取数据
   const isViewingChildren = currentRoot !== rootWalletAddress;
   
-  // 如果查看的是子节点，使用useMatrixChildren，否则使用useLayeredMatrix
-  const { data: rootMatrixData, isLoading: isLoadingRoot, error: rootError } = useLayeredMatrix(rootWalletAddress, undefined, 1);
-  const { data: childrenMatrixData, isLoading: isLoadingChildren, error: childrenError } = useMatrixChildren(rootWalletAddress, currentRoot);
+  // 使用修正后的useLayeredMatrix hook，支持层级参数
+  const { data: matrixData, isLoading, error } = useLayeredMatrix(currentRoot, currentLayer);
   
-  // 根据当前状态选择数据源
-  const matrixData = isViewingChildren ? childrenMatrixData : rootMatrixData;
-  const isLoading = isViewingChildren ? isLoadingChildren : isLoadingRoot;
-  const error = isViewingChildren ? childrenError : rootError;
+  // 如果查看的是子节点，使用useMatrixChildren（保留以备后用）
+  // const { data: childrenMatrixData, isLoading: isLoadingChildren, error: childrenError } = useMatrixChildren(rootWalletAddress, currentRoot);
 
   const handleNavigateToMember = (memberWallet: string, memberData?: any) => {
     // 保存当前根到历史记录
@@ -233,14 +231,24 @@ const DrillDownMatrixView: React.FC<DrillDownMatrixViewProps> = ({
         <CardTitle className="flex items-center justify-between">
           <div className="flex items-center">
             <Users size={20} className="mr-2" />
-            矩阵视图
+            矩阵视图 - 第{currentLayer}层
           </div>
-          <div className="flex items-center text-sm text-gray-600">
+          <div className="flex items-center gap-3 text-sm text-gray-600">
+            {/* 层级选择器 */}
+            <div className="flex items-center gap-2">
+              <span className="text-xs">层级:</span>
+              <select 
+                value={currentLayer} 
+                onChange={(e) => setCurrentLayer(Number(e.target.value))}
+                className="px-2 py-1 border rounded text-xs"
+              >
+                {[1,2,3,4,5,6,7,8,9,10].map(layer => (
+                  <option key={layer} value={layer}>第{layer}层</option>
+                ))}
+              </select>
+            </div>
             <Badge variant="outline">
-              {isViewingChildren 
-                ? `${matrixData?.totalChildren || 0}/3 已填满`
-                : `${matrixData?.totalLayer1Members || 0}/3 已填满`
-              }
+              {matrixData?.totalCurrentLayerMembers || 0}/3 已填满
             </Badge>
           </div>
         </CardTitle>
@@ -287,9 +295,8 @@ const DrillDownMatrixView: React.FC<DrillDownMatrixViewProps> = ({
         <div className="grid grid-cols-3 gap-4 mb-6">
           {/* L 位置 */}
           {(() => {
-            const leftNode = isViewingChildren 
-              ? matrixData?.children?.find(n => n.position === 'L')
-              : matrixData?.layer1Matrix?.find(n => n.position === 'L');
+            const leftNode = matrixData?.currentLayerMatrix?.find(n => n.position === 'L') || 
+                            matrixData?.layer1Matrix?.find(n => n.position === 'L');
             return (
               <MatrixNode
                 key="L"
@@ -303,9 +310,8 @@ const DrillDownMatrixView: React.FC<DrillDownMatrixViewProps> = ({
 
           {/* M 位置 */}
           {(() => {
-            const middleNode = isViewingChildren 
-              ? matrixData?.children?.find(n => n.position === 'M')
-              : matrixData?.layer1Matrix?.find(n => n.position === 'M');
+            const middleNode = matrixData?.currentLayerMatrix?.find(n => n.position === 'M') || 
+                              matrixData?.layer1Matrix?.find(n => n.position === 'M');
             return (
               <MatrixNode
                 key="M"
@@ -319,9 +325,8 @@ const DrillDownMatrixView: React.FC<DrillDownMatrixViewProps> = ({
 
           {/* R 位置 */}
           {(() => {
-            const rightNode = isViewingChildren 
-              ? matrixData?.children?.find(n => n.position === 'R')
-              : matrixData?.layer1Matrix?.find(n => n.position === 'R');
+            const rightNode = matrixData?.currentLayerMatrix?.find(n => n.position === 'R') || 
+                             matrixData?.layer1Matrix?.find(n => n.position === 'R');
             return (
               <MatrixNode
                 key="R"
@@ -337,7 +342,7 @@ const DrillDownMatrixView: React.FC<DrillDownMatrixViewProps> = ({
 
         {/* 简单说明 */}
         <div className="mt-6 p-3 bg-gray-50 rounded text-sm text-gray-600 text-center">
-          💡 绿色表示直推成员，蓝色表示滑落成员。点击"查看矩阵"按钮可查看该成员的子节点矩阵（作为新的根节点）。
+          💡 绿色表示直推成员，蓝色表示滑落成员。使用上方的层级选择器查看不同层级的矩阵。点击"查看矩阵"按钮可切换到该成员作为根节点的视图。
         </div>
       </CardContent>
     </Card>
