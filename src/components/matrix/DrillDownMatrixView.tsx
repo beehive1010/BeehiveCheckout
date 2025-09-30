@@ -318,7 +318,7 @@ const DrillDownMatrixView: React.FC<DrillDownMatrixViewProps> = ({
 
         {/* 简单说明 */}
         <div className="mt-6 p-3 bg-gray-50 rounded text-sm text-gray-600 text-center">
-          💡 绿色表示直推成员，蓝色表示滑落成员。点击有下级的成员卡片可展开查看其L M R下级节点。
+          💡 绿色表示直推成员，蓝色表示滑落成员。点击"查看矩阵"按钮可查看该成员的子节点矩阵（作为新的根节点）。
         </div>
       </CardContent>
     </Card>
