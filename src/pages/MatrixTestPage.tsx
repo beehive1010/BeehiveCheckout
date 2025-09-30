@@ -18,6 +18,9 @@ import EnhancedMatrixView from '../components/matrix/EnhancedMatrixView';
 import SimpleMatrixView from '../components/matrix/SimpleMatrixView';
 import LayeredMatrixView from '../components/matrix/LayeredMatrixView';
 import { MatrixNetworkStatsV2 } from '../components/matrix/MatrixNetworkStatsV2';
+// 新的移动端优化组件
+import MobileMatrixView from '../components/matrix/MobileMatrixView';
+import ModernMatrixView from '../components/matrix/ModernMatrixView';
 
 import { CubeIcon } from '@heroicons/react/24/outline';
 
@@ -394,8 +397,12 @@ const MatrixTestPage: React.FC = () => {
           <div className="flex items-center gap-3 mb-2">
             <CubeIcon className="w-8 h-8 text-blue-600" />
             <h1 className="text-3xl font-bold text-gray-900">矩阵测试中心</h1>
+            <div className="flex gap-2">
+              <Badge className="bg-green-500 text-white">📱 移动端新增</Badge>
+              <Badge className="bg-purple-500 text-white">🎨 现代化设计</Badge>
+            </div>
           </div>
-          <p className="text-gray-600">测试和查看矩阵数据结构</p>
+          <p className="text-gray-600">测试和对比不同的3x3矩阵组件 - 包含专为移动端优化的新组件</p>
         </div>
 
         <div className="grid grid-cols-1 xl:grid-cols-3 gap-6">
@@ -484,15 +491,63 @@ const MatrixTestPage: React.FC = () => {
 
           {/* 右侧：矩阵显示 - 用Tabs展示所有组件 */}
           <div className="xl:col-span-2">
-            <Tabs defaultValue="detailed-slots" className="w-full">
-              <TabsList className="grid w-full grid-cols-6">
-                <TabsTrigger value="detailed-slots">详细Slots</TabsTrigger>
-                <TabsTrigger value="original">原始视图</TabsTrigger>
-                <TabsTrigger value="enhanced">增强视图</TabsTrigger>
-                <TabsTrigger value="drill-down">钻取视图</TabsTrigger>
-                <TabsTrigger value="stats">统计视图</TabsTrigger>
-                <TabsTrigger value="components">所有组件</TabsTrigger>
+            <Tabs defaultValue="mobile" className="w-full">
+              <TabsList className="grid w-full grid-cols-4 lg:grid-cols-8 text-xs">
+                <TabsTrigger value="mobile">📱移动端</TabsTrigger>
+                <TabsTrigger value="modern">🎨现代化</TabsTrigger>
+                <TabsTrigger value="detailed-slots">🔍详细Slots</TabsTrigger>
+                <TabsTrigger value="original">🏠原始视图</TabsTrigger>
+                <TabsTrigger value="enhanced">⚡增强视图</TabsTrigger>
+                <TabsTrigger value="drill-down">🎯钻取视图</TabsTrigger>
+                <TabsTrigger value="stats">📊统计视图</TabsTrigger>
+                <TabsTrigger value="components">🧩所有组件</TabsTrigger>
               </TabsList>
+              
+              {/* 移动端优化组件 - 新增 */}
+              <TabsContent value="mobile">
+                <div className="space-y-4">
+                  <Card className="bg-gradient-to-r from-green-50 to-green-100 border-green-200">
+                    <CardContent className="p-4">
+                      <div className="flex items-center gap-2 mb-2">
+                        <span className="text-2xl">📱</span>
+                        <h3 className="text-lg font-semibold text-green-800">移动端优化矩阵组件</h3>
+                      </div>
+                      <p className="text-sm text-green-700">专为移动设备优化，触摸友好的3x3矩阵展示</p>
+                    </CardContent>
+                  </Card>
+                  <MobileMatrixView 
+                    rootWalletAddress={currentWallet}
+                    rootUser={{ username: '测试用户', currentLevel: 2 }}
+                    onNavigateToMember={(memberWallet) => {
+                      console.log('Navigate to:', memberWallet);
+                      alert(`导航到成员: ${memberWallet.slice(0, 6)}...${memberWallet.slice(-4)}`);
+                    }}
+                  />
+                </div>
+              </TabsContent>
+              
+              {/* 现代化设计组件 - 新增 */}
+              <TabsContent value="modern">
+                <div className="space-y-4">
+                  <Card className="bg-gradient-to-r from-purple-50 to-pink-100 border-purple-200">
+                    <CardContent className="p-4">
+                      <div className="flex items-center gap-2 mb-2">
+                        <span className="text-2xl">🎨</span>
+                        <h3 className="text-lg font-semibold text-purple-800">现代化高端设计</h3>
+                      </div>
+                      <p className="text-sm text-purple-700">glassmorphism风格，高端视觉效果和丰富交互</p>
+                    </CardContent>
+                  </Card>
+                  <ModernMatrixView 
+                    rootWalletAddress={currentWallet}
+                    rootUser={{ username: '测试用户', currentLevel: 2 }}
+                    onNavigateToMember={(memberWallet) => {
+                      console.log('Navigate to:', memberWallet);
+                      alert(`导航到成员: ${memberWallet.slice(0, 6)}...${memberWallet.slice(-4)}`);
+                    }}
+                  />
+                </div>
+              </TabsContent>
               
               {/* 详细Slots视图 - 新增，显示正确的滑落层级 */}
               <TabsContent value="detailed-slots">
