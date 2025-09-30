@@ -141,34 +141,56 @@ export function useMatrixChildren(matrixRootWallet: string, parentWallet: string
           throw new Error(result.error || 'Matrix API call failed');
         }
 
-        // 从所有成员中找到指定parent的下级
-        const allMembers = result.data.tree_members || [];
-        const childrenMembers = allMembers.filter((member: any) => 
-          member.parent_wallet === parentWallet
-        );
+        // 直接从数据库查询指定parent的下级成员
+        console.log('🔍 Looking for children of parent:', parentWallet, 'in matrix root:', matrixRootWallet);
+        
+        const { data: childrenData, error: childrenError } = await supabase
+          .from('referrals')
+          .select(`
+            matrix_layer,
+            matrix_position,
+            member_wallet,
+            referrer_wallet,
+            is_spillover_placement,
+            placed_at
+          `)
+          .eq('matrix_root_wallet', matrixRootWallet)
+          .eq('referrer_wallet', parentWallet)
+          .order('matrix_position');
+          
+        if (childrenError) {
+          console.error('❌ Error fetching children:', childrenError);
+          throw childrenError;
+        }
+        
+        console.log('📊 Raw children data from DB:', childrenData);
         
         console.log('📊 Children found for parent', parentWallet, ':', childrenMembers);
 
-        // 组织成3x3子矩阵
+        // 组织成3x3子矩阵 - 查找直接子位置
         const childPositions = ['L', 'M', 'R'];
         const children3x3 = childPositions.map(pos => {
-          // 查找该位置对应的子成员
-          const child = childrenMembers.find((c: any) => 
-            c.matrix_position === pos || c.matrix_position?.endsWith(`.${pos}`)
-          );
+          // 查找该位置对应的子成员（查找以.L .M .R结尾的位置）
+          const child = childrenData?.find((c: any) => {
+            const position = c.matrix_position || '';
+            // 匹配 position.L, position.M, position.R 的格式
+            return position.endsWith(`.${pos}`) || position === pos;
+          });
           
           return {
             position: pos,
             member: child ? {
-              wallet: child.wallet_address,
-              joinedAt: child.joined_at,
-              type: child.placement_type || 'matrix_placement',
+              wallet: child.member_wallet,
+              joinedAt: child.placed_at,
+              type: child.is_spillover_placement ? 'is_spillover' : 'is_direct',
               fullPosition: child.matrix_position,
-              username: child.username,
-              isActivated: child.is_activated
+              hasChildren: false, // TODO: 可以后续查询
+              childrenCount: 0
             } : null
           };
         });
+        
+        console.log('📊 Organized children 3x3:', children3x3);
         
         console.log('📊 Organized children 3x3:', children3x3);
         
@@ -176,7 +198,7 @@ export function useMatrixChildren(matrixRootWallet: string, parentWallet: string
           parentWallet,
           matrixRootWallet,
           children: children3x3,
-          totalChildren: childrenMembers.length
+          totalChildren: childrenData?.length || 0
         };
         
       } catch (error) {
