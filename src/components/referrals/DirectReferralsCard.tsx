@@ -50,19 +50,19 @@ const DirectReferralsCard: React.FC<DirectReferralsCardProps> = ({
     try {
       console.log(`🔍 Loading direct referrals for wallet: ${walletAddress}`);
 
-      // Get direct referrals from referrals_new table (MasterSpec 2.4 - URL direct referrals only)
+      // Get direct referrals from referrals table - direct referrals only
       // Using exact matching to avoid RLS issues
       const { data: referralsData, error: referralsError } = await supabase
-        .from('referrals_new')
+        .from('referrals')
         .select(`
-          referred_wallet,
-          created_at,
+          member_wallet,
+          placed_at,
           referrer_wallet,
-          referral_source
+          is_spillover_placement
         `)
         .eq('referrer_wallet', walletAddress)
-        .neq('referred_wallet', '0x0000000000000000000000000000000000000001')
-        .order('created_at', { ascending: false });
+        .neq('member_wallet', '0x0000000000000000000000000000000000000001')
+        .order('placed_at', { ascending: false });
 
       if (referralsError) {
         console.error('❌ Referrals query error:', referralsError);
@@ -72,7 +72,7 @@ const DirectReferralsCard: React.FC<DirectReferralsCardProps> = ({
       console.log(`📊 Found ${referralsData?.length || 0} direct referrals with referrer_wallet matching ${walletAddress}`);
 
       // Get user names and member info (using new column name)
-      const walletAddresses = referralsData?.map(r => r.referred_wallet) || [];
+      const walletAddresses = referralsData?.map(r => r.member_wallet) || [];
       
       let membersData = [];
       let usersData = [];
@@ -107,19 +107,19 @@ const DirectReferralsCard: React.FC<DirectReferralsCardProps> = ({
       // Combine referral, user and member data (using new column names)
       const referralsList = referralsData?.map((referral: any) => {
         const userData = usersData?.find(u => 
-          u.wallet_address.toLowerCase() === referral.referred_wallet.toLowerCase()
+          u.wallet_address.toLowerCase() === referral.member_wallet.toLowerCase()
         );
         const memberData = membersData?.find(m => 
-          m.wallet_address.toLowerCase() === referral.referred_wallet.toLowerCase()
+          m.wallet_address.toLowerCase() === referral.member_wallet.toLowerCase()
         );
         return {
-          memberWallet: referral.referred_wallet,
-          memberName: userData?.username || `User${referral.referred_wallet.slice(-4)}`,
-          referredAt: referral.created_at,
+          memberWallet: referral.member_wallet,
+          memberName: userData?.username || `User${referral.member_wallet.slice(-4)}`,
+          referredAt: referral.placed_at,
           isActivated: !!memberData && memberData.current_level > 0,
           memberLevel: memberData?.current_level || 0,
           activationRank: memberData?.activation_sequence || null,
-          referralSource: referral.referral_source || 'direct'
+          referralSource: referral.is_spillover_placement ? 'spillover' : 'direct'
         };
       }) || [];
 

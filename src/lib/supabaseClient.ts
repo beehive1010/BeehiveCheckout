@@ -477,54 +477,55 @@ export const matrixService = {
     }, rootWallet);
   },
 
-  // Get matrix referrals for a root wallet using new MasterSpec table structure
+  // Get matrix referrals for a root wallet using referrals table
   async getReferrals(rootWallet: string, layer?: number) {
     let query = supabase
-      .from('matrix_referrals')
+      .from('referrals')
       .select('*')
       .eq('matrix_root_wallet', rootWallet);
 
     if (layer) {
-      query = query.eq('parent_depth', layer);
+      query = query.eq('matrix_layer', layer);
     }
 
-    return query.order('created_at', { ascending: true });
+    return query.order('placed_at', { ascending: true });
   },
 
   // Get matrix statistics using new MasterSpec table structure
   async getMatrixStats(walletAddress: string) {
     try {
-      // Get direct referrals count (URL direct referrals) from referrals_new table
+      // Get direct referrals count from referrals table
       const { count: directReferralsCount } = await supabase
-        .from('referrals_new')
+        .from('referrals')
         .select('*', { count: 'exact', head: true })
-        .ilike('referrer_wallet', walletAddress);
+        .ilike('referrer_wallet', walletAddress)
+        .eq('matrix_layer', 1);
 
-      // Get total matrix team size from matrix_referrals table
+      // Get total matrix team size from referrals table
       const { count: totalTeamSize } = await supabase
-        .from('matrix_referrals')
+        .from('referrals')
         .select('*', { count: 'exact', head: true })
         .ilike('matrix_root_wallet', walletAddress);
 
-      // Get max depth from matrix_referrals
+      // Get max depth from referrals
       const { data: maxDepthData } = await supabase
-        .from('matrix_referrals')
-        .select('layer')
+        .from('referrals')
+        .select('matrix_layer')
         .ilike('matrix_root_wallet', walletAddress)
-        .order('layer', { ascending: false })
+        .order('matrix_layer', { ascending: false })
         .limit(1);
 
-      const maxLayer = maxDepthData?.[0]?.layer || 0;
+      const maxLayer = maxDepthData?.[0]?.matrix_layer || 0;
 
       // Get recent matrix activity (last 10 placements)
       const { data: recentActivity } = await supabase
-        .from('matrix_referrals_tree_view')
+        .from('referrals')
         .select(`
           member_wallet,
           placed_at,
           matrix_layer,
           matrix_position,
-          referral_type
+          is_spillover_placement
         `)
         .ilike('matrix_root_wallet', walletAddress)
         .order('placed_at', { ascending: false })
@@ -581,12 +582,13 @@ export const matrixService = {
     return { data: null, error: { message: 'Matrix referrals are immutable' } };
   },
 
-  // Count direct referrals from referrals_new table (URL direct referrals)
+  // Count direct referrals from referrals table (direct referrals)
   async countDirectReferrals(walletAddress: string) {
     const { count } = await supabase
-      .from('referrals_new')
+      .from('referrals')
       .select('*', { count: 'exact', head: true })
-      .eq('referrer_wallet', walletAddress);
+      .eq('referrer_wallet', walletAddress)
+      .eq('matrix_layer', 1);
 
     return count || 0;
   },
@@ -609,20 +611,20 @@ export const matrixService = {
                 .order('placed_at', { ascending: true });
   },
 
-  // Get original matrix referral relationships using new MasterSpec structure
+  // Get original matrix referral relationships using referrals table
   async getOriginalReferrals(rootWallet: string, layer?: number) {
     let query = supabase
-      .from('matrix_referrals')
+      .from('referrals')
       .select('*')
       .eq('matrix_root_wallet', rootWallet)
-      .eq('referral_type', 'is_direct'); // Only direct placements, not spillovers
+      .eq('is_spillover_placement', false); // Only direct placements, not spillovers
 
     if (layer) {
-      query = query.eq('parent_depth', layer);
+      query = query.eq('matrix_layer', layer);
     }
 
-    return query.order('parent_depth', { ascending: true })
-                .order('created_at', { ascending: true });
+    return query.order('matrix_layer', { ascending: true })
+                .order('placed_at', { ascending: true });
   },
 
   // Get spillover matrix statistics using new functions

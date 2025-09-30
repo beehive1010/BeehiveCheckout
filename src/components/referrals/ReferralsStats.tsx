@@ -32,27 +32,71 @@ export default function ReferralsStats({ walletAddress, className }: ReferralsSt
     queryKey: ['referrer-stats', walletAddress],
     enabled: !!walletAddress,
     queryFn: async () => {
-      // Get referral stats by counting direct referrals from referrals_new table (correct table)
-      const { count: directReferralsCount, error: directError } = await supabase
-        .from('referrals_new')
-        .select('*', { count: 'exact', head: true })
-        .eq('referrer_wallet', walletAddress);
-      
-      if (directError) throw directError;
-      
-      // Create a stats object with the count
-      const data = {
-        referrer: walletAddress,
-        direct_referrals_count: directReferralsCount || 0,
-        total_direct_referrals: directReferralsCount || 0,
-        total_referrals: directReferralsCount || 0, // For now, same as direct
-        direct_referrals: directReferralsCount || 0
-      };
-      
-      const error = null;
+      try {
+        // Use the Matrix API to get comprehensive stats
+        const response = await fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/matrix-view`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${import.meta.env.VITE_SUPABASE_ANON_KEY}`,
+            'x-wallet-address': walletAddress,
+          },
+          body: JSON.stringify({
+            action: 'get-layer-stats'
+          }),
+        });
 
-      if (error) throw error;
-      return data;
+        if (!response.ok) {
+          throw new Error(`Matrix API Error: ${response.status}`);
+        }
+
+        const result = await response.json();
+        
+        if (!result.success) {
+          throw new Error(result.error || 'Matrix API call failed');
+        }
+
+        const statsData = result.data.summary;
+        
+        // Create a stats object with the comprehensive data
+        const data = {
+          referrer: walletAddress,
+          referrer_name: statsData.username || '',
+          total_direct_referrals: statsData.direct_referrals || 0,
+          activated_referrals: statsData.activated_referrals || 0,
+          total_team_size: statsData.total_team_size || 0,
+          activated_members: statsData.total_activated_members || 0,
+          max_depth: statsData.max_layer || 0,
+          network_strength: statsData.network_strength || 0,
+          highest_referral_level: statsData.max_layer || 0,
+          level2_upgrade_eligible: (statsData.activated_referrals || 0) >= 3
+        };
+        
+        return data;
+      } catch (error) {
+        console.error('❌ Failed to fetch referrer stats:', error);
+        // Fallback to simple direct count from referrals table
+        const { count: directReferralsCount, error: directError } = await supabase
+          .from('referrals')
+          .select('*', { count: 'exact', head: true })
+          .eq('referrer_wallet', walletAddress)
+          .eq('matrix_layer', 1); // Only count direct referrals (Layer 1)
+        
+        if (directError) throw directError;
+        
+        return {
+          referrer: walletAddress,
+          referrer_name: '',
+          total_direct_referrals: directReferralsCount || 0,
+          activated_referrals: directReferralsCount || 0,
+          total_team_size: directReferralsCount || 0,
+          activated_members: directReferralsCount || 0,
+          max_depth: directReferralsCount > 0 ? 1 : 0,
+          network_strength: (directReferralsCount || 0) * 10,
+          highest_referral_level: 1,
+          level2_upgrade_eligible: (directReferralsCount || 0) >= 3
+        };
+      }
     }
   });
 

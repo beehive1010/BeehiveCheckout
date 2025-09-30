@@ -42,15 +42,15 @@ export function useUserReferralStats() {
     queryFn: async () => {
       if (!walletAddress) throw new Error('No wallet address');
       
-      // Get direct referrals count using new MasterSpec referrals_new table (URL direct referrals)
+      // Get direct referrals count using referrals table (direct referrals)
       const { count: directReferrals } = await supabase
-        .from('referrals_new')
+        .from('referrals')
         .select('*', { count: 'exact', head: true })
         .eq('referrer_wallet', walletAddress);
 
-      // Get total team count from matrix_referrals table (all matrix members under this root)
+      // Get total team count from referrals table (all matrix members under this root)
       const { count: totalTeam } = await supabase
-        .from('matrix_referrals')
+        .from('referrals')
         .select('*', { count: 'exact', head: true })
         .eq('matrix_root_wallet', walletAddress);
 
@@ -74,18 +74,18 @@ export function useUserReferralStats() {
 
       const totalEarnings = rewardsData?.reduce((sum, reward) => sum + (Number(reward.reward_amount) || 0), 0) || 0;
 
-      // Get recent referrals with activation status - use matrix_referrals table directly
+      // Get recent referrals with activation status - use referrals table directly
       const { data: recentReferralsData } = await supabase
-        .from('matrix_referrals')
+        .from('referrals')
         .select(`
           member_wallet,
-          created_at,
-          position,
-          parent_depth
+          placed_at,
+          matrix_position,
+          matrix_layer
         `)
         .eq('matrix_root_wallet', walletAddress)
-        .eq('parent_depth', 1) // Only direct layer 1 members
-        .order('created_at', { ascending: false })
+        .eq('matrix_layer', 1) // Only direct layer 1 members
+        .order('placed_at', { ascending: false })
         .limit(5);
 
       // Get activation status for recent referrals
@@ -99,7 +99,7 @@ export function useUserReferralStats() {
 
           return {
             walletAddress: referral.member_wallet,
-            joinedAt: referral.created_at || new Date().toISOString(),
+            joinedAt: referral.placed_at || new Date().toISOString(),
             activated: (memberData?.current_level || 0) > 0
           };
         })
@@ -138,17 +138,17 @@ export function useUserMatrixStats() {
     queryFn: async () => {
       if (!walletAddress) throw new Error('No wallet address');
       
-      // Get matrix placements by layer using matrix_referrals table directly
+      // Get matrix placements by layer using referrals table directly
       const { data: matrixData } = await supabase
-        .from('matrix_referrals')
-        .select('layer, position, member_wallet, parent_wallet')
+        .from('referrals')
+        .select('matrix_layer, matrix_position, member_wallet, referrer_wallet')
         .eq('matrix_root_wallet', walletAddress)
-        .order('layer');
+        .order('matrix_layer');
 
       // Group by layer and count
       const layerStats = matrixData?.reduce((acc, placement) => {
-        const layer = placement.layer;
-        const position = placement.position;
+        const layer = placement.matrix_layer;
+        const position = placement.matrix_position;
         if (layer !== null && layer !== undefined && position !== null && position !== undefined) {
           if (!acc[layer]) {
             acc[layer] = { members: 0, positions: [] };
@@ -183,22 +183,22 @@ export function useFullMatrixStructure() {
       
       // 获取完整的19层矩阵结构
       const { data: fullMatrixData } = await supabase
-        .from('matrix_referrals')
+        .from('referrals')
         .select(`
-          layer,
-          position,
+          matrix_layer,
+          matrix_position,
           member_wallet,
-          parent_wallet,
-          parent_depth,
-          referral_type,
-          created_at
+          referrer_wallet,
+          matrix_activation_sequence,
+          is_spillover_placement,
+          placed_at
         `)
         .eq('matrix_root_wallet', walletAddress)
-        .order('layer, position');
+        .order('matrix_layer, matrix_position');
 
       // 按层级组织数据
       const matrixByLayers = fullMatrixData?.reduce((acc, member) => {
-        const layer = member.layer;
+        const layer = member.matrix_layer;
         if (!acc[layer]) {
           acc[layer] = [];
         }
@@ -213,11 +213,11 @@ export function useFullMatrixStructure() {
         maxCapacity: Math.pow(3, parseInt(layer)), // Layer n可容纳3^n个成员
         fillPercentage: (members.length / Math.pow(3, parseInt(layer))) * 100,
         positions: members.map(m => ({
-          position: m.position,
+          position: m.matrix_position,
           wallet: m.member_wallet,
-          parent: m.parent_wallet,
-          joinedAt: m.created_at,
-          type: m.referral_type
+          parent: m.referrer_wallet,
+          joinedAt: m.placed_at,
+          type: m.is_spillover_placement ? 'spillover' : 'direct'
         }))
       }));
 

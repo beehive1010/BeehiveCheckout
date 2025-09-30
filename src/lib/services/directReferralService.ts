@@ -18,22 +18,22 @@ export async function getDirectReferralCount(referrerWallet: string): Promise<nu
     if (error) {
       console.error('❌ referrals_matrix_stats query failed:', error);
       
-      // Fallback to direct referrals_new table query
-      console.log('🔄 Falling back to referrals_new table...');
+      // Fallback to direct referrals table query
+      console.log('🔄 Falling back to referrals table...');
       
       const { count, error: fallbackError } = await supabase
-        .from('referrals_new')
+        .from('referrals')
         .select('*', { count: 'exact', head: true })
         .ilike('referrer_wallet', referrerWallet)
-        .neq('referred_wallet', '0x0000000000000000000000000000000000000001');
+        .neq('member_wallet', '0x0000000000000000000000000000000000000001');
 
       if (fallbackError) {
-        console.error('❌ referrals_new fallback failed:', fallbackError);
+        console.error('❌ referrals fallback failed:', fallbackError);
         return 0;
       }
 
       const directCount = count || 0;
-      console.log(`✅ Direct referral count (referrals_new fallback) for ${referrerWallet}: ${directCount}`);
+      console.log(`✅ Direct referral count (referrals fallback) for ${referrerWallet}: ${directCount}`);
       return directCount;
     }
 
@@ -96,29 +96,29 @@ export async function getDirectReferralDetails(referrerWallet: string): Promise<
   try {
     console.log(`🔍 Fetching detailed referral info for: ${referrerWallet}`);
     
-    // Primary: Get referral data from referrals_new table (direct referrals tracking)
+    // Primary: Get referral data from referrals table (direct referrals tracking)
     const { data: referralData, error: referralError } = await supabase
-      .from('referrals_new')
+      .from('referrals')
       .select(`
-        referred_wallet,
+        member_wallet,
         referrer_wallet,
-        created_at
+        placed_at
       `)
       .ilike('referrer_wallet', referrerWallet)
-      .order('created_at', { ascending: false });
+      .order('placed_at', { ascending: false });
 
     if (referralError) {
-      console.error('❌ Error fetching referrals_new data:', referralError);
+      console.error('❌ Error fetching referrals data:', referralError);
       return [];
     }
 
     if (!referralData || referralData.length === 0) {
-      console.log('📭 No direct referrals found in referrals_new');
+      console.log('📭 No direct referrals found in referrals');
       return [];
     }
 
     // Get user details from users table for display names
-    const walletAddresses = referralData.map(r => r.referred_wallet);
+    const walletAddresses = referralData.map(r => r.member_wallet);
     const { data: usersData } = await supabase
       .from('users')
       .select('wallet_address, username')
@@ -132,15 +132,15 @@ export async function getDirectReferralDetails(referrerWallet: string): Promise<
 
     console.log(`✅ Found ${referralData.length} direct referrals, ${membersData?.length || 0} activated`);
 
-    // Combine data with referrals_new table as primary source
+    // Combine data with referrals table as primary source
     return referralData.map(referral => {
-      const userData = usersData?.find(u => u.wallet_address === referral.referred_wallet);
-      const memberData = membersData?.find(m => m.wallet_address === referral.referred_wallet);
+      const userData = usersData?.find(u => u.wallet_address === referral.member_wallet);
+      const memberData = membersData?.find(m => m.wallet_address === referral.member_wallet);
       
       return {
-        memberWallet: referral.referred_wallet,
+        memberWallet: referral.member_wallet,
         memberName: userData?.username || 'Unknown',
-        referredAt: referral.created_at || 'Unknown',
+        referredAt: referral.placed_at || 'Unknown',
         isActivated: !!memberData && memberData.current_level > 0,
         memberLevel: memberData?.current_level || 0,
         activationRank: memberData?.activation_sequence || null

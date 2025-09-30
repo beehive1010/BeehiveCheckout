@@ -9,34 +9,33 @@ export function useMatrixByLevel(matrixRootWallet: string, parentWallet?: string
       if (!matrixRootWallet) throw new Error('No matrix root wallet');
       
       let query = supabase
-        .from('matrix_referrals')
+        .from('referrals')
         .select(`
-          layer,
-          position,
+          matrix_layer,
+          matrix_position,
           member_wallet,
-          parent_wallet,
-          parent_depth,
-          referral_type,
-          created_at
+          referrer_wallet,
+          member_activation_sequence,
+          is_spillover_placement,
+          placed_at
         `)
         .eq('matrix_root_wallet', matrixRootWallet);
       
       if (currentLevel === 1) {
         // Level 1: 只显示直接挂在matrix root下的L, M, R
         query = query
-          .eq('layer', 1)
-          .eq('parent_wallet', matrixRootWallet)
-          .in('position', ['L', 'M', 'R']);
+          .eq('matrix_layer', 1)
+          .in('matrix_position', ['L', 'M', 'R']);
       } else {
         // Level 2+: 显示特定parent下的子成员
         if (!parentWallet) throw new Error('Parent wallet required for level 2+');
         
         query = query
-          .eq('parent_wallet', parentWallet)
-          .eq('layer', currentLevel);
+          .eq('referrer_wallet', parentWallet)
+          .eq('matrix_layer', currentLevel);
       }
       
-      const { data: membersData, error } = await query.order('position');
+      const { data: membersData, error } = await query.order('matrix_position');
       
       if (error) {
         console.error('Matrix query error:', error);
@@ -55,14 +54,14 @@ export function useMatrixByLevel(matrixRootWallet: string, parentWallet?: string
           targetPosition = `${parentPosition}.${position}`;
         }
         
-        const member = membersData?.find(m => m.position === targetPosition);
+        const member = membersData?.find(m => m.matrix_position === targetPosition);
         
         return {
           position: targetPosition,
           member: member ? {
             wallet: member.member_wallet,
-            joinedAt: member.created_at,
-            type: member.referral_type,
+            joinedAt: member.placed_at,
+            type: member.is_spillover_placement ? 'is_spillover' : 'is_direct',
             canExpand: false // 暂时设为false，后面会在useLayeredMatrix中正确设置
           } : null
         };
@@ -85,10 +84,10 @@ export function useMatrixByLevel(matrixRootWallet: string, parentWallet?: string
 // 检查成员是否有下级
 async function hasChildren(memberWallet: string, matrixRootWallet: string): Promise<boolean> {
   const { count } = await supabase
-    .from('matrix_referrals')
+    .from('referrals')
     .select('*', { count: 'exact', head: true })
     .eq('matrix_root_wallet', matrixRootWallet)
-    .eq('parent_wallet', memberWallet);
+    .eq('referrer_wallet', memberWallet);
   
   return (count || 0) > 0;
 }
@@ -96,13 +95,13 @@ async function hasChildren(memberWallet: string, matrixRootWallet: string): Prom
 // 获取parent的位置信息
 async function getParentPosition(parentWallet: string, matrixRootWallet: string): Promise<string> {
   const { data } = await supabase
-    .from('matrix_referrals')
-    .select('position')
+    .from('referrals')
+    .select('matrix_position')
     .eq('matrix_root_wallet', matrixRootWallet)
     .eq('member_wallet', parentWallet)
     .single();
   
-  return data?.position || 'L';
+  return data?.matrix_position || 'L';
 }
 
 // 获取特定成员的下级成员

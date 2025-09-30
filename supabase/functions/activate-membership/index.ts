@@ -47,7 +47,8 @@ serve(async (req) => {
 
     // 保持钱包地址的原始大小写，不要转换为小写
     const walletAddress = rawWalletAddress
-    const normalizedReferrerWallet = referrerWallet
+    // referrerWallet 会在获取用户数据后设置，这里先保存前端传递的值
+    let normalizedReferrerWallet = referrerWallet
 
     console.log(`🔍 Wallet address parsing (preserving original case):`, {
       headerWallet: headerWalletAddress,
@@ -154,6 +155,12 @@ serve(async (req) => {
     }
 
     console.log(`✅ User registration confirmed: ${userData.wallet_address}`);
+
+    // 如果前端没有传递referrerWallet，从用户数据中获取
+    if (!normalizedReferrerWallet && userData.referrer_wallet) {
+      normalizedReferrerWallet = userData.referrer_wallet;
+      console.log(`🔗 Using referrer from user data: ${normalizedReferrerWallet}`);
+    }
 
     // Step 2: Check if this membership level has already been claimed
     const { data: existingMembership, error: membershipCheckError } = await supabase

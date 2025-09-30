@@ -27,8 +27,6 @@ interface MatrixNodeProps {
     hasChildInR?: boolean;
   } | null;
   onNavigateToMember?: (memberWallet: string) => void;
-  onToggleExpand?: (memberWallet: string) => void;
-  isExpanded?: boolean;
   t: (key: string, options?: any) => string;
 }
 
@@ -36,8 +34,6 @@ const MatrixNode: React.FC<MatrixNodeProps> = ({
   position, 
   member, 
   onNavigateToMember,
-  onToggleExpand,
-  isExpanded,
   t
 }) => {
   const formatWallet = (wallet: string) => {
@@ -61,12 +57,11 @@ const MatrixNode: React.FC<MatrixNodeProps> = ({
 
   return (
     <div 
-      className={`border rounded-md p-3 cursor-pointer ${
+      className={`border rounded-md p-3 ${
         isSpillover 
           ? 'bg-blue-50 border-blue-200 hover:bg-blue-100' 
           : 'bg-green-50 border-green-200 hover:bg-green-100'
-      } ${isExpanded ? 'ring-2 ring-blue-400' : ''} hover:shadow-md transition-all`}
-      onClick={() => member.hasChildren && onToggleExpand?.(member.wallet)}
+      } hover:shadow-md transition-all`}
     >
       <div className="text-center">
         {/* Position */}
@@ -116,23 +111,10 @@ const MatrixNode: React.FC<MatrixNodeProps> = ({
         
         {/* Action Buttons */}
         <div className="flex gap-1">
-          {member.hasChildren && (
-            <Button
-              variant="outline"
-              size="sm"
-              className="flex-1 text-xs text-green-600 border-green-200 hover:bg-green-50"
-              onClick={(e) => {
-                e.stopPropagation();
-                onToggleExpand?.(member.wallet);
-              }}
-            >
-              {isExpanded ? '收起 ↑' : '展开 ↓'}
-            </Button>
-          )}
           <Button
             variant="outline"
             size="sm"
-            className={`${member.hasChildren ? 'flex-1' : 'w-full'} text-xs text-blue-600 border-blue-200 hover:bg-blue-50`}
+            className="w-full text-xs text-blue-600 border-blue-200 hover:bg-blue-50"
             onClick={(e) => {
               e.stopPropagation();
               onNavigateToMember?.(member.wallet);
@@ -153,18 +135,40 @@ const DrillDownMatrixView: React.FC<DrillDownMatrixViewProps> = ({
   onNavigateToMember
 }) => {
   const { t } = useI18n();
-  const [expandedMember, setExpandedMember] = useState<string | null>(null);
+  const [currentRoot, setCurrentRoot] = useState<string>(rootWalletAddress);
+  const [currentRootUser, setCurrentRootUser] = useState(rootUser);
+  const [navigationHistory, setNavigationHistory] = useState<Array<{wallet: string, user?: any}>>([]);
   
-  console.log('🏠 DrillDownMatrixView props:', { rootWalletAddress, rootUser });
-  console.log('🔍 DrillDownMatrixView - wallet address received:', rootWalletAddress);
-  console.log('🔍 DrillDownMatrixView - wallet address type:', typeof rootWalletAddress);
-  console.log('🔍 DrillDownMatrixView - wallet address length:', rootWalletAddress?.length);
+  console.log('🏠 DrillDownMatrixView current root:', currentRoot);
+  console.log('🔍 DrillDownMatrixView - navigation history:', navigationHistory.length);
   
-  const { data: matrixData, isLoading, error } = useLayeredMatrix(rootWalletAddress);
-  const { data: childrenData } = useMatrixChildren(rootWalletAddress, expandedMember || '');
+  const { data: matrixData, isLoading, error } = useLayeredMatrix(currentRoot);
 
-  const handleToggleExpand = (memberWallet: string) => {
-    setExpandedMember(expandedMember === memberWallet ? null : memberWallet);
+  const handleNavigateToMember = (memberWallet: string, memberData?: any) => {
+    // 保存当前根到历史记录
+    setNavigationHistory(prev => [...prev, { 
+      wallet: currentRoot, 
+      user: currentRootUser 
+    }]);
+    
+    // 切换到新的根
+    setCurrentRoot(memberWallet);
+    setCurrentRootUser({
+      username: memberData?.username || `User${memberWallet.slice(-4)}`,
+      currentLevel: memberData?.level || 1
+    });
+    
+    // 如果有外部导航处理器，也调用它
+    onNavigateToMember?.(memberWallet);
+  };
+
+  const handleGoBack = () => {
+    if (navigationHistory.length > 0) {
+      const previous = navigationHistory[navigationHistory.length - 1];
+      setCurrentRoot(previous.wallet);
+      setCurrentRootUser(previous.user);
+      setNavigationHistory(prev => prev.slice(0, -1));
+    }
   };
 
   const formatWallet = (wallet: string) => {
@@ -230,16 +234,37 @@ const DrillDownMatrixView: React.FC<DrillDownMatrixViewProps> = ({
       </CardHeader>
       
       <CardContent className="p-6">
-        {/* 根节点信息 */}
-        <div className="mb-6 p-4 bg-gray-100 rounded-lg text-center">
-          <div className="text-lg font-bold text-gray-800 mb-2">🏠 根节点 (你)</div>
-          <div className="text-sm font-mono text-gray-600 bg-white px-3 py-1 rounded border">
-            {rootWalletAddress.slice(0, 6)}...{rootWalletAddress.slice(-4)}
+        {/* 导航栏 */}
+        {navigationHistory.length > 0 && (
+          <div className="mb-4 p-3 bg-blue-50 rounded-lg border border-blue-200">
+            <div className="flex items-center justify-between">
+              <div className="text-sm text-blue-600">
+                导航路径: {navigationHistory.length + 1} 层
+              </div>
+              <Button
+                size="sm"
+                variant="outline"
+                className="text-blue-600 border-blue-300 hover:bg-blue-100"
+                onClick={handleGoBack}
+              >
+                ← 返回上一层
+              </Button>
+            </div>
           </div>
-          {rootUser && (
+        )}
+
+        {/* 当前根节点信息 */}
+        <div className="mb-6 p-4 bg-gray-100 rounded-lg text-center">
+          <div className="text-lg font-bold text-gray-800 mb-2">
+            🏠 当前矩阵根节点 {navigationHistory.length > 0 ? '(成员视图)' : '(你)'}
+          </div>
+          <div className="text-sm font-mono text-gray-600 bg-white px-3 py-1 rounded border">
+            {currentRoot.slice(0, 6)}...{currentRoot.slice(-4)}
+          </div>
+          {currentRootUser && (
             <div className="mt-2">
               <Badge className="bg-blue-100 text-blue-800">
-                等级 {rootUser.currentLevel}
+                {currentRootUser.username || 'User'} - 等级 {currentRootUser.currentLevel}
               </Badge>
             </div>
           )}
@@ -255,9 +280,7 @@ const DrillDownMatrixView: React.FC<DrillDownMatrixViewProps> = ({
                 key="L"
                 position="L"
                 member={leftNode?.member || null}
-                onNavigateToMember={onNavigateToMember}
-                onToggleExpand={handleToggleExpand}
-                isExpanded={expandedMember === leftNode?.member?.wallet}
+                onNavigateToMember={(wallet) => handleNavigateToMember(wallet, leftNode?.member)}
                 t={t}
               />
             );
@@ -271,9 +294,7 @@ const DrillDownMatrixView: React.FC<DrillDownMatrixViewProps> = ({
                 key="M"
                 position="M"
                 member={middleNode?.member || null}
-                onNavigateToMember={onNavigateToMember}
-                onToggleExpand={handleToggleExpand}
-                isExpanded={expandedMember === middleNode?.member?.wallet}
+                onNavigateToMember={(wallet) => handleNavigateToMember(wallet, middleNode?.member)}
                 t={t}
               />
             );
@@ -287,72 +308,13 @@ const DrillDownMatrixView: React.FC<DrillDownMatrixViewProps> = ({
                 key="R"
                 position="R"
                 member={rightNode?.member || null}
-                onNavigateToMember={onNavigateToMember}
-                onToggleExpand={handleToggleExpand}
-                isExpanded={expandedMember === rightNode?.member?.wallet}
+                onNavigateToMember={(wallet) => handleNavigateToMember(wallet, rightNode?.member)}
                 t={t}
               />
             );
           })()}
         </div>
 
-        {/* 展开的子节点 */}
-        {expandedMember && childrenData && (
-          <div className="mb-6 p-4 bg-blue-50 rounded-lg border-2 border-blue-200">
-            <div className="flex items-center justify-between mb-4">
-              <h4 className="text-sm font-medium text-blue-800 flex items-center">
-                <Users size={16} className="mr-2" />
-                {childrenData.expandedMemberName || formatWallet(expandedMember)} 的下级节点
-              </h4>
-              <Button
-                size="sm"
-                variant="outline"
-                className="text-xs"
-                onClick={() => setExpandedMember(null)}
-              >
-                收起
-              </Button>
-            </div>
-            
-            <div className="grid grid-cols-3 gap-3">
-              {['L', 'M', 'R'].map(position => {
-                const childNode = childrenData.children?.find((c: any) => 
-                  c.member && c.member.matrix_position?.endsWith(`.${position}`)
-                );
-                
-                if (childNode?.member) {
-                  return (
-                    <div key={position} className="border border-blue-200 rounded-lg p-3 bg-white">
-                      <div className="text-center">
-                        <div className="text-sm font-bold text-blue-700 mb-1">{position}</div>
-                        <div className="text-xs font-medium text-gray-800 mb-1">
-                          {childNode.member.username}
-                        </div>
-                        <div className="text-xs text-gray-600 font-mono mb-1">
-                          {formatWallet(childNode.member.wallet_address)}
-                        </div>
-                        <div className={`text-xs px-2 py-1 rounded ${
-                          (childNode.member.is_spillover || childNode.member.placement_type === 'spillover_placement') ? 'bg-blue-100 text-blue-700' : 'bg-green-100 text-green-700'
-                        }`}>
-                          {(childNode.member.is_spillover || childNode.member.placement_type === 'spillover_placement') ? '滑落' : '直推'}
-                        </div>
-                      </div>
-                    </div>
-                  );
-                } else {
-                  return (
-                    <div key={position} className="border border-gray-300 rounded-lg p-3 bg-gray-50">
-                      <div className="text-center">
-                        <div className="text-sm font-bold text-gray-500 mb-1">{position}</div>
-                        <div className="text-xs text-gray-400">空位</div>
-                      </div>
-                    </div>
-                  );
-                }
-              })}
-            </div>
-          </div>
-        )}
 
         {/* 简单说明 */}
         <div className="mt-6 p-3 bg-gray-50 rounded text-sm text-gray-600 text-center">

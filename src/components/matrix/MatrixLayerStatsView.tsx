@@ -56,10 +56,10 @@ const MatrixLayerStatsView: React.FC<MatrixLayerStatsViewProps> = ({
       // Use direct database view query instead of edge function
       console.log('📊 Using direct database query for matrix stats');
 
-      // Get matrix layer statistics directly from matrix_referrals_tree_view
+      // Get matrix layer statistics directly from referrals table
       const { data: matrixData, error: matrixError } = await supabase
-        .from('matrix_referrals_tree_view')
-        .select('matrix_layer, matrix_position, is_active')
+        .from('referrals')
+        .select('matrix_layer, matrix_position, member_activation_sequence')
         .eq('matrix_root_wallet', walletAddress);
 
       if (matrixError) {
