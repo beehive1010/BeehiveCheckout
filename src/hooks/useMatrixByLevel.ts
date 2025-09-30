@@ -191,50 +191,41 @@ export function useMatrixChildren(matrixRootWallet: string, parentWallet: string
 // 主要的分层矩阵显示hook
 export function useLayeredMatrix(matrixRootWallet: string) {
   return useQuery({
-    queryKey: ['layered-matrix', matrixRootWallet, Date.now()], // Add timestamp to force refresh
+    queryKey: ['layered-matrix', matrixRootWallet],
     queryFn: async () => {
       if (!matrixRootWallet) throw new Error('No matrix root wallet');
       
-      console.log('🔍 Getting matrix data via Matrix API for root:', matrixRootWallet);
+      console.log('🔍 Getting matrix data from DB for root:', matrixRootWallet);
       
       try {
-        // 使用Matrix API获取成员数据，而不是直接查询数据库
-        const response = await fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/matrix-view`, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${import.meta.env.VITE_SUPABASE_ANON_KEY}`,
-            'x-wallet-address': matrixRootWallet,
-          },
-          body: JSON.stringify({
-            action: 'get-matrix-members'
-          }),
-        });
-
-        if (!response.ok) {
-          const errorText = await response.text();
-          throw new Error(`Matrix API Error: ${response.status} - ${errorText}`);
+        // 直接从数据库获取Layer 1数据
+        const { data: layer1Data, error: layer1Error } = await supabase
+          .from('referrals')
+          .select(`
+            matrix_layer,
+            matrix_position,
+            member_wallet,
+            referrer_wallet,
+            is_spillover_placement,
+            placed_at
+          `)
+          .eq('matrix_root_wallet', matrixRootWallet)
+          .eq('matrix_layer', 1)
+          .in('matrix_position', ['L', 'M', 'R'])
+          .order('matrix_position');
+          
+        if (layer1Error) {
+          console.error('❌ Error fetching layer 1 data:', layer1Error);
+          throw layer1Error;
         }
-
-        const result = await response.json();
-        console.log('🔍 Matrix API response:', result);
-
-        if (!result.success) {
-          throw new Error(result.error || 'Matrix API call failed');
-        }
-
-        const matrixData = result.data;
-        const layer1Members = matrixData.matrix_data.by_layer['1'] || [];
         
-        console.log('📊 Layer 1 members from API:', layer1Members);
-        console.log('📊 Layer 1 member count:', layer1Members.length);
+        console.log('📊 Layer 1 data from DB:', layer1Data);
 
-        // 组织成标准3x3格式并计算每个成员的下级数量
+        // 组织成标准3x3格式
         const matrixPositions = ['L', 'M', 'R'];
-        const allMembers = matrixData.tree_members || [];
         
         const matrix3x3 = matrixPositions.map(position => {
-          const member = layer1Members.find((m: any) => m.matrix_position === position);
+          const member = layer1Data?.find((m: any) => m.matrix_position === position);
           
           if (!member) {
             return {
@@ -243,30 +234,20 @@ export function useLayeredMatrix(matrixRootWallet: string) {
             };
           }
 
-          // 计算该成员的下级数量和具体位置
-          const childrenMembers = allMembers.filter((m: any) => 
-            m.parent_wallet === member.wallet_address
-          );
-          const childrenCount = childrenMembers.length;
-          
-          // 检查具体 L M R 位置是否有成员
-          const hasChildInL = childrenMembers.some((m: any) => m.matrix_position?.endsWith('.L'));
-          const hasChildInM = childrenMembers.some((m: any) => m.matrix_position?.endsWith('.M')); 
-          const hasChildInR = childrenMembers.some((m: any) => m.matrix_position?.endsWith('.R'));
-          
+          // 检查该成员是否有子节点
           return {
             position,
             member: {
-              wallet: member.wallet_address,
-              joinedAt: member.joined_at,
-              type: (member.is_spillover || member.placement_type === 'spillover_placement') ? 'is_spillover' : 'is_direct',
-              hasChildren: childrenCount > 0,
-              childrenCount: childrenCount,
-              username: member.username,
-              isActivated: member.is_activated,
-              hasChildInL: hasChildInL,
-              hasChildInM: hasChildInM,
-              hasChildInR: hasChildInR
+              wallet: member.member_wallet,
+              joinedAt: member.placed_at,
+              type: member.is_spillover_placement ? 'is_spillover' : 'is_direct',
+              hasChildren: true, // 暂时设为true，实际检查可以后续优化
+              childrenCount: 0, // 暂时设为0
+              username: `User${member.member_wallet.slice(-4)}`, // 临时用户名
+              isActivated: true,
+              hasChildInL: false,
+              hasChildInM: false,
+              hasChildInR: false
             }
           };
         });
@@ -276,17 +257,16 @@ export function useLayeredMatrix(matrixRootWallet: string) {
         return {
           matrixRootWallet,
           layer1Matrix: matrix3x3,
-          totalLayer1Members: layer1Members.length
+          totalLayer1Members: layer1Data?.length || 0
         };
         
       } catch (error) {
-        console.error('❌ Matrix API error:', error);
+        console.error('❌ Matrix DB error:', error);
         throw error;
       }
     },
     enabled: !!matrixRootWallet,
-    staleTime: 0, // Force fresh data
-    refetchInterval: 5000,
-    cacheTime: 0, // Don't cache results
+    staleTime: 5000,
+    refetchInterval: 15000,
   });
 }
