@@ -113,33 +113,9 @@ export function useMatrixChildren(matrixRootWallet: string, parentWallet: string
         throw new Error('Matrix root and parent wallet required');
       }
       
-      console.log('🔍 Getting matrix children via API for parent:', parentWallet);
+      console.log('🔍 Getting matrix children from DB for parent:', parentWallet);
       
       try {
-        // 使用Matrix API获取完整的矩阵成员数据
-        const response = await fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/matrix-view`, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${import.meta.env.VITE_SUPABASE_ANON_KEY}`,
-            'x-wallet-address': matrixRootWallet,
-          },
-          body: JSON.stringify({
-            action: 'get-matrix-members'
-          }),
-        });
-
-        if (!response.ok) {
-          const errorText = await response.text();
-          throw new Error(`Matrix API Error: ${response.status} - ${errorText}`);
-        }
-
-        const result = await response.json();
-        console.log('🔍 Matrix API response for children:', result);
-
-        if (!result.success) {
-          throw new Error(result.error || 'Matrix API call failed');
-        }
 
         // 直接从数据库查询指定parent的下级成员
         console.log('🔍 Looking for children of parent:', parentWallet, 'in matrix root:', matrixRootWallet);
@@ -202,7 +178,7 @@ export function useMatrixChildren(matrixRootWallet: string, parentWallet: string
         };
         
       } catch (error) {
-        console.error('❌ Matrix children API error:', error);
+        console.error('❌ Matrix children DB error:', error);
         throw error;
       }
     },
