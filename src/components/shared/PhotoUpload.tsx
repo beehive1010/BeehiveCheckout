@@ -4,7 +4,7 @@ import { Button } from '../ui/button';
 import { Card, CardContent } from '../ui/card';
 import { useToast } from '../../hooks/use-toast';
 import { Upload, X, Image as ImageIcon, Loader2 } from 'lucide-react';
-import { supabase } from '../../lib/supabaseClient';
+import { supabase } from '../../lib/supabase';
 
 interface PhotoUploadProps {
   bucket?: string;
