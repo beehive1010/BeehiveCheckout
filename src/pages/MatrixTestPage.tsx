@@ -390,6 +390,12 @@ const MatrixTestPage: React.FC = () => {
     }
   }, [walletAddress, currentWallet]);
 
+  // Define currentUser for InteractiveMatrixView
+  const currentUser = {
+    username: userStatus?.username || '测试用户',
+    currentLevel: userStatus?.currentLevel || 1
+  };
+
   return (
     <div className="min-h-screen bg-gray-50">
       <div className="container mx-auto px-6 py-8">

@@ -20,7 +20,7 @@ import LayeredMatrixView from '../components/matrix/LayeredMatrixView';
 import { MatrixNetworkStatsV2 } from '../components/matrix/MatrixNetworkStatsV2';
 import MobileMatrixView from '../components/matrix/MobileMatrixView';
 import ModernMatrixView from '../components/matrix/ModernMatrixView';
-import InteractiveMatrixView from '../components/matrix/InteractiveMatrixView';
+// import InteractiveMatrixView from '../components/matrix/InteractiveMatrixView';
 
 // 详细Slots视图组件 - 内联实现
 const DetailedMatrixSlotsView: React.FC<{ currentWallet: string }> = ({ currentWallet }) => {
@@ -420,12 +420,12 @@ const MatrixTestPageModal: React.FC = () => {
               </CardHeader>
               <CardContent>
                 <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3">
-                  {/* 交互式矩阵视图 */}
+                  {/* 交互式矩阵视图 - 暂时禁用 */}
                   <Dialog>
                     <DialogTrigger asChild>
-                      <Button variant="outline" className="h-20 flex-col gap-2 text-xs p-2">
+                      <Button variant="outline" className="h-20 flex-col gap-2 text-xs p-2" disabled>
                         <span className="text-xl">🎯</span>
-                        <span>交互式</span>
+                        <span>交互式(暂停)</span>
                       </Button>
                     </DialogTrigger>
                     <DialogContent className="max-w-[95vw] w-full max-h-[95vh] overflow-auto">
@@ -433,24 +433,11 @@ const MatrixTestPageModal: React.FC = () => {
                         <DialogTitle>🎯 交互式矩阵视图</DialogTitle>
                       </DialogHeader>
                       <div className="space-y-4">
-                        <div className="p-3 bg-blue-50 rounded border-blue-200">
-                          <p className="text-sm text-blue-700 mb-2">
-                            <strong>特色功能:</strong> 点击任意成员节点可切换到该成员作为根节点的视图，支持导航历史和快速返回
+                        <div className="p-3 bg-yellow-50 rounded border-yellow-200">
+                          <p className="text-sm text-yellow-700">
+                            交互式矩阵视图暂时禁用，请使用其他视图组件。
                           </p>
-                          <div className="text-xs text-blue-600 space-y-1">
-                            <div>• 🖱️ 点击成员卡片切换根节点</div>
-                            <div>• 📍 显示下级节点占用状态</div>
-                            <div>• 🔄 支持返回上级和回到根节点</div>
-                            <div>• 📋 完整的导航路径追踪</div>
-                          </div>
                         </div>
-                        <InteractiveMatrixView 
-                          rootWalletAddress={currentWallet}
-                          rootUser={{
-                            username: userStatus?.username || '测试用户',
-                            currentLevel: userStatus?.currentLevel || 1
-                          }}
-                        />
                       </div>
                     </DialogContent>
                   </Dialog>
