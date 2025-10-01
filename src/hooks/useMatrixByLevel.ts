@@ -307,13 +307,20 @@ export function useLayeredMatrix(currentViewWallet: string, targetLayer: number 
             return createMemberObject(member, position, usersData);
           });
         } else if (targetLayer === 2) {
-          // Layer 2: 精确匹配L.L, L.M, L.R, M.L, M.M, M.R, R.L, R.M, R.R
-          const layer2Positions = ['L.L', 'L.M', 'L.R', 'M.L', 'M.M', 'M.R', 'R.L', 'R.M', 'R.R'];
+          // Layer 2: 按照L下级、M下级、R下级分组显示
           const displayPositions = ['L', 'M', 'R'];
-          matrix3x3 = displayPositions.map((position, index) => {
-            // 优先显示有数据的位置，如果没有则显示为空
-            const availableMembers = matrixData?.filter(m => layer2Positions.includes(m.matrix_position)) || [];
-            const member = availableMembers[index];
+          matrix3x3 = displayPositions.map((position) => {
+            // 查找该父位置下的所有子成员 (例如 L.L, L.M, L.R)
+            const childMembers = matrixData?.filter(m => 
+              m.matrix_position && m.matrix_position.startsWith(`${position}.`)
+            ) || [];
+            
+            // 如果有多个子成员，优先显示第一个（按位置排序）
+            const sortedChildren = childMembers.sort((a, b) => 
+              (a.matrix_position || '').localeCompare(b.matrix_position || '')
+            );
+            const member = sortedChildren[0] || null;
+            
             return createMemberObject(member, position, usersData);
           });
         } else {
