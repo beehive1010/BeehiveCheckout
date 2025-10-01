@@ -242,30 +242,30 @@ export function useLayeredMatrix(currentViewWallet: string, targetLayer: number 
         // 确定矩阵根钱包
         const matrixRootWallet = originalRootWallet || currentViewWallet;
         
-        // 查询该节点的直接子节点（不管层级，直接按referrer_wallet查找）
+        // 使用matrix_referrals_tree_view查询当前节点的指定层级数据
         const { data: matrixData, error: matrixError } = await supabase
-          .from('referrals')
+          .from('matrix_referrals_tree_view')
           .select(`
             member_wallet,
-            referrer_wallet,
             matrix_root_wallet,
             matrix_layer,
             matrix_position,
             is_direct_referral,
             is_spillover_placement,
             placed_at,
-            member_activation_sequence
+            is_activated
           `)
-          .eq('matrix_root_wallet', matrixRootWallet)
-          .eq('referrer_wallet', currentViewWallet)
-          .order('member_activation_sequence');
+          .eq('matrix_root_wallet', currentViewWallet)
+          .eq('matrix_layer', targetLayer)
+          .in('matrix_position', ['L', 'M', 'R'])
+          .order('matrix_position');
           
         if (matrixError) {
           console.error('❌ Error fetching matrix data:', matrixError);
           throw matrixError;
         }
         
-        console.log(`📊 Direct children of ${currentViewWallet} in matrix ${matrixRootWallet}:`, matrixData);
+        console.log(`📊 Matrix layer ${targetLayer} data for root ${currentViewWallet}:`, matrixData);
         
         // 获取用户信息
         const memberWallets = matrixData?.map(m => m.member_wallet) || [];
@@ -307,7 +307,7 @@ export function useLayeredMatrix(currentViewWallet: string, targetLayer: number 
               joinedAt: member.placed_at,
               type: member.is_spillover_placement ? 'is_spillover' : 'is_direct',
               username: userData?.username || `User${member.member_wallet.slice(-4)}`,
-              isActivated: true,
+              isActivated: member.is_activated || true,
               isDirect: member.is_direct_referral,
               isSpillover: member.is_spillover_placement,
               // 添加子节点状态检查
