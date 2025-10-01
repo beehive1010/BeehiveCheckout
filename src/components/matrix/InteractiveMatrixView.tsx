@@ -32,6 +32,7 @@ interface NavigationHistory {
   wallet: string;
   username?: string;
   level: number;
+  layer: number;
 }
 
 interface InteractiveMatrixViewProps {
@@ -48,23 +49,36 @@ const InteractiveMatrixView: React.FC<InteractiveMatrixViewProps> = ({
   const { t } = useI18n();
   const [currentRoot, setCurrentRoot] = useState<string>(rootWalletAddress);
   const [currentLayer, setCurrentLayer] = useState<number>(1);
+  const [maxAvailableLayer, setMaxAvailableLayer] = useState<number>(1);
   const [navigationHistory, setNavigationHistory] = useState<NavigationHistory[]>([]);
   const [currentRootUser, setCurrentRootUser] = useState(rootUser);
 
   // 使用更新后的hook获取当前root的矩阵数据
   const { data: matrixData, isLoading, error } = useLayeredMatrix(currentRoot, currentLayer);
 
+  // 简化的层级检查 - 根据matrixData动态判断
+  useEffect(() => {
+    if (matrixData && matrixData.totalCurrentLayerMembers > 0) {
+      // 如果当前层有数据，假设最大层级为19（可以根据实际情况调整）
+      setMaxAvailableLayer(19);
+    } else {
+      setMaxAvailableLayer(currentLayer);
+    }
+  }, [matrixData, currentLayer]);
+
   useEffect(() => {
     console.log('🔍 InteractiveMatrixView - Current root:', currentRoot, 'layer:', currentLayer);
     console.log('📊 Matrix data:', matrixData);
-  }, [currentRoot, currentLayer, matrixData]);
+    console.log('🎚️ Max available layer:', maxAvailableLayer);
+  }, [currentRoot, currentLayer, matrixData, maxAvailableLayer]);
 
   const handleNavigateToMember = (memberWallet: string, memberData?: MatrixMember) => {
     // 保存当前根到历史记录
     setNavigationHistory(prev => [...prev, { 
       wallet: currentRoot, 
       username: currentRootUser?.username || `User${currentRoot.slice(-4)}`,
-      level: navigationHistory.length + 1
+      level: navigationHistory.length + 1,
+      layer: currentLayer
     }]);
     
     // 切换到新的根
@@ -77,6 +91,12 @@ const InteractiveMatrixView: React.FC<InteractiveMatrixViewProps> = ({
     
     // 如果有外部导航处理器，也调用它
     onNavigateToMember?.(memberWallet);
+  };
+
+  const handleLayerChange = (newLayer: number) => {
+    if (newLayer >= 1 && newLayer <= 19) {
+      setCurrentLayer(newLayer);
+    }
   };
 
   const handleGoBack = () => {
@@ -276,6 +296,9 @@ const InteractiveMatrixView: React.FC<InteractiveMatrixViewProps> = ({
             <Badge variant="outline" className="bg-green-100 text-green-700 border-green-300">
               {matrixData?.totalCurrentLayerMembers || 0}/3 已填满
             </Badge>
+            <Badge variant="outline" className="bg-purple-100 text-purple-700 border-purple-300">
+              最大 {maxAvailableLayer} 层
+            </Badge>
           </div>
         </CardTitle>
       </CardHeader>
@@ -283,7 +306,7 @@ const InteractiveMatrixView: React.FC<InteractiveMatrixViewProps> = ({
       <CardContent className="space-y-6">
         {/* 导航面包屑和控制 */}
         <div className="bg-white rounded-lg p-4 border border-blue-200">
-          <div className="flex items-center justify-between">
+          <div className="flex items-center justify-between mb-4">
             <div className="flex items-center space-x-2">
               <h3 className="font-semibold text-gray-800">当前根节点:</h3>
               <div className="flex items-center space-x-2 bg-gray-50 px-3 py-1 rounded-lg border">
@@ -324,6 +347,55 @@ const InteractiveMatrixView: React.FC<InteractiveMatrixViewProps> = ({
             </div>
           </div>
 
+          {/* 层级选择器 */}
+          <div className="flex items-center justify-between">
+            <div className="flex items-center space-x-3">
+              <span className="text-sm font-medium text-gray-700">选择层级:</span>
+              <div className="flex items-center space-x-2">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => handleLayerChange(currentLayer - 1)}
+                  disabled={currentLayer <= 1}
+                  className="px-2 py-1"
+                >
+                  ←
+                </Button>
+                
+                <select 
+                  value={currentLayer} 
+                  onChange={(e) => handleLayerChange(Number(e.target.value))}
+                  className="px-3 py-1 border border-gray-300 rounded text-sm bg-white min-w-[80px]"
+                >
+                  {Array.from({length: 19}, (_, i) => i + 1).map(layer => (
+                    <option key={layer} value={layer}>第{layer}层</option>
+                  ))}
+                </select>
+                
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => handleLayerChange(currentLayer + 1)}
+                  disabled={currentLayer >= 19}
+                  className="px-2 py-1"
+                >
+                  →
+                </Button>
+              </div>
+            </div>
+
+            <div className="flex items-center space-x-2">
+              <Badge variant="outline" className="bg-indigo-100 text-indigo-700 border-indigo-300">
+                第 {currentLayer} / 19 层
+              </Badge>
+              {matrixData?.totalCurrentLayerMembers > 0 && (
+                <Badge variant="outline" className="bg-green-100 text-green-700 border-green-300">
+                  本层 {matrixData.totalCurrentLayerMembers} 个成员
+                </Badge>
+              )}
+            </div>
+          </div>
+
           {/* 导航历史 */}
           {navigationHistory.length > 0 && (
             <div className="mt-3 pt-3 border-t border-gray-200">
@@ -352,23 +424,46 @@ const InteractiveMatrixView: React.FC<InteractiveMatrixViewProps> = ({
 
         {/* 使用说明 */}
         <div className="bg-white rounded-lg p-4 border border-blue-200">
-          <h4 className="font-semibold text-gray-800 mb-3">💡 使用说明</h4>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm text-gray-600">
-            <div className="flex items-start space-x-2">
-              <Navigation className="h-4 w-4 text-blue-500 mt-0.5 flex-shrink-0" />
-              <span><strong>点击成员卡片</strong> 可以切换到该成员作为根节点的视图</span>
+          <h4 className="font-semibold text-gray-800 mb-3">💡 使用说明 - 支持完整19层矩阵导航</h4>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm text-gray-600">
+            <div className="space-y-2">
+              <div className="flex items-start space-x-2">
+                <Navigation className="h-4 w-4 text-blue-500 mt-0.5 flex-shrink-0" />
+                <span><strong>节点导航</strong> 点击成员卡片切换到该成员作为根节点</span>
+              </div>
+              <div className="flex items-start space-x-2">
+                <ChevronLeft className="h-4 w-4 text-green-500 mt-0.5 flex-shrink-0" />
+                <span><strong>返回导航</strong> 返回上级或回到根节点</span>
+              </div>
             </div>
-            <div className="flex items-start space-x-2">
-              <ChevronLeft className="h-4 w-4 text-green-500 mt-0.5 flex-shrink-0" />
-              <span><strong>返回上级</strong> 可以回到之前查看的节点</span>
+            <div className="space-y-2">
+              <div className="flex items-start space-x-2">
+                <div className="w-4 h-4 bg-indigo-500 rounded mt-0.5 flex-shrink-0"></div>
+                <span><strong>层级选择</strong> 使用下拉选择器或左右箭头浏览1-19层</span>
+              </div>
+              <div className="flex items-start space-x-2">
+                <div className="w-4 h-4 bg-purple-500 rounded mt-0.5 flex-shrink-0"></div>
+                <span><strong>深度探索</strong> 每个根节点都可以查看完整的19层结构</span>
+              </div>
             </div>
-            <div className="flex items-start space-x-2">
-              <Home className="h-4 w-4 text-purple-500 mt-0.5 flex-shrink-0" />
-              <span><strong>回到根节点</strong> 快速返回到您的主矩阵视图</span>
+            <div className="space-y-2">
+              <div className="flex items-start space-x-2">
+                <Users className="h-4 w-4 text-orange-500 mt-0.5 flex-shrink-0" />
+                <span><strong>状态指示</strong> 绿点=有成员，灰点=空位</span>
+              </div>
+              <div className="flex items-start space-x-2">
+                <div className="w-4 h-4 bg-gradient-to-r from-green-400 to-blue-400 rounded mt-0.5 flex-shrink-0"></div>
+                <span><strong>类型标识</strong> 绿色=直推，蓝色=滑落</span>
+              </div>
             </div>
-            <div className="flex items-start space-x-2">
-              <Users className="h-4 w-4 text-orange-500 mt-0.5 flex-shrink-0" />
-              <span><strong>下级状态</strong> 绿点表示该位置有成员，灰点表示空位</span>
+          </div>
+          
+          <div className="mt-4 p-3 bg-gradient-to-r from-blue-50 to-indigo-50 rounded-lg border border-blue-200">
+            <div className="flex items-center space-x-2 text-blue-700">
+              <div className="w-2 h-2 bg-blue-500 rounded-full animate-pulse"></div>
+              <span className="text-sm font-medium">
+                ✨ 现在支持完整19层矩阵导航！点击任意成员查看其完整的下级网络结构
+              </span>
             </div>
           </div>
         </div>
