@@ -57,7 +57,7 @@ const MatrixNode: React.FC<MatrixNodeProps> = ({ position, member, onTap }) => {
     <div 
       className={`aspect-square bg-gradient-to-br ${
         isSpillover 
-          ? 'from-blue-50 to-blue-100 dark:from-blue-900/20 dark:to-blue-800/20 border-blue-200 dark:border-blue-700' 
+          ? 'from-blue-500/10 to-blue-500/20 dark:from-blue-500/10 dark:to-blue-500/20 border-blue-500/30 dark:border-blue-500/30' 
           : 'from-green-50 to-green-100 dark:from-green-900/20 dark:to-green-800/20 border-green-200 dark:border-green-700'
       } border-2 rounded-2xl flex flex-col items-center justify-center p-3 transition-all hover:scale-105 active:scale-95 cursor-pointer`}
       onClick={() => onTap?.(member.wallet)}
@@ -75,7 +75,7 @@ const MatrixNode: React.FC<MatrixNodeProps> = ({ position, member, onTap }) => {
       {/* Type Indicator */}
       <div className="flex items-center mb-1">
         {isSpillover ? (
-          <ArrowDownLeft className="w-3 h-3 text-blue-600 dark:text-blue-400" />
+          <ArrowDownLeft className="w-3 h-3 text-blue-400 dark:text-blue-400" />
         ) : (
           <ArrowUpRight className="w-3 h-3 text-green-600 dark:text-green-400" />
         )}
@@ -90,7 +90,7 @@ const MatrixNode: React.FC<MatrixNodeProps> = ({ position, member, onTap }) => {
       {member.level && (
         <Badge className={`mt-1 text-xs h-4 px-2 ${
           isSpillover 
-            ? 'bg-blue-500 hover:bg-blue-600' 
+            ? 'bg-blue-400 hover:bg-blue-500' 
             : 'bg-green-500 hover:bg-green-600'
         }`}>
           L{member.level}
@@ -294,7 +294,7 @@ const MobileMatrixView: React.FC<MobileMatrixViewProps> = ({
               <div className="text-xs text-gray-500 dark:text-gray-400">直推</div>
             </div>
             <div className="text-center">
-              <div className="text-lg font-bold text-blue-500">{currentMatrix.filter(n => n.member?.type === 'is_spillover').length}</div>
+              <div className="text-lg font-bold text-blue-400">{currentMatrix.filter(n => n.member?.type === 'is_spillover').length}</div>
               <div className="text-xs text-gray-500 dark:text-gray-400">滑落</div>
             </div>
             <div className="text-center">
@@ -315,7 +315,7 @@ const MobileMatrixView: React.FC<MobileMatrixViewProps> = ({
               <span className="text-gray-600 dark:text-gray-400"><strong>直推</strong>：通过您的邀请链接直接注册</span>
             </div>
             <div className="flex items-center gap-2">
-              <ArrowDownLeft className="h-3 w-3 text-blue-500" />
+              <ArrowDownLeft className="h-3 w-3 text-blue-400" />
               <span className="text-gray-600 dark:text-gray-400"><strong>滑落</strong>：由于位置已满自动分配到您的矩阵</span>
             </div>
             <div className="flex items-center gap-2">

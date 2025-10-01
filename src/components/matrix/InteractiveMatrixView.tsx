@@ -139,7 +139,7 @@ const InteractiveMatrixView: React.FC<InteractiveMatrixViewProps> = ({
         {/* 成员卡片或空位 */}
         {member ? (
           <div 
-            className="w-full max-w-sm bg-white rounded-2xl shadow-lg border border-gray-200 hover:shadow-xl hover:scale-105 transition-all duration-300 cursor-pointer group"
+            className="w-full max-w-sm bg-gradient-to-br from-gray-50/50 to-gray-100/50 rounded-lg border-2 border-gray-300/30 hover:border-purple-400/50 hover:shadow-lg hover:scale-105 transition-all duration-300 cursor-pointer group"
             onClick={() => handleNavigateToMember(member.wallet, member)}
           >
             {/* 卡片头部 */}
@@ -147,12 +147,12 @@ const InteractiveMatrixView: React.FC<InteractiveMatrixViewProps> = ({
               <div className="flex items-center justify-between mb-2">
                 <div className="flex items-center space-x-2">
                   {member.type === 'is_direct' ? (
-                    <div className="p-1 bg-green-100 rounded-full">
-                      <ArrowUpRight className="h-4 w-4 text-green-600" />
+                    <div className="p-1 bg-gradient-to-br from-green-500/10 to-green-500/20 border border-green-500/30 rounded-full">
+                      <ArrowUpRight className="h-4 w-4 text-green-400" />
                     </div>
                   ) : member.type === 'is_spillover' ? (
                     <div className="p-1 bg-blue-100 rounded-full">
-                      <ArrowDownLeft className="h-4 w-4 text-blue-600" />
+                      <ArrowDownLeft className="h-4 w-4 text-blue-400" />
                     </div>
                   ) : (
                     <div className="p-1 bg-gray-100 rounded-full">
@@ -165,7 +165,7 @@ const InteractiveMatrixView: React.FC<InteractiveMatrixViewProps> = ({
                   variant={member.type === 'is_direct' ? "default" : "secondary"}
                   className={`text-xs ${
                     member.type === 'is_direct'
-                      ? 'bg-green-100 text-green-800 border-green-300' 
+                      ? 'bg-gradient-to-br from-green-500/10 to-green-500/20 border border-green-500/30 text-green-800 border-green-300' 
                       : member.type === 'is_spillover'
                         ? 'bg-blue-100 text-blue-800 border-blue-300'
                         : 'bg-gray-100 text-gray-800 border-gray-300'
@@ -190,15 +190,15 @@ const InteractiveMatrixView: React.FC<InteractiveMatrixViewProps> = ({
             <div className="px-4 pb-4">
               <div className="text-xs text-gray-600 mb-2 text-center">下级节点状态:</div>
               <div className="flex justify-center space-x-3">
-                <div className={`flex flex-col items-center space-y-1 ${member.hasChildInL ? 'text-green-600' : 'text-gray-400'}`}>
+                <div className={`flex flex-col items-center space-y-1 ${member.hasChildInL ? 'text-green-400' : 'text-gray-400'}`}>
                   <div className={`w-3 h-3 rounded-full ${member.hasChildInL ? 'bg-green-500' : 'bg-gray-300'}`}></div>
                   <span className="text-xs font-medium">L</span>
                 </div>
-                <div className={`flex flex-col items-center space-y-1 ${member.hasChildInM ? 'text-green-600' : 'text-gray-400'}`}>
+                <div className={`flex flex-col items-center space-y-1 ${member.hasChildInM ? 'text-green-400' : 'text-gray-400'}`}>
                   <div className={`w-3 h-3 rounded-full ${member.hasChildInM ? 'bg-green-500' : 'bg-gray-300'}`}></div>
                   <span className="text-xs font-medium">M</span>
                 </div>
-                <div className={`flex flex-col items-center space-y-1 ${member.hasChildInR ? 'text-green-600' : 'text-gray-400'}`}>
+                <div className={`flex flex-col items-center space-y-1 ${member.hasChildInR ? 'text-green-400' : 'text-gray-400'}`}>
                   <div className={`w-3 h-3 rounded-full ${member.hasChildInR ? 'bg-green-500' : 'bg-gray-300'}`}></div>
                   <span className="text-xs font-medium">R</span>
                 </div>
@@ -214,7 +214,7 @@ const InteractiveMatrixView: React.FC<InteractiveMatrixViewProps> = ({
 
             {/* 点击提示 */}
             <div className="bg-gradient-to-r from-blue-50 to-indigo-50 px-4 py-2 rounded-b-2xl border-t border-blue-100">
-              <p className="text-xs text-blue-600 text-center font-medium group-hover:text-blue-700">
+              <p className="text-xs text-blue-400 text-center font-medium group-hover:text-blue-700">
                 <Navigation className="inline h-3 w-3 mr-1" />
                 点击查看此成员的矩阵网络
               </p>
@@ -277,12 +277,12 @@ const InteractiveMatrixView: React.FC<InteractiveMatrixViewProps> = ({
   const rightMember = matrixData.currentLayerMatrix?.find(n => n.position === 'R')?.member || null;
 
   return (
-    <Card className="bg-gradient-to-br from-blue-50 to-indigo-50 border-blue-200">
+    <Card className="bg-gradient-to-br from-gray-900/5 to-gray-900/10 border border-gray-500/20">
       <CardHeader>
         <CardTitle className="flex items-center justify-between">
           <div className="flex items-center space-x-3">
-            <div className="p-2 bg-blue-100 rounded-lg">
-              <Users className="h-6 w-6 text-blue-600" />
+            <div className="p-2 bg-gradient-to-br from-purple-500/10 to-purple-500/20 rounded-lg border border-purple-500/30">
+              <Users className="h-6 w-6 text-purple-400" />
             </div>
             <div>
               <h2 className="text-xl font-bold text-gray-800">交互式矩阵视图</h2>
@@ -290,13 +290,13 @@ const InteractiveMatrixView: React.FC<InteractiveMatrixViewProps> = ({
             </div>
           </div>
           <div className="flex items-center space-x-2">
-            <Badge variant="outline" className="bg-blue-100 text-blue-700 border-blue-300">
+            <Badge variant="outline" className="bg-gradient-to-br from-blue-500/10 to-blue-500/20 text-blue-400 border-blue-500/30">
               第 {currentLayer} 层
             </Badge>
-            <Badge variant="outline" className="bg-green-100 text-green-700 border-green-300">
+            <Badge variant="outline" className="bg-gradient-to-br from-green-500/10 to-green-500/20 text-green-400 border-green-500/30">
               {matrixData?.totalCurrentLayerMembers || 0}/3 已填满
             </Badge>
-            <Badge variant="outline" className="bg-purple-100 text-purple-700 border-purple-300">
+            <Badge variant="outline" className="bg-gradient-to-br from-purple-500/10 to-purple-500/20 text-purple-400 border-purple-500/30">
               最大 {maxAvailableLayer} 层
             </Badge>
           </div>
@@ -326,7 +326,7 @@ const InteractiveMatrixView: React.FC<InteractiveMatrixViewProps> = ({
                   variant="outline"
                   size="sm"
                   onClick={handleGoBack}
-                  className="text-blue-600 border-blue-300 hover:bg-blue-50"
+                  className="text-blue-400 border-blue-300 hover:bg-blue-50"
                 >
                   <ChevronLeft className="h-4 w-4 mr-1" />
                   返回上级
@@ -338,7 +338,7 @@ const InteractiveMatrixView: React.FC<InteractiveMatrixViewProps> = ({
                   variant="outline"
                   size="sm"
                   onClick={handleGoHome}
-                  className="text-green-600 border-green-300 hover:bg-green-50"
+                  className="text-green-400 border-green-300 hover:bg-green-50"
                 >
                   <Home className="h-4 w-4 mr-1" />
                   回到根节点
@@ -385,11 +385,11 @@ const InteractiveMatrixView: React.FC<InteractiveMatrixViewProps> = ({
             </div>
 
             <div className="flex items-center space-x-2">
-              <Badge variant="outline" className="bg-indigo-100 text-indigo-700 border-indigo-300">
+              <Badge variant="outline" className="bg-gradient-to-br from-indigo-500/10 to-indigo-500/20 text-indigo-400 border-indigo-500/30">
                 第 {currentLayer} / 19 层
               </Badge>
               {matrixData?.totalCurrentLayerMembers > 0 && (
-                <Badge variant="outline" className="bg-green-100 text-green-700 border-green-300">
+                <Badge variant="outline" className="bg-gradient-to-br from-green-500/10 to-green-500/20 text-green-400 border-green-500/30">
                   本层 {matrixData.totalCurrentLayerMembers} 个成员
                 </Badge>
               )}
@@ -405,11 +405,11 @@ const InteractiveMatrixView: React.FC<InteractiveMatrixViewProps> = ({
                 {navigationHistory.map((nav, index) => (
                   <React.Fragment key={index}>
                     <span className="text-gray-400">→</span>
-                    <span className="text-blue-600">{nav.username}</span>
+                    <span className="text-blue-400">{nav.username}</span>
                   </React.Fragment>
                 ))}
                 <span className="text-gray-400">→</span>
-                <span className="text-green-600 font-medium">当前</span>
+                <span className="text-green-400 font-medium">当前</span>
               </div>
             </div>
           )}

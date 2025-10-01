@@ -119,7 +119,7 @@ async function getRewardClaims(req, supabaseClient) {
     if (!wallet_address) {
         return new Response(JSON.stringify({
             success: false,
-            error: 'wallet_address required'
+            error: 'rewards.errors.wallet_address_required'
         }), {
             headers: {
                 ...corsHeaders,
@@ -168,7 +168,7 @@ async function claimReward(req, supabaseClient) {
     if (!claim_id || !wallet_address) {
         return new Response(JSON.stringify({
             success: false,
-            error: 'claim_id and wallet_address required'
+            error: 'rewards.errors.claim_id_and_wallet_required'
         }), {
             headers: {
                 ...corsHeaders,
@@ -191,7 +191,7 @@ async function claimReward(req, supabaseClient) {
             console.log(`❌ Reward not found: ${claim_id}`, rewardError);
             return new Response(JSON.stringify({
                 success: false,
-                error: 'Reward not found or access denied'
+                error: 'rewards.errors.reward_not_found_or_access_denied'
             }), {
                 headers: {
                     ...corsHeaders,
@@ -207,7 +207,7 @@ async function claimReward(req, supabaseClient) {
         if (reward.status === 'claimed') {
             return new Response(JSON.stringify({
                 success: false,
-                error: 'Reward has already been claimed',
+                error: 'rewards.errors.already_claimed',
                 claimed_at: reward.claimed_at
             }), {
                 headers: {
@@ -231,7 +231,7 @@ async function claimReward(req, supabaseClient) {
         } else {
             return new Response(JSON.stringify({
                 success: false,
-                error: `Reward status '${reward.status}' cannot be claimed. Must be 'claimable' or 'pending'`,
+                error: 'rewards.errors.invalid_status_for_claim',
                 current_status: reward.status
             }), {
                 headers: {
@@ -242,19 +242,23 @@ async function claimReward(req, supabaseClient) {
             });
         }
         
-        // 3. Get matrix position for Layer 1 R position check (using matrix_referrals_tree_view)
-        const { data: matrixPositionArray } = await supabaseClient
-            .from('matrix_referrals_tree_view')
-            .select('position')
-            .ilike('matrix_root_wallet', reward.reward_recipient_wallet.toLowerCase())
-            .ilike('member_wallet', reward.triggering_member_wallet.toLowerCase())
-            .eq('layer', reward.matrix_layer)
-            .eq('is_activated', true);
+        // 3. Check if this is the 3rd reward for this layer and recipient (3rd reward validation rule)
+        const { data: rewardCountArray } = await supabaseClient
+            .from('layer_rewards')
+            .select('id, created_at')
+            .eq('reward_recipient_wallet', reward.reward_recipient_wallet.toLowerCase())
+            .eq('matrix_layer', reward.matrix_layer)
+            .order('created_at', { ascending: true });
             
-        const matrixPosition = matrixPositionArray?.[0] || null;
+        // Find the position of this reward in the sequence
+        const rewardIndex = rewardCountArray?.findIndex(r => r.id === reward.id);
+        const isThirdReward = rewardIndex === 2; // 0-based index, so 3rd reward is index 2
         
-        // 4. CRITICAL BUSINESS RULE: Layer 1 R position special rule
-        if (reward.matrix_layer === 1 && matrixPosition?.position === 'R') {
+        // 4. CRITICAL BUSINESS RULE: 3rd reward special validation
+        // - 1st layer 3rd reward: requires Level 2+
+        // - 2nd layer 3rd reward: requires Level 3+ 
+        // - 3rd-18th layer 3rd reward: requires Level (layer+1)+
+        if (isThirdReward) {
             const { data: memberArray, error: memberError } = await supabaseClient
                 .from('members')
                 .select('current_level')
@@ -265,7 +269,8 @@ async function claimReward(req, supabaseClient) {
             if (memberError || !memberData) {
                 return new Response(JSON.stringify({
                     success: false,
-                    error: 'Unable to verify member level requirements'
+                    error: 'rewards.errors.member_verification_failed',
+                    message: 'Unable to verify member level requirements for 3rd reward'
                 }), {
                     headers: {
                         ...corsHeaders,
@@ -274,16 +279,22 @@ async function claimReward(req, supabaseClient) {
                     status: 400
                 });
             }
-            if (memberData.current_level < 2) {
-                console.log(`❌ Layer 1 R position blocked: Level ${memberData.current_level} < 2`);
+            
+            // Calculate required level for 3rd reward: layer + 1 (minimum 2)
+            const requiredLevel = Math.max(2, reward.matrix_layer + 1);
+            
+            if (memberData.current_level < requiredLevel) {
+                console.log(`❌ 3rd reward blocked: Layer ${reward.matrix_layer}, Level ${memberData.current_level} < ${requiredLevel}`);
                 return new Response(JSON.stringify({
                     success: false,
-                    error: 'Layer 1 R Position Rule: You must upgrade to Level 2+ to claim this reward',
-                    restriction_type: 'layer_1_r_position',
-                    required_level: 2,
+                    error: 'rewards.errors.third_reward_level_insufficient',
+                    message: `Layer ${reward.matrix_layer} third reward requires Level ${requiredLevel}+ to claim`,
+                    restriction_type: 'third_reward_validation',
+                    layer: reward.matrix_layer,
+                    required_level: requiredLevel,
                     current_level: memberData.current_level,
                     reward_amount: reward.reward_amount,
-                    countdown_expires: '72 hours from activation'
+                    countdown_expires: 'rewards.countdown.hours_72_from_activation'
                 }), {
                     headers: {
                         ...corsHeaders,
@@ -292,6 +303,8 @@ async function claimReward(req, supabaseClient) {
                     status: 403
                 });
             }
+            
+            console.log(`✅ 3rd reward validation passed: Layer ${reward.matrix_layer}, Level ${memberData.current_level} >= ${requiredLevel}`);
         }
         
         // 5. Process the claim
@@ -361,7 +374,7 @@ async function claimReward(req, supabaseClient) {
         console.log(`✅ Reward claimed successfully: ${reward.reward_amount} USDT`);
         return new Response(JSON.stringify({
             success: true,
-            message: 'Reward claimed successfully',
+            message: 'rewards.messages.claim_successful',
             reward: {
                 id: reward.id,
                 reward_amount: reward.reward_amount,
@@ -382,7 +395,7 @@ async function claimReward(req, supabaseClient) {
         console.error('❌ Claim reward error:', error);
         return new Response(JSON.stringify({
             success: false,
-            error: error.message || 'Failed to process reward claim',
+            error: 'rewards.errors.claim_processing_failed',
             debug: process.env.NODE_ENV === 'development' ? error.stack : undefined
         }), {
             headers: {
@@ -426,7 +439,7 @@ async function getRewardDashboard(req, supabaseClient) {
     if (!wallet_address) {
         return new Response(JSON.stringify({
             success: false,
-            error: 'wallet_address required'
+            error: 'rewards.errors.wallet_address_required'
         }), {
             headers: {
                 ...corsHeaders,
@@ -485,7 +498,7 @@ async function getRewardNotifications(req, supabaseClient) {
     if (!wallet_address) {
         return new Response(JSON.stringify({
             success: false,
-            error: 'wallet_address required'
+            error: 'rewards.errors.wallet_address_required'
         }), {
             headers: {
                 ...corsHeaders,
@@ -584,7 +597,7 @@ async function getRewardBalance(req, supabaseClient) {
     if (!wallet_address) {
         return new Response(JSON.stringify({
             success: false,
-            error: 'wallet_address required'
+            error: 'rewards.errors.wallet_address_required'
         }), {
             headers: {
                 ...corsHeaders,
@@ -635,7 +648,7 @@ async function checkPendingRewards(req, supabaseClient) {
     if (!wallet_address) {
         return new Response(JSON.stringify({
             success: false,
-            error: 'wallet_address required'
+            error: 'rewards.errors.wallet_address_required'
         }), {
             status: 400,
             headers: {
@@ -757,7 +770,7 @@ async function getRewardTimers(req, supabaseClient) {
     if (!wallet_address) {
         return new Response(JSON.stringify({
             success: false,
-            error: 'wallet_address required'
+            error: 'rewards.errors.wallet_address_required'
         }), {
             status: 400,
             headers: {
@@ -971,7 +984,7 @@ async function getDashboardActivity(req, supabaseClient) {
     if (!wallet_address) {
         return new Response(JSON.stringify({
             success: false,
-            error: 'wallet_address required'
+            error: 'rewards.errors.wallet_address_required'
         }), {
             status: 400,
             headers: {
@@ -1196,7 +1209,7 @@ async function handlePendingRewardClaim(supabaseClient, reward, wallet_address) 
             
             return new Response(JSON.stringify({
                 success: false,
-                error: 'Countdown timer already active for this reward',
+                error: 'rewards.errors.countdown_already_active',
                 timer_info: {
                     end_time: existingTimer.end_time,
                     time_remaining_hours: Math.max(0, remainingMs / (1000 * 60 * 60)),
