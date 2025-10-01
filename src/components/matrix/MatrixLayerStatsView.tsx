@@ -56,10 +56,10 @@ const MatrixLayerStatsView: React.FC<MatrixLayerStatsViewProps> = ({
       // Use direct database view query instead of edge function
       console.log('📊 Using direct database query for matrix stats');
 
-      // Get matrix layer statistics directly from referrals table
+      // Get matrix layer statistics directly from matrix_referrals_tree_view
       const { data: matrixData, error: matrixError } = await supabase
-        .from('referrals')
-        .select('matrix_layer, matrix_position, member_activation_sequence')
+        .from('matrix_referrals_tree_view')
+        .select('matrix_layer, matrix_position, member_wallet, referral_type')
         .eq('matrix_root_wallet', walletAddress);
 
       if (matrixError) {
@@ -77,13 +77,14 @@ const MatrixLayerStatsView: React.FC<MatrixLayerStatsViewProps> = ({
           layerCounts[layer] = { L: 0, M: 0, R: 0, active: 0 };
         }
 
-        // Count positions
-        if (member.matrix_position === 'L') layerCounts[layer].L++;
-        else if (member.matrix_position === 'M') layerCounts[layer].M++;
-        else if (member.matrix_position === 'R') layerCounts[layer].R++;
+        // Count positions - support both simple positions (L, M, R) and complex positions (L.L, L.M, etc.)
+        const position = member.matrix_position;
+        if (position === 'L' || position?.endsWith('.L')) layerCounts[layer].L++;
+        else if (position === 'M' || position?.endsWith('.M')) layerCounts[layer].M++;
+        else if (position === 'R' || position?.endsWith('.R')) layerCounts[layer].R++;
 
-        // Count active members
-        if (member.is_active) layerCounts[layer].active++;
+        // Count active members (assume all are active since they're in the matrix)
+        layerCounts[layer].active++;
       });
 
       // Generate layer stats for all 19 layers
@@ -91,6 +92,7 @@ const MatrixLayerStatsView: React.FC<MatrixLayerStatsViewProps> = ({
       for (let layer = 1; layer <= 19; layer++) {
         const counts = layerCounts[layer] || { L: 0, M: 0, R: 0, active: 0 };
         const totalMembers = counts.L + counts.M + counts.R;
+        // For matrix layers, capacity grows exponentially
         const maxCapacity = Math.pow(3, layer);
         const fillPercentage = maxCapacity > 0 ? (totalMembers / maxCapacity) * 100 : 0;
 
@@ -167,7 +169,7 @@ const MatrixLayerStatsView: React.FC<MatrixLayerStatsViewProps> = ({
           leftMembers: 0,
           middleMembers: 0,
           rightMembers: 0,
-          maxCapacity: layer === 2 ? 9 : Math.pow(3, layer),
+          maxCapacity: Math.pow(3, layer),
           fillPercentage: 0,
           activeMembers: 0,
           completedPercentage: 0
