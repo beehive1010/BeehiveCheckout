@@ -43,6 +43,9 @@ interface MatrixNodeProps {
     hasChildInL?: boolean;
     hasChildInM?: boolean;
     hasChildInR?: boolean;
+    childCountL?: number;
+    childCountM?: number;
+    childCountR?: number;
   } | null;
   onTap?: (memberWallet: string) => void;
 }
