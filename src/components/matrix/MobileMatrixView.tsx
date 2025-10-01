@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Card, CardHeader, CardTitle, CardContent } from '../ui/card';
 import { Button } from '../ui/button';
 import { Badge } from '../ui/badge';
@@ -11,7 +11,9 @@ import {
   ArrowUpRight,
   ArrowDownLeft,
   Crown,
-  Layers
+  Layers,
+  Home,
+  Navigation
 } from 'lucide-react';
 import { useLayeredMatrix } from '../../hooks/useMatrixByLevel';
 import { useI18n } from '../../contexts/I18nContext';
@@ -20,6 +22,13 @@ interface MobileMatrixViewProps {
   rootWalletAddress: string;
   rootUser?: { username: string; currentLevel: number };
   onNavigateToMember?: (memberWallet: string) => void;
+}
+
+interface NavigationHistory {
+  wallet: string;
+  username?: string;
+  level: number;
+  layer: number;
 }
 
 interface MatrixNodeProps {
@@ -108,13 +117,54 @@ const MobileMatrixView: React.FC<MobileMatrixViewProps> = ({
   onNavigateToMember
 }) => {
   const { t } = useI18n();
+  const [currentRoot, setCurrentRoot] = useState<string>(rootWalletAddress);
   const [currentLayer, setCurrentLayer] = useState<number>(1);
+  const [navigationHistory, setNavigationHistory] = useState<NavigationHistory[]>([]);
+  const [currentRootUser, setCurrentRootUser] = useState(rootUser);
+  const [originalRoot] = useState<string>(rootWalletAddress);
   
   // 使用修正后的useLayeredMatrix hook，支持层级参数
-  const { data: matrixData, isLoading, error } = useLayeredMatrix(rootWalletAddress, currentLayer);
+  const { data: matrixData, isLoading, error } = useLayeredMatrix(currentRoot, currentLayer, originalRoot);
 
   const handleMemberTap = (memberWallet: string) => {
+    // 保存当前根到历史记录
+    setNavigationHistory(prev => [...prev, { 
+      wallet: currentRoot, 
+      username: currentRootUser?.username || `User${currentRoot.slice(-4)}`,
+      level: navigationHistory.length + 1,
+      layer: currentLayer
+    }]);
+    
+    // 切换到新的根，显示该会员的第1层
+    setCurrentRoot(memberWallet);
+    setCurrentRootUser({
+      username: `User${memberWallet.slice(-4)}`,
+      currentLevel: 1
+    });
+    setCurrentLayer(1); // 重置到第一层
+    
+    // 如果有外部导航处理器，也调用它
     onNavigateToMember?.(memberWallet);
+  };
+
+  const handleGoBack = () => {
+    if (navigationHistory.length > 0) {
+      const previous = navigationHistory[navigationHistory.length - 1];
+      setCurrentRoot(previous.wallet);
+      setCurrentRootUser({
+        username: previous.username || `User${previous.wallet.slice(-4)}`,
+        currentLevel: 1
+      });
+      setNavigationHistory(prev => prev.slice(0, -1));
+      setCurrentLayer(1);
+    }
+  };
+
+  const handleGoHome = () => {
+    setCurrentRoot(rootWalletAddress);
+    setCurrentRootUser(rootUser);
+    setNavigationHistory([]);
+    setCurrentLayer(1);
   };
 
   const formatWallet = (wallet: string) => {
@@ -190,6 +240,35 @@ const MobileMatrixView: React.FC<MobileMatrixViewProps> = ({
       {/* Root User Info Card */}
       <Card className="bg-gradient-to-br from-black/90 to-gray-900/95 border border-yellow-500/30 shadow-xl shadow-yellow-500/10">
         <CardContent className="p-4">
+          {/* Navigation Controls */}
+          <div className="flex items-center justify-between mb-4">
+            <div className="flex items-center space-x-2">
+              {navigationHistory.length > 0 && (
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={handleGoBack}
+                  className="text-yellow-400 border-yellow-500/50 hover:bg-yellow-500/10 bg-black/20"
+                >
+                  <ChevronLeft className="h-4 w-4 mr-1" />
+                  {t('matrix.previousLayer')}
+                </Button>
+              )}
+              
+              {currentRoot !== rootWalletAddress && (
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={handleGoHome}
+                  className="text-amber-400 border-amber-500/50 hover:bg-amber-500/10 bg-black/20"
+                >
+                  <Home className="h-4 w-4 mr-1" />
+                  {t('matrix.myMatrix')}
+                </Button>
+              )}
+            </div>
+          </div>
+
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
               <div className="w-12 h-12 rounded-full bg-gradient-to-br from-honey to-honey/80 flex items-center justify-center shadow-lg">
@@ -197,14 +276,14 @@ const MobileMatrixView: React.FC<MobileMatrixViewProps> = ({
               </div>
               <div>
                 <div className="text-sm font-semibold text-gray-900 dark:text-gray-100">
-                  {rootUser?.username || t('matrix.myMatrix')}
+                  {currentRootUser?.username || t('matrix.myMatrix')}
                 </div>
                 <div className="text-xs text-gray-600 dark:text-gray-400 font-mono">
-                  {formatWallet(rootWalletAddress)}
+                  {formatWallet(currentRoot)}
                 </div>
-                {rootUser?.currentLevel && (
+                {currentRootUser?.currentLevel && (
                   <Badge className="mt-1 bg-honey text-black text-xs">
-                    {t('matrix.level')} {rootUser.currentLevel}
+                    {t('matrix.level')} {currentRootUser.currentLevel}
                   </Badge>
                 )}
               </div>
@@ -214,6 +293,24 @@ const MobileMatrixView: React.FC<MobileMatrixViewProps> = ({
               <div className="text-xs text-yellow-200/60 dark:text-yellow-200/80">{t('matrix.filled')}</div>
             </div>
           </div>
+
+          {/* Navigation History */}
+          {navigationHistory.length > 0 && (
+            <div className="mt-3 pt-3 border-t border-yellow-500/30">
+              <div className="text-xs text-yellow-400 mb-1">{t('matrix.navigationPath')}:</div>
+              <div className="flex items-center space-x-2 text-xs">
+                <span className="text-yellow-300/70">{t('matrix.myMatrix')}</span>
+                {navigationHistory.map((nav, index) => (
+                  <React.Fragment key={index}>
+                    <span className="text-yellow-400/60">→</span>
+                    <span className="text-amber-400">{nav.username}</span>
+                  </React.Fragment>
+                ))}
+                <span className="text-yellow-400/60">→</span>
+                <span className="text-green-400 font-medium">{t('matrix.current')}</span>
+              </div>
+            </div>
+          )}
         </CardContent>
       </Card>
 

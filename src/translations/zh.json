@@ -1691,6 +1691,8 @@
     "loadingData": "加载矩阵数据...",
     "loadFailed": "加载矩阵数据失败",
     "noData": "无矩阵数据",
+    "navigationPath": "导航路径",
+    "current": "当前",
     "drillDown": {
       "title": "3×3矩阵 - 第1层",
       "loading": "加载矩阵数据...",
