@@ -191,54 +191,38 @@ export function useMatrixChildren(matrixRootWallet: string, parentWallet: string
 // 获取用户完整递归网络成员列表的辅助函数
 async function getUserNetworkMembers(userWallet: string): Promise<string[]> {
   try {
-    // 使用递归CTE查询获取完整网络
-    const { data: networkData, error: networkError } = await supabase.rpc('sql', {
-      query: `
-        WITH RECURSIVE referral_tree AS (
-          SELECT wallet_address, referrer_wallet, 1 as level
-          FROM users 
-          WHERE referrer_wallet = '${userWallet}'
-          
-          UNION ALL
-          
-          SELECT u.wallet_address, u.referrer_wallet, rt.level + 1
-          FROM users u
-          INNER JOIN referral_tree rt ON u.referrer_wallet = rt.wallet_address
-          WHERE rt.level < 10
-        )
-        SELECT rt.wallet_address
-        FROM referral_tree rt
-        INNER JOIN members m ON rt.wallet_address = m.wallet_address
-      `
-    });
+    console.log('🔍 Getting network members for:', userWallet);
     
-    if (networkError) {
-      console.log('RPC query failed, using direct approach');
-      // 回退到简单的直接推荐查询
-      const { data: directReferrals, error: directError } = await supabase
-        .from('users')
-        .select('wallet_address')
-        .eq('referrer_wallet', userWallet);
-        
-      if (directError) {
-        console.error('Error fetching direct referrals:', directError);
-        return [];
-      }
+    // 直接使用简单的推荐查询（移除了有问题的RPC调用）
+    const { data: directReferrals, error: directError } = await supabase
+      .from('users')
+      .select('wallet_address')
+      .eq('referrer_wallet', userWallet);
       
-      const addresses = directReferrals?.map(u => u.wallet_address) || [];
-      
-      // 检查哪些是已激活的成员
-      if (addresses.length === 0) return [];
-      
-      const { data: membersData, error: membersError } = await supabase
-        .from('members')
-        .select('wallet_address')
-        .in('wallet_address', addresses);
-        
-      return membersData?.map(m => m.wallet_address) || [];
+    if (directError) {
+      console.error('Error fetching direct referrals:', directError);
+      return [];
     }
     
-    return networkData?.map((row: any) => row.wallet_address) || [];
+    const addresses = directReferrals?.map(u => u.wallet_address) || [];
+    console.log('📝 Found direct referrals:', addresses.length);
+    
+    // 检查哪些是已激活的成员
+    if (addresses.length === 0) return [];
+    
+    const { data: membersData, error: membersError } = await supabase
+      .from('members')
+      .select('wallet_address')
+      .in('wallet_address', addresses);
+      
+    if (membersError) {
+      console.error('Error checking member status:', membersError);
+      return addresses; // 如果检查失败，返回所有推荐用户
+    }
+    
+    const activeMembers = membersData?.map(m => m.wallet_address) || [];
+    console.log('✅ Active members found:', activeMembers.length);
+    return activeMembers;
   } catch (error) {
     console.error('Error in getUserNetworkMembers:', error);
     return [];
