@@ -229,17 +229,20 @@ async function getUserNetworkMembers(userWallet: string): Promise<string[]> {
   }
 }
 
-// 主要的分层矩阵显示hook - 显示以用户为根的矩阵成员
-export function useLayeredMatrix(userWallet: string, targetLayer: number = 1) {
+// 主要的分层矩阵显示hook - 显示指定节点的子节点
+export function useLayeredMatrix(currentViewWallet: string, targetLayer: number = 1, originalRootWallet?: string) {
   return useQuery({
-    queryKey: ['layered-matrix-root', userWallet, targetLayer],
+    queryKey: ['layered-matrix-root', currentViewWallet, targetLayer, originalRootWallet],
     queryFn: async () => {
-      if (!userWallet) throw new Error('No user wallet');
+      if (!currentViewWallet) throw new Error('No current view wallet');
       
-      console.log('🔍 Getting matrix data for root wallet:', userWallet, 'layer:', targetLayer);
+      console.log('🔍 Getting matrix data for current view wallet:', currentViewWallet, 'layer:', targetLayer, 'original root:', originalRootWallet);
       
       try {
-        // 直接查询以该钱包为根的矩阵成员（使用referrals表）
+        // 确定矩阵根钱包
+        const matrixRootWallet = originalRootWallet || currentViewWallet;
+        
+        // 查询该节点的直接子节点（不管层级，直接按referrer_wallet查找）
         const { data: matrixData, error: matrixError } = await supabase
           .from('referrals')
           .select(`
@@ -251,20 +254,19 @@ export function useLayeredMatrix(userWallet: string, targetLayer: number = 1) {
             is_direct_referral,
             is_spillover_placement,
             placed_at,
-            member_activation_sequence
+            matrix_activation_sequence
           `)
-          .eq('matrix_root_wallet', userWallet)
-          .eq('matrix_layer', targetLayer)
-          .order('member_activation_sequence');
+          .eq('matrix_root_wallet', matrixRootWallet)
+          .eq('referrer_wallet', currentViewWallet)
+          .order('matrix_activation_sequence');
           
         if (matrixError) {
           console.error('❌ Error fetching matrix data:', matrixError);
           throw matrixError;
         }
         
-        console.log(`📊 Matrix layer ${targetLayer} data for wallet ${userWallet}:`, matrixData);
-        console.log(`🔢 Found ${matrixData?.length || 0} members in layer ${targetLayer}`);
-
+        console.log(`📊 Direct children of ${currentViewWallet} in matrix ${matrixRootWallet}:`, matrixData);
+        
         // 获取用户信息
         const memberWallets = matrixData?.map(m => m.member_wallet) || [];
         let usersData = [];
@@ -280,7 +282,7 @@ export function useLayeredMatrix(userWallet: string, targetLayer: number = 1) {
           }
         }
 
-        // 组织成标准3x3格式
+        // 组织成标准3x3格式 - 按matrix_position分配
         const matrixPositions = ['L', 'M', 'R'];
         
         const matrix3x3 = matrixPositions.map(position => {
@@ -307,15 +309,19 @@ export function useLayeredMatrix(userWallet: string, targetLayer: number = 1) {
               username: userData?.username || `User${member.member_wallet.slice(-4)}`,
               isActivated: true,
               isDirect: member.is_direct_referral,
-              isSpillover: member.is_spillover_placement
+              isSpillover: member.is_spillover_placement,
+              // 添加子节点状态检查
+              hasChildInL: false, // TODO: 可以后续查询
+              hasChildInM: false,
+              hasChildInR: false
             }
           };
         });
 
-        console.log(`📊 Organized user network layer ${targetLayer} matrix 3x3:`, matrix3x3);
+        console.log(`📊 Organized matrix 3x3 for ${currentViewWallet}:`, matrix3x3);
 
         return {
-          matrixRootWallet: userWallet,
+          matrixRootWallet: currentViewWallet,
           targetLayer,
           layer1Matrix: matrix3x3, // 保持兼容性
           totalLayer1Members: matrixData?.length || 0,
@@ -329,7 +335,7 @@ export function useLayeredMatrix(userWallet: string, targetLayer: number = 1) {
         throw error;
       }
     },
-    enabled: !!userWallet,
+    enabled: !!currentViewWallet,
     staleTime: 5000,
     refetchInterval: 15000,
   });

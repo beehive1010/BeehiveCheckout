@@ -52,9 +52,10 @@ const InteractiveMatrixView: React.FC<InteractiveMatrixViewProps> = ({
   const [maxAvailableLayer, setMaxAvailableLayer] = useState<number>(1);
   const [navigationHistory, setNavigationHistory] = useState<NavigationHistory[]>([]);
   const [currentRootUser, setCurrentRootUser] = useState(rootUser);
+  const [originalRoot] = useState<string>(rootWalletAddress); // 保持原始根节点引用
 
   // 使用更新后的hook获取当前root的矩阵数据
-  const { data: matrixData, isLoading, error } = useLayeredMatrix(currentRoot, currentLayer);
+  const { data: matrixData, isLoading, error } = useLayeredMatrix(currentRoot, currentLayer, originalRoot);
 
   // 简化的层级检查 - 根据matrixData动态判断
   useEffect(() => {
