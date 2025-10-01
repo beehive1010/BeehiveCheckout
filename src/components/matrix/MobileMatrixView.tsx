@@ -36,6 +36,8 @@ interface MatrixNodeProps {
 }
 
 const MatrixNode: React.FC<MatrixNodeProps> = ({ position, member, onTap }) => {
+  const { t } = useI18n();
+  
   if (!member) {
     return (
       <div className="aspect-square bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-800 dark:to-gray-900 border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-2xl flex flex-col items-center justify-center p-3 transition-all">
