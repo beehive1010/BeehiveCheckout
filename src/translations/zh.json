@@ -1690,6 +1690,51 @@
     "waitingToJoin": "等待加入",
     "loadingData": "加载矩阵数据...",
     "loadFailed": "加载矩阵数据失败",
-    "noData": "无矩阵数据"
+    "noData": "无矩阵数据",
+    "drillDown": {
+      "title": "3×3矩阵 - 第1层",
+      "loading": "加载矩阵数据...",
+      "noData": "无矩阵数据",
+      "rootNode": "根节点",
+      "rootNodeTitle": "矩阵根节点",
+      "upline": "上级",
+      "uplineTitle": "上级推荐人",
+      "emptySlot": "空位",
+      "directReferral": "直推",
+      "spillover": "溢出",
+      "expand": "展开",
+      "collapse": "收起",
+      "loadingChildren": "加载子成员...",
+      "loadingFailed": "加载失败",
+      "noChildren": "暂无子成员",
+      "childrenTitle": "子矩阵",
+      "childrenCount": "({count}/3)",
+      "explanation": {
+        "title": "3×3矩阵结构说明",
+        "rootPosition": "中心位置显示矩阵根节点（ROOT）- 您的位置",
+        "lmrPositions": "L（左）、M（下）、R（右）三个位置围绕根节点",
+        "expandFeature": "点击有子级的成员可展开查看其3×3子矩阵",
+        "spilloverLogic": "当第1层满员时，新成员将溢出到子级",
+        "layeredDisplay": "分层显示避免空隙并保持清晰的父子关系"
+      },
+      "positions": {
+        "left": "左",
+        "middle": "中",
+        "right": "右"
+      }
+    },
+    "ui": {
+      "showAllLayers": "显示全部19层",
+      "showLess": "显示更少",
+      "unknown": "未知"
+    },
+    "errors": {
+      "copyFailed": "复制链接失败",
+      "loadFailed": "加载矩阵数据失败",
+      "loadLayerStatsFailed": "加载层级统计失败",
+      "loadMatrixStatsFailed": "加载矩阵统计失败", 
+      "loadRecursiveMatrixFailed": "加载递归矩阵数据失败",
+      "loadTreeDataFailed": "加载矩阵树数据失败"
+    }
   }
 }

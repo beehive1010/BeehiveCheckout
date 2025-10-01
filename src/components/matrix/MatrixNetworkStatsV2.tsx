@@ -3,7 +3,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Users, TrendingUp, Activity, Layers, Target, Crown, ArrowUpRight, Loader2 } from 'lucide-react';
-import { useI18n } from '@/contexts/I18nContext';
+import { useI18n } from '../../contexts/I18nContext';
 
 interface MatrixNetworkStatsV2Props {
   walletAddress: string;

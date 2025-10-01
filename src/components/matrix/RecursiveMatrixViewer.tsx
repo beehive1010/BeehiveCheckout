@@ -4,7 +4,7 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { ChevronLeft, ChevronRight, Users, Target, Network, ArrowDown, ArrowRight } from 'lucide-react';
 // import { matrixService } from '@/lib/supabaseClient'; // Removed - now using direct API calls
-import { useI18n } from '@/contexts/I18nContext';
+import { useI18n } from '../../contexts/I18nContext';
 
 interface MatrixMember {
   walletAddress: string;

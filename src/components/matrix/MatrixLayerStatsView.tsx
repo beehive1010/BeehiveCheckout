@@ -5,7 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
 import { ChevronUp, ChevronDown, Users, Trophy, Target, Layers, CheckCircle } from 'lucide-react';
 import { supabase } from '../../lib/supabase';
-import { useI18n } from '@/contexts/I18nContext';
+import { useI18n } from '../../contexts/I18nContext';
 
 interface LayerStatsData {
   layer: number;

@@ -4,7 +4,7 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { ChevronLeft, ChevronRight, Users, Trophy, Target, Layers } from 'lucide-react';
 import { supabase } from '../../lib/supabase';
-import { useI18n } from '@/contexts/I18nContext';
+import { useI18n } from '../../contexts/I18nContext';
 
 interface LayerStats {
   layer: number;

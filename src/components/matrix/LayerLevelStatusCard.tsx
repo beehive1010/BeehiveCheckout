@@ -5,7 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
 import { Trophy, Target, Clock, Coins, Info } from 'lucide-react';
 import { supabase } from '../../lib/supabase';
-import { useI18n } from '@/contexts/I18nContext';
+import { useI18n } from '../../contexts/I18nContext';
 
 interface LayerLevelStatus {
   matrix_root: string;
