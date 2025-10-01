@@ -139,7 +139,7 @@ const InteractiveMatrixView: React.FC<InteractiveMatrixViewProps> = ({
         {/* 成员卡片或空位 */}
         {member ? (
           <div 
-            className="w-full max-w-sm bg-gradient-to-br from-gray-50/50 to-gray-100/50 rounded-lg border-2 border-gray-300/30 hover:border-purple-400/50 hover:shadow-lg hover:scale-105 transition-all duration-300 cursor-pointer group"
+            className="w-full max-w-sm bg-gradient-to-br from-gray-900/80 to-black/90 rounded-lg border-2 border-yellow-500/30 hover:border-yellow-400/70 hover:shadow-xl hover:shadow-yellow-500/20 hover:scale-105 transition-all duration-300 cursor-pointer group"
             onClick={() => handleNavigateToMember(member.wallet, member)}
           >
             {/* 卡片头部 */}
@@ -151,15 +151,15 @@ const InteractiveMatrixView: React.FC<InteractiveMatrixViewProps> = ({
                       <ArrowUpRight className="h-4 w-4 text-green-400" />
                     </div>
                   ) : member.type === 'is_spillover' ? (
-                    <div className="p-1 bg-blue-100 rounded-full">
-                      <ArrowDownLeft className="h-4 w-4 text-blue-400" />
+                    <div className="p-1 bg-gradient-to-br from-amber-500/20 to-yellow-500/30 border border-amber-500/50 rounded-full">
+                      <ArrowDownLeft className="h-4 w-4 text-amber-400" />
                     </div>
                   ) : (
-                    <div className="p-1 bg-gray-100 rounded-full">
-                      <Target className="h-4 w-4 text-gray-600" />
+                    <div className="p-1 bg-gradient-to-br from-yellow-500/20 to-amber-500/30 border border-yellow-500/50 rounded-full">
+                      <Target className="h-4 w-4 text-yellow-400" />
                     </div>
                   )}
-                  <User className="h-5 w-5 text-gray-600" />
+                  <User className="h-5 w-5 text-yellow-400" />
                 </div>
                 <Badge 
                   variant={member.type === 'is_direct' ? "default" : "secondary"}
@@ -171,7 +171,7 @@ const InteractiveMatrixView: React.FC<InteractiveMatrixViewProps> = ({
                         : 'bg-gray-100 text-gray-800 border-gray-300'
                   }`}
                 >
-                  {member.type === 'is_direct' ? '直推' : member.type === 'is_spillover' ? '滑落' : '其他'}
+                  {member.type === 'is_direct' ? t('matrix.directReferral') : member.type === 'is_spillover' ? t('matrix.spillover') : t('matrix.other')}
                 </Badge>
               </div>
 
@@ -277,27 +277,27 @@ const InteractiveMatrixView: React.FC<InteractiveMatrixViewProps> = ({
   const rightMember = matrixData.currentLayerMatrix?.find(n => n.position === 'R')?.member || null;
 
   return (
-    <Card className="bg-gradient-to-br from-gray-900/5 to-gray-900/10 border border-gray-500/20">
+    <Card className="bg-gradient-to-br from-black/90 to-gray-900/95 border border-yellow-500/30 text-white">
       <CardHeader>
         <CardTitle className="flex items-center justify-between">
           <div className="flex items-center space-x-3">
-            <div className="p-2 bg-gradient-to-br from-purple-500/10 to-purple-500/20 rounded-lg border border-purple-500/30">
-              <Users className="h-6 w-6 text-purple-400" />
+            <div className="p-2 bg-gradient-to-br from-yellow-500/20 to-amber-500/30 rounded-lg border border-yellow-500/50">
+              <Users className="h-6 w-6 text-yellow-400" />
             </div>
             <div>
-              <h2 className="text-xl font-bold text-gray-800">交互式矩阵视图</h2>
-              <p className="text-sm text-gray-600">点击任意成员查看其子网络</p>
+              <h2 className="text-xl font-bold text-yellow-400">{t('matrix.interactiveView.title')}</h2>
+              <p className="text-sm text-yellow-200/80">{t('matrix.interactiveView.subtitle')}</p>
             </div>
           </div>
           <div className="flex items-center space-x-2">
-            <Badge variant="outline" className="bg-gradient-to-br from-blue-500/10 to-blue-500/20 text-blue-400 border-blue-500/30">
-              第 {currentLayer} 层
+            <Badge variant="outline" className="bg-gradient-to-br from-yellow-500/20 to-amber-500/30 text-yellow-400 border-yellow-500/50">
+              {t('matrix.layer')} {currentLayer}
             </Badge>
-            <Badge variant="outline" className="bg-gradient-to-br from-green-500/10 to-green-500/20 text-green-400 border-green-500/30">
-              {matrixData?.totalCurrentLayerMembers || 0}/3 已填满
+            <Badge variant="outline" className="bg-gradient-to-br from-amber-500/20 to-orange-500/30 text-amber-400 border-amber-500/50">
+              {matrixData?.totalCurrentLayerMembers || 0}/3 {t('matrix.filled')}
             </Badge>
-            <Badge variant="outline" className="bg-gradient-to-br from-purple-500/10 to-purple-500/20 text-purple-400 border-purple-500/30">
-              最大 {maxAvailableLayer} 层
+            <Badge variant="outline" className="bg-gradient-to-br from-yellow-600/20 to-yellow-500/30 text-yellow-300 border-yellow-500/50">
+              {t('matrix.maxLayer')} {maxAvailableLayer}
             </Badge>
           </div>
         </CardTitle>

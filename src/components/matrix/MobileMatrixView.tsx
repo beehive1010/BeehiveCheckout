@@ -43,23 +43,23 @@ const MatrixNode: React.FC<MatrixNodeProps> = ({ position, member, onTap }) => {
           <User className="w-4 h-4 text-gray-400" />
         </div>
         <div className="text-xs font-semibold text-gray-500 dark:text-gray-400 mb-1">{position}</div>
-        <div className="text-xs text-gray-400 dark:text-gray-500">待加入</div>
+        <div className="text-xs text-gray-400 dark:text-gray-500">{t('matrix.waitingToJoin')}</div>
       </div>
     );
   }
 
   const isSpillover = member.type === 'is_spillover' || member.type !== 'is_direct';
   const avatarColors = isSpillover 
-    ? 'from-blue-500 to-blue-600' 
-    : 'from-green-500 to-green-600';
+    ? 'from-amber-500 to-yellow-600' 
+    : 'from-yellow-500 to-amber-600';
   
   return (
     <div 
       className={`aspect-square bg-gradient-to-br ${
         isSpillover 
-          ? 'from-blue-500/10 to-blue-500/20 dark:from-blue-500/10 dark:to-blue-500/20 border-blue-500/30 dark:border-blue-500/30' 
-          : 'from-green-50 to-green-100 dark:from-green-900/20 dark:to-green-800/20 border-green-200 dark:border-green-700'
-      } border-2 rounded-2xl flex flex-col items-center justify-center p-3 transition-all hover:scale-105 active:scale-95 cursor-pointer`}
+          ? 'from-amber-500/20 to-yellow-500/30 border-amber-500/50' 
+          : 'from-yellow-500/20 to-amber-500/30 border-yellow-500/50'
+      } border-2 rounded-2xl flex flex-col items-center justify-center p-3 transition-all hover:scale-105 hover:shadow-lg hover:shadow-yellow-500/20 active:scale-95 cursor-pointer bg-black/80`}
       onClick={() => onTap?.(member.wallet)}
     >
       {/* Avatar */}
@@ -121,13 +121,13 @@ const MobileMatrixView: React.FC<MobileMatrixViewProps> = ({
 
   if (isLoading) {
     return (
-      <Card className="bg-white dark:bg-gray-900 border-0 shadow-lg">
+      <Card className="bg-gradient-to-br from-black/90 to-gray-900/95 border border-yellow-500/30 shadow-xl shadow-yellow-500/10">
         <CardContent className="p-6">
           <div className="text-center py-12">
             <div className="w-12 h-12 rounded-full bg-gradient-to-br from-honey to-honey/80 mx-auto mb-4 flex items-center justify-center animate-pulse">
               <Users className="w-6 h-6 text-white" />
             </div>
-            <div className="text-sm text-gray-600 dark:text-gray-400">加载矩阵数据中...</div>
+            <div className="text-sm text-yellow-200 dark:text-yellow-300">{t('matrix.loadingData')}</div>
           </div>
         </CardContent>
       </Card>
@@ -136,13 +136,13 @@ const MobileMatrixView: React.FC<MobileMatrixViewProps> = ({
 
   if (error) {
     return (
-      <Card className="bg-white dark:bg-gray-900 border-0 shadow-lg">
+      <Card className="bg-gradient-to-br from-black/90 to-gray-900/95 border border-yellow-500/30 shadow-xl shadow-yellow-500/10">
         <CardContent className="p-6">
           <div className="text-center py-12">
             <div className="w-12 h-12 rounded-full bg-red-100 dark:bg-red-900/30 mx-auto mb-4 flex items-center justify-center">
               <User className="w-6 h-6 text-red-500" />
             </div>
-            <div className="text-sm text-red-600 dark:text-red-400 mb-2">加载失败</div>
+            <div className="text-sm text-red-400 dark:text-red-300 mb-2">{t('matrix.loadFailed')}</div>
             <div className="text-xs text-gray-500 dark:text-gray-400">{error.message}</div>
           </div>
         </CardContent>
@@ -152,13 +152,13 @@ const MobileMatrixView: React.FC<MobileMatrixViewProps> = ({
 
   if (!matrixData) {
     return (
-      <Card className="bg-white dark:bg-gray-900 border-0 shadow-lg">
+      <Card className="bg-gradient-to-br from-black/90 to-gray-900/95 border border-yellow-500/30 shadow-xl shadow-yellow-500/10">
         <CardContent className="p-6">
           <div className="text-center py-12">
             <div className="w-12 h-12 rounded-full bg-gray-100 dark:bg-gray-800 mx-auto mb-4 flex items-center justify-center">
               <Users className="w-6 h-6 text-gray-400" />
             </div>
-            <div className="text-sm text-gray-600 dark:text-gray-400">暂无矩阵数据</div>
+            <div className="text-sm text-yellow-200 dark:text-yellow-300">{t('matrix.noData')}</div>
           </div>
         </CardContent>
       </Card>
@@ -171,22 +171,22 @@ const MobileMatrixView: React.FC<MobileMatrixViewProps> = ({
   return (
     <div className="space-y-4">
       {/* Header Card */}
-      <Card className="bg-gradient-to-r from-honey/10 to-honey/5 border-honey/20 shadow-lg">
+      <Card className="bg-gradient-to-r from-yellow-500/20 to-amber-500/10 border border-yellow-500/40 shadow-xl shadow-yellow-500/20">
         <CardHeader className="pb-3">
           <CardTitle className="flex items-center justify-between text-lg">
             <div className="flex items-center gap-2">
-              <Crown className="w-5 h-5 text-honey" />
-              <span className="text-gray-900 dark:text-gray-100">矩阵视图</span>
+              <Crown className="w-5 h-5 text-yellow-400" />
+              <span className="text-yellow-400 dark:text-yellow-300">{t('matrix.matrixView')}</span>
             </div>
-            <Badge className="bg-honey text-black font-semibold">
-              第{currentLayer}层
+            <Badge className="bg-yellow-500 text-black font-semibold">
+              {t('matrix.layer')} {currentLayer}
             </Badge>
           </CardTitle>
         </CardHeader>
       </Card>
 
       {/* Root User Info Card */}
-      <Card className="bg-white dark:bg-gray-900 border-0 shadow-lg">
+      <Card className="bg-gradient-to-br from-black/90 to-gray-900/95 border border-yellow-500/30 shadow-xl shadow-yellow-500/10">
         <CardContent className="p-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
@@ -195,28 +195,28 @@ const MobileMatrixView: React.FC<MobileMatrixViewProps> = ({
               </div>
               <div>
                 <div className="text-sm font-semibold text-gray-900 dark:text-gray-100">
-                  {rootUser?.username || '我的矩阵'}
+                  {rootUser?.username || t('matrix.myMatrix')}
                 </div>
                 <div className="text-xs text-gray-600 dark:text-gray-400 font-mono">
                   {formatWallet(rootWalletAddress)}
                 </div>
                 {rootUser?.currentLevel && (
                   <Badge className="mt-1 bg-honey text-black text-xs">
-                    等级 {rootUser.currentLevel}
+                    {t('matrix.level')} {rootUser.currentLevel}
                   </Badge>
                 )}
               </div>
             </div>
             <div className="text-right">
               <div className="text-lg font-bold text-honey">{totalMembers}/3</div>
-              <div className="text-xs text-gray-500 dark:text-gray-400">已填满</div>
+              <div className="text-xs text-yellow-200/60 dark:text-yellow-200/80">{t('matrix.filled')}</div>
             </div>
           </div>
         </CardContent>
       </Card>
 
       {/* Layer Navigation */}
-      <Card className="bg-white dark:bg-gray-900 border-0 shadow-lg">
+      <Card className="bg-gradient-to-br from-black/90 to-gray-900/95 border border-yellow-500/30 shadow-xl shadow-yellow-500/10">
         <CardContent className="p-4">
           <div className="flex items-center justify-between mb-4">
             <Button
@@ -227,13 +227,13 @@ const MobileMatrixView: React.FC<MobileMatrixViewProps> = ({
               className="h-10 px-4 border-gray-200 dark:border-gray-700"
             >
               <ChevronLeft className="h-4 w-4 mr-1" />
-              上一层
+              {t('matrix.previousLayer')}
             </Button>
             
             <div className="flex items-center gap-2">
               <Layers className="w-4 h-4 text-honey" />
               <span className="text-sm font-medium text-gray-700 dark:text-gray-300">
-                第 {currentLayer} 层
+                {t('matrix.layer')} {currentLayer}
               </span>
             </div>
             
@@ -244,7 +244,7 @@ const MobileMatrixView: React.FC<MobileMatrixViewProps> = ({
               disabled={currentLayer >= 19}
               className="h-10 px-4 border-gray-200 dark:border-gray-700"
             >
-              下一层
+              {t('matrix.nextLayer')}
               <ChevronRight className="h-4 w-4 ml-1" />
             </Button>
           </div>
@@ -271,7 +271,7 @@ const MobileMatrixView: React.FC<MobileMatrixViewProps> = ({
       </Card>
 
       {/* Matrix Grid */}
-      <Card className="bg-white dark:bg-gray-900 border-0 shadow-lg">
+      <Card className="bg-gradient-to-br from-black/90 to-gray-900/95 border border-yellow-500/30 shadow-xl shadow-yellow-500/10">
         <CardContent className="p-6">
           <div className="grid grid-cols-3 gap-4 mb-6">
             {['L', 'M', 'R'].map(position => {
@@ -291,15 +291,15 @@ const MobileMatrixView: React.FC<MobileMatrixViewProps> = ({
           <div className="grid grid-cols-3 gap-3 pt-4 border-t border-gray-100 dark:border-gray-800">
             <div className="text-center">
               <div className="text-lg font-bold text-green-500">{currentMatrix.filter(n => n.member?.type !== 'is_spillover').length}</div>
-              <div className="text-xs text-gray-500 dark:text-gray-400">直推</div>
+              <div className="text-xs text-yellow-200/60 dark:text-yellow-200/80">{t('matrix.directReferral')}</div>
             </div>
             <div className="text-center">
               <div className="text-lg font-bold text-blue-400">{currentMatrix.filter(n => n.member?.type === 'is_spillover').length}</div>
-              <div className="text-xs text-gray-500 dark:text-gray-400">滑落</div>
+              <div className="text-xs text-yellow-200/60 dark:text-yellow-200/80">{t('matrix.spillover')}</div>
             </div>
             <div className="text-center">
               <div className="text-lg font-bold text-gray-500">{3 - totalMembers}</div>
-              <div className="text-xs text-gray-500 dark:text-gray-400">空位</div>
+              <div className="text-xs text-yellow-200/60 dark:text-yellow-200/80">{t('matrix.emptySlot')}</div>
             </div>
           </div>
         </CardContent>
@@ -308,19 +308,19 @@ const MobileMatrixView: React.FC<MobileMatrixViewProps> = ({
       {/* Legend */}
       <Card className="bg-gray-50 dark:bg-gray-800/50 border-0">
         <CardContent className="p-4">
-          <div className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-3">图例说明</div>
+          <div className="text-sm font-medium text-yellow-400 dark:text-yellow-300 mb-3">{t('matrix.legend')}</div>
           <div className="space-y-2 text-xs">
             <div className="flex items-center gap-2">
               <ArrowUpRight className="h-3 w-3 text-green-500" />
-              <span className="text-gray-600 dark:text-gray-400"><strong>直推</strong>：通过您的邀请链接直接注册</span>
+              <span className="text-yellow-200/80 dark:text-yellow-200/90"><strong>{t('matrix.directReferral')}</strong>: {t('matrix.directReferralDesc')}</span>
             </div>
             <div className="flex items-center gap-2">
               <ArrowDownLeft className="h-3 w-3 text-blue-400" />
-              <span className="text-gray-600 dark:text-gray-400"><strong>滑落</strong>：由于位置已满自动分配到您的矩阵</span>
+              <span className="text-yellow-200/80 dark:text-yellow-200/90"><strong>{t('matrix.spillover')}</strong>: {t('matrix.spilloverDesc')}</span>
             </div>
             <div className="flex items-center gap-2">
               <User className="h-3 w-3 text-gray-400" />
-              <span className="text-gray-600 dark:text-gray-400"><strong>空位</strong>：等待新成员加入</span>
+              <span className="text-yellow-200/80 dark:text-yellow-200/90"><strong>{t('matrix.emptySlot')}</strong>: {t('matrix.emptySlotDesc')}</span>
             </div>
           </div>
         </CardContent>
