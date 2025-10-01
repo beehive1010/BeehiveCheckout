@@ -3787,7 +3787,59 @@
       "spilloverDesc": "Members placed by upline spillover",
       "waitingToJoin": "Waiting to join",
       "loadingData": "Loading matrix data...",
-      "noData": "No matrix data available"
+      "noData": "No matrix data available",
+      "drillDown": {
+        "title": "3×3 Matrix - Layer 1",
+        "loading": "Loading matrix data...",
+        "noData": "No matrix data",
+        "rootNode": "Root Node",
+        "rootNodeTitle": "Matrix Root Node", 
+        "upline": "Upline",
+        "uplineTitle": "Upline Referrer",
+        "emptySlot": "Empty Slot",
+        "directReferral": "Direct Referral",
+        "spillover": "Spillover",
+        "expand": "Expand",
+        "collapse": "Collapse",
+        "loadingChildren": "Loading children...",
+        "loadingFailed": "Loading failed",
+        "noChildren": "No children yet",
+        "childrenTitle": "Sub Matrix",
+        "childrenCount": "({count}/3)",
+        "explanation": {
+          "title": "3×3 Matrix Structure Explanation",
+          "rootPosition": "Center position shows matrix root node (ROOT) - Your position",
+          "lmrPositions": "L (Left), M (Middle), R (Right) three positions surround root node",
+          "expandFeature": "Click members with children to expand and view their 3×3 sub-matrix",
+          "spilloverLogic": "When layer 1 is full, new members will spillover to sublevel",
+          "layeredDisplay": "Layered display avoids gaps and maintains clear parent-child relationships"
+        },
+        "positions": {
+          "left": "Left",
+          "middle": "Middle", 
+          "right": "Right"
+        }
+      },
+      "ui": {
+        "showAllLayers": "Show All 19 Layers",
+        "showLess": "Show Less",
+        "unknown": "Unknown"
+      },
+      "errors": {
+        "copyFailed": "Failed to copy link",
+        "loadFailed": "Failed to load matrix data",
+        "loadLayerStatsFailed": "Failed to load layer statistics",
+        "loadMatrixStatsFailed": "Failed to load matrix statistics",
+        "loadRecursiveMatrixFailed": "Failed to load recursive matrix data", 
+        "loadTreeDataFailed": "Failed to load matrix tree data"
+      },
+      "navigation": {
+        "home": "Home",
+        "features": "Features", 
+        "howItWorks": "How It Works",
+        "education": "Education",
+        "getStarted": "Get Started"
+      }
     },
     "rewards": {
       "actions": {

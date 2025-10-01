@@ -290,6 +290,45 @@ serve(async (req) => {
     // Matrix placement was already done in Step 5
     let matrixResult = referralRecord;
 
+    // Step 6: Process direct referral reward for Level 1 activation
+    let directReferralRewardResult = null;
+    if (level === 1 && normalizedReferrerWallet && normalizedReferrerWallet !== '0x0000000000000000000000000000000000000001') {
+      try {
+        console.log(`💰 Processing direct referral reward for Level 1 activation...`);
+        console.log(`🎯 Reward will be sent to referrer: ${normalizedReferrerWallet}`);
+        console.log(`🎯 Reward amount: 100 USDC (Level 1 NFT base price)`);
+
+        // Level 1 activation triggers direct_referral_reward
+        const { data: rewardData, error: rewardError } = await supabase.rpc('trigger_direct_referral_rewards', {
+          p_upgrading_member_wallet: walletAddress,
+          p_new_level: level,
+          p_nft_price: 100 // Level 1 NFT base price without platform fee
+        });
+
+        if (rewardError) {
+          console.warn('⚠️ Direct referral reward creation failed:', rewardError);
+        } else {
+          console.log(`✅ Direct referral reward triggered for Level 1 activation:`, rewardData);
+          directReferralRewardResult = rewardData;
+        }
+
+        // Verify direct referral reward was created
+        const { data: createdRewards, error: checkError } = await supabase
+          .from('direct_referral_rewards')
+          .select('id, referrer_wallet, reward_amount, reward_status')
+          .ilike('referred_member_wallet', walletAddress)
+          .eq('level', level);
+
+        if (!checkError && createdRewards && createdRewards.length > 0) {
+          console.log(`✅ Verified direct referral reward created for Level 1:`,
+            createdRewards.map(r => `${r.referrer_wallet}: ${r.reward_amount} USDC (${r.reward_status})`));
+        }
+
+      } catch (directRewardErr) {
+        console.warn('⚠️ Direct referral reward error (non-critical):', directRewardErr);
+      }
+    }
+
     // Return success response
     const responseData = {
       success: true,
@@ -300,6 +339,7 @@ serve(async (req) => {
         member: memberRecord,
         referral: referralRecord,
         matrixPlacement: matrixResult,
+        directReferralReward: directReferralRewardResult,
         transactionHash,
         level,
         walletAddress,
@@ -308,7 +348,8 @@ serve(async (req) => {
           membershipCreated: !!membership,
           memberRecordCreated: !!memberRecord,
           referralRecorded: !!referralRecord,
-          matrixPlaced: !!matrixResult
+          matrixPlaced: !!matrixResult,
+          directReferralRewardProcessed: !!directReferralRewardResult
         }
       },
       transactionHash

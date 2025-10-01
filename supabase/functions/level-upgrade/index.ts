@@ -371,9 +371,11 @@ async function processLevelUpgrade(
       try {
         // For Level 2-19 upgrades, trigger layer rewards to matrix_root members
         // Reward amount = NFT price of the target level
+        // The getNftPrice function to get reward amounts (base NFT prices without platform fees)
         const getNftPrice = (lvl) => {
           const prices = {
-            1: 100, 2: 150, 3: 200, 4: 250, 5: 300, 6: 350, 7: 400, 8: 450, 9: 500,
+            1: 100,   // Level 1: 100 USDC (base price, excludes 30 USDC platform fee)
+            2: 150, 3: 200, 4: 250, 5: 300, 6: 350, 7: 400, 8: 450, 9: 500,
             10: 550, 11: 600, 12: 650, 13: 700, 14: 750, 15: 800, 16: 850, 17: 900, 18: 950, 19: 1000
           };
           return prices[lvl] || (lvl <= 19 ? 100 + (lvl - 1) * 50 : 0);
@@ -416,14 +418,14 @@ async function processLevelUpgrade(
 
         // Additional check: Verify layer rewards were created
         const { data: createdLayerRewards, error: checkError } = await supabase
-          .from('matrix_layer_rewards')
-          .select('id, matrix_layer, matrix_root_wallet, reward_amount, reward_status')
-          .ilike('rewarded_member_wallet', walletAddress)
-          .eq('matrix_layer', targetLevel);
+          .from('layer_rewards')
+          .select('id, matrix_layer, matrix_root_wallet, reward_amount, status')
+          .ilike('triggering_member_wallet', walletAddress)
+          .eq('triggering_nft_level', targetLevel);
 
         if (!checkError && createdLayerRewards && createdLayerRewards.length > 0) {
           console.log(`✅ Verified ${createdLayerRewards.length} layer rewards created for Level ${targetLevel}:`,
-            createdLayerRewards.map(r => `${r.matrix_root_wallet}: ${r.reward_amount} USDC (${r.reward_status})`));
+            createdLayerRewards.map(r => `${r.matrix_root_wallet}: ${r.reward_amount} USDC (${r.status})`));
         } else if (!checkError && (!createdLayerRewards || createdLayerRewards.length === 0)) {
           console.warn(`⚠️ No layer rewards found after Level ${targetLevel} upgrade - may indicate missing matrix members at this layer`);
         }
