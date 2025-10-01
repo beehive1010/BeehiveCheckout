@@ -369,6 +369,7 @@ const OriginalMatrixView: React.FC<{
 const MatrixTestPage: React.FC = () => {
   const [currentWallet, setCurrentWallet] = useState<string>('0x0F5adA73e94867a678347D6c2284dBa565489183');
   const [viewMode, setViewMode] = useState<'simple' | 'advanced'>('simple');
+  const [navigationHistory, setNavigationHistory] = useState<string[]>(['0x0F5adA73e94867a678347D6c2284dBa565489183']);
   
   // Use same user data connection as other components
   const { walletAddress, isConnected } = useWeb3();
@@ -409,6 +410,33 @@ const MatrixTestPage: React.FC = () => {
     }
   }, [walletAddress, currentWallet]);
 
+  // 导航功能
+  const navigateToMember = (memberWallet: string) => {
+    if (memberWallet !== currentWallet) {
+      // 添加到导航历史
+      setNavigationHistory(prev => [...prev, memberWallet]);
+      setCurrentWallet(memberWallet);
+      console.log('🔄 Navigating to member:', memberWallet, 'History:', [...navigationHistory, memberWallet]);
+    }
+  };
+
+  const navigateBack = () => {
+    if (navigationHistory.length > 1) {
+      const newHistory = navigationHistory.slice(0, -1);
+      const previousWallet = newHistory[newHistory.length - 1];
+      setNavigationHistory(newHistory);
+      setCurrentWallet(previousWallet);
+      console.log('⬅️ Navigating back to:', previousWallet, 'History:', newHistory);
+    }
+  };
+
+  const resetToRoot = () => {
+    const rootWallet = navigationHistory[0];
+    setNavigationHistory([rootWallet]);
+    setCurrentWallet(rootWallet);
+    console.log('🏠 Reset to root:', rootWallet);
+  };
+
   // Define currentUser for InteractiveMatrixView
   const currentUser = {
     username: userStatus?.username || '测试用户',
@@ -440,6 +468,59 @@ const MatrixTestPage: React.FC = () => {
                 <CardTitle>矩阵排位查询设置</CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
+                {/* 导航控制 */}
+                {navigationHistory.length > 1 && (
+                  <div className="p-3 bg-blue-50 rounded border border-blue-200">
+                    <div className="text-sm font-medium text-blue-800 mb-2">🧭 矩阵导航</div>
+                    <div className="space-y-2">
+                      <div className="text-xs text-blue-700">
+                        当前位置: {formatWallet(currentWallet)}
+                      </div>
+                      <div className="text-xs text-blue-600">
+                        导航层级: {navigationHistory.length} 层深
+                      </div>
+                      <div className="flex gap-2">
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          onClick={navigateBack}
+                          disabled={navigationHistory.length <= 1}
+                          className="flex-1 text-xs"
+                        >
+                          ⬅️ 返回上层
+                        </Button>
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          onClick={resetToRoot}
+                          disabled={navigationHistory.length <= 1}
+                          className="flex-1 text-xs"
+                        >
+                          🏠 回到根节点
+                        </Button>
+                      </div>
+                      {/* 导航路径显示 */}
+                      <div className="text-xs text-blue-600">
+                        <div className="font-medium mb-1">导航路径:</div>
+                        <div className="space-y-1">
+                          {navigationHistory.map((wallet, index) => (
+                            <div 
+                              key={index} 
+                              className={`flex items-center gap-1 ${
+                                index === navigationHistory.length - 1 ? 'font-medium text-blue-800' : 'text-blue-600'
+                              }`}
+                            >
+                              <span>{'  '.repeat(index)}├─</span>
+                              <span className="font-mono text-xs">{formatWallet(wallet)}</span>
+                              {index === navigationHistory.length - 1 && <span className="text-blue-500">📍</span>}
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                )}
+                
                 {/* 连接的钱包 */}
                 {walletAddress && (
                   <div className="p-3 bg-green-50 rounded border border-green-200">
@@ -449,7 +530,10 @@ const MatrixTestPage: React.FC = () => {
                       size="sm"
                       variant="outline"
                       className="mt-2 w-full"
-                      onClick={() => setCurrentWallet(walletAddress)}
+                      onClick={() => {
+                        setCurrentWallet(walletAddress);
+                        setNavigationHistory([walletAddress]);
+                      }}
                     >
                       使用连接的钱包
                     </Button>
@@ -468,7 +552,10 @@ const MatrixTestPage: React.FC = () => {
                             ? 'border-blue-300 bg-blue-50'
                             : 'border-gray-200 bg-white hover:bg-gray-50'
                         }`}
-                        onClick={() => setCurrentWallet(wallet.address)}
+                        onClick={() => {
+                          setCurrentWallet(wallet.address);
+                          setNavigationHistory([wallet.address]);
+                        }}
                       >
                         <div className="text-sm font-medium text-gray-800">{wallet.name}</div>
                         <div className="text-xs font-mono text-gray-600">{formatWallet(wallet.address)}</div>
@@ -505,7 +592,11 @@ const MatrixTestPage: React.FC = () => {
                     <Button
                       size="sm"
                       variant="outline"
-                      onClick={() => setCurrentWallet('0xa212A85f7434A5EBAa5b468971EC3972cE72a544')}
+                      onClick={() => {
+                        const testWallet = '0xa212A85f7434A5EBAa5b468971EC3972cE72a544';
+                        setCurrentWallet(testWallet);
+                        setNavigationHistory([testWallet]);
+                      }}
                       className="text-xs"
                     >
                       10层测试
@@ -513,7 +604,11 @@ const MatrixTestPage: React.FC = () => {
                     <Button
                       size="sm"
                       variant="outline"
-                      onClick={() => setCurrentWallet('0x0F5adA73e94867a678347D6c2284dBa565489183')}
+                      onClick={() => {
+                        const testWallet = '0x0F5adA73e94867a678347D6c2284dBa565489183';
+                        setCurrentWallet(testWallet);
+                        setNavigationHistory([testWallet]);
+                      }}
                       className="text-xs"
                     >
                       基础测试
@@ -612,10 +707,7 @@ const MatrixTestPage: React.FC = () => {
                   <InteractiveMatrixView 
                     rootWalletAddress={currentWallet}
                     rootUser={currentUser}
-                    onNavigateToMember={(memberWallet) => {
-                      console.log('🔄 Navigating to member:', memberWallet);
-                      setCurrentWallet(memberWallet);
-                    }}
+                    onNavigateToMember={navigateToMember}
                   />
                 </div>
               </TabsContent>
@@ -635,10 +727,7 @@ const MatrixTestPage: React.FC = () => {
                   <MobileMatrixView 
                     rootWalletAddress={currentWallet}
                     rootUser={{ username: '测试用户', currentLevel: 2 }}
-                    onNavigateToMember={(memberWallet) => {
-                      console.log('📱 Mobile navigating to member:', memberWallet);
-                      setCurrentWallet(memberWallet);
-                    }}
+                    onNavigateToMember={navigateToMember}
                   />
                 </div>
               </TabsContent>
@@ -658,10 +747,7 @@ const MatrixTestPage: React.FC = () => {
                   <ModernMatrixView 
                     rootWalletAddress={currentWallet}
                     rootUser={{ username: '测试用户', currentLevel: 2 }}
-                    onNavigateToMember={(memberWallet) => {
-                      console.log('🎨 Modern navigating to member:', memberWallet);
-                      setCurrentWallet(memberWallet);
-                    }}
+                    onNavigateToMember={navigateToMember}
                   />
                 </div>
               </TabsContent>
@@ -670,10 +756,7 @@ const MatrixTestPage: React.FC = () => {
               <TabsContent value="detailed-slots">
                 <DetailedMatrixSlotsView 
                   currentWallet={currentWallet} 
-                  onNavigateToMember={(memberWallet) => {
-                    console.log('📋 Detailed slots navigating to member:', memberWallet);
-                    setCurrentWallet(memberWallet);
-                  }}
+                  onNavigateToMember={navigateToMember}
                 />
               </TabsContent>
               
@@ -681,10 +764,7 @@ const MatrixTestPage: React.FC = () => {
               <TabsContent value="original">
                 <OriginalMatrixView 
                   currentWallet={currentWallet} 
-                  onNavigateToMember={(memberWallet) => {
-                    console.log('🏠 Original matrix navigating to member:', memberWallet);
-                    setCurrentWallet(memberWallet);
-                  }}
+                  onNavigateToMember={navigateToMember}
                 />
               </TabsContent>
               
@@ -692,10 +772,7 @@ const MatrixTestPage: React.FC = () => {
               <TabsContent value="enhanced">
                 <EnhancedMatrixView 
                   rootWalletAddress={currentWallet}
-                  onNavigateToMember={(memberWallet) => {
-                    console.log('⚡ Enhanced matrix navigating to member:', memberWallet);
-                    setCurrentWallet(memberWallet);
-                  }}
+                  onNavigateToMember={navigateToMember}
                 />
               </TabsContent>
               
@@ -703,10 +780,7 @@ const MatrixTestPage: React.FC = () => {
               <TabsContent value="drill-down">
                 <DrillDownMatrixView 
                   rootWalletAddress={currentWallet}
-                  onNavigateToMember={(memberWallet) => {
-                    console.log('🎯 Drill-down navigating to member:', memberWallet);
-                    setCurrentWallet(memberWallet);
-                  }}
+                  onNavigateToMember={navigateToMember}
                 />
               </TabsContent>
               
@@ -728,20 +802,14 @@ const MatrixTestPage: React.FC = () => {
                       <RecursiveMatrixViewer 
                         walletAddress={currentWallet}
                         maxDepth={3}
-                        onNavigateToMember={(memberWallet) => {
-                          console.log('🔄 Recursive viewer navigating to member:', memberWallet);
-                          setCurrentWallet(memberWallet);
-                        }}
+                        onNavigateToMember={navigateToMember}
                       />
                     </div>
                     <div>
                       <h3 className="text-lg font-semibold mb-3">层级矩阵视图</h3>
                       <LayeredMatrixView 
                         matrixRootWallet={currentWallet}
-                        onNavigateToMember={(memberWallet) => {
-                          console.log('🏢 Layered matrix navigating to member:', memberWallet);
-                          setCurrentWallet(memberWallet);
-                        }}
+                        onNavigateToMember={navigateToMember}
                       />
                     </div>
                   </div>
@@ -752,10 +820,7 @@ const MatrixTestPage: React.FC = () => {
                       <h3 className="text-lg font-semibold mb-3">简单矩阵视图</h3>
                       <SimpleMatrixView 
                         rootWalletAddress={currentWallet}
-                        onNavigateToMember={(memberWallet) => {
-                          console.log('📊 Simple matrix navigating to member:', memberWallet);
-                          setCurrentWallet(memberWallet);
-                        }}
+                        onNavigateToMember={navigateToMember}
                       />
                     </div>
                     <div>
