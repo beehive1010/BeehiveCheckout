@@ -1531,7 +1531,9 @@
     },
     "errors": {
       "loadFailed": "加载奖励数据失败",
-      "claimFailed": "领取奖励失败"
+      "claimFailed": "领取奖励失败",
+      "third_reward_level_insufficient": "需要升级等级才能领取第三个奖励",
+      "member_verification_failed": "成员验证失败"
     },
     "information": {
       "title": "奖励系统信息",
@@ -1622,6 +1624,12 @@
       "instantReleaseDesc": "满足条件时立即释放BCC",
       "phaseProgression": "阶段进展",
       "phaseProgressionDesc": "随着会员增长自动推进阶段"
+    },
+    "messages": {
+      "claim_successful": "奖励领取成功"
+    },
+    "countdown": {
+      "hours_72_from_activation": "激活后72小时"
     }
   },
   "rewardsPage": {
@@ -1657,5 +1665,31 @@
       "metadata": "详情",
       "viewDetails": "查看详情"
     }
+  },
+  "matrix": {
+    "interactiveView": {
+      "title": "交互式矩阵视图",
+      "subtitle": "实时探索您的3×3矩阵结构"
+    },
+    "layer": "层级",
+    "filled": "已填满",
+    "maxLayer": "最大层级",
+    "directReferral": "直推",
+    "spillover": "溢出",
+    "other": "其他",
+    "matrixView": "矩阵视图",
+    "myMatrix": "我的矩阵",
+    "level": "等级",
+    "previousLayer": "上一层",
+    "nextLayer": "下一层",
+    "legend": "图例",
+    "directReferralDesc": "您直接推荐的成员",
+    "spilloverDesc": "由上级溢出放置的成员",
+    "emptySlot": "空位",
+    "emptySlotDesc": "可用的矩阵位置",
+    "waitingToJoin": "等待加入",
+    "loadingData": "加载矩阵数据...",
+    "loadFailed": "加载矩阵数据失败",
+    "noData": "无矩阵数据"
   }
 }

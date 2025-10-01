@@ -3766,14 +3766,37 @@
         "layerRoot": "Root",
         "member": "Member",
         "you": "You"
-      }
+      },
+      "interactiveView": {
+        "title": "Interactive Matrix View",
+        "subtitle": "Explore your 3×3 matrix structure in real-time"
+      },
+      "layer": "Layer",
+      "filled": "Filled",
+      "maxLayer": "Max Layer",
+      "directReferral": "Direct Referral", 
+      "spillover": "Spillover",
+      "other": "Other",
+      "matrixView": "Matrix View",
+      "myMatrix": "My Matrix",
+      "level": "Level",
+      "previousLayer": "Previous Layer",
+      "nextLayer": "Next Layer",
+      "legend": "Legend",
+      "directReferralDesc": "Members you directly referred",
+      "spilloverDesc": "Members placed by upline spillover",
+      "waitingToJoin": "Waiting to join",
+      "loadingData": "Loading matrix data...",
+      "noData": "No matrix data available"
     },
     "rewards": {
       "actions": {
         "claim": "Claim"
       },
       "errors": {
-        "claimFailed": "Failed to claim reward"
+        "claimFailed": "Failed to claim reward",
+        "third_reward_level_insufficient": "Level upgrade required to claim 3rd reward",
+        "member_verification_failed": "Member verification failed"
       },
       "levelProgress": {
         "completeRequirements": "Complete requirements to unlock Level {{level}}",
@@ -3794,6 +3817,12 @@
       },
       "success": {
         "claimed": "Successfully claimed {{amount}} USDC!"
+      },
+      "messages": {
+        "claim_successful": "Reward claimed successfully"
+      },
+      "countdown": {
+        "hours_72_from_activation": "72 hours from activation"
       }
     },
     "upgrade": {
