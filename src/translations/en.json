@@ -886,11 +886,6 @@
       "subtitle": "Web3 membership and learning platform with blockchain-based rewards"
     },
     "getStarted": "Get Started",
-    "matrix": {
-      "explainTitle": "Learn the 3×3 Matrix",
-      "explainDescription": "Discover how our matrix system works and how you can earn rewards",
-      "explainButton": "Matrix Explained"
-    },
     "features": {
       "membership": {
         "title": "Web3 Membership",
@@ -970,15 +965,6 @@
       "description": "Join thousands of members already earning in the Beehive ecosystem",
       "button": "Join Beehive Now",
       "subtitle": "Join thousands of members earning passive income"
-    }
-  },
-  "matrix": {
-    "navigation": {
-      "home": "Home",
-      "features": "Features",
-      "howItWorks": "How It Works",
-      "education": "Education",
-      "getStarted": "Get Started"
     }
   },
   "footer": {
@@ -3669,6 +3655,28 @@
       "title": "Activate Your Membership"
     },
     "matrix": {
+      "matrixView": "Matrix View",
+      "layer": "Layer",
+      "level": "Level", 
+      "filled": "Filled",
+      "previousLayer": "Previous Layer",
+      "nextLayer": "Next Layer",
+      "directReferral": "Direct Referral",
+      "spillover": "Spillover",
+      "emptySlot": "Empty Slot",
+      "legend": "Legend",
+      "directReferralDesc": "Members you directly referred",
+      "spilloverDesc": "Members placed by upline spillover",
+      "emptySlotDesc": "Available matrix positions",
+      "waitingToJoin": "Waiting to join",
+      "loadingData": "Loading matrix data...",
+      "loadFailed": "Failed to load matrix data",
+      "noData": "No matrix data available",
+      "myMatrix": "My Matrix",
+      "current": "Current",
+      "navigationPath": "Navigation Path",
+      "maxLayer": "Max Layer",
+      "other": "Other",
       "connectDescription": "Connect your wallet to view the referral matrix",
       "controls": {
         "gridView": "Grid",
