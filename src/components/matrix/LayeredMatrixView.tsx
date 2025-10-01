@@ -5,6 +5,7 @@ import { ChevronDown, ChevronRight, Users, User } from 'lucide-react';
 interface LayeredMatrixViewProps {
   matrixRootWallet: string;
   title?: string;
+  onNavigateToMember?: (memberWallet: string) => void;
 }
 
 interface MatrixNodeProps {
@@ -18,6 +19,7 @@ interface MatrixNodeProps {
   } | null;
   matrixRootWallet: string;
   onExpand?: (memberWallet: string) => void;
+  onNavigateToMember?: (memberWallet: string) => void;
   isExpanded?: boolean;
 }
 
@@ -26,6 +28,7 @@ const MatrixNode: React.FC<MatrixNodeProps> = ({
   member, 
   matrixRootWallet, 
   onExpand, 
+  onNavigateToMember,
   isExpanded = false 
 }) => {
   const formatWallet = (wallet: string) => {
@@ -48,7 +51,15 @@ const MatrixNode: React.FC<MatrixNodeProps> = ({
   }
 
   return (
-    <div className="border-2 border-blue-200 rounded-lg p-4 min-h-[100px] bg-blue-50 hover:bg-blue-100 transition-colors">
+    <div 
+      className="border-2 border-blue-200 rounded-lg p-4 min-h-[100px] bg-blue-50 hover:bg-blue-100 transition-colors cursor-pointer"
+      onClick={() => {
+        if (onNavigateToMember) {
+          console.log('🏢 Layered matrix navigating to member:', member.wallet);
+          onNavigateToMember(member.wallet);
+        }
+      }}
+    >
       <div className="text-center">
         <div className="text-sm font-medium text-blue-900 mb-1">{position}</div>
         <div className="text-xs text-blue-700 mb-2 font-mono">
@@ -161,7 +172,8 @@ const ChildrenMatrix: React.FC<{
 
 export const LayeredMatrixView: React.FC<LayeredMatrixViewProps> = ({ 
   matrixRootWallet, 
-  title = "3x3 矩阵结构" 
+  title = "3x3 矩阵结构",
+  onNavigateToMember
 }) => {
   const [expandedMember, setExpandedMember] = useState<string | null>(null);
   const { data: matrixData, isLoading, error } = useLayeredMatrix(matrixRootWallet);
@@ -213,6 +225,7 @@ export const LayeredMatrixView: React.FC<LayeredMatrixViewProps> = ({
             member={node.member}
             matrixRootWallet={matrixRootWallet}
             onExpand={handleExpand}
+            onNavigateToMember={onNavigateToMember}
             isExpanded={expandedMember === node.member?.wallet}
           />
         ))}

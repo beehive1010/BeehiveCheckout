@@ -27,9 +27,10 @@ interface MatrixLayerData {
 interface SimpleMatrixViewProps {
   walletAddress: string;
   rootUser?: { username: string; currentLevel: number };
+  onNavigateToMember?: (memberWallet: string) => void;
 }
 
-const SimpleMatrixView: React.FC<SimpleMatrixViewProps> = ({ walletAddress, rootUser }) => {
+const SimpleMatrixView: React.FC<SimpleMatrixViewProps> = ({ walletAddress, rootUser, onNavigateToMember }) => {
   const { t } = useI18n();
   const [currentLayer, setCurrentLayer] = useState(1);
   const [matrixData, setMatrixData] = useState<{ [key: number]: MatrixLayerData }>({});
@@ -197,7 +198,16 @@ const SimpleMatrixView: React.FC<SimpleMatrixViewProps> = ({ walletAddress, root
   const currentData = matrixData[currentLayer] || { left: [], middle: [], right: [] };
 
   const renderMemberCard = (member: any) => (
-    <div key={member.walletAddress} className="bg-background border border-honey/20 rounded-lg p-3 text-center">
+    <div 
+      key={member.walletAddress} 
+      className="bg-background border border-honey/20 rounded-lg p-3 text-center cursor-pointer hover:bg-honey/10 transition-all"
+      onClick={() => {
+        if (onNavigateToMember) {
+          console.log('📊 Simple matrix navigating to member:', member.walletAddress);
+          onNavigateToMember(member.walletAddress);
+        }
+      }}
+    >
       <div className="w-12 h-12 bg-gradient-to-br from-honey to-honey/80 rounded-full mx-auto mb-2 flex items-center justify-center">
         <span className="text-black font-bold text-sm">
           {member.username?.charAt(0).toUpperCase() || 'U'}

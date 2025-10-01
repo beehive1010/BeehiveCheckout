@@ -38,11 +38,13 @@ interface MatrixLayerData {
 interface EnhancedMatrixViewProps {
   walletAddress: string;
   rootUser?: { username: string; currentLevel: number };
+  onNavigateToMember?: (memberWallet: string) => void;
 }
 
 const EnhancedMatrixView: React.FC<EnhancedMatrixViewProps> = ({ 
   walletAddress, 
-  rootUser 
+  rootUser,
+  onNavigateToMember
 }) => {
   const { t } = useI18n();
   const [currentLayer, setCurrentLayer] = useState(1);
@@ -202,7 +204,13 @@ const EnhancedMatrixView: React.FC<EnhancedMatrixViewProps> = ({
   const renderMemberCard = (member: MatrixMember) => (
     <div
       key={member.walletAddress}
-      className="bg-gradient-to-br from-slate-50 to-slate-100 dark:from-slate-800 dark:to-slate-900 rounded-lg p-4 border border-slate-200 dark:border-slate-700"
+      className="bg-gradient-to-br from-slate-50 to-slate-100 dark:from-slate-800 dark:to-slate-900 rounded-lg p-4 border border-slate-200 dark:border-slate-700 cursor-pointer hover:bg-slate-100 dark:hover:bg-slate-700 transition-all"
+      onClick={() => {
+        if (onNavigateToMember) {
+          console.log('⚡ Enhanced matrix navigating to member:', member.walletAddress);
+          onNavigateToMember(member.walletAddress);
+        }
+      }}
     >
       <div className="flex items-center justify-between mb-3">
         <div className="flex items-center gap-2">
