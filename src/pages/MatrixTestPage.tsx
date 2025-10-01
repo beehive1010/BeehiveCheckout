@@ -52,7 +52,7 @@ const DetailedMatrixSlotsView: React.FC<{ currentWallet: string }> = ({ currentW
           body: JSON.stringify({
             action: 'get-matrix-slots-detailed',
             matrixRoot: currentWallet,
-            maxLayers: 3
+            maxLayers: 19
           })
         });
 
