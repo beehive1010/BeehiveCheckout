@@ -21,6 +21,7 @@ import { MatrixNetworkStatsV2 } from '../components/matrix/MatrixNetworkStatsV2'
 // 新的移动端优化组件
 import MobileMatrixView from '../components/matrix/MobileMatrixView';
 import ModernMatrixView from '../components/matrix/ModernMatrixView';
+import InteractiveMatrixView from '../components/matrix/InteractiveMatrixView';
 
 import { CubeIcon } from '@heroicons/react/24/outline';
 
@@ -491,8 +492,9 @@ const MatrixTestPage: React.FC = () => {
 
           {/* 右侧：矩阵显示 - 用Tabs展示所有组件 */}
           <div className="xl:col-span-2">
-            <Tabs defaultValue="mobile" className="w-full">
-              <TabsList className="grid w-full grid-cols-4 lg:grid-cols-8 text-xs">
+            <Tabs defaultValue="interactive" className="w-full">
+              <TabsList className="grid w-full grid-cols-4 lg:grid-cols-9 text-xs">
+                <TabsTrigger value="interactive">🎯交互式</TabsTrigger>
                 <TabsTrigger value="mobile">📱移动端</TabsTrigger>
                 <TabsTrigger value="modern">🎨现代化</TabsTrigger>
                 <TabsTrigger value="detailed-slots">🔍详细Slots</TabsTrigger>
@@ -502,6 +504,34 @@ const MatrixTestPage: React.FC = () => {
                 <TabsTrigger value="stats">📊统计视图</TabsTrigger>
                 <TabsTrigger value="components">🧩所有组件</TabsTrigger>
               </TabsList>
+              
+              {/* 交互式矩阵视图 - 新增 */}
+              <TabsContent value="interactive">
+                <div className="space-y-4">
+                  <Card className="bg-gradient-to-r from-blue-50 to-indigo-100 border-blue-200">
+                    <CardContent className="p-4">
+                      <div className="flex items-center justify-between mb-2">
+                        <h3 className="font-semibold text-blue-800">🎯 交互式矩阵视图</h3>
+                        <Badge className="bg-blue-100 text-blue-700 border-blue-300">推荐使用</Badge>
+                      </div>
+                      <p className="text-sm text-blue-700 mb-2">
+                        <strong>特色功能:</strong> 点击任意成员节点可切换到该成员作为根节点的视图，支持导航历史和快速返回
+                      </p>
+                      <div className="text-xs text-blue-600 space-y-1">
+                        <div>• 🖱️ 点击成员卡片切换根节点</div>
+                        <div>• 📍 显示下级节点占用状态</div>
+                        <div>• 🔄 支持返回上级和回到根节点</div>
+                        <div>• 📋 完整的导航路径追踪</div>
+                      </div>
+                    </CardContent>
+                  </Card>
+                  
+                  <InteractiveMatrixView 
+                    rootWalletAddress={currentWallet}
+                    rootUser={currentUser}
+                  />
+                </div>
+              </TabsContent>
               
               {/* 移动端优化组件 - 新增 */}
               <TabsContent value="mobile">
