@@ -303,11 +303,11 @@ export function useLayeredMatrix(currentViewWallet: string, targetLayer: number 
             member: {
               wallet: member.member_wallet,
               joinedAt: member.placed_at,
-              type: member.referral_type || 'direct',
+              type: member.referral_type || 'is_direct', // 保持与UI一致的类型值
               username: userData?.username || `User${member.member_wallet.slice(-4)}`,
               isActivated: true, // 假设view中的数据都是已激活的
-              isDirect: member.referral_type === 'direct',
-              isSpillover: member.referral_type === 'spillover',
+              isDirect: member.referral_type === 'is_direct',
+              isSpillover: member.referral_type === 'is_spillover',
               // 添加子节点状态检查
               hasChildInL: false, // TODO: 可以后续查询
               hasChildInM: false,
