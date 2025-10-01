@@ -3787,7 +3787,12 @@
       "spilloverDesc": "Members placed by upline spillover",
       "waitingToJoin": "Waiting to join",
       "loadingData": "Loading matrix data...",
+      "loadFailed": "Failed to load matrix data",
       "noData": "No matrix data available",
+      "navigationPath": "Navigation Path",
+      "current": "Current",
+      "emptySlot": "Empty Slot",
+      "emptySlotDesc": "Available matrix positions",
       "drillDown": {
         "title": "3×3 Matrix - Layer 1",
         "loading": "Loading matrix data...",
