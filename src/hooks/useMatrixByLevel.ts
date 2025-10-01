@@ -239,11 +239,22 @@ export function useLayeredMatrix(currentViewWallet: string, targetLayer: number 
       console.log('🔍 Getting matrix data for current view wallet:', currentViewWallet, 'layer:', targetLayer, 'original root:', originalRootWallet);
       
       try {
-        // 确定矩阵根钱包
-        const matrixRootWallet = originalRootWallet || currentViewWallet;
+        // 确定矩阵根钱包 - 当查看不同层级时，currentViewWallet就是我们要查询的矩阵根
+        const matrixRootWallet = currentViewWallet;
         
         // 使用matrix_referrals_tree_view查询当前节点的指定层级数据
-        const { data: matrixData, error: matrixError } = await supabase
+        // 为每个层级生成正确的位置过滤器
+        let positionFilter = ['L', 'M', 'R'];
+        if (targetLayer === 2) {
+          positionFilter = ['L.L', 'L.M', 'L.R', 'M.L', 'M.M', 'M.R', 'R.L', 'R.M', 'R.R'];
+        } else if (targetLayer >= 3) {
+          // 对于第3层及以上，生成对应层级的所有可能位置
+          // 例如第3层: L.L.L, L.L.M, L.L.R, L.M.L, L.M.M, L.M.R, L.R.L, L.R.M, L.R.R, M.L.L, etc.
+          // 但为了保持3x3显示，我们不使用位置过滤，而是在后面的逻辑中处理
+          positionFilter = null;
+        }
+        
+        let query = supabase
           .from('matrix_referrals_tree_view')
           .select(`
             member_wallet,
@@ -253,10 +264,15 @@ export function useLayeredMatrix(currentViewWallet: string, targetLayer: number 
             referral_type,
             placed_at
           `)
-          .eq('matrix_root_wallet', currentViewWallet)
-          .eq('matrix_layer', targetLayer)
-          .in('matrix_position', ['L', 'M', 'R'])
-          .order('matrix_position');
+          .eq('matrix_root_wallet', matrixRootWallet)
+          .eq('matrix_layer', targetLayer);
+          
+        // 只对前2层应用position过滤，第3层及以上不过滤，获取所有该层级数据
+        if (positionFilter) {
+          query = query.in('matrix_position', positionFilter);
+        }
+        
+        const { data: matrixData, error: matrixError } = await query.order('matrix_position');
           
         if (matrixError) {
           console.error('❌ Error fetching matrix data:', matrixError);
@@ -280,13 +296,43 @@ export function useLayeredMatrix(currentViewWallet: string, targetLayer: number 
           }
         }
 
-        // 组织成标准3x3格式 - 按matrix_position分配
-        const matrixPositions = ['L', 'M', 'R'];
+        // 组织成标准3x3格式 - 根据层级不同处理
+        let matrix3x3 = [];
         
-        const matrix3x3 = matrixPositions.map(position => {
-          // 查找匹配该位置的成员
-          const member = matrixData?.find((m: any) => m.matrix_position === position);
+        if (targetLayer === 1) {
+          // Layer 1: 标准L, M, R布局
+          const matrixPositions = ['L', 'M', 'R'];
+          matrix3x3 = matrixPositions.map(position => {
+            const member = matrixData?.find((m: any) => m.matrix_position === position);
+            return createMemberObject(member, position, usersData);
+          });
+        } else if (targetLayer === 2) {
+          // Layer 2: 精确匹配L.L, L.M, L.R, M.L, M.M, M.R, R.L, R.M, R.R
+          const layer2Positions = ['L.L', 'L.M', 'L.R', 'M.L', 'M.M', 'M.R', 'R.L', 'R.M', 'R.R'];
+          const displayPositions = ['L', 'M', 'R'];
+          matrix3x3 = displayPositions.map((position, index) => {
+            // 优先显示有数据的位置，如果没有则显示为空
+            const availableMembers = matrixData?.filter(m => layer2Positions.includes(m.matrix_position)) || [];
+            const member = availableMembers[index];
+            return createMemberObject(member, position, usersData);
+          });
+        } else {
+          // Layer 3+: 获取该层级所有成员，按顺序显示前3个在L, M, R位置
+          // 这样确保每一层都有清晰的3x3布局，用户可以点击任意成员继续深入
+          const matrixPositions = ['L', 'M', 'R'];
+          const sortedMembers = matrixData?.sort((a, b) => {
+            // 按位置字符串排序，确保显示顺序一致
+            return (a.matrix_position || '').localeCompare(b.matrix_position || '');
+          }) || [];
           
+          matrix3x3 = matrixPositions.map((position, index) => {
+            const member = sortedMembers[index];
+            return createMemberObject(member, position, usersData);
+          });
+        }
+
+        // 辅助函数：创建成员对象
+        function createMemberObject(member: any, position: string, usersData: any[]) {
           if (!member) {
             return {
               position,
@@ -303,18 +349,18 @@ export function useLayeredMatrix(currentViewWallet: string, targetLayer: number 
             member: {
               wallet: member.member_wallet,
               joinedAt: member.placed_at,
-              type: member.referral_type || 'is_direct', // 保持与UI一致的类型值
+              type: member.referral_type || 'is_direct',
               username: userData?.username || `User${member.member_wallet.slice(-4)}`,
-              isActivated: true, // 假设view中的数据都是已激活的
+              isActivated: true,
               isDirect: member.referral_type === 'is_direct',
               isSpillover: member.referral_type === 'is_spillover',
-              // 添加子节点状态检查
-              hasChildInL: false, // TODO: 可以后续查询
+              hasChildInL: false,
               hasChildInM: false,
-              hasChildInR: false
+              hasChildInR: false,
+              actualPosition: member.matrix_position || position // 保留实际位置信息
             }
           };
-        });
+        }
 
         console.log(`📊 Organized matrix 3x3 for ${currentViewWallet}:`, matrix3x3);
 

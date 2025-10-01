@@ -97,8 +97,24 @@ serve(async (req: Request) => {
           const slotsCount = Math.pow(3, layer)
           
           for (let slotNum = 1; slotNum <= slotsCount; slotNum++) {
-            // Find if this slot is occupied
-            const slotData = layerData.find((_, index) => index + 1 === slotNum)
+            // Calculate position for this slot number
+            let expectedPosition = ''
+            if (layer === 1) {
+              expectedPosition = ['L', 'M', 'R'][slotNum - 1]
+            } else if (layer === 2) {
+              const positions = ['L.L', 'L.M', 'L.R', 'M.L', 'M.M', 'M.R', 'R.L', 'R.M', 'R.R']
+              expectedPosition = positions[slotNum - 1]
+            } else {
+              // For deeper layers, calculate position based on slot number
+              const parentIndex = Math.floor((slotNum - 1) / 3)
+              const childIndex = (slotNum - 1) % 3
+              const parentPos = ['L', 'M', 'R'][parentIndex]  
+              const childPos = ['L', 'M', 'R'][childIndex]
+              expectedPosition = `${parentPos}.${childPos}`
+            }
+            
+            // Find if this slot is occupied by matching position
+            const slotData = layerData.find(data => data.position === expectedPosition)
             
             if (slotData) {
               // Find corresponding user and member data
@@ -117,21 +133,10 @@ serve(async (req: Request) => {
                 created_at: slotData.created_at
               })
             } else {
-              // Calculate position for empty slot
-              let position = ''
-              if (layer === 1) {
-                position = ['L', 'M', 'R'][slotNum - 1]
-              } else {
-                const parentIndex = Math.floor((slotNum - 1) / 3)
-                const childIndex = (slotNum - 1) % 3
-                const parentPos = ['L', 'M', 'R'][parentIndex]  
-                const childPos = ['L', 'M', 'R'][childIndex]
-                position = `${parentPos}.${childPos}`
-              }
-              
+              // Use the same expectedPosition for empty slots
               slotsForLayer.push({
                 slot_number: slotNum,
-                position: position,
+                position: expectedPosition,
                 slot_status: 'empty',
                 member_wallet: null,
                 member_username: null,
