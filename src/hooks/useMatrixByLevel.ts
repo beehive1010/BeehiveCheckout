@@ -250,10 +250,8 @@ export function useLayeredMatrix(currentViewWallet: string, targetLayer: number 
             matrix_root_wallet,
             matrix_layer,
             matrix_position,
-            is_direct_referral,
-            is_spillover_placement,
-            placed_at,
-            is_activated
+            referral_type,
+            placed_at
           `)
           .eq('matrix_root_wallet', currentViewWallet)
           .eq('matrix_layer', targetLayer)
@@ -305,11 +303,11 @@ export function useLayeredMatrix(currentViewWallet: string, targetLayer: number 
             member: {
               wallet: member.member_wallet,
               joinedAt: member.placed_at,
-              type: member.is_spillover_placement ? 'is_spillover' : 'is_direct',
+              type: member.referral_type || 'direct',
               username: userData?.username || `User${member.member_wallet.slice(-4)}`,
-              isActivated: member.is_activated || true,
-              isDirect: member.is_direct_referral,
-              isSpillover: member.is_spillover_placement,
+              isActivated: true, // 假设view中的数据都是已激活的
+              isDirect: member.referral_type === 'direct',
+              isSpillover: member.referral_type === 'spillover',
               // 添加子节点状态检查
               hasChildInL: false, // TODO: 可以后续查询
               hasChildInM: false,
