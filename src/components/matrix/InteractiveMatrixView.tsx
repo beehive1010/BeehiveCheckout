@@ -165,10 +165,10 @@ const InteractiveMatrixView: React.FC<InteractiveMatrixViewProps> = ({
                   variant={member.type === 'is_direct' ? "default" : "secondary"}
                   className={`text-xs ${
                     member.type === 'is_direct'
-                      ? 'bg-gradient-to-br from-green-500/10 to-green-500/20 border border-green-500/30 text-green-800 border-green-300' 
+                      ? 'bg-gradient-to-br from-green-500/20 to-green-500/30 border border-green-500/50 text-green-400' 
                       : member.type === 'is_spillover'
-                        ? 'bg-blue-100 text-blue-800 border-blue-300'
-                        : 'bg-gray-100 text-gray-800 border-gray-300'
+                        ? 'bg-gradient-to-br from-amber-500/20 to-yellow-500/30 border border-amber-500/50 text-amber-400'
+                        : 'bg-gradient-to-br from-yellow-500/20 to-amber-500/30 border border-yellow-500/50 text-yellow-400'
                   }`}
                 >
                   {member.type === 'is_direct' ? t('matrix.directReferral') : member.type === 'is_spillover' ? t('matrix.spillover') : t('matrix.other')}
@@ -177,10 +177,10 @@ const InteractiveMatrixView: React.FC<InteractiveMatrixViewProps> = ({
 
               {/* 用户名 */}
               <div className="text-center mb-3">
-                <h3 className="font-semibold text-gray-800 text-lg mb-1">
+                <h3 className="font-semibold text-white text-lg mb-1">
                   {member.username || `User${member.wallet.slice(-4)}`}
                 </h3>
-                <p className="text-xs text-gray-500 font-mono bg-gray-50 px-2 py-1 rounded border">
+                <p className="text-xs text-yellow-300/70 font-mono bg-black/30 px-2 py-1 rounded border border-yellow-500/30">
                   {formatWallet(member.wallet)}
                 </p>
               </div>
@@ -385,12 +385,12 @@ const InteractiveMatrixView: React.FC<InteractiveMatrixViewProps> = ({
             </div>
 
             <div className="flex items-center space-x-2">
-              <Badge variant="outline" className="bg-gradient-to-br from-indigo-500/10 to-indigo-500/20 text-indigo-400 border-indigo-500/30">
-                第 {currentLayer} / 19 层
+              <Badge variant="outline" className="bg-gradient-to-br from-yellow-500/20 to-amber-500/30 text-yellow-400 border-yellow-500/50">
+                {t('matrix.layer')} {currentLayer} / 19
               </Badge>
               {matrixData?.totalCurrentLayerMembers > 0 && (
                 <Badge variant="outline" className="bg-gradient-to-br from-green-500/10 to-green-500/20 text-green-400 border-green-500/30">
-                  本层 {matrixData.totalCurrentLayerMembers} 个成员
+                  {matrixData.totalCurrentLayerMembers} {t('matrix.filled')}
                 </Badge>
               )}
             </div>
@@ -398,18 +398,18 @@ const InteractiveMatrixView: React.FC<InteractiveMatrixViewProps> = ({
 
           {/* 导航历史 */}
           {navigationHistory.length > 0 && (
-            <div className="mt-3 pt-3 border-t border-gray-200">
-              <div className="text-xs text-gray-600 mb-1">导航路径:</div>
+            <div className="mt-3 pt-3 border-t border-yellow-500/30">
+              <div className="text-xs text-yellow-400 mb-1">{t('matrix.myMatrix')}:</div>
               <div className="flex items-center space-x-2 text-xs">
-                <span className="text-gray-500">根节点</span>
+                <span className="text-yellow-300/70">{t('matrix.myMatrix')}</span>
                 {navigationHistory.map((nav, index) => (
                   <React.Fragment key={index}>
-                    <span className="text-gray-400">→</span>
-                    <span className="text-blue-400">{nav.username}</span>
+                    <span className="text-yellow-400/60">→</span>
+                    <span className="text-amber-400">{nav.username}</span>
                   </React.Fragment>
                 ))}
-                <span className="text-gray-400">→</span>
-                <span className="text-green-400 font-medium">当前</span>
+                <span className="text-yellow-400/60">→</span>
+                <span className="text-green-400 font-medium">{t('matrix.level')}</span>
               </div>
             </div>
           )}
@@ -423,46 +423,46 @@ const InteractiveMatrixView: React.FC<InteractiveMatrixViewProps> = ({
         </div>
 
         {/* 使用说明 */}
-        <div className="bg-white rounded-lg p-4 border border-blue-200">
-          <h4 className="font-semibold text-gray-800 mb-3">💡 使用说明 - 支持完整19层矩阵导航</h4>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm text-gray-600">
+        <div className="bg-gradient-to-br from-gray-800/60 to-gray-900/80 rounded-lg p-4 border border-yellow-500/30">
+          <h4 className="font-semibold text-yellow-400 mb-3">💡 {t('matrix.legend')} - 19 {t('matrix.layer')}</h4>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm text-yellow-300/80">
             <div className="space-y-2">
               <div className="flex items-start space-x-2">
-                <Navigation className="h-4 w-4 text-blue-500 mt-0.5 flex-shrink-0" />
-                <span><strong>节点导航</strong> 点击成员卡片切换到该成员作为根节点</span>
+                <Navigation className="h-4 w-4 text-yellow-500 mt-0.5 flex-shrink-0" />
+                <span><strong>{t('matrix.matrixView')}</strong> {t('matrix.directReferralDesc')}</span>
               </div>
               <div className="flex items-start space-x-2">
-                <ChevronLeft className="h-4 w-4 text-green-500 mt-0.5 flex-shrink-0" />
-                <span><strong>返回导航</strong> 返回上级或回到根节点</span>
+                <ChevronLeft className="h-4 w-4 text-amber-500 mt-0.5 flex-shrink-0" />
+                <span><strong>{t('matrix.previousLayer')}</strong> {t('matrix.myMatrix')}</span>
               </div>
             </div>
             <div className="space-y-2">
               <div className="flex items-start space-x-2">
-                <div className="w-4 h-4 bg-indigo-500 rounded mt-0.5 flex-shrink-0"></div>
-                <span><strong>层级选择</strong> 使用下拉选择器或左右箭头浏览1-19层</span>
+                <div className="w-4 h-4 bg-yellow-500 rounded mt-0.5 flex-shrink-0"></div>
+                <span><strong>{t('matrix.layer')}</strong> 1-19 {t('matrix.layer')}</span>
               </div>
               <div className="flex items-start space-x-2">
-                <div className="w-4 h-4 bg-purple-500 rounded mt-0.5 flex-shrink-0"></div>
-                <span><strong>深度探索</strong> 每个根节点都可以查看完整的19层结构</span>
+                <div className="w-4 h-4 bg-amber-500 rounded mt-0.5 flex-shrink-0"></div>
+                <span><strong>{t('matrix.myMatrix')}</strong> 19 {t('matrix.layer')}</span>
               </div>
             </div>
             <div className="space-y-2">
               <div className="flex items-start space-x-2">
-                <Users className="h-4 w-4 text-orange-500 mt-0.5 flex-shrink-0" />
-                <span><strong>状态指示</strong> 绿点=有成员，灰点=空位</span>
+                <Users className="h-4 w-4 text-green-500 mt-0.5 flex-shrink-0" />
+                <span><strong>{t('matrix.legend')}</strong> {t('matrix.filled')} / {t('matrix.emptySlot')}</span>
               </div>
               <div className="flex items-start space-x-2">
-                <div className="w-4 h-4 bg-gradient-to-r from-green-400 to-blue-400 rounded mt-0.5 flex-shrink-0"></div>
-                <span><strong>类型标识</strong> 绿色=直推，蓝色=滑落</span>
+                <div className="w-4 h-4 bg-gradient-to-r from-green-400 to-amber-400 rounded mt-0.5 flex-shrink-0"></div>
+                <span><strong>{t('matrix.directReferral')}</strong> / <strong>{t('matrix.spillover')}</strong></span>
               </div>
             </div>
           </div>
           
-          <div className="mt-4 p-3 bg-gradient-to-r from-blue-50 to-indigo-50 rounded-lg border border-blue-200">
-            <div className="flex items-center space-x-2 text-blue-700">
-              <div className="w-2 h-2 bg-blue-500 rounded-full animate-pulse"></div>
+          <div className="mt-4 p-3 bg-gradient-to-r from-yellow-500/10 to-amber-500/20 rounded-lg border border-yellow-500/30">
+            <div className="flex items-center space-x-2 text-yellow-400">
+              <div className="w-2 h-2 bg-yellow-500 rounded-full animate-pulse"></div>
               <span className="text-sm font-medium">
-                ✨ 现在支持完整19层矩阵导航！点击任意成员查看其完整的下级网络结构
+                ✨ {t('matrix.interactiveView.subtitle')} - 19 {t('matrix.layer')} {t('matrix.matrixView')}
               </span>
             </div>
           </div>
