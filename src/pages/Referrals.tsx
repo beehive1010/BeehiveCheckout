@@ -8,7 +8,8 @@ import { Badge } from '../components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '../components/ui/tabs';
 import UserProfileCard from '../components/shared/UserProfileCard';
 import { UsersIcon, ShareIcon, TrophyIcon } from '@heroicons/react/24/outline';
-import DrillDownMatrixView from '../components/matrix/DrillDownMatrixView';
+import InteractiveMatrixView from '../components/matrix/InteractiveMatrixView';
+import MobileMatrixView from '../components/matrix/MobileMatrixView';
 import MatrixLayerStatsView from '../components/matrix/MatrixLayerStatsView';
 import ReferralsStats from '../components/referrals/ReferralsStats';
 import { Link } from 'wouter';
@@ -93,16 +94,26 @@ export default function Referrals() {
 
         {/* Matrix Network Tab */}
         <TabsContent value="matrix" className="space-y-6">
-          {/* Matrix Layer Statistics */}
+          {/* Matrix Layer Statistics - 保留原有统计视图 */}
           <MatrixLayerStatsView 
             walletAddress={activeWalletAddress || ''}
           />
           
-          {/* Drill-down Matrix View */}
-          <DrillDownMatrixView 
-            rootWalletAddress={activeWalletAddress || ''}
-            rootUser={{username: userData?.username, currentLevel: userData?.currentLevel}}
-          />
+          {/* Interactive Matrix View - 桌面端替换DrillDownMatrixView */}
+          <div className="hidden md:block">
+            <InteractiveMatrixView 
+              rootWalletAddress={activeWalletAddress || ''}
+              rootUser={{username: userData?.username, currentLevel: userData?.currentLevel}}
+            />
+          </div>
+          
+          {/* Mobile Matrix View - 移动端优化 */}
+          <div className="block md:hidden">
+            <MobileMatrixView 
+              rootWalletAddress={activeWalletAddress || ''}
+              rootUser={{username: userData?.username, currentLevel: userData?.currentLevel}}
+            />
+          </div>
         </TabsContent>
 
         {/* Statistics Tab - Simplified */}

@@ -18,8 +18,7 @@ import EnhancedMatrixView from '../components/matrix/EnhancedMatrixView';
 import SimpleMatrixView from '../components/matrix/SimpleMatrixView';
 import LayeredMatrixView from '../components/matrix/LayeredMatrixView';
 import { MatrixNetworkStatsV2 } from '../components/matrix/MatrixNetworkStatsV2';
-// 新的移动端优化组件
-import MobileMatrixView from '../components/matrix/MobileMatrixView';
+// 其他矩阵组件
 import ModernMatrixView from '../components/matrix/ModernMatrixView';
 import InteractiveMatrixView from '../components/matrix/InteractiveMatrixView';
 import MatrixPositionQuery from '../components/matrix/MatrixPositionQuery';
@@ -648,7 +647,7 @@ const MatrixTestPage: React.FC = () => {
               <TabsList className="grid w-full grid-cols-5 lg:grid-cols-10 text-xs">
                 <TabsTrigger value="position-query">🔍排位查询</TabsTrigger>
                 <TabsTrigger value="interactive">🎯交互式</TabsTrigger>
-                <TabsTrigger value="mobile">📱移动端</TabsTrigger>
+                <TabsTrigger value="mobile">🏢Referrals矩阵</TabsTrigger>
                 <TabsTrigger value="modern">🎨现代化</TabsTrigger>
                 <TabsTrigger value="detailed-slots">📋详细Slots</TabsTrigger>
                 <TabsTrigger value="original">🏠原始视图</TabsTrigger>
@@ -712,23 +711,36 @@ const MatrixTestPage: React.FC = () => {
                 </div>
               </TabsContent>
               
-              {/* 移动端优化组件 - 新增 */}
+              {/* Referrals界面矩阵组件 - 真实生产环境组件 */}
               <TabsContent value="mobile">
                 <div className="space-y-4">
                   <Card className="bg-gradient-to-r from-green-50 to-green-100 border-green-200">
                     <CardContent className="p-4">
                       <div className="flex items-center gap-2 mb-2">
-                        <span className="text-2xl">📱</span>
-                        <h3 className="text-lg font-semibold text-green-800">移动端优化矩阵组件</h3>
+                        <span className="text-2xl">🏢</span>
+                        <h3 className="text-lg font-semibold text-green-800">Referrals界面矩阵组件</h3>
                       </div>
-                      <p className="text-sm text-green-700">专为移动设备优化，触摸友好的3x3矩阵展示</p>
+                      <p className="text-sm text-green-700">真实生产环境使用的矩阵组件，包含钻取视图和层级统计</p>
                     </CardContent>
                   </Card>
-                  <MobileMatrixView 
-                    rootWalletAddress={currentWallet}
-                    rootUser={{ username: '测试用户', currentLevel: 2 }}
-                    onNavigateToMember={navigateToMember}
-                  />
+                  
+                  {/* 矩阵层级统计 */}
+                  <div className="mb-4">
+                    <h4 className="text-md font-semibold text-gray-800 mb-3">矩阵层级统计视图</h4>
+                    <MatrixLayerStatsView 
+                      rootWalletAddress={currentWallet}
+                    />
+                  </div>
+                  
+                  {/* 钻取矩阵视图 */}
+                  <div>
+                    <h4 className="text-md font-semibold text-gray-800 mb-3">钻取矩阵视图</h4>
+                    <DrillDownMatrixView 
+                      rootWalletAddress={currentWallet}
+                      rootUser={{ username: currentUser.username, currentLevel: currentUser.currentLevel }}
+                      onNavigateToMember={navigateToMember}
+                    />
+                  </div>
                 </div>
               </TabsContent>
               
