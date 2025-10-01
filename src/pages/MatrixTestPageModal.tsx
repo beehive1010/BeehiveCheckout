@@ -334,10 +334,6 @@ const MatrixTestPageModal: React.FC = () => {
     }
   }, [walletAddress, currentWallet]);
 
-  const currentUser = {
-    username: userStatus?.username || '测试用户',
-    currentLevel: userStatus?.currentLevel || 1
-  };
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -450,7 +446,10 @@ const MatrixTestPageModal: React.FC = () => {
                         </div>
                         <InteractiveMatrixView 
                           rootWalletAddress={currentWallet}
-                          rootUser={currentUser}
+                          rootUser={{
+                            username: userStatus?.username || '测试用户',
+                            currentLevel: userStatus?.currentLevel || 1
+                          }}
                         />
                       </div>
                     </DialogContent>
