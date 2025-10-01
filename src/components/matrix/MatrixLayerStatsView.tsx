@@ -67,6 +67,7 @@ const MatrixLayerStatsView: React.FC<MatrixLayerStatsViewProps> = ({
       }
 
       console.log('📊 Matrix data from database:', matrixData);
+      console.log('📊 Total records found:', matrixData?.length || 0);
 
       // Calculate layer statistics from raw data
       const layerCounts: Record<number, { L: number, M: number, R: number, active: number }> = {};
@@ -87,6 +88,8 @@ const MatrixLayerStatsView: React.FC<MatrixLayerStatsViewProps> = ({
         layerCounts[layer].active++;
       });
 
+      console.log('📊 Layer counts calculated:', layerCounts);
+      
       // Generate layer stats for all 19 layers
       const layer_stats = [];
       for (let layer = 1; layer <= 19; layer++) {

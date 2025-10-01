@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { Card, CardHeader, CardTitle, CardContent } from '../ui/card';
 import { Button } from '../ui/button';
 import { Badge } from '../ui/badge';
@@ -6,16 +6,14 @@ import {
   Users, 
   User, 
   ChevronLeft, 
-  ChevronRight, 
-  TrendingUp,
+  ChevronRight,
   ArrowUpRight,
   ArrowDownLeft,
   Crown,
   Layers,
-  Home,
-  Navigation
+  Home
 } from 'lucide-react';
-import { useLayeredMatrix } from '../../hooks/useMatrixByLevel';
+import { useLayeredMatrix, useMatrixChildren } from '../../hooks/useMatrixByLevel';
 import { useI18n } from '../../contexts/I18nContext';
 
 interface MobileMatrixViewProps {
@@ -145,10 +143,42 @@ const MobileMatrixView: React.FC<MobileMatrixViewProps> = ({
   const [currentRootUser, setCurrentRootUser] = useState(rootUser);
   const [originalRoot] = useState<string>(rootWalletAddress);
   
-  // 使用修正后的useLayeredMatrix hook，支持层级参数
-  const { data: matrixData, isLoading, error } = useLayeredMatrix(currentRoot, currentLayer, originalRoot);
+  // 根据是否查看原始根节点来决定使用哪个hook
+  const isViewingOriginalRoot = currentRoot === originalRoot;
+  
+  // 原始矩阵数据
+  const { data: originalMatrixData, isLoading: isLoadingOriginal, error: originalError } = useLayeredMatrix(
+    originalRoot, 
+    currentLayer, 
+    originalRoot
+  );
+  
+  // 子节点数据  
+  const { data: childrenData, isLoading: isLoadingChildren, error: childrenError } = useMatrixChildren(
+    originalRoot,
+    currentRoot
+  );
+  
+  // 合并数据
+  const matrixData = isViewingOriginalRoot ? originalMatrixData : childrenData;
+  const isLoading = isViewingOriginalRoot ? isLoadingOriginal : isLoadingChildren;
+  const error = isViewingOriginalRoot ? originalError : childrenError;
+  
+  // 调试信息
+  console.log('🔍 MobileMatrixView - Current state:', {
+    currentRoot,
+    currentLayer,
+    originalRoot,
+    isViewingOriginalRoot,
+    isLoading,
+    error: error?.message,
+    matrixData: matrixData ? 'Data available' : 'No data'
+  });
 
   const handleMemberTap = (memberWallet: string) => {
+    console.log('🔍 MobileMatrixView - Tapping member:', memberWallet);
+    console.log('🔍 Current root before change:', currentRoot);
+    
     // 保存当前根到历史记录
     setNavigationHistory(prev => [...prev, { 
       wallet: currentRoot, 
@@ -164,6 +194,9 @@ const MobileMatrixView: React.FC<MobileMatrixViewProps> = ({
       currentLevel: 1
     });
     setCurrentLayer(1); // 重置到第一层
+    
+    console.log('🔍 New root set to:', memberWallet);
+    console.log('🔍 New layer set to: 1');
     
     // 如果有外部导航处理器，也调用它
     onNavigateToMember?.(memberWallet);
@@ -239,8 +272,27 @@ const MobileMatrixView: React.FC<MobileMatrixViewProps> = ({
     );
   }
 
-  const currentMatrix = matrixData.currentLayerMatrix || matrixData.layer1Matrix || [];
-  const totalMembers = matrixData.totalCurrentLayerMembers || matrixData.totalLayer1Members || 0;
+  // 处理不同的数据结构
+  let currentMatrix = [];
+  let totalMembers = 0;
+  
+  if (isViewingOriginalRoot) {
+    // 原始矩阵数据结构
+    currentMatrix = matrixData?.currentLayerMatrix || matrixData?.layer1Matrix || [];
+    totalMembers = matrixData?.totalCurrentLayerMembers || matrixData?.totalLayer1Members || 0;
+  } else {
+    // 子节点数据结构
+    currentMatrix = matrixData?.children || [];
+    totalMembers = matrixData?.totalChildren || 0;
+  }
+  
+  console.log('🔍 MobileMatrixView - Matrix data details:', {
+    matrixData,
+    currentMatrix,
+    totalMembers,
+    currentMatrixLength: currentMatrix.length,
+    isViewingOriginalRoot
+  });
 
   return (
     <div className="space-y-4">
