@@ -1118,7 +1118,33 @@
         "layerRoot": "루트",
         "member": "멤버",
         "you": "당신"
-      }
+      },
+      "interactiveView": {
+        "title": "인터랙티브 매트릭스 뷰",
+        "subtitle": "3×3 매트릭스 구조를 실시간으로 탐색"
+      },
+      "layer": "레이어",
+      "filled": "채워짐",
+      "maxLayer": "최대 레이어",
+      "directReferral": "직접 추천",
+      "spillover": "스필오버",
+      "other": "기타",
+      "matrixView": "매트릭스 뷰",
+      "myMatrix": "내 매트릭스",
+      "level": "레벨",
+      "previousLayer": "이전 레이어",
+      "nextLayer": "다음 레이어",
+      "legend": "범례",
+      "directReferralDesc": "직접 추천한 멤버",
+      "spilloverDesc": "상위자의 스필오버로 배치된 멤버",
+      "emptySlot": "빈 슬롯",
+      "emptySlotDesc": "사용 가능한 매트릭스 위치",
+      "waitingToJoin": "가입 대기 중",
+      "loadingData": "매트릭스 데이터 로딩 중...",
+      "loadFailed": "매트릭스 데이터 로딩 실패",
+      "noData": "매트릭스 데이터 없음",
+      "navigationPath": "탐색 경로",
+      "current": "현재"
     },
     "rewards": {
       "actions": {

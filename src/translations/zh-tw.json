@@ -103,7 +103,33 @@
         "showAllLayers": "顯示全部19層",
         "showLess": "顯示較少",
         "unknown": "未知"
-      }
+      },
+      "interactiveView": {
+        "title": "互動式矩陣視圖",
+        "subtitle": "即時探索您的3×3矩陣結構"
+      },
+      "layer": "層級",
+      "filled": "已滿",
+      "maxLayer": "最大層級",
+      "directReferral": "直接推薦",
+      "spillover": "溢出",
+      "other": "其他",
+      "matrixView": "矩陣視圖",
+      "myMatrix": "我的矩陣",
+      "level": "等級",
+      "previousLayer": "上一層",
+      "nextLayer": "下一層",
+      "legend": "圖例",
+      "directReferralDesc": "您直接推薦的成員",
+      "spilloverDesc": "由上級溢出放置的成員",
+      "emptySlot": "空位",
+      "emptySlotDesc": "可用的矩陣位置",
+      "waitingToJoin": "等待加入",
+      "loadingData": "載入矩陣數據中...",
+      "loadFailed": "載入矩陣數據失敗",
+      "noData": "無矩陣數據",
+      "navigationPath": "導航路徑",
+      "current": "當前"
     },
     "wallet": {
       "connectDescription": "請連接您的錢包以訪問會員系統",

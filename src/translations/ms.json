@@ -53,7 +53,33 @@
         "showAllLayers": "Tunjuk Semua 19 Lapisan",
         "showLess": "Tunjuk Kurang",
         "unknown": "Tidak Diketahui"
-      }
+      },
+      "interactiveView": {
+        "title": "Paparan Matrix Interaktif",
+        "subtitle": "Terokai struktur matrix 3×3 anda secara masa nyata"
+      },
+      "layer": "Lapisan",
+      "filled": "Penuh",
+      "maxLayer": "Lapisan Maksimum",
+      "directReferral": "Rujukan Langsung",
+      "spillover": "Spillover",
+      "other": "Lain-lain",
+      "matrixView": "Paparan Matrix",
+      "myMatrix": "Matrix Saya",
+      "level": "Tahap",
+      "previousLayer": "Lapisan Sebelumnya",
+      "nextLayer": "Lapisan Seterusnya",
+      "legend": "Legenda",
+      "directReferralDesc": "Ahli yang anda rujuk secara langsung",
+      "spilloverDesc": "Ahli yang ditempatkan oleh spillover upline",
+      "emptySlot": "Slot Kosong",
+      "emptySlotDesc": "Kedudukan matrix yang tersedia",
+      "waitingToJoin": "Menunggu untuk menyertai",
+      "loadingData": "Memuatkan data matrix...",
+      "loadFailed": "Gagal memuatkan data matrix",
+      "noData": "Tiada data matrix tersedia",
+      "navigationPath": "Laluan Navigasi",
+      "current": "Semasa"
     },
     "wallet": {
       "connectDescription": "Sila sambung dompet anda untuk mengakses sistem keahlian",

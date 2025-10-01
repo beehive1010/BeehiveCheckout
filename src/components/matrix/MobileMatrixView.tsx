@@ -40,6 +40,9 @@ interface MatrixNodeProps {
     username?: string;
     isActivated?: boolean;
     level?: number;
+    hasChildInL?: boolean;
+    hasChildInM?: boolean;
+    hasChildInR?: boolean;
   } | null;
   onTap?: (memberWallet: string) => void;
 }
@@ -107,6 +110,22 @@ const MatrixNode: React.FC<MatrixNodeProps> = ({ position, member, onTap }) => {
           L{member.level}
         </Badge>
       )}
+      
+      {/* Next Level Indicators */}
+      <div className="flex justify-center space-x-2 mt-2">
+        <div className={`flex flex-col items-center space-y-1 ${member.hasChildInL ? 'text-green-400' : 'text-gray-400'}`}>
+          <div className={`w-2 h-2 rounded-full ${member.hasChildInL ? 'bg-green-500' : 'bg-gray-300'}`}></div>
+          <span className="text-xs font-medium">L</span>
+        </div>
+        <div className={`flex flex-col items-center space-y-1 ${member.hasChildInM ? 'text-green-400' : 'text-gray-400'}`}>
+          <div className={`w-2 h-2 rounded-full ${member.hasChildInM ? 'bg-green-500' : 'bg-gray-300'}`}></div>
+          <span className="text-xs font-medium">M</span>
+        </div>
+        <div className={`flex flex-col items-center space-y-1 ${member.hasChildInR ? 'text-green-400' : 'text-gray-400'}`}>
+          <div className={`w-2 h-2 rounded-full ${member.hasChildInR ? 'bg-green-500' : 'bg-gray-300'}`}></div>
+          <span className="text-xs font-medium">R</span>
+        </div>
+      </div>
     </div>
   );
 };

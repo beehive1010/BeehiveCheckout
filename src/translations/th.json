@@ -1058,7 +1058,33 @@
         "layerRoot": "Root",
         "member": "Member",
         "you": "You"
-      }
+      },
+      "interactiveView": {
+        "title": "มุมมองเมทริกซ์แบบโต้ตอบ",
+        "subtitle": "สำรวจโครงสร้างเมทริกซ์ 3×3 ของคุณแบบเรียลไทม์"
+      },
+      "layer": "ชั้น",
+      "filled": "เต็ม",
+      "maxLayer": "ชั้นสูงสุด",
+      "directReferral": "การแนะนำโดยตรง",
+      "spillover": "สปิลโอเวอร์",
+      "other": "อื่นๆ",
+      "matrixView": "มุมมองเมทริกซ์",
+      "myMatrix": "เมทริกซ์ของฉัน",
+      "level": "ระดับ",
+      "previousLayer": "ชั้นก่อนหน้า",
+      "nextLayer": "ชั้นถัดไป",
+      "legend": "คำอธิบายสัญลักษณ์",
+      "directReferralDesc": "สมาชิกที่คุณแนะนำโดยตรง",
+      "spilloverDesc": "สมาชิกที่วางโดยสปิลโอเวอร์จากอัปไลน์",
+      "emptySlot": "ช่องว่าง",
+      "emptySlotDesc": "ตำแหน่งเมทริกซ์ที่ว่าง",
+      "waitingToJoin": "รอการเข้าร่วม",
+      "loadingData": "กำลังโหลดข้อมูลเมทริกซ์...",
+      "loadFailed": "โหลดข้อมูลเมทริกซ์ไม่สำเร็จ",
+      "noData": "ไม่มีข้อมูลเมทริกซ์",
+      "navigationPath": "เส้นทางการนำทาง",
+      "current": "ปัจจุบัน"
     },
     "rewards": {
       "actions": {
