@@ -229,64 +229,63 @@ async function getUserNetworkMembers(userWallet: string): Promise<string[]> {
   }
 }
 
-// 主要的分层矩阵显示hook - 显示用户在全局矩阵中的网络
+// 主要的分层矩阵显示hook - 显示以用户为根的矩阵成员
 export function useLayeredMatrix(userWallet: string, targetLayer: number = 1) {
   return useQuery({
-    queryKey: ['layered-matrix-network', userWallet, targetLayer],
+    queryKey: ['layered-matrix-root', userWallet, targetLayer],
     queryFn: async () => {
       if (!userWallet) throw new Error('No user wallet');
       
-      console.log('🔍 Getting user network matrix data for wallet:', userWallet, 'layer:', targetLayer);
+      console.log('🔍 Getting matrix data for root wallet:', userWallet, 'layer:', targetLayer);
       
       try {
-        // 获取用户的网络成员
-        const networkMembers = await getUserNetworkMembers(userWallet);
-        
-        if (networkMembers.length === 0) {
-          console.log('No network members found for user:', userWallet);
-          return {
-            matrixRootWallet: userWallet,
-            targetLayer,
-            layer1Matrix: [],
-            totalLayer1Members: 0,
-            currentLayerMatrix: [],
-            totalCurrentLayerMembers: 0
-          };
-        }
-        
-        // 获取这些成员在全局矩阵中的位置数据
-        const { data: layerData, error: layerError } = await supabase
-          .from('matrix_referrals')
+        // 直接查询以该钱包为根的矩阵成员（使用referrals表）
+        const { data: matrixData, error: matrixError } = await supabase
+          .from('referrals')
           .select(`
-            layer,
-            position,
             member_wallet,
-            parent_wallet,
-            referral_type,
-            created_at
+            referrer_wallet,
+            matrix_root_wallet,
+            matrix_layer,
+            matrix_position,
+            is_direct_referral,
+            is_spillover_placement,
+            placed_at,
+            member_activation_sequence
           `)
-          .in('member_wallet', networkMembers)
-          .eq('layer', targetLayer)
-          .order('position');
+          .eq('matrix_root_wallet', userWallet)
+          .eq('matrix_layer', targetLayer)
+          .order('member_activation_sequence');
           
-        if (layerError) {
-          console.error('❌ Error fetching user network matrix data:', layerError);
-          throw layerError;
+        if (matrixError) {
+          console.error('❌ Error fetching matrix data:', matrixError);
+          throw matrixError;
         }
         
-        console.log(`📊 User network layer ${targetLayer} data:`, layerData);
+        console.log(`📊 Matrix layer ${targetLayer} data for wallet ${userWallet}:`, matrixData);
+        console.log(`🔢 Found ${matrixData?.length || 0} members in layer ${targetLayer}`);
 
-        // 组织成标准3x3格式 - 根据位置分组显示
+        // 获取用户信息
+        const memberWallets = matrixData?.map(m => m.member_wallet) || [];
+        let usersData = [];
+
+        if (memberWallets.length > 0) {
+          const { data: users, error: usersError } = await supabase
+            .from('users')
+            .select('wallet_address, username')
+            .in('wallet_address', memberWallets);
+            
+          if (!usersError) {
+            usersData = users || [];
+          }
+        }
+
+        // 组织成标准3x3格式
         const matrixPositions = ['L', 'M', 'R'];
         
         const matrix3x3 = matrixPositions.map(position => {
-          // 查找匹配该位置的成员（可能有多个，因为全局矩阵中位置格式如 L.M.R）
-          const members = layerData?.filter((m: any) => 
-            m.position === position || m.position?.startsWith(`${position}.`) || m.position?.endsWith(`.${position}`)
-          ) || [];
-          
-          // 如果有多个成员，选择第一个作为代表
-          const member = members[0];
+          // 查找匹配该位置的成员
+          const member = matrixData?.find((m: any) => m.matrix_position === position);
           
           if (!member) {
             return {
@@ -295,20 +294,20 @@ export function useLayeredMatrix(userWallet: string, targetLayer: number = 1) {
             };
           }
 
+          const userData = usersData.find((u: any) => 
+            u.wallet_address.toLowerCase() === member.member_wallet.toLowerCase()
+          );
+
           return {
             position,
             member: {
               wallet: member.member_wallet,
-              joinedAt: member.created_at,
-              type: member.referral_type,
-              hasChildren: members.length > 1, // 如果有多个成员在此位置，表示有子节点
-              childrenCount: members.length - 1,
-              username: `User${member.member_wallet.slice(-4)}`,
+              joinedAt: member.placed_at,
+              type: member.is_spillover_placement ? 'is_spillover' : 'is_direct',
+              username: userData?.username || `User${member.member_wallet.slice(-4)}`,
               isActivated: true,
-              hasChildInL: false,
-              hasChildInM: false,
-              hasChildInR: false,
-              allMembers: members // 保存所有在此位置的成员
+              isDirect: member.is_direct_referral,
+              isSpillover: member.is_spillover_placement
             }
           };
         });
@@ -319,10 +318,10 @@ export function useLayeredMatrix(userWallet: string, targetLayer: number = 1) {
           matrixRootWallet: userWallet,
           targetLayer,
           layer1Matrix: matrix3x3, // 保持兼容性
-          totalLayer1Members: layerData?.length || 0,
+          totalLayer1Members: matrixData?.length || 0,
           // 新增字段
           currentLayerMatrix: matrix3x3,
-          totalCurrentLayerMembers: layerData?.length || 0
+          totalCurrentLayerMembers: matrixData?.length || 0
         };
         
       } catch (error) {

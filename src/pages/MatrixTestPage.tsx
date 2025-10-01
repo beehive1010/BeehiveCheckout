@@ -22,11 +22,15 @@ import { MatrixNetworkStatsV2 } from '../components/matrix/MatrixNetworkStatsV2'
 import MobileMatrixView from '../components/matrix/MobileMatrixView';
 import ModernMatrixView from '../components/matrix/ModernMatrixView';
 import InteractiveMatrixView from '../components/matrix/InteractiveMatrixView';
+import MatrixPositionQuery from '../components/matrix/MatrixPositionQuery';
 
 import { CubeIcon } from '@heroicons/react/24/outline';
 
 // 详细矩阵slots视图 - 显示正确的滑落层级
-const DetailedMatrixSlotsView: React.FC<{ currentWallet: string }> = ({ currentWallet }) => {
+const DetailedMatrixSlotsView: React.FC<{ 
+  currentWallet: string; 
+  onNavigateToMember?: (memberWallet: string) => void;
+}> = ({ currentWallet, onNavigateToMember }) => {
   const [matrixData, setMatrixData] = useState<any>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -109,13 +113,19 @@ const DetailedMatrixSlotsView: React.FC<{ currentWallet: string }> = ({ currentW
           return (
             <div 
               key={index} 
-              className={`border rounded p-2 text-center min-h-[120px] text-xs ${
+              className={`border rounded p-2 text-center min-h-[120px] text-xs transition-all ${
                 isEmpty 
                   ? 'bg-gray-50 border-gray-200' 
                   : slot.referral_type === 'is_spillover' 
-                    ? 'bg-blue-50 border-blue-300'
-                    : 'bg-green-50 border-green-300'
+                    ? 'bg-blue-50 border-blue-300 hover:bg-blue-100 cursor-pointer'
+                    : 'bg-green-50 border-green-300 hover:bg-green-100 cursor-pointer'
               }`}
+              onClick={() => {
+                if (!isEmpty && slot.member_wallet && onNavigateToMember) {
+                  console.log('🔍 Detailed slots navigating to:', slot.member_wallet);
+                  onNavigateToMember(slot.member_wallet);
+                }
+              }}
             >
               <div className="font-bold mb-1">
                 Slot {index + 1}
@@ -202,7 +212,10 @@ const DetailedMatrixSlotsView: React.FC<{ currentWallet: string }> = ({ currentW
 };
 
 // 简洁矩阵视图组件 (保持原有)
-const OriginalMatrixView: React.FC<{ currentWallet: string }> = ({ currentWallet }) => {
+const OriginalMatrixView: React.FC<{ 
+  currentWallet: string;
+  onNavigateToMember?: (memberWallet: string) => void;
+}> = ({ currentWallet, onNavigateToMember }) => {
   const { data: matrixData, isLoading, error } = useLayeredMatrix(currentWallet);
 
   const formatWallet = (wallet: string) => {
@@ -278,11 +291,17 @@ const OriginalMatrixView: React.FC<{ currentWallet: string }> = ({ currentWallet
             return (
               <div 
                 key={index} 
-                className={`border rounded p-4 min-h-[200px] ${
+                className={`border rounded p-4 min-h-[200px] transition-all cursor-pointer ${
                   isSpillover 
-                    ? 'bg-blue-50 border-blue-200' 
-                    : 'bg-green-50 border-green-200'
+                    ? 'bg-blue-50 border-blue-200 hover:bg-blue-100' 
+                    : 'bg-green-50 border-green-200 hover:bg-green-100'
                 }`}
+                onClick={() => {
+                  if (member.wallet && onNavigateToMember) {
+                    console.log('🏠 Original matrix navigating to:', member.wallet);
+                    onNavigateToMember(member.wallet);
+                  }
+                }}
               >
                 <div className="text-center h-full flex flex-col justify-between">
                   <div>
@@ -403,13 +422,14 @@ const MatrixTestPage: React.FC = () => {
         <div className="mb-8">
           <div className="flex items-center gap-3 mb-2">
             <CubeIcon className="w-8 h-8 text-blue-600" />
-            <h1 className="text-3xl font-bold text-gray-900">矩阵测试中心</h1>
+            <h1 className="text-3xl font-bold text-gray-900">矩阵排位查询中心</h1>
             <div className="flex gap-2">
               <Badge className="bg-green-500 text-white">📱 移动端新增</Badge>
               <Badge className="bg-purple-500 text-white">🎨 现代化设计</Badge>
+              <Badge className="bg-blue-500 text-white">🔍 排位查询</Badge>
             </div>
           </div>
-          <p className="text-gray-600">测试和对比不同的3x3矩阵组件 - 包含专为移动端优化的新组件</p>
+          <p className="text-gray-600">输入任意钱包地址，查询该地址在矩阵系统中的排位情况 - 支持多种矩阵组件视图</p>
         </div>
 
         <div className="grid grid-cols-1 xl:grid-cols-3 gap-6">
@@ -417,7 +437,7 @@ const MatrixTestPage: React.FC = () => {
           <div className="xl:col-span-1">
             <Card>
               <CardHeader>
-                <CardTitle>测试钱包选择</CardTitle>
+                <CardTitle>矩阵排位查询设置</CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
                 {/* 连接的钱包 */}
@@ -458,16 +478,47 @@ const MatrixTestPage: React.FC = () => {
                   </div>
                 </div>
 
-                {/* 自定义钱包输入 */}
+                {/* 矩阵排位查询 */}
+                <div className="p-4 bg-blue-50 rounded border border-blue-200">
+                  <div className="text-sm font-medium text-blue-800 mb-2">🔍 矩阵排位查询</div>
+                  <div className="space-y-3">
+                    <div>
+                      <label className="text-xs text-blue-700 mb-1 block">查询地址:</label>
+                      <input
+                        type="text"
+                        value={currentWallet}
+                        onChange={(e) => setCurrentWallet(e.target.value)}
+                        placeholder="输入钱包地址查询其矩阵排位..."
+                        className="w-full p-2 border rounded text-xs font-mono"
+                      />
+                    </div>
+                    <div className="text-xs text-blue-600">
+                      💡 输入任何钱包地址，查看该地址在所有矩阵组件中的排位情况
+                    </div>
+                  </div>
+                </div>
+
+                {/* 快速地址输入 */}
                 <div>
-                  <div className="text-sm font-medium text-gray-700 mb-2">自定义钱包:</div>
-                  <input
-                    type="text"
-                    value={currentWallet}
-                    onChange={(e) => setCurrentWallet(e.target.value)}
-                    placeholder="输入钱包地址..."
-                    className="w-full p-2 border rounded text-xs"
-                  />
+                  <div className="text-sm font-medium text-gray-700 mb-2">快速输入:</div>
+                  <div className="grid grid-cols-2 gap-2">
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      onClick={() => setCurrentWallet('0xa212A85f7434A5EBAa5b468971EC3972cE72a544')}
+                      className="text-xs"
+                    >
+                      10层测试
+                    </Button>
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      onClick={() => setCurrentWallet('0x0F5adA73e94867a678347D6c2284dBa565489183')}
+                      className="text-xs"
+                    >
+                      基础测试
+                    </Button>
+                  </div>
                 </div>
 
                 {/* 视图模式切换 */}
@@ -498,18 +549,44 @@ const MatrixTestPage: React.FC = () => {
 
           {/* 右侧：矩阵显示 - 用Tabs展示所有组件 */}
           <div className="xl:col-span-2">
-            <Tabs defaultValue="interactive" className="w-full">
-              <TabsList className="grid w-full grid-cols-4 lg:grid-cols-9 text-xs">
+            <Tabs defaultValue="position-query" className="w-full">
+              <TabsList className="grid w-full grid-cols-5 lg:grid-cols-10 text-xs">
+                <TabsTrigger value="position-query">🔍排位查询</TabsTrigger>
                 <TabsTrigger value="interactive">🎯交互式</TabsTrigger>
                 <TabsTrigger value="mobile">📱移动端</TabsTrigger>
                 <TabsTrigger value="modern">🎨现代化</TabsTrigger>
-                <TabsTrigger value="detailed-slots">🔍详细Slots</TabsTrigger>
+                <TabsTrigger value="detailed-slots">📋详细Slots</TabsTrigger>
                 <TabsTrigger value="original">🏠原始视图</TabsTrigger>
                 <TabsTrigger value="enhanced">⚡增强视图</TabsTrigger>
                 <TabsTrigger value="drill-down">🎯钻取视图</TabsTrigger>
                 <TabsTrigger value="stats">📊统计视图</TabsTrigger>
                 <TabsTrigger value="components">🧩所有组件</TabsTrigger>
               </TabsList>
+              
+              {/* 矩阵排位查询 - 新增 */}
+              <TabsContent value="position-query">
+                <div className="space-y-4">
+                  <Card className="bg-gradient-to-r from-blue-50 to-blue-100 border-blue-200">
+                    <CardContent className="p-4">
+                      <div className="flex items-center justify-between mb-2">
+                        <h3 className="font-semibold text-blue-800">🔍 矩阵排位查询</h3>
+                        <Badge className="bg-blue-100 text-blue-700 border-blue-300">核心功能</Badge>
+                      </div>
+                      <p className="text-sm text-blue-700 mb-2">
+                        <strong>功能说明:</strong> 输入任意钱包地址，查询该地址在整个矩阵系统中的排位情况
+                      </p>
+                      <div className="text-xs text-blue-600 space-y-1">
+                        <div>• 🎯 显示在哪些矩阵中有排位</div>
+                        <div>• 📍 显示具体层级和位置(L/M/R)</div>
+                        <div>• 🔄 区分直推和滑落排位</div>
+                        <div>• 📊 统计总体排位数据</div>
+                      </div>
+                    </CardContent>
+                  </Card>
+                  
+                  <MatrixPositionQuery queryWallet={currentWallet} />
+                </div>
+              </TabsContent>
               
               {/* 交互式矩阵视图 - 新增 */}
               <TabsContent value="interactive">
@@ -535,6 +612,10 @@ const MatrixTestPage: React.FC = () => {
                   <InteractiveMatrixView 
                     rootWalletAddress={currentWallet}
                     rootUser={currentUser}
+                    onNavigateToMember={(memberWallet) => {
+                      console.log('🔄 Navigating to member:', memberWallet);
+                      setCurrentWallet(memberWallet);
+                    }}
                   />
                 </div>
               </TabsContent>
@@ -555,8 +636,8 @@ const MatrixTestPage: React.FC = () => {
                     rootWalletAddress={currentWallet}
                     rootUser={{ username: '测试用户', currentLevel: 2 }}
                     onNavigateToMember={(memberWallet) => {
-                      console.log('Navigate to:', memberWallet);
-                      alert(`导航到成员: ${memberWallet.slice(0, 6)}...${memberWallet.slice(-4)}`);
+                      console.log('📱 Mobile navigating to member:', memberWallet);
+                      setCurrentWallet(memberWallet);
                     }}
                   />
                 </div>
@@ -578,8 +659,8 @@ const MatrixTestPage: React.FC = () => {
                     rootWalletAddress={currentWallet}
                     rootUser={{ username: '测试用户', currentLevel: 2 }}
                     onNavigateToMember={(memberWallet) => {
-                      console.log('Navigate to:', memberWallet);
-                      alert(`导航到成员: ${memberWallet.slice(0, 6)}...${memberWallet.slice(-4)}`);
+                      console.log('🎨 Modern navigating to member:', memberWallet);
+                      setCurrentWallet(memberWallet);
                     }}
                   />
                 </div>
@@ -587,24 +668,45 @@ const MatrixTestPage: React.FC = () => {
               
               {/* 详细Slots视图 - 新增，显示正确的滑落层级 */}
               <TabsContent value="detailed-slots">
-                <DetailedMatrixSlotsView currentWallet={currentWallet} />
+                <DetailedMatrixSlotsView 
+                  currentWallet={currentWallet} 
+                  onNavigateToMember={(memberWallet) => {
+                    console.log('📋 Detailed slots navigating to member:', memberWallet);
+                    setCurrentWallet(memberWallet);
+                  }}
+                />
               </TabsContent>
               
               {/* 原始简洁视图 */}
               <TabsContent value="original">
-                <OriginalMatrixView currentWallet={currentWallet} />
+                <OriginalMatrixView 
+                  currentWallet={currentWallet} 
+                  onNavigateToMember={(memberWallet) => {
+                    console.log('🏠 Original matrix navigating to member:', memberWallet);
+                    setCurrentWallet(memberWallet);
+                  }}
+                />
               </TabsContent>
               
               {/* 增强矩阵视图 */}
               <TabsContent value="enhanced">
-                <EnhancedMatrixView rootWalletAddress={currentWallet} />
+                <EnhancedMatrixView 
+                  rootWalletAddress={currentWallet}
+                  onNavigateToMember={(memberWallet) => {
+                    console.log('⚡ Enhanced matrix navigating to member:', memberWallet);
+                    setCurrentWallet(memberWallet);
+                  }}
+                />
               </TabsContent>
               
               {/* 钻取矩阵视图 */}
               <TabsContent value="drill-down">
                 <DrillDownMatrixView 
                   rootWalletAddress={currentWallet}
-                  onNavigateToMember={(memberWallet) => setCurrentWallet(memberWallet)}
+                  onNavigateToMember={(memberWallet) => {
+                    console.log('🎯 Drill-down navigating to member:', memberWallet);
+                    setCurrentWallet(memberWallet);
+                  }}
                 />
               </TabsContent>
               
@@ -626,11 +728,21 @@ const MatrixTestPage: React.FC = () => {
                       <RecursiveMatrixViewer 
                         walletAddress={currentWallet}
                         maxDepth={3}
+                        onNavigateToMember={(memberWallet) => {
+                          console.log('🔄 Recursive viewer navigating to member:', memberWallet);
+                          setCurrentWallet(memberWallet);
+                        }}
                       />
                     </div>
                     <div>
                       <h3 className="text-lg font-semibold mb-3">层级矩阵视图</h3>
-                      <LayeredMatrixView rootWalletAddress={currentWallet} />
+                      <LayeredMatrixView 
+                        matrixRootWallet={currentWallet}
+                        onNavigateToMember={(memberWallet) => {
+                          console.log('🏢 Layered matrix navigating to member:', memberWallet);
+                          setCurrentWallet(memberWallet);
+                        }}
+                      />
                     </div>
                   </div>
                   
@@ -638,7 +750,13 @@ const MatrixTestPage: React.FC = () => {
                   <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
                     <div>
                       <h3 className="text-lg font-semibold mb-3">简单矩阵视图</h3>
-                      <SimpleMatrixView rootWalletAddress={currentWallet} />
+                      <SimpleMatrixView 
+                        rootWalletAddress={currentWallet}
+                        onNavigateToMember={(memberWallet) => {
+                          console.log('📊 Simple matrix navigating to member:', memberWallet);
+                          setCurrentWallet(memberWallet);
+                        }}
+                      />
                     </div>
                     <div>
                       <h3 className="text-lg font-semibold mb-3">层级状态卡片</h3>

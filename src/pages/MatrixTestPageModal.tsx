@@ -20,6 +20,9 @@ import LayeredMatrixView from '../components/matrix/LayeredMatrixView';
 import { MatrixNetworkStatsV2 } from '../components/matrix/MatrixNetworkStatsV2';
 import MobileMatrixView from '../components/matrix/MobileMatrixView';
 import ModernMatrixView from '../components/matrix/ModernMatrixView';
+import MatrixLayerDebug from '../components/debug/MatrixLayerDebug';
+import ReferralSequenceDebug from '../components/debug/ReferralSequenceDebug';
+import RecursiveMatrixView from '../components/matrix/RecursiveMatrixView';
 // import InteractiveMatrixView from '../components/matrix/InteractiveMatrixView';
 
 // 详细Slots视图组件 - 内联实现
@@ -584,6 +587,36 @@ const MatrixTestPageModal: React.FC = () => {
                     </DialogContent>
                   </Dialog>
 
+                  {/* 递归矩阵视图 */}
+                  <Dialog>
+                    <DialogTrigger asChild>
+                      <Button variant="outline" className="h-20 flex-col gap-2 text-xs p-2">
+                        <span className="text-xl">🔄</span>
+                        <span>递归矩阵</span>
+                      </Button>
+                    </DialogTrigger>
+                    <DialogContent className="max-w-[95vw] w-full max-h-[95vh] overflow-auto">
+                      <DialogHeader>
+                        <DialogTitle>🔄 递归矩阵视图</DialogTitle>
+                      </DialogHeader>
+                      <div className="space-y-4">
+                        <div className="p-3 bg-purple-50 rounded border-purple-200">
+                          <p className="text-sm text-purple-700">
+                            <strong>递归矩阵逻辑:</strong> A推荐B→C→D→E→F→G... 按顺序分配到 Layer1(B,C,D) → Layer2(E,F,G) → Layer3(H,I,_)
+                          </p>
+                        </div>
+                        <RecursiveMatrixView 
+                          rootWalletAddress={currentWallet}
+                          rootUser={{ username: '测试用户', currentLevel: 2 }}
+                          onNavigateToMember={(memberWallet) => {
+                            console.log('Navigate to:', memberWallet);
+                            alert(`导航到成员: ${memberWallet.slice(0, 6)}...${memberWallet.slice(-4)}`);
+                          }}
+                        />
+                      </div>
+                    </DialogContent>
+                  </Dialog>
+
                   {/* 简单视图 */}
                   <Dialog>
                     <DialogTrigger asChild>
@@ -597,6 +630,25 @@ const MatrixTestPageModal: React.FC = () => {
                         <DialogTitle>📋 简单视图</DialogTitle>
                       </DialogHeader>
                       <SimpleMatrixView rootWalletAddress={currentWallet} />
+                    </DialogContent>
+                  </Dialog>
+
+                  {/* 调试工具 */}
+                  <Dialog>
+                    <DialogTrigger asChild>
+                      <Button variant="outline" className="h-20 flex-col gap-2 text-xs p-2">
+                        <span className="text-xl">🐛</span>
+                        <span>调试工具</span>
+                      </Button>
+                    </DialogTrigger>
+                    <DialogContent className="max-w-[95vw] w-full max-h-[95vh] overflow-auto">
+                      <DialogHeader>
+                        <DialogTitle>🐛 矩阵调试工具</DialogTitle>
+                      </DialogHeader>
+                      <div className="space-y-4">
+                        <MatrixLayerDebug walletAddress={currentWallet} />
+                        <ReferralSequenceDebug walletAddress={currentWallet} />
+                      </div>
                     </DialogContent>
                   </Dialog>
 
