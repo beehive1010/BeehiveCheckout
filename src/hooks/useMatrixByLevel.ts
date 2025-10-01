@@ -254,11 +254,11 @@ export function useLayeredMatrix(currentViewWallet: string, targetLayer: number 
             is_direct_referral,
             is_spillover_placement,
             placed_at,
-            matrix_activation_sequence
+            member_activation_sequence
           `)
           .eq('matrix_root_wallet', matrixRootWallet)
           .eq('referrer_wallet', currentViewWallet)
-          .order('matrix_activation_sequence');
+          .order('member_activation_sequence');
           
         if (matrixError) {
           console.error('❌ Error fetching matrix data:', matrixError);
