@@ -22,6 +22,8 @@ interface ReferrerStatsData {
   network_strength: number;
   highest_referral_level: number;
   level2_upgrade_eligible: boolean;
+  layer1_filled: number;
+  layer1_max: number;
 }
 
 
@@ -57,7 +59,9 @@ export default function ReferralsStats({ walletAddress, className }: ReferralsSt
         }
 
         const statsData = result.data.summary;
-        
+        const layerStats = result.data.layer_stats || [];
+        const layer1Stats = layerStats.find((l: any) => l.layer === 1);
+
         // Create a stats object with the comprehensive data
         const data = {
           referrer: walletAddress,
@@ -69,7 +73,9 @@ export default function ReferralsStats({ walletAddress, className }: ReferralsSt
           max_depth: statsData.max_layer || 0,
           network_strength: statsData.network_strength || 0,
           highest_referral_level: statsData.max_layer || 0,
-          level2_upgrade_eligible: (statsData.activated_referrals || 0) >= 3
+          level2_upgrade_eligible: (statsData.activated_referrals || 0) >= 3,
+          layer1_filled: layer1Stats?.totalMembers || 0,
+          layer1_max: layer1Stats?.maxCapacity || 3
         };
         
         return data;
@@ -94,7 +100,9 @@ export default function ReferralsStats({ walletAddress, className }: ReferralsSt
           max_depth: directReferralsCount > 0 ? 1 : 0,
           network_strength: (directReferralsCount || 0) * 10,
           highest_referral_level: 1,
-          level2_upgrade_eligible: (directReferralsCount || 0) >= 3
+          level2_upgrade_eligible: (directReferralsCount || 0) >= 3,
+          layer1_filled: directReferralsCount || 0,
+          layer1_max: 3
         };
       }
     }
@@ -132,7 +140,7 @@ export default function ReferralsStats({ walletAddress, className }: ReferralsSt
     );
   }
 
-  const matrixPositionsFilled = Math.min(3, referrerStats.total_direct_referrals || 0);
+  const matrixPositionsFilled = referrerStats.layer1_filled || 0;
 
   return (
     <div className={`space-y-6 ${className}`}>
