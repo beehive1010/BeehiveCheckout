@@ -604,6 +604,29 @@ export function WelcomeLevel1ClaimButton({ onSuccess, referrerWallet, className 
       console.log('📋 事件 logs:', receipt.logs);
       console.log('✅ Receipt status:', receipt.status);
 
+      // Step 8.5: Trigger USDC transfer for Token #1 claim
+      try {
+        console.log('💰 Triggering USDC transfer for NFT Token #1 claim...');
+        const usdcTransferResponse = await supabase.functions.invoke('nft-claim-usdc-transfer', {
+          body: {
+            token_id: '1',
+            claimer_address: account.address,
+            transaction_hash: claimTxResult.transactionHash,
+            block_number: receipt.blockNumber ? Number(receipt.blockNumber) : undefined
+          }
+        });
+
+        if (usdcTransferResponse.error) {
+          console.error('⚠️ USDC transfer failed:', usdcTransferResponse.error);
+          // Don't block the main flow - log error but continue
+        } else {
+          console.log('✅ USDC transfer initiated:', usdcTransferResponse.data);
+        }
+      } catch (usdcTransferError) {
+        console.error('⚠️ USDC transfer error:', usdcTransferError);
+        // Don't block the main flow - continue with membership activation
+      }
+
       // Step 9: Activate Level 1 membership (welcome users - includes matrix placement)
       console.log('🚀 Activating Level 1 membership with matrix placement...');
       setCurrentStep('Activating membership...');
