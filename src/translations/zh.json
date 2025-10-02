@@ -144,6 +144,10 @@
     "rewards": "奖励",
     "lastUpdated": "最后更新",
     "inviteTip": "分享您的推荐链接邀请朋友并获得奖励",
+    "membershipLevel": "会员等级",
+    "yourNFT": "您的NFT",
+    "currentLevel": "当前等级",
+    "upgradeMembership": "升级会员",
     "social": {
       "facebook": "Facebook",
       "telegram": "Telegram",
