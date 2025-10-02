@@ -1,0 +1,22 @@
+# Vercel ignore file
+# Don't ignore dist folder - it contains built assets
+!dist/
+!dist/**
+
+# Node modules
+node_modules/
+
+# Development files
+*.log
+.env.local
+.env.*.local
+
+# Editor directories
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS files
+.DS_Store
+Thumbs.db

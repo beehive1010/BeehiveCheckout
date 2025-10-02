@@ -178,12 +178,12 @@ async function claimReward(req, supabaseClient) {
         });
     }
     try {
-        // 1. Get reward from layer_rewards table using case-insensitive matching
+        // 1. Get reward from layer_rewards table
         const { data: rewardArray, error: rewardError } = await supabaseClient
             .from('layer_rewards')
             .select('*')
             .eq('id', claim_id)
-            .ilike('reward_recipient_wallet', wallet_address.toLowerCase());
+            .eq('reward_recipient_wallet', wallet_address);
         
         const reward = rewardArray?.[0] || null;
         
@@ -246,7 +246,7 @@ async function claimReward(req, supabaseClient) {
         const { data: rewardCountArray } = await supabaseClient
             .from('layer_rewards')
             .select('id, created_at')
-            .eq('reward_recipient_wallet', reward.reward_recipient_wallet.toLowerCase())
+            .eq('reward_recipient_wallet', reward.reward_recipient_wallet)
             .eq('matrix_layer', reward.matrix_layer)
             .order('created_at', { ascending: true });
             
@@ -262,7 +262,7 @@ async function claimReward(req, supabaseClient) {
             const { data: memberArray, error: memberError } = await supabaseClient
                 .from('members')
                 .select('current_level')
-                .ilike('wallet_address', wallet_address.toLowerCase());
+                .eq('wallet_address', wallet_address);
                 
             const memberData = memberArray?.[0] || null;
             
@@ -325,7 +325,7 @@ async function claimReward(req, supabaseClient) {
             const { data: currentBalanceArray } = await supabaseClient
                 .from('user_balances')
                 .select('usdc_claimable, usdc_claimed_total')
-                .ilike('wallet_address', wallet_address.toLowerCase());
+                .eq('wallet_address', wallet_address);
                 
             const currentBalance = currentBalanceArray?.[0] || null;
             
@@ -340,7 +340,7 @@ async function claimReward(req, supabaseClient) {
                         usdc_claimed_total: newClaimed,
                         updated_at: new Date().toISOString()
                     })
-                    .ilike('wallet_address', wallet_address.toLowerCase());
+                    .eq('wallet_address', wallet_address);
                     
                 if (balanceError) {
                     console.error('❌ Balance update failed:', balanceError);
@@ -352,7 +352,7 @@ async function claimReward(req, supabaseClient) {
                 const { error: createBalanceError } = await supabaseClient
                     .from('user_balances')
                     .insert({
-                        wallet_address: wallet_address.toLowerCase(),
+                        wallet_address: wallet_address,
                         usdc_claimable: 0,
                         usdc_pending: 0,
                         usdc_claimed_total: reward.reward_amount,
