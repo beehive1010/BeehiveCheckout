@@ -256,19 +256,19 @@ async function processLevelUpgrade(
       }
     }
 
-    // 4. Verify referrals_new record exists (required for upgrade integrity)
-    console.log(`🔗 Verifying referrals_new record exists for ${walletAddress}...`)
+    // 4. Verify referrals record exists (required for upgrade integrity)
+    console.log(`🔗 Verifying referrals record exists for ${walletAddress}...`)
     const { data: referralsNewData } = await supabase
-      .from('referrals_new')
-      .select('referrer_wallet, referred_wallet')
-      .ilike('referred_wallet', walletAddress) // Case insensitive match
+      .from('referrals')
+      .select('referrer_wallet, member_wallet')
+      .ilike('member_wallet', walletAddress) // Case insensitive match
       .maybeSingle()
 
     if (!referralsNewData) {
-      console.warn(`⚠️ No referrals_new record found for ${walletAddress} - this may indicate incomplete registration`)
+      console.warn(`⚠️ No referrals record found for ${walletAddress} - this may indicate incomplete registration`)
       // For upgrade, we don't block if no referral exists (could be root user or legacy data)
     } else {
-      console.log(`✅ Referrals_new record verified: ${referralsNewData.referred_wallet} -> ${referralsNewData.referrer_wallet}`)
+      console.log(`✅ Referrals_new record verified: ${referralsNewData.member_wallet} -> ${referralsNewData.referrer_wallet}`)
     }
 
     // 5. Create or verify membership record (triggers BCC release and other membership processing)
@@ -654,7 +654,7 @@ async function checkUpgradeRequirements(supabase: any, walletAddress: string, ta
     let directReferralsCheck = { required: 0, current: 0, satisfied: true }
     
     if (targetLevel === 2) {
-      // Use referrals_stats_view for accurate direct referral count (includes referrals_new data)
+      // Use referrals_stats_view for accurate direct referral count (includes referrals data)
       const { data: referralsStatsData, error: referralsStatsError } = await supabase
         .from('referrals_stats_view')
         .select('direct_referrals_count')
@@ -666,10 +666,10 @@ async function checkUpgradeRequirements(supabase: any, walletAddress: string, ta
       if (!referralsStatsError && referralsStatsData) {
         directReferrals = referralsStatsData.direct_referrals_count || 0
       } else {
-        console.warn('⚠️ referrals_stats_view query failed, trying referrals_new fallback:', referralsStatsError)
-        // Fallback to referrals_new table
+        console.warn('⚠️ referrals_stats_view query failed, trying referrals fallback:', referralsStatsError)
+        // Fallback to referrals table
         const { count: fallbackCount } = await supabase
-          .from('referrals_new')
+          .from('referrals')
           .select('*', { count: 'exact', head: true })
           .ilike('referrer_wallet', walletAddress)
         
@@ -968,13 +968,13 @@ async function debugUserStatus(supabase: any, walletAddress: string): Promise<Le
       .ilike('wallet_address', walletAddress)
       .maybeSingle()
 
-    // 2. Get direct referrals count using referrals_new table
+    // 2. Get direct referrals count using referrals table
     const { count: directReferralsCount, error: referralsError } = await supabase
-      .from('referrals_new')
+      .from('referrals')
       .select('*', { count: 'exact', head: true })
       .ilike('referrer_wallet', walletAddress)
 
-    // Fallback to referrals table if referrals_new fails
+    // Fallback to referrals table if referrals fails
     let fallbackReferralsCount = 0
     if (referralsError || !directReferralsCount) {
       const { count: fallbackCount } = await supabase
@@ -1000,11 +1000,11 @@ async function debugUserStatus(supabase: any, walletAddress: string): Promise<Le
       .ilike('wallet_address', walletAddress)
       .maybeSingle()
 
-    // 5. Get referrals_new record
+    // 5. Get referrals record
     const { data: referralsNewData, error: referralsNewError } = await supabase
-      .from('referrals_new')
-      .select('referrer_wallet, referred_wallet')
-      .ilike('referred_wallet', walletAddress)
+      .from('referrals')
+      .select('referrer_wallet, member_wallet')
+      .ilike('member_wallet', walletAddress)
       .maybeSingle()
 
     // 6. Get layer rewards

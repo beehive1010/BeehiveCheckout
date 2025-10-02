@@ -234,10 +234,10 @@ export const edgeFunctions = {
     }),
     
   levelUpgrade: (data: any, walletAddress: string, options?: EdgeFunctionOptions) =>
-    callEdgeFunction('level-upgrade', data, walletAddress, { 
+    callEdgeFunction('level-upgrade', data, walletAddress, {
       timeout: 30000,
       retries: 2,
-      ...options 
+      ...options
     }),
     
   nftUpgrades: (data: any, walletAddress: string, options?: EdgeFunctionOptions) =>

@@ -218,15 +218,15 @@ export function LevelUpgradeButtonGeneric({
       setIsProcessing(true);
       await switchChain(arbitrum);
       toast({
-        title: 'Network Switched',
-        description: 'Successfully switched to Arbitrum One',
+        title: t('wallet.networkSwitched'),
+        description: t('wallet.networkSwitchedDesc'),
         variant: "default",
       });
     } catch (error: any) {
       console.error('Failed to switch network:', error);
       toast({
-        title: 'Network Switch Failed',
-        description: error.message || 'Could not switch to Arbitrum One. Please switch manually in your wallet.',
+        title: t('wallet.networkSwitchFailed'),
+        description: error.message || t('wallet.networkSwitchFailedDesc'),
         variant: "destructive",
       });
     } finally {
@@ -419,7 +419,7 @@ export function LevelUpgradeButtonGeneric({
       let activationSuccess = false;
       if (claimTxResult?.transactionHash) {
         console.log(`🚀 Processing Level ${targetLevel} upgrade via level-upgrade function...`);
-        setCurrentStep(`Processing Level ${targetLevel} upgrade...`);
+        setCurrentStep(t('membership.claiming.processing', { level: targetLevel }));
         
         await new Promise(resolve => setTimeout(resolve, 3000));
         
@@ -485,7 +485,7 @@ export function LevelUpgradeButtonGeneric({
       if (activationSuccess) {
         console.log(`✅ Complete success: Level ${targetLevel} NFT minted and membership activated with Layer ${targetLevel} rewards`);
         toast({
-          title: `🎉 Level ${targetLevel} NFT Claimed!`,
+          title: t('membership.claiming.successEmoji', { level: targetLevel }),
           description: `Congratulations! Your Level ${targetLevel} membership is now active. Layer ${targetLevel} rewards have been processed.`,
           variant: "default",
           duration: 6000,
@@ -493,7 +493,7 @@ export function LevelUpgradeButtonGeneric({
       } else {
         console.log(`⚠️ Partial success: Level ${targetLevel} NFT minted but backend activation failed`);
         toast({
-          title: `✅ Level ${targetLevel} NFT Claimed!`,
+          title: t('membership.claiming.successCheck', { level: targetLevel }),
           description: `Your Level ${targetLevel} NFT is minted on blockchain. Backend activation is pending - please contact support if needed.`,
           variant: "default",
           duration: 8000,
@@ -532,7 +532,7 @@ export function LevelUpgradeButtonGeneric({
         });
       } else {
         toast({
-          title: `Level ${targetLevel} Upgrade Failed`,
+          title: t('membership.claiming.failed', { level: targetLevel }),
           description: errorMessage,
           variant: "destructive",
         });

@@ -135,26 +135,45 @@ serve(async (req) => {
     console.log(`🚀 Starting membership activation for: ${walletAddress}, Level: ${level}`);
 
     // Step 1: Check if user is registered (case-insensitive query)
-    const { data: userData, error: userError } = await supabase
+    let { data: userData, error: userError } = await supabase
       .from('users')
       .select('*')
       .ilike('wallet_address', walletAddress)
       .single();
 
     if (userError || !userData) {
-      console.log(`❌ User not registered: ${walletAddress}`);
-      return new Response(JSON.stringify({
-        success: false,
-        error: 'User must be registered first - please complete registration before claiming NFT',
-        isRegistered: false,
-        isActivated: false
-      }), {
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-        status: 400
-      });
-    }
+      console.log(`⚠️ User not registered: ${walletAddress}, attempting to create user record...`);
 
-    console.log(`✅ User registration confirmed: ${userData.wallet_address}`);
+      // Fallback: Create user record if missing
+      const { data: newUser, error: createError } = await supabase
+        .from('users')
+        .insert({
+          wallet_address: walletAddress,
+          referrer_wallet: normalizedReferrerWallet,
+          username: `user_${walletAddress.slice(2, 8)}`, // Default username
+          created_at: new Date().toISOString()
+        })
+        .select()
+        .single();
+
+      if (createError) {
+        console.error(`❌ Failed to create user record:`, createError);
+        return new Response(JSON.stringify({
+          success: false,
+          error: 'Failed to create user registration: ' + createError.message,
+          isRegistered: false,
+          isActivated: false
+        }), {
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+          status: 500
+        });
+      }
+
+      userData = newUser;
+      console.log(`✅ User record created automatically: ${newUser.wallet_address}`);
+    } else {
+      console.log(`✅ User registration confirmed: ${userData.wallet_address}`);
+    }
 
     // 如果前端没有传递referrerWallet，从用户数据中获取
     if (!normalizedReferrerWallet && userData.referrer_wallet) {
@@ -224,17 +243,17 @@ serve(async (req) => {
     let memberRecord = null;
     try {
       console.log(`👥 Creating members record for: ${walletAddress}`);
-      
-      // Get the next activation sequence number
-      const { data: sequenceData } = await supabase
-        .from('members')
-        .select('activation_sequence')
-        .order('activation_sequence', { ascending: false })
-        .limit(1);
-      
-      const nextSequence = (sequenceData && sequenceData.length > 0) 
-        ? (sequenceData[0].activation_sequence || 0) + 1 
-        : 1;
+
+      // Get the next activation sequence number using atomic function
+      const { data: nextSequence, error: seqError } = await supabase
+        .rpc('get_next_activation_sequence');
+
+      if (seqError) {
+        console.error('❌ Failed to get activation sequence:', seqError);
+        throw new Error(`Failed to get activation sequence: ${seqError.message}`);
+      }
+
+      console.log(`🔢 Assigned activation_sequence: ${nextSequence}`);
 
       const memberData = {
         wallet_address: walletAddress,
@@ -267,9 +286,9 @@ serve(async (req) => {
       try {
         console.log(`🔗 Recording referral for: ${walletAddress} -> ${normalizedReferrerWallet}`);
         
-        // Use the unified matrix function to place member and create referral record
+        // Use the recursive matrix placement function to place member in all upline matrices
         const matrixPlacementResult = await supabase.rpc(
-          'unified_matrix_placement',
+          'recursive_matrix_placement',
           {
             p_member_wallet: walletAddress,
             p_referrer_wallet: normalizedReferrerWallet
@@ -290,42 +309,42 @@ serve(async (req) => {
     // Matrix placement was already done in Step 5
     let matrixResult = referralRecord;
 
-    // Step 6: Process direct referral reward for Level 1 activation
-    let directReferralRewardResult = null;
+    // Step 6: Process layer reward for Level 1 activation (direct referral to upline)
+    let layerRewardResult = null;
     if (level === 1 && normalizedReferrerWallet && normalizedReferrerWallet !== '0x0000000000000000000000000000000000000001') {
       try {
-        console.log(`💰 Processing direct referral reward for Level 1 activation...`);
+        console.log(`💰 Processing layer reward for Level 1 activation...`);
         console.log(`🎯 Reward will be sent to referrer: ${normalizedReferrerWallet}`);
         console.log(`🎯 Reward amount: 100 USDC (Level 1 NFT base price)`);
 
-        // Level 1 activation triggers direct_referral_reward
-        const { data: rewardData, error: rewardError } = await supabase.rpc('trigger_direct_referral_rewards', {
+        // Level 1 activation triggers layer_reward (direct referral)
+        const { data: rewardData, error: rewardError } = await supabase.rpc('trigger_layer_rewards_on_upgrade', {
           p_upgrading_member_wallet: walletAddress,
           p_new_level: level,
           p_nft_price: 100 // Level 1 NFT base price without platform fee
         });
 
         if (rewardError) {
-          console.warn('⚠️ Direct referral reward creation failed:', rewardError);
+          console.warn('⚠️ Layer reward creation failed:', rewardError);
         } else {
-          console.log(`✅ Direct referral reward triggered for Level 1 activation:`, rewardData);
-          directReferralRewardResult = rewardData;
+          console.log(`✅ Layer reward triggered for Level 1 activation:`, rewardData);
+          layerRewardResult = rewardData;
         }
 
-        // Verify direct referral reward was created
+        // Verify layer reward was created
         const { data: createdRewards, error: checkError } = await supabase
-          .from('direct_referral_rewards')
-          .select('id, referrer_wallet, reward_amount, reward_status')
-          .ilike('referred_member_wallet', walletAddress)
-          .eq('level', level);
+          .from('layer_rewards')
+          .select('id, reward_recipient_wallet, reward_amount, status, matrix_layer, recipient_required_level')
+          .ilike('triggering_member_wallet', walletAddress)
+          .eq('triggering_nft_level', level);
 
         if (!checkError && createdRewards && createdRewards.length > 0) {
-          console.log(`✅ Verified direct referral reward created for Level 1:`,
-            createdRewards.map(r => `${r.referrer_wallet}: ${r.reward_amount} USDC (${r.reward_status})`));
+          console.log(`✅ Verified ${createdRewards.length} layer reward(s) created for Level 1:`,
+            createdRewards.map(r => `${r.reward_recipient_wallet}: ${r.reward_amount} USDC (${r.status}, Layer ${r.matrix_layer}, Required Level ${r.recipient_required_level})`));
         }
 
-      } catch (directRewardErr) {
-        console.warn('⚠️ Direct referral reward error (non-critical):', directRewardErr);
+      } catch (layerRewardErr) {
+        console.warn('⚠️ Layer reward error (non-critical):', layerRewardErr);
       }
     }
 
@@ -339,7 +358,7 @@ serve(async (req) => {
         member: memberRecord,
         referral: referralRecord,
         matrixPlacement: matrixResult,
-        directReferralReward: directReferralRewardResult,
+        layerReward: layerRewardResult,
         transactionHash,
         level,
         walletAddress,
@@ -349,7 +368,7 @@ serve(async (req) => {
           memberRecordCreated: !!memberRecord,
           referralRecorded: !!referralRecord,
           matrixPlaced: !!matrixResult,
-          directReferralRewardProcessed: !!directReferralRewardResult
+          layerRewardProcessed: !!layerRewardResult
         }
       },
       transactionHash

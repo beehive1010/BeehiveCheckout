@@ -23,7 +23,8 @@
     "processing": "处理中...",
     "error": "注册失败",
     "referrer": "推荐人",
-    "required": "必填",
+    "required": "需要注册",
+    "requiredDesc": "请完成注册以领取您的 Level 1 NFT。",
     "optional": "可选"
   },
   "common": {
@@ -56,6 +57,7 @@
     "success": "成功",
     "success_status": "成功！",
     "transaction_hash": "交易哈希",
+    "user": "用户",
     "view_details": "查看详情",
     "warning": "警告"
   },
@@ -75,7 +77,24 @@
     "pending": "待处理",
     "status": "状态",
     "title": "会员",
-    "upgrade": "升级"
+    "upgrade": "升级",
+    "claiming": {
+      "processing": "正在处理 {level} 级升级...",
+      "success": "{level} 级 NFT 已领取!",
+      "successEmoji": "🎉 {level} 级 NFT 已领取!",
+      "successCheck": "✅ {level} 级 NFT 已领取!",
+      "failed": "{level} 级升级失败"
+    },
+    "sync": {
+      "successful": "同步成功",
+      "successfulDesc": "{level} 级会员数据已同步。",
+      "initiated": "同步已启动",
+      "initiatedDesc": "{level} 级同步已启动。请稍后刷新。",
+      "failed": "同步失败",
+      "failedDesc": "无法同步 {level} 级数据。请联系客服。",
+      "error": "同步错误",
+      "errorDesc": "同步 {level} 级数据失败"
+    }
   },
   "nav": {
     "dashboard": "仪表板",
@@ -1322,7 +1341,6 @@
     "multi_chain_description": "提现到以太坊、Arbitrum、Polygon、Optimism、BSC 或 Base",
     "multi_chain_support": "多链支持",
     "network_fee": "网络费用",
-    "processing": "处理中...",
     "select_target_chain": "选择目标链",
     "select_target_token": "选择目标代币",
     "selected_chain": "选择的链",
@@ -1348,7 +1366,10 @@
     "readyToClaim": "准备领取",
     "claiming": "领取中...",
     "availableIn": "可用时间",
-    "rewardsWillAppear": "当团队成员升级会员资格时，奖励将在此处显示"
+    "rewardsWillAppear": "当团队成员升级会员资格时，奖励将在此处显示",
+    "crossChainProcessing": "跨链提现处理中 🌉",
+    "processing": "提现处理中 ⏳",
+    "estimatedArrival": "{amount} {chain} 预计 {minutes} 分钟内到账"
   },
   "education": {
     "title": "教育中心",
@@ -1666,6 +1687,43 @@
       "viewDetails": "查看详情"
     }
   },
+  "membershipSystem": {
+    "matrix": {
+      "stats": {
+        "layerStats": {
+          "title": "矩阵层级统计",
+          "layerCount": "19层",
+          "layer": "第{layer}层",
+          "active": "活跃: {count}",
+          "fillRate": "填充率",
+          "complete": "{percent}% 完成",
+          "layerComplete": "层级完成",
+          "totalMembers": "总成员",
+          "activeMembers": "活跃成员",
+          "layersCompleted": "已完成层级",
+          "avgCompletion": "平均完成度",
+          "loading": "加载层级统计中...",
+          "loadingFailed": "⚠️ 加载失败",
+          "retry": "重试",
+          "layerDetails": "层级详情",
+          "help": {
+            "title": "理解层级统计",
+            "fillRate": "📊 填充率：该层中已占用位置的百分比",
+            "activeMembers": "👥 活跃成员：该层中已注册成员的数量",
+            "totalSlots": "🎯 总位置数：最大容量（3^层级 个位置）",
+            "completion": "✨ 完成度：填充全部19层的总体进度"
+          }
+        }
+      },
+      "drillDown": {
+        "positions": {
+          "left": "左",
+          "middle": "中",
+          "right": "右"
+        }
+      }
+    }
+  },
   "matrix": {
     "interactiveView": {
       "title": "交互式矩阵视图",
@@ -1734,9 +1792,20 @@
       "copyFailed": "复制链接失败",
       "loadFailed": "加载矩阵数据失败",
       "loadLayerStatsFailed": "加载层级统计失败",
-      "loadMatrixStatsFailed": "加载矩阵统计失败", 
+      "loadMatrixStatsFailed": "加载矩阵统计失败",
       "loadRecursiveMatrixFailed": "加载递归矩阵数据失败",
       "loadTreeDataFailed": "加载矩阵树数据失败"
     }
+  },
+  "wallet": {
+    "connect": "连接钱包",
+    "connected": "已连接",
+    "disconnect": "断开连接",
+    "networkSwitched": "网络已切换",
+    "networkSwitchedDesc": "已成功切换到 Arbitrum One",
+    "networkSwitchFailed": "网络切换失败",
+    "networkSwitchFailedDesc": "无法切换到 Arbitrum One。请在钱包中手动切换。",
+    "switchingNetwork": "切换网络中",
+    "switchingToArbitrum": "正在切换到 Arbitrum One..."
   }
 }

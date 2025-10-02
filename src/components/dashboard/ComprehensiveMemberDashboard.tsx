@@ -272,7 +272,7 @@ const ComprehensiveMemberDashboard: React.FC = () => {
 
   const loadWithdrawalLimits = async () => {
     try {
-      const result = await callEdgeFunction('withdrawal-system', {
+      const result = await callEdgeFunction('withdrawal', {
         action: 'check_limits',
         walletAddress: walletAddress!,
         currency: 'USDC'
@@ -293,9 +293,9 @@ const ComprehensiveMemberDashboard: React.FC = () => {
       setLoading(true);
       
       // Use the database function to claim rewards
-      const { data, error } = await supabase.rpc('claim_reward_to_balance', {
-        p_claim_id: rewardId,
-        p_wallet_address: walletAddress
+      const { data, error } = await supabase.rpc('claim_layer_reward', {
+        p_reward_id: rewardId,
+        p_member_wallet: walletAddress
       });
 
       if (error) {
@@ -354,7 +354,7 @@ const ComprehensiveMemberDashboard: React.FC = () => {
     try {
       setLoading(true);
       
-      const result = await callEdgeFunction('withdrawal-system', {
+      const result = await callEdgeFunction('withdrawal', {
         action: 'request_withdrawal',
         walletAddress,
         amount,

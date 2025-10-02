@@ -1,93 +1,60 @@
 {
   "permissions": {
     "allow": [
+      // ==== Supabase CLI 基础 ====
       "Bash(supabase status:*)",
-      "Bash(npm run build:*)",
-      "Bash(supabase functions deploy:*)",
-      "Bash(npm run dev:*)",
-      "Bash(psql:*)",
       "Bash(supabase projects:*)",
-      "Bash(SUPABASE_ACCESS_TOKEN=sbp_92c70391157352d8248124dcf96b62368b45afe1 supabase functions deploy rewards --project-ref cvqibjcbfrwsgkvthccp)",
-      "Read(//tmp/**)",
-      "Bash(curl:*)",
-      "WebFetch(domain:api.thirdweb.com)",
-      "Bash(npx tsc:*)",
-      "Bash(npm run check:*)",
-      "Bash(npm install:*)",
-      "Bash(find:*)",
-      "Bash(mkdir:*)",
-      "Bash(chmod:*)",
-      "Bash(/home/runner/workspace/deploy-edge-functions.sh)",
-      "Bash(SUPABASE_ACCESS_TOKEN=sbp_92c70391157352d8248124dcf96b62368b45afe1 supabase functions deploy activate-membership --project-ref cvqibjcbfrwsgkvthccp)",
-      "Bash(npm run lint)",
-      "Bash(SUPABASE_ACCESS_TOKEN=sbp_92c70391157352d8248124dcf96b62368b45afe1 supabase functions deploy matrix --project-ref cvqibjcbfrwsgkvthccp)",
-      "Bash(SUPABASE_ACCESS_TOKEN=sbp_92c70391157352d8248124dcf96b62368b45afe1 supabase functions list --project-ref cvqibjcbfrwsgkvthccp)",
-      "Bash(SUPABASE_ACCESS_TOKEN=sbp_92c70391157352d8248124dcf96b62368b45afe1 supabase functions deploy matrix-operations --project-ref cvqibjcbfrwsgkvthccp)",
-      "Bash(/home/runner/workspace/fix_wallet_case_queries.sh:*)",
-      "Bash(SUPABASE_ACCESS_TOKEN=sbp_92c70391157352d8248124dcf96b62368b45afe1 supabase functions deploy auth --project-ref cvqibjcbfrwsgkvthccp)",
-      "Bash(node:*)",
-      "Bash(cat:*)",
-      "Bash(SUPABASE_ACCESS_TOKEN=sbp_92c70391157352d8248124dcf96b62368b45afe1 supabase functions deploy activate-membership --project-ref cvqibjcbfrwsgkvthccp --no-verify-jwt)",
-      "Bash(npm run:*)",
-      "Bash(for hook in useWalletRedirect useMemberManagement)",
-      "Bash(do)",
-      "Bash(echo:*)",
-      "Bash(rg:*)",
-      "Bash(done)",
-      "Bash(grep:*)",
-      "Bash(npx eslint:*)",
-      "Bash(./scripts/supabase-ipv4-management.sh status:*)",
-      "Bash(./check_db_integrity.sh:*)",
-      "Bash(__NEW_LINE__ echo \"\")",
-      "Bash(PGPASSWORD:*)",
-      "Bash(for:*)",
-      "Bash(python3:*)",
-      "Bash(./deploy-edge-functions.sh:*)",
-      "Bash(SUPABASE_ACCESS_TOKEN=sbp_92c70391157352d8248124dcf96b62368b45afe1 supabase functions deploy notifications --project-ref cvqibjcbfrwsgkvthccp)",
-      "Bash(sed:*)",
-      "Bash(SUPABASE_ACCESS_TOKEN=sbp_92c70391157352d8248124dcf96b62368b45afe1 supabase projects list)",
-      "Bash(export PGPASSWORD=bee8881941)",
-      "Bash(./scripts/supabase-ipv4-management.sh:*)",
-      "Bash(./deploy-auth.sh:*)",
-      "WebSearch",
-      "Bash(SUPABASE_ACCESS_TOKEN=sbp_92c70391157352d8248124dcf96b62368b45afe1 supabase functions deploy chain-data --project-ref cvqibjcbfrwsgkvthccp)",
-      "Bash(/home/ubuntu/WebstormProjects/BEEHIVE/db/deploy-edge-functions.sh:*)",
-      "Bash(npx supabase functions deploy:*)",
       "Bash(supabase link:*)",
-      "Bash(timeout 60 npm run build)",
-      "Bash(timeout 30 npm run build)",
-      "Bash(./db/deploy-edge-functions.sh:*)",
-      "Bash(SUPABASE_ACCESS_TOKEN=sbp_92c70391157352d8248124dcf96b62368b45afe1 npx supabase functions deploy matrix --project-ref cvqibjcbfrwsgkvthccp)",
-      "Bash(timeout 10 npm run build)",
-      "Bash(./scripts/test-complete-flow.sh:*)",
-      "Bash(do if [ -f \"$file\" ])",
-      "Bash(then echo \"✅ $file - 已修复\")",
-      "Bash(else echo \"❌ $file - 不存在\")",
-      "Bash(fi)",
-      "Bash(do echo \"=== $file ===\")",
-      "WebFetch(domain:portal.thirdweb.com)",
-      "Bash(./test-complete-flow.sh:*)",
-      "Bash(./test-complete-webhook.sh:*)",
-      "Bash(git merge:*)",
-      "Bash(git checkout:*)",
-      "Bash(git stash:*)",
+
+      // ==== Supabase Functions ====
+      "Bash(supabase functions list:*)",
+      "Bash(supabase functions deploy:*)",
+      "Bash(supabase functions serve:*)",
+      "Bash(npx supabase functions deploy:*)",
+
+      // ==== Supabase Database / Migrations ====
+      "Bash(supabase db push:*)",
+      "Bash(npx supabase db push:*)",
+      "Bash(supabase migration new:*)",
+      "Bash(supabase migration up:*)",
+      "Bash(supabase migration list:*)",
+
+      // ==== Database 直连 ====
+      "Bash(psql:*)",
+
+      // ==== Node / NPM / 构建 ====
+      "Bash(npm install:*)",
+      "Bash(npm run build:*)",
+      "Bash(npm run dev:*)",
+      "Bash(npm run:*)",
+      "Bash(npx tsc:*)",
+      "Bash(npx eslint:*)",
+      "Bash(node:*)",
+
+      // ==== Git 操作 ====
       "Bash(git add:*)",
       "Bash(git commit:*)",
       "Bash(git push:*)",
-      "Bash(SUPABASE_ACCESS_TOKEN=sbp_92c70391157352d8248124dcf96b62368b45afe1 supabase functions deploy server-wallet --project-ref cvqibjcbfrwsgkvthccp)",
-      "Bash(./fix_wallet_case_queries.sh:*)",
-      "Bash(timeout 30 PGPASSWORD=bee8881941 psql -h 34.56.229.13 -U postgres -d postgres -c \"\\dt\")",
-      "Bash(timeout 30 psql -h 34.56.229.13 -U postgres -d postgres -c \"\\dt\")",
+      "Bash(git checkout:*)",
+      "Bash(git merge:*)",
+      "Bash(git stash:*)",
+
+      // ==== 常用 Linux 工具 ====
+      "Bash(chmod:*)",
+      "Bash(mkdir:*)",
+      "Bash(find:*)",
+      "Bash(rg:*)",
+      "Bash(grep:*)",
+      "Bash(cat:*)",
+      "Bash(echo:*)",
+      "Bash(sed:*)",
       "Bash(timeout:*)",
-      "Bash(SUPABASE_ACCESS_TOKEN=sbp_92c70391157352d8248124dcf96b62368b45afe1 supabase functions deploy level-upgrade --project-ref cvqibjcbfrwsgkvthccp)",
-      "Bash(SUPABASE_ACCESS_TOKEN=sbp_537d0dbe16b7a13c92181067507bd4cb32bd1302 supabase functions deploy matrix --project-ref cvqibjcbfrwsgkvthccp)",
-      "Bash(SUPABASE_ACCESS_TOKEN=sbp_537d0dbe16b7a13c92181067507bd4cb32bd1302 supabase functions deploy matrix-view --project-ref cvqibjcbfrwsgkvthccp)",
-      "Bash(SUPABASE_ACCESS_TOKEN=sbp_537d0dbe16b7a13c92181067507bd4cb32bd1302 supabase functions deploy level-upgrade --project-ref cvqibjcbfrwsgkvthccp)",
-      "Bash(SUPABASE_ACCESS_TOKEN=sbp_537d0dbe16b7a13c92181067507bd4cb32bd1302 supabase functions deploy rewards --project-ref cvqibjcbfrwsgkvthccp)",
-      "Bash(SUPABASE_ACCESS_TOKEN=sbp_537d0dbe16b7a13c92181067507bd4cb32bd1302 supabase functions deploy activate-membership --project-ref cvqibjcbfrwsgkvthccp)",
-      "Bash(SUPABASE_ACCESS_TOKEN=sbp_537d0dbe16b7a13c92181067507bd4cb32bd1302 supabase functions deploy auth --project-ref cvqibjcbfrwsgkvthccp)",
-      "Bash(SUPABASE_ACCESS_TOKEN=sbp_537d0dbe16b7a13c92181067507bd4cb32bd1302 supabase functions deploy balance --project-ref cvqibjcbfrwsgkvthccp)",
-      "Bash(SUPABASE_ACCESS_TOKEN=sbp_537d0dbe16b7a13c92181067507bd4cb32bd1302 timeout 30 npx supabase db push --dry-run)"
+      "Bash(python3:*)",
+
+      // ==== Web 请求 ====
+      "WebSearch",
+      "WebFetch(domain:api.thirdweb.com)",
+      "WebFetch(domain:portal.thirdweb.com)"
     ],
     "deny": [],
     "ask": []
@@ -95,5 +62,13 @@
   "enableAllProjectMcpServers": true,
   "enabledMcpjsonServers": [
     "thirdweb-mcp"
-  ]
+  ],
+  "env": {
+    "DATABASE_URL": "postgresql://postgres:bee8881941@db.cvqibjcbfrwsgkvthccp.supabase.co:5432/postgres",
+    "SUPABASE_URL": "https://cvqibjcbfrwsgkvthccp.supabase.co",
+    "SUPABASE_ANON_KEY": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImN2cWliamNiZnJ3c2drdnRoY2NwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTcwNjU0MDUsImV4cCI6MjA3MjY0MTQwNX0.7CfL8CS1dQ8Gua89maSCDkgnMsNb19qp97mJyoJqJjs",
+    "SUPABASE_PROJECT_REF": "cvqibjcbfrwsgkvthccp"
+  }
 }
+
+

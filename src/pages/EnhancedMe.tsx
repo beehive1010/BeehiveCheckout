@@ -116,59 +116,100 @@ const getComprehensiveUserData = async (walletAddress: string, method: string) =
       };
       
     } else if (method === 'views') {
-      // Method 2: Supabase Views
-      const [balanceView, memberView, referralCountResult] = await Promise.all([
-        supabase.from('user_bcc_balance_overview').select('*').eq('wallet_address', walletAddress).single(),
-        supabase.from('member_requirements_view').select('*').eq('wallet_address', walletAddress).single(),
-        supabase.from('referrals_new').select('*', { count: 'exact', head: true }).eq('referrer_wallet', walletAddress)
+      // Method 2: Canonical Views
+      const [memberView, rewardView, referralCountResult] = await Promise.all([
+        supabase.from('v_member_overview')
+          .select('*')
+          .eq('wallet_address', walletAddress)
+          .single(),
+
+        supabase.from('v_reward_overview')
+          .select('*')
+          .eq('wallet_address', walletAddress)
+          .single(),
+
+        supabase.from('referrals')
+          .select('*', { count: 'exact', head: true })
+          .eq('referrer_wallet', walletAddress)
       ]);
-      
-      // Create matrix view data structure
-      const matrixView = {
-        data: {
-          referrer: walletAddress,
-          direct_referrals_count: referralCountResult.count || 0,
-          total_direct_referrals: referralCountResult.count || 0
-        },
-        error: referralCountResult.error
-      };
-      
+
       return {
         profile: {
           walletAddress,
           membershipLevel: memberView.data?.current_level || 1,
-          isActivated: memberView.data?.is_activated || false,
-          joinedAt: memberView.data?.created_at || new Date().toISOString()
+          isActivated: memberView.data?.is_active || false,
+          joinedAt: memberView.data?.activated_at || new Date().toISOString(),
+          username: memberView.data?.username,
+          email: memberView.data?.email
         },
-        balance: balanceView.data || {},
-        matrix: matrixView.data || {}
+        balance: {
+          available_usd: memberView.data?.available_usd || 0,
+          pending_usd: memberView.data?.pending_usd || 0,
+          lifetime_earned_usd: memberView.data?.lifetime_earned_usd || 0
+        },
+        matrix: {
+          referrer: walletAddress,
+          direct_referrals_count: referralCountResult.count || 0,
+          total_direct_referrals: referralCountResult.count || 0
+        },
+        rewards: {
+          claimable_cnt: rewardView.data?.claimable_cnt || 0,
+          pending_cnt: rewardView.data?.pending_cnt || 0,
+          rolled_up_cnt: rewardView.data?.rolled_up_cnt || 0
+        }
       };
-      
+
     } else {
-      // Method 3: Direct table queries
-      const [userResult, memberResult, balanceResult, matrixResult, rewardsResult] = await Promise.all([
-        supabase.from('users').select('*').eq('wallet_address', walletAddress).single(),
-        supabase.from('members').select('*').eq('wallet_address', walletAddress).single(),
-        supabase.from('user_balances').select('*').eq('wallet_address', walletAddress).single(),
-        supabase.from('referrals_new').select('*').eq('referrer_wallet', walletAddress),
-        supabase.from('layer_rewards').select('*').eq('recipient_wallet', walletAddress).limit(20)
+      // Method 3: Canonical views (recommended)
+      const [memberOverview, rewardOverview, matrixResult, recentRewards] = await Promise.all([
+        supabase.from('v_member_overview')
+          .select('*')
+          .eq('wallet_address', walletAddress)
+          .single(),
+
+        supabase.from('v_reward_overview')
+          .select('*')
+          .eq('wallet_address', walletAddress)
+          .single(),
+
+        supabase.from('referrals')
+          .select('*')
+          .eq('referrer_wallet', walletAddress),
+
+        // For individual reward records, layer_rewards is acceptable
+        supabase.from('layer_rewards')
+          .select('*')
+          .eq('recipient_wallet', walletAddress)
+          .limit(20)
       ]);
-      
+
       return {
         profile: {
           walletAddress,
-          username: userResult.data?.username,
-          email: userResult.data?.email,
-          membershipLevel: memberResult.data?.current_level || 1,
-          isActivated: memberResult.data?.is_activated || false,
-          joinedAt: userResult.data?.created_at || new Date().toISOString()
+          username: memberOverview.data?.username,
+          email: memberOverview.data?.email,
+          membershipLevel: memberOverview.data?.current_level || 1,
+          isActivated: memberOverview.data?.is_active || false,
+          joinedAt: memberOverview.data?.activated_at || new Date().toISOString()
         },
-        balance: balanceResult.data || {},
+        balance: {
+          available_usd: memberOverview.data?.available_usd || 0,
+          pending_usd: memberOverview.data?.pending_usd || 0,
+          lifetime_earned_usd: memberOverview.data?.lifetime_earned_usd || 0
+        },
         matrix: {
           totalPositions: matrixResult.data?.length || 0,
           directReferrals: matrixResult.data?.filter(p => p.layer === 1).length || 0
         },
-        rewards: rewardsResult.data || []
+        rewards: {
+          claimable_cnt: rewardOverview.data?.claimable_cnt || 0,
+          pending_cnt: rewardOverview.data?.pending_cnt || 0,
+          rolled_up_cnt: rewardOverview.data?.rolled_up_cnt || 0,
+          expired_cnt: rewardOverview.data?.expired_cnt || 0,
+          paid_cnt: rewardOverview.data?.paid_cnt || 0,
+          next_expiring_at: rewardOverview.data?.next_expiring_at,
+          recent_records: recentRewards.data || []
+        }
       };
     }
     

@@ -78,11 +78,11 @@ async function getDashboardStats(supabaseClient: any) {
 
     if (usersError) throw usersError;
 
-    // Get active members (users with NFT level > 0)
+    // Get active members using canonical view
     const { count: activeMembers, error: membersError } = await supabaseClient
-      .from('members')
+      .from('v_member_overview')
       .select('*', { count: 'exact', head: true })
-      .gt('current_level', 0);
+      .eq('is_active', true);
 
     if (membersError) throw membersError;
 
@@ -281,10 +281,10 @@ async function getUserAnalytics(supabaseClient: any) {
       return acc;
     }, {}) || {};
 
-    // Get level distribution
+    // Get level distribution using canonical view
     const { data: levelData, error: levelError } = await supabaseClient
-      .from('members')
-      .select('current_level');
+      .from('v_member_overview')
+      .select('current_level, is_active');
 
     if (levelError) throw levelError;
 

@@ -54,25 +54,35 @@ export function useUserReferralStats() {
         .select('*', { count: 'exact', head: true })
         .eq('matrix_root_wallet', walletAddress);
 
-      // Get member's current level and info using exact matching
+      // Get member's current level and info using canonical view
       const { data: memberData, error: memberError } = await supabase
-        .from('members')
-        .select('current_level, activation_sequence')
+        .from('v_member_overview')
+        .select('current_level, wallet_address')
         .eq('wallet_address', walletAddress)
-        .maybeSingle() as { data: MemberData | null; error: any };
+        .maybeSingle() as { data: { current_level: number; wallet_address: string } | null; error: any };
 
       if (memberError) {
         console.error('Error fetching member data:', memberError);
       }
 
-      // Get total earnings from layer_rewards using correct column names
-      const { data: rewardsData } = await supabase
+      // activation_sequence is not available in v_member_overview, set default
+      const activationSequence = 1; // Can be fetched separately if needed
+
+      // Get reward statistics from canonical view
+      const { data: rewardOverview } = await supabase
+        .from('v_reward_overview')
+        .select('*')
+        .eq('wallet_address', walletAddress)
+        .maybeSingle();
+
+      // Calculate total earnings from paid rewards count (need actual amount - use layer_rewards for details)
+      const { data: claimedRewardsData } = await supabase
         .from('layer_rewards')
         .select('reward_amount')
         .eq('reward_recipient_wallet', walletAddress)
         .eq('status', 'claimed');
 
-      const totalEarnings = rewardsData?.reduce((sum, reward) => sum + (Number(reward.reward_amount) || 0), 0) || 0;
+      const totalEarnings = claimedRewardsData?.reduce((sum, reward) => sum + (Number(reward.reward_amount) || 0), 0) || 0;
 
       // Get recent referrals with activation status - use referrals table directly
       const { data: recentReferralsData } = await supabase
@@ -88,19 +98,19 @@ export function useUserReferralStats() {
         .order('placed_at', { ascending: false })
         .limit(5);
 
-      // Get activation status for recent referrals
+      // Get activation status for recent referrals using canonical view
       const recentReferrals = await Promise.all(
         (recentReferralsData || []).map(async (referral) => {
           const { data: memberData } = await supabase
-            .from('members')
-            .select('current_level')
+            .from('v_member_overview')
+            .select('current_level, is_active')
             .eq('wallet_address', referral.member_wallet)
-            .single();
+            .maybeSingle();
 
           return {
             walletAddress: referral.member_wallet,
             joinedAt: referral.placed_at || new Date().toISOString(),
-            activated: (memberData?.current_level || 0) > 0
+            activated: memberData?.is_active || false
           };
         })
       );
@@ -111,12 +121,12 @@ export function useUserReferralStats() {
         totalReferrals: directReferrals || 0,
         totalEarnings: totalEarnings.toString(),
         monthlyEarnings: '0', // TODO: Calculate monthly earnings
-        pendingCommissions: '0', // TODO: Calculate pending commissions
-        nextPayout: 'TBD',
+        pendingCommissions: (rewardOverview?.pending_cnt || 0).toString(),
+        nextPayout: rewardOverview?.next_expiring_at || 'TBD',
         currentLevel: memberData?.current_level || 1,
-        memberActivated: (memberData?.current_level || 0) > 0,
+        memberActivated: memberData?.current_level ? memberData.current_level > 0 : false,
         matrixLevel: memberData?.current_level || 1,
-        positionIndex: memberData?.activation_sequence || 1,
+        positionIndex: activationSequence,
         levelsOwned: [memberData?.current_level || 1],
         downlineMatrix: [], // TODO: Calculate downline matrix stats
         recentReferrals

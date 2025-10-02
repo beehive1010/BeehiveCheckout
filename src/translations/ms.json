@@ -1,4 +1,27 @@
 {
+  "registration": {
+    "required": "Pendaftaran Diperlukan",
+    "requiredDesc": "Sila lengkapkan pendaftaran anda untuk menuntut Level 1 NFT anda."
+  },
+  "membership": {
+    "claiming": {
+      "processing": "Memproses naik taraf Tahap {level}...",
+      "success": "Tahap {level} NFT Dituntut!",
+      "successEmoji": "🎉 Tahap {level} NFT Dituntut!",
+      "successCheck": "✅ Tahap {level} NFT Dituntut!",
+      "failed": "Naik Taraf Tahap {level} Gagal"
+    },
+    "sync": {
+      "successful": "Penyegerakan Berjaya",
+      "successfulDesc": "Data keahlian Tahap {level} telah disegerakkan.",
+      "initiated": "Penyegerakan Dimulakan",
+      "initiatedDesc": "Penyegerakan Tahap {level} telah dimulakan. Sila muat semula sebentar lagi.",
+      "failed": "Penyegerakan Gagal",
+      "failedDesc": "Tidak dapat menyegerakkan data Tahap {level}. Sila hubungi sokongan.",
+      "error": "Ralat Penyegerakan",
+      "errorDesc": "Gagal menyegerakkan data Tahap {level}"
+    }
+  },
   "common": {
     "active": "Aktif",
     "back": "Kembali",
@@ -12,7 +35,8 @@
     "refresh": "Muat Semula",
     "retry": "Cuba Lagi",
     "save": "Simpan",
-    "success": "Berjaya"
+    "success": "Berjaya",
+    "user": "Pengguna"
   },
   "dashboard": {
     "bccBalance": "Baki BCC",
@@ -79,7 +103,40 @@
       "loadFailed": "Gagal memuatkan data matrix",
       "noData": "Tiada data matrix tersedia",
       "navigationPath": "Laluan Navigasi",
-      "current": "Semasa"
+      "current": "Semasa",
+      "stats": {
+        "layerStats": {
+          "title": "Statistik Lapisan Matrix",
+          "layerCount": "19 Lapisan",
+          "layer": "Lapisan {layer}",
+          "active": "Aktif: {count}",
+          "fillRate": "Kadar Pengisian",
+          "complete": "{percent}% Selesai",
+          "layerComplete": "Lapisan Selesai",
+          "totalMembers": "Jumlah Ahli",
+          "activeMembers": "Ahli Aktif",
+          "layersCompleted": "Lapisan Selesai",
+          "avgCompletion": "Purata Selesai",
+          "loading": "Memuatkan statistik lapisan...",
+          "loadingFailed": "⚠️ Gagal memuatkan",
+          "retry": "Cuba Lagi",
+          "layerDetails": "Butiran Lapisan",
+          "help": {
+            "title": "Memahami Statistik Lapisan",
+            "fillRate": "📊 Kadar Pengisian: Peratusan slot yang diduduki dalam lapisan ini",
+            "activeMembers": "👥 Ahli Aktif: Bilangan ahli berdaftar dalam lapisan",
+            "totalSlots": "🎯 Jumlah Slot: Kapasiti maksimum (3^lapisan slot)",
+            "completion": "✨ Selesai: Kemajuan keseluruhan untuk mengisi semua 19 lapisan"
+          }
+        }
+      },
+      "drillDown": {
+        "positions": {
+          "left": "Kiri",
+          "middle": "Tengah",
+          "right": "Kanan"
+        }
+      }
     },
     "wallet": {
       "connectDescription": "Sila sambung dompet anda untuk mengakses sistem keahlian",
@@ -108,7 +165,6 @@
     "multi_chain_description": "Keluarkan ke Ethereum, Arbitrum, Polygon, Optimism, BSC, atau Base",
     "multi_chain_support": "Sokongan Multi-Chain",
     "network_fee": "Yuran Rangkaian",
-    "processing": "Memproses...",
     "select_target_chain": "Pilih chain sasaran",
     "select_target_token": "Pilih token sasaran",
     "selected_chain": "Chain Terpilih",
@@ -121,6 +177,20 @@
     "withdrawal_amount": "Jumlah Pengeluaran",
     "withdrawal_chain": "Chain Pengeluaran",
     "withdrawal_failed": "Pengeluaran Gagal",
-    "you_receive": "Anda Akan Terima"
+    "you_receive": "Anda Akan Terima",
+    "crossChainProcessing": "Pemprosesan Pengeluaran Merentas Chain 🌉",
+    "processing": "Pemprosesan Pengeluaran ⏳",
+    "estimatedArrival": "{amount} {chain} dijangka tiba dalam {minutes} minit"
+  },
+  "wallet": {
+    "connect": "Sambung Dompet",
+    "connected": "Bersambung",
+    "disconnect": "Putuskan Sambungan",
+    "networkSwitched": "Rangkaian Ditukar",
+    "networkSwitchedDesc": "Berjaya ditukar ke Arbitrum One",
+    "networkSwitchFailed": "Penukaran Rangkaian Gagal",
+    "networkSwitchFailedDesc": "Tidak dapat tukar ke Arbitrum One. Sila tukar secara manual dalam dompet anda.",
+    "switchingNetwork": "Menukar Rangkaian",
+    "switchingToArbitrum": "Menukar ke Arbitrum One..."
   }
 }

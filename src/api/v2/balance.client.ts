@@ -155,7 +155,7 @@ export const balanceV2Client = {
     walletAddress: string
   ): Promise<WithdrawalRequest> {
     try {
-      const response = await apiRequest('POST', '/api/withdrawal-system/withdraw', {
+      const response = await apiRequest('POST', '/api/withdrawal/withdraw', {
         action: 'request-withdrawal',
         amount,
         targetChain,
@@ -186,7 +186,7 @@ export const balanceV2Client = {
     };
   }> {
     try {
-      const response = await apiRequest('POST', '/api/withdrawal-system/history', {
+      const response = await apiRequest('POST', '/api/withdrawal/history', {
         action: 'get-history',
         limit
       }, walletAddress);

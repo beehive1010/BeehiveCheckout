@@ -333,19 +333,20 @@ export function LevelUpgradeButton({ onSuccess, targetLevel, className = '' }: L
         
         try {
           // Phase 1: Process upgrade
-          console.log('📊 Calling nft-upgrades endpoint...');
-          const upgradeResponse = await fetch(`${API_BASE}/nft-upgrades`, {
+          console.log('📊 Calling level-upgrade endpoint...');
+          const upgradeResponse = await fetch(`${API_BASE}/level-upgrade`, {
             method: 'POST',
             headers: {
               'Content-Type': 'application/json',
+              'Authorization': `Bearer ${import.meta.env.VITE_SUPABASE_ANON_KEY}`,
               'x-wallet-address': account.address
             },
             body: JSON.stringify({
-              action: 'process-upgrade',
+              action: 'upgrade_level',
+              walletAddress: account.address,
+              targetLevel: upgradeLevel,
               transactionHash: claimTxResult.transactionHash,
-              level: upgradeLevel,
-              payment_amount_usdc: levelInfo.priceInUSDC,
-              paymentMethod: 'token_payment'
+              network: 'mainnet'
             })
           });
 

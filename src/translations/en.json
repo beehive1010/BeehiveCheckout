@@ -420,6 +420,7 @@
     "tokenPurchase": "Token Purchase",
     "transaction_hash": "Transaction Hash",
     "unknown": "Unknown",
+    "user": "User",
     "view_details": "View Details",
     "warning": "Warning"
   },
@@ -1082,6 +1083,8 @@
     },
     "registerButton": "Register & Join Beehive",
     "registeringButton": "Registering...",
+    "required": "Registration Required",
+    "requiredDesc": "Please complete your registration to claim your Level 1 NFT.",
     "referralLinkRequired": "Referral Link Required",
     "footerText": "By registering, you'll be part of the 3x3 matrix referral system.",
     "referredBy": "Referred by",
@@ -2704,10 +2707,26 @@
     },
     "claiming": {
       "started": "Level {level} Claim Started",
-      "processing": "Processing NFT claim for ${price} USDC",
+      "processing": "Processing Level {level} upgrade...",
+      "processingNFT": "Processing NFT claim for ${price} USDC",
       "inProgress": "Claiming...",
-      "success": "🎉 Level {level} NFT Claimed!",
-      "successDescription": "Successfully processed claim for Level {level}. Earned ${price} BCC reward!"
+      "success": "Level {level} NFT Claimed!",
+      "successEmoji": "🎉 Level {level} NFT Claimed!",
+      "successCheck": "✅ Level {level} NFT Claimed!",
+      "successDescription": "Successfully claimed Level {level} membership for ${price}",
+      "successDescriptionBCC": "Successfully processed claim for Level {level}. Earned ${price} BCC reward!",
+      "failed": "Level {level} Upgrade Failed",
+      "failedDescription": "Failed to upgrade to Level {level}. Please try again."
+    },
+    "sync": {
+      "successful": "Sync Successful",
+      "successfulDesc": "Level {level} membership data has been synchronized.",
+      "initiated": "Sync Initiated",
+      "initiatedDesc": "Level {level} sync has been initiated. Please refresh in a moment.",
+      "failed": "Sync Failed",
+      "failedDesc": "Unable to sync Level {level} data. Please contact support.",
+      "error": "Sync Error",
+      "errorDesc": "Failed to sync Level {level} data"
     }
   },
   "education": {
@@ -3723,7 +3742,31 @@
         "directRefs": "Direct Refs",
         "matrixDepth": "Matrix Depth",
         "totalMembers": "{{count}} Members",
-        "yourPosition": "You're in Layer {{layer}}, Position {{position}}"
+        "yourPosition": "You're in Layer {{layer}}, Position {{position}}",
+        "layerStats": {
+          "title": "Matrix Layer Statistics",
+          "layerCount": "19 Layers",
+          "layer": "Layer {layer}",
+          "active": "Active: {count}",
+          "fillRate": "Fill Rate",
+          "complete": "{percent}% Complete",
+          "layerComplete": "Layer Complete",
+          "totalMembers": "Total Members",
+          "activeMembers": "Active Members",
+          "layersCompleted": "Layers Completed",
+          "avgCompletion": "Avg Completion",
+          "loading": "Loading layer statistics...",
+          "loadingFailed": "⚠️ Loading failed",
+          "retry": "Retry",
+          "layerDetails": "Layer Details",
+          "help": {
+            "title": "Understanding Layer Statistics",
+            "fillRate": "📊 Fill Rate: Percentage of slots occupied in this layer",
+            "activeMembers": "👥 Active Members: Number of registered members in the layer",
+            "totalSlots": "🎯 Total Slots: Maximum capacity (3^layer slots)",
+            "completion": "✨ Completion: Overall progress towards filling all 19 layers"
+          }
+        }
       },
       "success": {
         "linkCopied": "Referral link copied to clipboard!"
@@ -5002,7 +5045,13 @@
   "wallet": {
     "connect": "Connect Wallet",
     "connected": "Connected",
-    "disconnect": "Disconnect"
+    "disconnect": "Disconnect",
+    "networkSwitched": "Network Switched",
+    "networkSwitchedDesc": "Successfully switched to Arbitrum One",
+    "networkSwitchFailed": "Network Switch Failed",
+    "networkSwitchFailedDesc": "Could not switch to Arbitrum One. Please switch manually in your wallet.",
+    "switchingNetwork": "Switching Network",
+    "switchingToArbitrum": "Switching to Arbitrum One..."
   },
   "welcome": {
     "benefits": {
@@ -5072,7 +5121,6 @@
     "multi_chain_description": "Withdraw to Ethereum, Arbitrum, Polygon, Optimism, BSC, or Base",
     "multi_chain_support": "Multi-Chain Support",
     "network_fee": "Network Fee",
-    "processing": "Processing...",
     "select_target_chain": "Select target chain",
     "select_target_token": "Select target token",
     "selected_chain": "Selected Chain",
@@ -5086,6 +5134,9 @@
     "withdrawal_chain": "Withdrawal Chain",
     "withdrawal_failed": "Withdrawal Failed",
     "you_receive": "You Receive",
+    "crossChainProcessing": "Cross-chain Withdrawal Processing 🌉",
+    "processing": "Withdrawal Processing ⏳",
+    "estimatedArrival": "{amount} {chain} estimated to arrive in {minutes} minutes",
     "view_transaction_history": "View Transaction History",
     "transaction_history": "Transaction History",
     "track_withdrawal_status": "Track your withdrawal transactions in real-time",

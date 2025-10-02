@@ -233,10 +233,10 @@ async function getUser(supabase: any, walletAddress: string) {
       }
     }
   }
-  // Get referral statistics only if member - using new MasterSpec table structure
+  // Get referral statistics only if member - using MasterSpec table structure
   let referralStats = null;
   if (finalStatus.is_member) {
-    const { data: directReferrals } = await supabase.from('referrals_new').select('referred_wallet').eq('referrer_wallet', walletAddress);
+    const { data: directReferrals } = await supabase.from('referrals').select('member_wallet').eq('referrer_wallet', walletAddress);
     const { data: matrixMembers } = await supabase.from('matrix_referrals').select('member_wallet').eq('matrix_root_wallet', walletAddress);
     referralStats = {
       direct_referrals: directReferrals?.length || 0,
@@ -383,7 +383,7 @@ async function validateReferrer(supabase: any, referrerWallet: string) {
     matrix_members_count: 0
   };
   if (finalReferrerStatus.is_activated) {
-    const { data: directReferrals } = await supabase.from('referrals_new').select('referred_wallet').eq('referrer_wallet', referrerWallet);
+    const { data: directReferrals } = await supabase.from('referrals').select('member_wallet').eq('referrer_wallet', referrerWallet);
     const { data: matrixMembers } = await supabase.from('matrix_referrals').select('member_wallet').eq('matrix_root_wallet', referrerWallet);
     referralStats = {
       direct_referrals_count: directReferrals?.length || 0,

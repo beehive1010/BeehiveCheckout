@@ -76,12 +76,12 @@ const LAYER_REWARDS = Array.from({ length: 19 }, (_, i) => {
 });
 
 // BCC staking phases data
-const BCC_PHASES = [
+const BCC_PHASES_BASE = [
   {
     phase: 1,
-    members: '1st - 9,999th',
+    membersKey: 'rewards.bcc.phases.phase1.members',
     totalReward: 10450,
-    description: 'Phase 1: Early Adopters',
+    descriptionKey: 'rewards.bcc.phases.phase1.description',
     releases: Array.from({ length: 19 }, (_, i) => ({
       level: i + 1,
       amount: 100 + (i * 50)
@@ -89,9 +89,9 @@ const BCC_PHASES = [
   },
   {
     phase: 2,
-    members: '10,000th - 29,999th',
+    membersKey: 'rewards.bcc.phases.phase2.members',
     totalReward: 5225,
-    description: 'Phase 2: Growth Phase (50% reduction)',
+    descriptionKey: 'rewards.bcc.phases.phase2.description',
     releases: Array.from({ length: 19 }, (_, i) => ({
       level: i + 1,
       amount: Math.round((100 + (i * 50)) / 2)
@@ -99,9 +99,9 @@ const BCC_PHASES = [
   },
   {
     phase: 3,
-    members: '30,000th - 99,999th',
+    membersKey: 'rewards.bcc.phases.phase3.members',
     totalReward: 2612.5,
-    description: 'Phase 3: Expansion Phase (75% reduction)',
+    descriptionKey: 'rewards.bcc.phases.phase3.description',
     releases: Array.from({ length: 19 }, (_, i) => ({
       level: i + 1,
       amount: Math.round((100 + (i * 50)) / 4)
@@ -109,9 +109,9 @@ const BCC_PHASES = [
   },
   {
     phase: 4,
-    members: '100,000th - 186,000th',
+    membersKey: 'rewards.bcc.phases.phase4.members',
     totalReward: 1306.25,
-    description: 'Phase 4: Final Phase (87.5% reduction)',
+    descriptionKey: 'rewards.bcc.phases.phase4.description',
     releases: Array.from({ length: 19 }, (_, i) => ({
       level: i + 1,
       amount: Math.round((100 + (i * 50)) / 8)
@@ -130,6 +130,15 @@ export const RewardsInformation: React.FC<RewardsInformationProps> = ({
   const [isLayerDialogOpen, setIsLayerDialogOpen] = useState(false);
   const [isBccDialogOpen, setIsBccDialogOpen] = useState(false);
   const [selectedLayer, setSelectedLayer] = useState(1);
+
+  // Translate BCC phases using translation keys
+  const BCC_PHASES = React.useMemo(() =>
+    BCC_PHASES_BASE.map(phase => ({
+      ...phase,
+      members: t(phase.membersKey),
+      description: t(phase.descriptionKey)
+    })), [t]
+  );
 
   const handleExpandChange = () => {
     const newExpanded = !isExpanded;

@@ -713,8 +713,8 @@ export function Level2ClaimButtonV2({ onSuccess, className = '' }: Level2ClaimBu
                       if (!updateError && updateData && updateData.length > 0) {
                         console.log('✅ Manual sync successful:', updateData);
                         toast({
-                          title: "Sync Successful",
-                          description: "Level 2 membership data has been synchronized.",
+                          title: t('membership.sync.successful'),
+                          description: t('membership.sync.successfulDesc', { level: 2 }),
                           variant: "default",
                         });
                         
@@ -743,14 +743,14 @@ export function Level2ClaimButtonV2({ onSuccess, className = '' }: Level2ClaimBu
                         if (balanceResponse.ok) {
                           console.log('✅ Balance API sync triggered');
                           toast({
-                            title: "Sync Initiated",
-                            description: "Level 2 sync has been initiated via balance API. Please refresh in a moment.",
+                            title: t('membership.sync.initiated'),
+                            description: t('membership.sync.initiatedDesc', { level: 2 }),
                             variant: "default",
                           });
                         } else {
                           toast({
-                            title: "Sync Failed",
-                            description: "Unable to sync Level 2 data. Please contact support.",
+                            title: t('membership.sync.failed'),
+                            description: t('membership.sync.failedDesc', { level: 2 }),
                             variant: "destructive",
                           });
                         }
@@ -759,8 +759,8 @@ export function Level2ClaimButtonV2({ onSuccess, className = '' }: Level2ClaimBu
                     } catch (error: any) {
                       console.error('❌ Manual sync error:', error);
                       toast({
-                        title: "Sync Error",
-                        description: error.message || "Failed to sync Level 2 data",
+                        title: t('membership.sync.error'),
+                        description: error.message || t('membership.sync.errorDesc', { level: 2 }),
                         variant: "destructive",
                       });
                     }

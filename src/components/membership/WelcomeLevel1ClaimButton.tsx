@@ -106,15 +106,15 @@ export function WelcomeLevel1ClaimButton({ onSuccess, referrerWallet, className 
       setIsProcessing(true);
       await switchChain(arbitrum);
       toast({
-        title: 'Network Switched',
-        description: 'Successfully switched to Arbitrum One',
+        title: t('wallet.networkSwitched'),
+        description: t('wallet.networkSwitchedDesc'),
         variant: "default",
       });
     } catch (error: any) {
       console.error('Failed to switch network:', error);
       toast({
-        title: 'Network Switch Failed',
-        description: error.message || 'Could not switch to Arbitrum One. Please switch manually in your wallet.',
+        title: t('wallet.networkSwitchFailed'),
+        description: error.message || t('wallet.networkSwitchFailedDesc'),
         variant: "destructive",
       });
     } finally {
@@ -197,8 +197,8 @@ export function WelcomeLevel1ClaimButton({ onSuccess, referrerWallet, className 
           
           // Show user-friendly message
           toast({
-            title: "Registration Required",
-            description: "Please complete your registration to claim your Level 1 NFT.",
+            title: t('registration.required'),
+            description: t('registration.requiredDesc'),
             duration: 3000
           });
           

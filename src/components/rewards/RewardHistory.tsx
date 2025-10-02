@@ -382,6 +382,7 @@ export default function RewardHistory({ className, walletAddress }: RewardHistor
                   type="date"
                   value={historyFilters.dateFrom}
                   onChange={(e) => setHistoryFilters(prev => ({ ...prev, dateFrom: e.target.value }))}
+                  placeholder={t('rewards.history.dateFrom') || 'From Date'}
                   className="w-full pl-10 pr-3 py-3 text-sm border border-border rounded-lg bg-background focus:outline-none focus:ring-2 focus:ring-honey/20 focus:border-honey"
                 />
               </div>
@@ -393,6 +394,7 @@ export default function RewardHistory({ className, walletAddress }: RewardHistor
                   type="date"
                   value={historyFilters.dateTo}
                   onChange={(e) => setHistoryFilters(prev => ({ ...prev, dateTo: e.target.value }))}
+                  placeholder={t('rewards.history.dateTo') || 'To Date'}
                   className="w-full pl-10 pr-3 py-3 text-sm border border-border rounded-lg bg-background focus:outline-none focus:ring-2 focus:ring-honey/20 focus:border-honey"
                 />
               </div>

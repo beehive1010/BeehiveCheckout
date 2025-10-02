@@ -157,8 +157,14 @@ export default function USDTWithdrawal() {
     },
     onSuccess: (data) => {
       toast({
-        title: `提现${data.isCrossChain ? '跨链' : ''}处理中 ${data.isCrossChain ? '🌉' : '⏳'}`,
-        description: data.message || `${data.netAmount} ${data.chain} 预计 ${data.estimatedMinutes} 分钟内到账`,
+        title: data.isCrossChain
+          ? t('withdrawal.crossChainProcessing')
+          : t('withdrawal.processing'),
+        description: data.message || t('withdrawal.estimatedArrival', {
+          amount: data.netAmount,
+          chain: data.chain,
+          minutes: data.estimatedMinutes
+        }),
       });
       
       setAmount('');

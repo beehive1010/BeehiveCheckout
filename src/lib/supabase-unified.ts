@@ -317,10 +317,10 @@ export const dbFunctions = {
     });
   },
 
-  async claimRewardToBalance(claimId: string, walletAddress: string) {
-    return await supabase.rpc('claim_reward_to_balance', {
-      p_claim_id: claimId,
-      p_wallet_address: walletAddress
+  async claimRewardToBalance(rewardId: string, walletAddress: string) {
+    return await supabase.rpc('claim_layer_reward', {
+      p_reward_id: rewardId,
+      p_member_wallet: walletAddress
     });
   },
 

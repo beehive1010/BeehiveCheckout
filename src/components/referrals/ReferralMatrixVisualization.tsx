@@ -98,26 +98,26 @@ export default function ReferralMatrixVisualization({
 
       // Get additional member and user info
       const memberWallets = matrixPlacements?.map(p => p.member_wallet).filter((w): w is string => Boolean(w)) || [];
-      
+
       let membersData: any[] = [];
-      let usersData: any[] = [];
-      
+
       if (memberWallets.length > 0) {
-        const [membersResult, usersResult] = await Promise.allSettled([
-          supabase.from('members').select('wallet_address, current_level').in('wallet_address', memberWallets),
-          supabase.from('users').select('wallet_address, username').in('wallet_address', memberWallets)
-        ]);
-        
-        if (membersResult.status === 'fulfilled' && membersResult.value.data) {
-          membersData = membersResult.value.data;
-        }
-        if (usersResult.status === 'fulfilled' && usersResult.value.data) {
-          usersData = usersResult.value.data;
+        // Use canonical view instead of separate members/users queries
+        const { data: memberData, error } = await supabase
+          .from('v_member_overview')
+          .select('wallet_address, username, current_level')
+          .in('wallet_address', memberWallets);
+
+        if (error) {
+          console.error('Failed to load member data:', error);
+          membersData = [];
+        } else {
+          membersData = memberData || [];
         }
       }
 
+      // Create map for easy lookup
       const membersMap = new Map(membersData.map(m => [m.wallet_address, m]));
-      const usersMap = new Map(usersData.map(u => [u.wallet_address, u]));
 
       // Transform data to MatrixMember format using matrix_referrals_tree_view data
       const members: MatrixMember[] = matrixPlacements?.map(placement => {
@@ -129,11 +129,10 @@ export default function ReferralMatrixVisualization({
         else positionNumber = parseInt(placement.matrix_position || '0');
 
         const memberInfo = membersMap.get(placement.member_wallet || '');
-        const userInfo = usersMap.get(placement.member_wallet || '');
 
         return {
           walletAddress: placement.member_wallet || '',
-          username: userInfo?.username || undefined,
+          username: memberInfo?.username || undefined,
           level: memberInfo?.current_level || 1,
           layer: placement.matrix_layer || 1,
           position: positionNumber,
