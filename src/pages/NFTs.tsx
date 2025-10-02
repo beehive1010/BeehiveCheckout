@@ -180,7 +180,7 @@ export default function NFTs() {
           id: 'mock-1',
           title: 'Premium DeFi Analytics Dashboard',
           description: 'Access advanced analytics and insights for your DeFi portfolio with real-time tracking.',
-          image_url: 'https://picsum.photos/400/300?random=1',
+          image_url: 'https://via.placeholder.com/400x300/4F46E5/FFFFFF?text=DeFi+Analytics',
           price_usdt: 99.99,
           price_bcc: 150,
           category: 'defi',
@@ -213,7 +213,7 @@ export default function NFTs() {
           id: 'mock-2',
           title: 'Gaming NFT Collection',
           description: 'Exclusive gaming NFTs that unlock special abilities and rewards in our Web3 game ecosystem.',
-          image_url: 'https://picsum.photos/400/300?random=2',
+          image_url: 'https://via.placeholder.com/400x300/EC4899/FFFFFF?text=Gaming+NFT',
           price_usdt: 49.99,
           price_bcc: 75,
           category: 'gaming',
@@ -269,7 +269,7 @@ export default function NFTs() {
           id: 'merchant-1',
           title: 'Professional Web Development Service',
           description: 'Full-stack web development service including React, Node.js, and database integration.',
-          image_url: 'https://picsum.photos/400/300?random=3',
+          image_url: 'https://via.placeholder.com/400x300/10B981/FFFFFF?text=Web+Development',
           price_usdt: 199.99,
           price_bcc: 300,
           category: 'development',
@@ -299,7 +299,7 @@ export default function NFTs() {
           id: 'merchant-2',
           title: 'Digital Marketing Consultation',
           description: 'Strategic digital marketing consultation to boost your Web3 project visibility and growth.',
-          image_url: 'https://picsum.photos/400/300?random=4',
+          image_url: 'https://via.placeholder.com/400x300/F59E0B/FFFFFF?text=Marketing',
           price_usdt: 149.99,
           price_bcc: 225,
           category: 'consulting',
@@ -679,8 +679,12 @@ export default function NFTs() {
 
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
               {advertisementNFTs.map((nft) => (
-                <Card key={nft.id} className="group hover:shadow-lg transition-all duration-200 border-blue-500/20 hover:border-blue-500/40">
-                  <CardHeader className="pb-3">
+                <Card key={nft.id} className="group relative overflow-hidden bg-gradient-to-br from-slate-900/95 via-gray-900/90 to-slate-900/95 dark:from-black/95 dark:via-slate-950/90 dark:to-black/95 border-2 border-slate-700 dark:border-slate-800 hover:border-blue-500/50 transition-all duration-500 hover:scale-[1.02] shadow-2xl hover:shadow-3xl hover:shadow-blue-500/20">
+                  {/* Blue background gradient */}
+                  <div className="absolute inset-0 bg-gradient-to-br from-blue-500/20 via-indigo-400/15 to-blue-600/20 opacity-60 group-hover:opacity-80 transition-opacity duration-300"></div>
+                  {/* Animated border glow */}
+                  <div className="absolute inset-0 rounded-xl border-2 border-blue-500/40 opacity-0 group-hover:opacity-100 transition-all duration-300 animate-pulse"></div>
+                  <CardHeader className="relative pb-3">
                     <StableImage
                       src={nft.image_url}
                       alt={nft.title}
@@ -716,7 +720,7 @@ export default function NFTs() {
                     </CardTitle>
                   </CardHeader>
                   
-                  <CardContent className="space-y-4">
+                  <CardContent className="relative space-y-4">
                     <p className="text-sm text-muted-foreground line-clamp-3">
                       <HybridTranslation
                         content={{
@@ -798,8 +802,12 @@ export default function NFTs() {
 
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
               {merchantNFTs.map((nft) => (
-                <Card key={nft.id} className="group hover:shadow-lg transition-all duration-200 border-purple-500/20 hover:border-purple-500/40">
-                  <CardHeader className="pb-3">
+                <Card key={nft.id} className="group relative overflow-hidden bg-gradient-to-br from-slate-900/95 via-gray-900/90 to-slate-900/95 dark:from-black/95 dark:via-slate-950/90 dark:to-black/95 border-2 border-slate-700 dark:border-slate-800 hover:border-purple-500/50 transition-all duration-500 hover:scale-[1.02] shadow-2xl hover:shadow-3xl hover:shadow-purple-500/20">
+                  {/* Purple background gradient */}
+                  <div className="absolute inset-0 bg-gradient-to-br from-purple-500/20 via-fuchsia-400/15 to-purple-600/20 opacity-60 group-hover:opacity-80 transition-opacity duration-300"></div>
+                  {/* Animated border glow */}
+                  <div className="absolute inset-0 rounded-xl border-2 border-purple-500/40 opacity-0 group-hover:opacity-100 transition-all duration-300 animate-pulse"></div>
+                  <CardHeader className="relative pb-3">
                     <StableImage
                       src={nft.image_url}
                       alt={nft.title}
@@ -842,7 +850,7 @@ export default function NFTs() {
                     </CardTitle>
                   </CardHeader>
                   
-                  <CardContent className="space-y-4">
+                  <CardContent className="relative space-y-4">
                     <p className="text-sm text-muted-foreground line-clamp-3">
                       <HybridTranslation
                         content={{
@@ -927,8 +935,12 @@ export default function NFTs() {
                 if (!nft) return null;
 
                 return (
-                  <Card key={purchase.id} className="border-green-500/20">
-                    <CardHeader className="pb-3">
+                  <Card key={purchase.id} className="group relative overflow-hidden bg-gradient-to-br from-slate-900/95 via-gray-900/90 to-slate-900/95 dark:from-black/95 dark:via-slate-950/90 dark:to-black/95 border-2 border-slate-700 dark:border-slate-800 hover:border-green-500/50 transition-all duration-500 hover:scale-[1.02] shadow-2xl hover:shadow-3xl hover:shadow-green-500/20">
+                    {/* Green background gradient */}
+                    <div className="absolute inset-0 bg-gradient-to-br from-green-500/20 via-emerald-400/15 to-green-600/20 opacity-60 group-hover:opacity-80 transition-opacity duration-300"></div>
+                    {/* Animated border glow */}
+                    <div className="absolute inset-0 rounded-xl border-2 border-green-500/40 opacity-0 group-hover:opacity-100 transition-all duration-300 animate-pulse"></div>
+                    <CardHeader className="relative pb-3">
                       <StableImage
                         src={nft.image_url}
                         alt={nft.title}
@@ -973,7 +985,7 @@ export default function NFTs() {
                       </CardTitle>
                     </CardHeader>
                     
-                    <CardContent className="space-y-4">
+                    <CardContent className="relative space-y-4">
                       <p className="text-sm text-muted-foreground line-clamp-2">{getTranslatedContent(nft, 'description')}</p>
                       
                       <div className="text-xs text-muted-foreground space-y-1">

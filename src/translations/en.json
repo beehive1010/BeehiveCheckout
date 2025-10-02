@@ -618,10 +618,16 @@
     "bccBalance": "BCC Balance",
     "bccLocked": "BCC Locked",
     "buildNetwork": "Let's build your hive network together",
-    "claimRewards": "Claim Rewards",
+    "claimRewards": "Check Rewards",
     "claimableRewards": "Claimable Rewards",
     "copyLink": "Copy Link",
     "directReferrals": "Direct Referrals",
+    "transferable": "Transferable",
+    "available": "Available",
+    "yourTeam": "Your Team",
+    "yourTokens": "Your Tokens",
+    "earnings": "Your Earnings",
+    "ready": "Ready",
     "downlineMatrix": {
       "title": "Downline Matrix",
       "placement": "Placement"

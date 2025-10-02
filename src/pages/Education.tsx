@@ -170,8 +170,9 @@ export default function Education() {
 
         <TabsContent value="all-courses" className="space-y-6">
           {/* Course Statistics */}
-          <Card className="bg-secondary border-border">
-            <CardContent className="p-6">
+          <Card className="relative overflow-hidden bg-gradient-to-br from-slate-900/95 via-gray-900/90 to-slate-900/95 dark:from-black/95 dark:via-slate-950/90 dark:to-black/95 border-2 border-slate-700 dark:border-slate-800 shadow-2xl">
+            <div className="absolute inset-0 bg-gradient-to-br from-honey/10 via-amber-300/5 to-yellow-400/10 opacity-70"></div>
+            <CardContent className="relative p-6">
               <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                 <div className="text-center">
                   <div className="text-2xl font-bold text-honey">{availableCourses.length}</div>
@@ -239,12 +240,19 @@ export default function Education() {
                 const isLevelLocked = course.levelLocked;
 
                 return (
-                  <Card key={course.id} className={`bg-secondary border-border transition-colors ${
-                    isLevelLocked 
-                      ? 'opacity-60 border-muted hover:border-muted' 
-                      : 'hover:border-honey/50'
+                  <Card key={course.id} className={`group relative overflow-hidden bg-gradient-to-br from-slate-900/95 via-gray-900/90 to-slate-900/95 dark:from-black/95 dark:via-slate-950/90 dark:to-black/95 border-2 border-slate-700 dark:border-slate-800 transition-all duration-500 hover:scale-[1.02] shadow-2xl ${
+                    isLevelLocked
+                      ? 'opacity-60'
+                      : 'hover:border-honey/50 hover:shadow-3xl hover:shadow-honey/20'
                   }`}>
-                    <CardHeader className="pb-3">
+                    {/* Honey background gradient for unlocked courses */}
+                    {!isLevelLocked && (
+                      <>
+                        <div className="absolute inset-0 bg-gradient-to-br from-honey/20 via-amber-300/15 to-yellow-400/20 opacity-60 group-hover:opacity-80 transition-opacity duration-300"></div>
+                        <div className="absolute inset-0 rounded-xl border-2 border-honey/40 opacity-0 group-hover:opacity-100 transition-all duration-300 animate-pulse"></div>
+                      </>
+                    )}
+                    <CardHeader className="relative pb-3">
                       <div className="flex items-start justify-between">
                         <div className="flex-1">
                           <div className="flex items-center gap-2 mb-1">
@@ -265,7 +273,7 @@ export default function Education() {
                         </HexagonIcon>
                       </div>
                     </CardHeader>
-                    <CardContent className="space-y-3">
+                    <CardContent className="relative space-y-3">
                       <div className="flex items-center justify-between text-sm">
                         <span className="text-muted-foreground">{t('education.duration')}</span>
                         <span>{course.duration}h</span>
@@ -366,11 +374,12 @@ export default function Education() {
           ) : (
             <div className="space-y-6">
               {/* Learning Progress Summary */}
-              <Card className="bg-secondary border-border">
-                <CardHeader>
+              <Card className="relative overflow-hidden bg-gradient-to-br from-slate-900/95 via-gray-900/90 to-slate-900/95 dark:from-black/95 dark:via-slate-950/90 dark:to-black/95 border-2 border-slate-700 dark:border-slate-800 shadow-2xl">
+                <div className="absolute inset-0 bg-gradient-to-br from-green-500/20 via-emerald-400/15 to-green-600/20 opacity-60"></div>
+                <CardHeader className="relative">
                   <CardTitle className="text-honey">Learning Progress</CardTitle>
                 </CardHeader>
-                <CardContent>
+                <CardContent className="relative">
                   <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                     <div className="text-center">
                       <div className="text-2xl font-bold text-honey">{myCourses.length}</div>
@@ -412,7 +421,7 @@ export default function Education() {
                           </HexagonIcon>
                         </div>
                       </CardHeader>
-                      <CardContent className="space-y-3">
+                      <CardContent className="relative space-y-3">
                         <div className="space-y-2">
                           <div className="flex justify-between text-sm">
                             <span>Progress</span>

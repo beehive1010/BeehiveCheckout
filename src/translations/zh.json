@@ -112,12 +112,56 @@
     "tasks": "任务"
   },
   "dashboard": {
+    "welcomeBack": "欢迎回来，{username}！",
+    "welcomeMember": "欢迎，会员！",
+    "buildNetwork": "让我们一起建立您的蜂巢网络",
+    "bccBalance": "BCC余额",
+    "bccLocked": "BCC锁定",
+    "transferable": "可转账",
+    "available": "可用",
+    "yourTokens": "您的代币",
+    "referralNetwork": "推荐网络",
+    "yourTeam": "您的团队",
+    "directReferrals": "直推人数",
+    "totalTeamSize": "团队总人数",
+    "maxLayer": "最大层级",
+    "viewMatrix": "查看矩阵",
+    "rewardCenter": "奖励中心",
+    "earnings": "您的收益",
+    "totalRewards": "总奖励",
+    "claimableRewards": "可领取奖励",
+    "claimRewards": "查看奖励",
+    "ready": "就绪",
+    "shareReferral": "分享推荐链接",
+    "shareDescription": "邀请好友加入并获得奖励",
+    "copyLink": "复制链接",
+    "topUp": "充值",
+    "refresh": "刷新",
+    "refreshing": "刷新中",
+    "loadingData": "加载数据中",
+    "balance": "余额",
+    "network": "网络",
+    "rewards": "奖励",
+    "lastUpdated": "最后更新",
+    "inviteTip": "分享您的推荐链接邀请朋友并获得奖励",
     "social": {
       "facebook": "Facebook",
       "telegram": "Telegram",
       "twitter": "X (Twitter)",
       "whatsapp": "WhatsApp",
       "shareOn": "分享到"
+    },
+    "success": {
+      "copied": "已复制",
+      "linkCopiedToClipboard": "推荐链接已复制到剪贴板",
+      "refreshed": "已刷新",
+      "dataUpdated": "数据已更新"
+    },
+    "errors": {
+      "loadError": "加载错误",
+      "dataLoadFailed": "数据加载失败",
+      "refreshToRetry": "请刷新重试",
+      "retry": "重试"
     }
   },
   "notifications": {
@@ -1034,8 +1078,5 @@
   },
   "claim": {
     "checkingOwnership": "检查NFT持有状态..."
-  },
-  "dashboard": {
-    "welcomeBack": "欢迎回来，{username}！"
   }
 }
