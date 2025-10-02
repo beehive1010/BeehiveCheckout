@@ -30,7 +30,63 @@
     "legacySystem": "傳統系統（用於比較）",
     "rewardSystemInfo": "獎勵系統資訊",
     "matrixRewardsTitle": "矩陣獎勵",
-    "bccTokenRewardsTitle": "BCC代幣獎勵"
+    "bccTokenRewardsTitle": "BCC代幣獎勵",
+    "information": {
+      "rewardDistributedImmediately": "獎勵立即分發",
+      "exampleLayer3Reward": "範例：層級3獎勵",
+      "referrerHasLevel3": "推薦者有3級+ → 即時$200",
+      "pendingHours": "待處理（72小時）",
+      "referrerLevelInsufficient": "推薦者等級 < 層級等級",
+      "hourUpgradeWindow": "72小時升級窗口",
+      "canClaimByUpgrading": "可透過升級等級領取",
+      "referrerHasLevel1": "推薦者有1級 → 72小時升級",
+      "rollupSystem": "回滾系統",
+      "expiredRewards": "過期獎勵（72小時+）",
+      "rollsUpToQualified": "回滾給合格的上級",
+      "ensuresNoRewardLost": "確保沒有獎勵遺失",
+      "noUpgradeRollup": "未升級 → 回滾給合格贊助商",
+      "currentPhase": "當前階段"
+    }
+  },
+  "membershipSystem": {
+    "matrix": {
+      "drillDown": {
+        "positions": {
+          "left": "左",
+          "middle": "中",
+          "right": "右"
+        }
+      }
+    }
+  },
+  "rewards": {
+    "information": {
+      "rewardDistributedImmediately": "獎勵立即分發",
+      "exampleLayer3Reward": "範例：層級3獎勵",
+      "referrerHasLevel3": "推薦者有3級+ → 即時$200",
+      "pendingHours": "待處理（72小時）",
+      "referrerLevelInsufficient": "推薦者等級 < 層級等級",
+      "hourUpgradeWindow": "72小時升級窗口",
+      "canClaimByUpgrading": "可透過升級等級領取",
+      "referrerHasLevel1": "推薦者有1級 → 72小時升級",
+      "rollupSystem": "回滾系統",
+      "expiredRewards": "過期獎勵（72小時+）",
+      "rollsUpToQualified": "回滾給合格的上級",
+      "ensuresNoRewardLost": "確保沒有獎勵遺失",
+      "noUpgradeRollup": "未升級 → 回滾給合格贊助商",
+      "currentPhase": "當前階段",
+      "matrixVisualization": {
+        "level": "級別",
+        "legend": {
+          "member": "成員",
+          "members": "成員",
+          "activeMember": "活躍成員",
+          "pendingMember": "待處理成員",
+          "hasRewards": "有獎勵",
+          "you": "您"
+        }
+      }
+    }
   },
   "common": {
     "active": "活躍",
