@@ -136,11 +136,11 @@ export default function Dashboard() {
           .select('wallet_address, current_level, activation_time')
           .eq('referrer_wallet', walletAddress),
           
-        // Matrix团队统计 
+        // Matrix团队统计
         supabase
           .from('referrals')
-          .select('member_wallet, matrix_layer, is_direct_referral, is_spillover_placement')
-          .eq('matrix_root_wallet', walletAddress),
+          .select('member_wallet, layer, placement_type')
+          .eq('root_wallet', walletAddress),
           
         // 当前用户信息
         supabase
@@ -156,11 +156,11 @@ export default function Dashboard() {
       
       // 计算Matrix团队数据
       const totalTeamSize = matrixTeamData?.length || 0;
-      const maxLayer = matrixTeamData && matrixTeamData.length > 0 
-        ? Math.max(...matrixTeamData.map(m => m.matrix_layer)) 
+      const maxLayer = matrixTeamData && matrixTeamData.length > 0
+        ? Math.max(...matrixTeamData.map(m => m.layer))
         : 0;
       const activeLayers = matrixTeamData && matrixTeamData.length > 0
-        ? new Set(matrixTeamData.map(m => m.matrix_layer)).size
+        ? new Set(matrixTeamData.map(m => m.layer)).size
         : 0;
 
       console.log('🌐 Matrix data calculated:', {

@@ -1225,6 +1225,89 @@
       }
     }
   },
+  "referrals": {
+    "title": "推荐系统",
+    "subtitle": "建立您的3x3矩阵网络，通过推荐赚取奖励",
+    "yourLink": "您的推荐链接",
+    "copy": "复制",
+    "linkDescription": "分享此链接，当他人通过您的推荐加入并激活会员时赚取奖励",
+    "copied": {
+      "title": "已复制！",
+      "description": "推荐链接已复制到剪贴板"
+    },
+    "tabs": {
+      "matrix": "3x3矩阵",
+      "stats": "统计数据",
+      "team": "我的团队"
+    },
+    "recentActivity": "最近推荐活动",
+    "recent": "最近加入",
+    "matrixView": "您的矩阵网络",
+    "noReferrals": "还没有推荐。开始分享您的链接以建立您的3x3矩阵！",
+    "totalReferrals": "总推荐数",
+    "totalEarnings": "总收益",
+    "activeMembers": "活跃成员",
+    "matrixLayers": "矩阵层级",
+    "activated": "已激活",
+    "pending": "待处理",
+    "recentReferrals": "最近推荐",
+    "recentlyJoined": "最近加入",
+    "matrixLevel": "矩阵级别",
+    "legacySystem": "传统系统（用于比较）",
+    "rewardSystemInfo": "奖励系统信息",
+    "matrixRewardsTitle": "矩阵奖励",
+    "bccTokenRewardsTitle": "BCC代币奖励",
+    "rewards": {
+      "level1Direct": "级别1直推：每次推荐$30 USDC",
+      "level2Matrix": "级别2矩阵：每个位置$10 USDC",
+      "spilloverBonuses": "溢出奖励：额外奖励",
+      "claimWindow": "72小时领取窗口"
+    },
+    "bccRewards": {
+      "transferable": "可转移BCC：立即使用",
+      "locked": "锁定BCC：基于层级释放",
+      "multipliers": "层级倍数：1.0x, 0.5x, 0.25x, 0.125x",
+      "upgrades": "级别升级解锁更多BCC"
+    },
+    "team_overview": "团队概览",
+    "view_matrix": "查看矩阵",
+    "total_team": "团队总数",
+    "active_members": "活跃成员",
+    "max_layers": "最大层级",
+    "network_strength": "网络强度",
+    "layer_progress": "层级进度",
+    "recent_referrals": "最近推荐",
+    "share_link": "分享推荐链接",
+    "rewardStructure": {
+      "title": "蜂巢奖励结构",
+      "globalMatrix": "全球矩阵系统",
+      "layerBased": "仅基于层级的奖励（72小时计时器）",
+      "specialRules": "特殊规则：",
+      "rule1": "级别1：第3个奖励需要级别2升级",
+      "rule2": "级别2：必须拥有L2 + 至少一个拥有L2的层级1成员",
+      "rule3": "级别3-19：只需拥有该级别或更高级别"
+    },
+    "referralLink": {
+      "title": "您的推荐链接"
+    },
+    "availableRewards": {
+      "title": "可用奖励",
+      "withdraw": "提取奖励"
+    },
+    "matrixPerformance": {
+      "title": "矩阵表现",
+      "status": "状态",
+      "active": "活跃",
+      "currentLevel": "当前级别",
+      "level": "级别",
+      "matrixRewards": "矩阵奖励",
+      "pendingRewards": "待处理奖励",
+      "viewMatrix": "查看3x3矩阵"
+    },
+    "matrixManagement": {
+      "title": "矩阵层级管理"
+    }
+  },
   "tasks": {
     "title": "任务和市场",
     "pageTitle": "任务",

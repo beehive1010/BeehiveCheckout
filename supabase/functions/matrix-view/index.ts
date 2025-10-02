@@ -273,6 +273,14 @@ serve(async (req: Request) => {
 
       console.log(`📊 Position counts by layer:`, positionCounts)
 
+      // Get actual direct referrals count from members table (users who have this wallet as referrer)
+      const { count: actualDirectReferrals, error: directRefError } = await supabase
+        .from('members')
+        .select('*', { count: 'exact', head: true })
+        .eq('referrer_wallet', walletAddress)
+
+      console.log(`📊 Actual direct referrals from members table:`, actualDirectReferrals)
+
       // Transform data from matrix_layer_details (optimized)
       const completeStats = []
       
@@ -363,19 +371,20 @@ serve(async (req: Request) => {
             deepest_layer: Math.max(...completeStats.filter(s => s.totalMembers > 0).map(s => s.layer), 0),
             max_layer: Math.max(...completeStats.filter(s => s.totalMembers > 0).map(s => s.layer), 0),
             layers_with_data: completeStats.filter(s => s.totalMembers > 0).length,
-            
+
             // Enhanced referral statistics (from improved referrals_stats_view)
-            direct_referrals: statsData?.direct_referrals_count || 0,
-            activated_referrals: statsData?.activated_referrals_count || 0,
+            // Use actual direct referrals count from members table instead of matrix layer 1
+            direct_referrals: actualDirectReferrals || 0,
+            activated_referrals: actualDirectReferrals || 0,  // All members in members table are activated
             total_team_size: statsData?.total_team_size || completeStats.reduce((sum, stat) => sum + stat.totalMembers, 0),
             total_network_size: statsData?.total_network_size || 0,
             active_layers: statsData?.active_layers || 0,
             total_activated_members: statsData?.total_activated_members || 0,
             has_matrix_team: statsData?.has_matrix_team || false,
-            
+
             // Computed metrics
-            network_strength: (completeStats.reduce((sum, stat) => sum + stat.totalMembers, 0) * 5) + (statsData?.activated_referrals_count || 0) * 10,
-            
+            network_strength: (completeStats.reduce((sum, stat) => sum + stat.totalMembers, 0) * 5) + (actualDirectReferrals || 0) * 10,
+
             // Legacy aliases for backward compatibility
             total_members_alias: completeStats.reduce((sum, stat) => sum + stat.totalMembers, 0)
           }
