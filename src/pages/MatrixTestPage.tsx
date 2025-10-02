@@ -45,7 +45,7 @@ const DetailedMatrixSlotsView: React.FC<{
       
       try {
         // 直接查询matrix_referrals获取准确的滑落数据
-        const response = await fetch('https://cvqibjcbfrwsgkvthccp.supabase.co/functions/v1/matrix-view', {
+        const response = await fetch('https://cdjmtevekxpmgrixkiqt.supabase.co/functions/v1/matrix-view', {
           method: 'POST',
           headers: {
             'Authorization': `Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImN2cWliamNiZnJ3c2drdnRoY2NwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTcwNjU0MDUsImV4cCI6MjA3MjY0MTQwNX0.7CfL8CS1dQ8Gua89maSCDkgnMsNb19qp97mJyoJqJjs`,

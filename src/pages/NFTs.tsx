@@ -456,7 +456,7 @@ export default function NFTs() {
       const transactionHash = `0x${Date.now().toString(16)}${Math.random().toString(16).slice(2, 10)}`;
 
       // Use balance edge function to spend BCC for NFT purchase
-      const baseUrl = 'https://cvqibjcbfrwsgkvthccp.supabase.co/functions/v1';
+      const baseUrl = 'https://cdjmtevekxpmgrixkiqt.supabase.co/functions/v1';
       const anonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
       
       const requestPayload = {

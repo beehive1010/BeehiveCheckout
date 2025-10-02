@@ -42,7 +42,7 @@ export function DirectMatrixStatsView({ walletAddress }: DirectMatrixStatsViewPr
       console.log('🚀 Calling matrix-view function directly for:', walletAddress);
       
       // Direct call to Supabase function
-      const response = await fetch('https://cvqibjcbfrwsgkvthccp.supabase.co/functions/v1/matrix-view', {
+      const response = await fetch('https://cdjmtevekxpmgrixkiqt.supabase.co/functions/v1/matrix-view', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

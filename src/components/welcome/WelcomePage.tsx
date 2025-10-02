@@ -71,7 +71,7 @@ export function WelcomePage() {
         try {
             // Check user status via Edge Function
             const authStartTime = performance.now();
-            const response = await fetch('https://cvqibjcbfrwsgkvthccp.supabase.co/functions/v1/auth', {
+            const response = await fetch('https://cdjmtevekxpmgrixkiqt.supabase.co/functions/v1/auth', {
                 method: 'POST',
                 headers: {
                     'Authorization': `Bearer ${import.meta.env.VITE_SUPABASE_ANON_KEY}`,
@@ -111,7 +111,7 @@ export function WelcomePage() {
 
                     // Fast database-only check using member-info Edge Function
                     // Add timestamp to prevent caching issues
-                    const memberResponse = await fetch(`https://cvqibjcbfrwsgkvthccp.supabase.co/functions/v1/activate-membership?t=${Date.now()}`, {
+                    const memberResponse = await fetch(`https://cdjmtevekxpmgrixkiqt.supabase.co/functions/v1/activate-membership?t=${Date.now()}`, {
                         method: 'POST',
                         headers: {
                             'Authorization': `Bearer ${import.meta.env.VITE_SUPABASE_ANON_KEY}`,

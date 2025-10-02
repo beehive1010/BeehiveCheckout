@@ -95,7 +95,7 @@ export const WithdrawRewards: React.FC<WithdrawRewardsProps> = ({ walletAddress 
   const withdrawMutation = useMutation({
     mutationFn: async (amount: number) => {
       // Call server-wallet function via supabase functions
-      const response = await fetch('https://cvqibjcbfrwsgkvthccp.supabase.co/functions/v1/server-wallet/withdraw', {
+      const response = await fetch('https://cdjmtevekxpmgrixkiqt.supabase.co/functions/v1/server-wallet/withdraw', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

@@ -218,7 +218,7 @@ export const coursesApi = {
       }
 
       // 6. 使用courses Edge Function购买课程以正确处理RLS和BCC扣除
-      const baseUrl = 'https://cvqibjcbfrwsgkvthccp.supabase.co/functions/v1';
+      const baseUrl = 'https://cdjmtevekxpmgrixkiqt.supabase.co/functions/v1';
       const anonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
       const purchaseResponse = await fetch(`${baseUrl}/courses`, {
         method: 'POST',

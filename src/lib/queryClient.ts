@@ -42,7 +42,7 @@ export async function apiRequest(
   const addressToUse = options?.walletAddress || walletAddress || getWalletAddress();
   
   // Base Supabase URL
-  const baseUrl = 'https://cvqibjcbfrwsgkvthccp.supabase.co/functions/v1';
+  const baseUrl = 'https://cdjmtevekxpmgrixkiqt.supabase.co/functions/v1';
   const anonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
   
   // Simple mapping: extract function name from URL

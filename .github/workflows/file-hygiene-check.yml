@@ -1,0 +1,70 @@
+name: File Hygiene Check
+
+on:
+  pull_request:
+    branches: [ main, new ]
+  push:
+    branches: [ main, new ]
+
+jobs:
+  hygiene-check:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v3
+    
+    - name: Check Root Directory Hygiene
+      run: |
+        echo "Checking root directory for stray files..."
+        
+        # Count stray MD files (excluding allowlist)
+        STRAY_MD=$(find . -maxdepth 1 -name "*.md" -not -name "README.md" -not -name "CHANGELOG.md" -not -name "CLAUDE.md" | wc -l)
+        
+        # Count stray SQL files
+        STRAY_SQL=$(find . -maxdepth 1 -name "*.sql" | wc -l)
+        
+        # Count other stray files (excluding common allowlist)
+        STRAY_OTHER=$(find . -maxdepth 1 -type f \
+          -not -name "*.json" \
+          -not -name "*.js" \
+          -not -name "*.ts" \
+          -not -name "*.tsx" \
+          -not -name "*.md" \
+          -not -name "*.sql" \
+          -not -name "*.yml" \
+          -not -name "*.yaml" \
+          -not -name "*.lock" \
+          -not -name ".*" \
+          -not -name "LICENSE*" | wc -l)
+        
+        echo "Stray MD files: $STRAY_MD"
+        echo "Stray SQL files: $STRAY_SQL"  
+        echo "Other stray files: $STRAY_OTHER"
+        
+        if [ $STRAY_MD -gt 0 ] || [ $STRAY_SQL -gt 0 ]; then
+          echo "❌ HYGIENE CHECK FAILED"
+          echo ""
+          echo "Stray files found in root directory:"
+          find . -maxdepth 1 -name "*.md" -not -name "README.md" -not -name "CHANGELOG.md" -not -name "CLAUDE.md"
+          find . -maxdepth 1 -name "*.sql"
+          echo ""
+          echo "Please move files to appropriate directories:"
+          echo "  - MD files: docs/{adr,notes,api,guides,archive}/"
+          echo "  - SQL files: db/{migrations,seeds,adhoc,archive}/"
+          exit 1
+        else
+          echo "✅ HYGIENE CHECK PASSED"
+        fi
+        
+    - name: Check Required Directory Structure  
+      run: |
+        echo "Checking directory structure..."
+        REQUIRED_DIRS="docs docs/adr docs/notes docs/api docs/guides docs/archive db db/migrations db/seeds db/adhoc db/archive"
+        
+        for dir in $REQUIRED_DIRS; do
+          if [ ! -d "$dir" ]; then
+            echo "❌ Missing required directory: $dir"
+            exit 1
+          fi
+        done
+        
+        echo "✅ Directory structure check passed"

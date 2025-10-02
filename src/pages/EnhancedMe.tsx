@@ -67,7 +67,7 @@ interface RewardsDetails {
 
 // Enhanced data calling functions
 const callSupabaseFunction = async (functionName: string, action: string, data: any = {}, walletAddress?: string) => {
-  const baseUrl = 'https://cvqibjcbfrwsgkvthccp.supabase.co/functions/v1';
+  const baseUrl = 'https://cdjmtevekxpmgrixkiqt.supabase.co/functions/v1';
   const anonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
   
   const headers: Record<string, string> = {

@@ -87,7 +87,7 @@ export function BccPurchaseInterface({
     queryKey: ['/api/bcc/purchase-config', account?.address],
     enabled: !!account?.address,
     queryFn: async (): Promise<{ success: boolean; config: BccPurchaseConfig }> => {
-      const baseUrl = 'https://cvqibjcbfrwsgkvthccp.supabase.co/functions/v1';
+      const baseUrl = 'https://cdjmtevekxpmgrixkiqt.supabase.co/functions/v1';
       const anonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
       
       const response = await fetch(`${baseUrl}/bcc-purchase`, {
@@ -114,7 +114,7 @@ export function BccPurchaseInterface({
     queryKey: ['/api/bcc/spending-balance', account?.address],
     enabled: !!account?.address && showBalance,
     queryFn: async () => {
-      const baseUrl = 'https://cvqibjcbfrwsgkvthccp.supabase.co/functions/v1';
+      const baseUrl = 'https://cdjmtevekxpmgrixkiqt.supabase.co/functions/v1';
       const anonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
       
       const response = await fetch(`${baseUrl}/balance`, {
@@ -139,7 +139,7 @@ export function BccPurchaseInterface({
   // Create BCC purchase order
   const createPurchaseMutation = useMutation({
     mutationFn: async (purchaseData: any) => {
-      const baseUrl = 'https://cvqibjcbfrwsgkvthccp.supabase.co/functions/v1';
+      const baseUrl = 'https://cdjmtevekxpmgrixkiqt.supabase.co/functions/v1';
       const anonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
       
       const response = await fetch(`${baseUrl}/bcc-purchase`, {
@@ -180,7 +180,7 @@ export function BccPurchaseInterface({
   // Confirm payment
   const confirmPaymentMutation = useMutation({
     mutationFn: async (confirmData: any) => {
-      const baseUrl = 'https://cvqibjcbfrwsgkvthccp.supabase.co/functions/v1';
+      const baseUrl = 'https://cdjmtevekxpmgrixkiqt.supabase.co/functions/v1';
       const anonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
       
       const response = await fetch(`${baseUrl}/bcc-purchase`, {

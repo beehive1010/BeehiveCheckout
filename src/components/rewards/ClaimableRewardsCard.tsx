@@ -133,7 +133,7 @@ export default function ClaimableRewardsCard({ walletAddress }: { walletAddress:
   // Automated claim mutation using rewards API
   const claimRewardMutation = useMutation({
     mutationFn: async (rewardId: string): Promise<ClaimResponse> => {
-      const response = await fetch(`https://cvqibjcbfrwsgkvthccp.supabase.co/functions/v1/rewards/claim`, {
+      const response = await fetch(`https://cdjmtevekxpmgrixkiqt.supabase.co/functions/v1/rewards/claim`, {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${import.meta.env.VITE_SUPABASE_ANON_KEY}`,
@@ -200,7 +200,7 @@ export default function ClaimableRewardsCard({ walletAddress }: { walletAddress:
   // Withdraw mutation for withdrawing claimed rewards to wallet
   const withdrawMutation = useMutation({
     mutationFn: async (amount: number): Promise<ClaimResponse> => {
-      const response = await fetch(`https://cvqibjcbfrwsgkvthccp.supabase.co/functions/v1/rewards/withdraw`, {
+      const response = await fetch(`https://cdjmtevekxpmgrixkiqt.supabase.co/functions/v1/rewards/withdraw`, {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${import.meta.env.VITE_SUPABASE_ANON_KEY}`,
