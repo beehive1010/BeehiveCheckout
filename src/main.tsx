@@ -18,8 +18,13 @@ const renderApp = () => {
     createRoot(rootElement).render(
       <>
         <App />
-        <Analytics />
-        <SpeedInsights />
+        <Analytics
+          mode={import.meta.env.DEV ? 'development' : 'production'}
+          debug={import.meta.env.DEV}
+        />
+        <SpeedInsights
+          debug={import.meta.env.DEV}
+        />
       </>
     );
   } catch (error) {

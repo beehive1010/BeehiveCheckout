@@ -78,6 +78,7 @@
     "status": "状态",
     "title": "会员",
     "upgrade": "升级",
+    "yourTokens": "您的代币",
     "claiming": {
       "processing": "正在处理 {level} 级升级...",
       "success": "{level} 级 NFT 已领取!",

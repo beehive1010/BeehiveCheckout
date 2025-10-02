@@ -5,11 +5,11 @@ import {useLocation} from 'wouter';
 import {useToast} from '../hooks/use-toast';
 import Navigation from '../components/shared/Navigation';
 import {supabase} from '../lib/supabase';
-import {Award, DollarSign, Plus, RefreshCw, Users} from 'lucide-react';
-import UserProfile from '../components/dashboard/UserProfile';
-import PremiumDataCard from '../components/dashboard/PremiumDataCard';
-import ReferralLinkCard from '../components/dashboard/ReferralLinkCard';
-import QuickNavigationCard from '../components/dashboard/QuickNavigationCard';
+import {Award, DollarSign, Plus, RefreshCw, Users, Copy, ArrowRight, TrendingUp, Lock} from 'lucide-react';
+import {useIsMobile} from '../hooks/use-mobile';
+import {Card, CardContent, CardHeader, CardTitle} from '../components/ui/card';
+import {Button} from '../components/ui/button';
+import {Badge} from '../components/ui/badge';
 import '../components/dashboard/dashboard.css';
 
 interface SimpleDashboardData {
@@ -426,159 +426,224 @@ export default function Dashboard() {
     );
   }
 
-  return (
-    <div className="dashboard-container">
-      <Navigation />
-      
-      <div className="dashboard-content">
-        {/* 用户资料卡片 */}
-        <UserProfile className="mb-6 sm:mb-8" />
+  const isMobile = useIsMobile();
 
-        {/* 欢迎信息和刷新按钮 */}
-        <div className="welcome-container">
-          <div className="text-center sm:text-left mb-4">
-            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 sm:gap-4">
-              <div className="flex-1">
-                <h1 className="welcome-title">
-                  {userData?.username ? t('dashboard.welcomeBack', { username: userData.username }) : t('dashboard.welcomeMember')}
-                </h1>
-                <p className="welcome-subtitle text-sm sm:text-base">
-                  {t('dashboard.buildNetwork')}
-                </p>
-              </div>
-              <button
-                onClick={handleRefresh}
-                disabled={refreshing}
-                className="flex items-center justify-center gap-2 px-3 sm:px-4 py-2 bg-honey/10 hover:bg-honey/20 border border-honey/30 rounded-lg sm:rounded-xl text-honey transition-colors disabled:opacity-50 min-h-[44px] text-sm sm:text-sm"
-                data-testid="button-refresh"
-              >
-                <RefreshCw className={`h-4 w-4 ${refreshing ? 'animate-spin' : ''}`} />
-                <span className="font-medium">
-                  {refreshing ? t('dashboard.refreshing') : t('dashboard.refresh')}
-                </span>
-              </button>
-            </div>
+  return (
+    <div className="min-h-screen bg-background">
+      <Navigation />
+
+      <div className="w-full px-4 sm:px-6 lg:container lg:mx-auto py-4 sm:py-6 pb-8 sm:pb-12 lg:pb-16 space-y-4 sm:space-y-6 animate-in fade-in-50 duration-700">
+        {/* Enhanced Header */}
+        <div className="text-center sm:text-left mb-4 sm:mb-6 animate-in slide-in-from-top-2 duration-500">
+          <div className="relative inline-block">
+            <div className="absolute inset-0 bg-gradient-to-r from-honey/20 to-amber-400/20 rounded-2xl blur-xl animate-pulse"></div>
+            <h1 className="relative text-3xl sm:text-4xl lg:text-5xl font-bold bg-gradient-to-r from-honey via-amber-400 to-honey bg-clip-text text-transparent mb-2 sm:mb-3">
+              {userData?.username ? t('dashboard.welcomeBack', { username: userData.username }) : t('dashboard.welcomeMember')}
+            </h1>
           </div>
-          
-          {/* 数据状态指示器 */}
+          <p className="text-base sm:text-lg text-muted-foreground max-w-2xl mx-auto sm:mx-0">
+            {t('dashboard.buildNetwork')}
+          </p>
+        </div>
+
+        {/* Status Bar and Refresh */}
+        <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 sm:gap-4">
+          {/* Loading State */}
           {(loadingState.balance || loadingState.matrix || loadingState.rewards) && (
-            <div className="flex items-center gap-2 sm:gap-3 p-3 bg-honey/5 border border-honey/20 rounded-lg mb-4">
+            <div className="flex items-center gap-2 sm:gap-3 p-3 bg-honey/5 border border-honey/20 rounded-xl flex-1">
               <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-honey flex-shrink-0"></div>
               <span className="text-xs sm:text-sm text-muted-foreground">
                 {t('dashboard.loadingData')}
-                {loadingState.balance && ` ${t('dashboard.balance')}`}
-                {loadingState.matrix && ` ${t('dashboard.network')}`}
-                {loadingState.rewards && ` ${t('dashboard.rewards')}`}
               </span>
             </div>
           )}
 
-          {/* 错误状态 */}
+          {/* Error State */}
           {error && (
-            <div className="p-3 sm:p-4 bg-red-50 border border-red-200 rounded-lg mb-4">
-              <div className="flex flex-col sm:flex-row sm:items-center gap-2">
-                <span className="text-red-600 text-xs sm:text-sm font-medium">{t('dashboard.errors.loadError')}</span>
-                <button
-                  onClick={handleRefresh}
-                  className="text-red-600 hover:text-red-700 text-xs sm:text-sm underline text-left sm:text-right"
-                  data-testid="button-retry"
-                >
-                  {t('dashboard.errors.retry')}
-                </button>
-              </div>
-              <p className="text-red-600 text-xs mt-1 break-words">{error}</p>
+            <div className="flex items-center gap-2 p-3 bg-red-50 border border-red-200 rounded-xl flex-1">
+              <span className="text-red-600 text-xs sm:text-sm font-medium">{t('dashboard.errors.loadError')}</span>
+              <button onClick={handleRefresh} className="text-red-600 hover:text-red-700 text-xs sm:text-sm underline">
+                {t('dashboard.errors.retry')}
+              </button>
             </div>
           )}
 
-          {/* 最后更新时间 */}
-          {data.lastUpdated && (
-            <p className="text-xs text-muted-foreground mb-4 sm:mb-6 text-center sm:text-left">
-              {t('dashboard.lastUpdated')}: {new Date(data.lastUpdated).toLocaleString()}
-            </p>
-          )}
+          {/* Refresh Button */}
+          <Button
+            onClick={handleRefresh}
+            disabled={refreshing}
+            variant="outline"
+            className={`group border-2 border-honey/30 hover:border-honey/50 hover:bg-honey/10 shadow-lg hover:shadow-xl transition-all duration-300 ${isMobile ? 'w-full' : 'min-w-[140px]'}`}
+          >
+            <RefreshCw className={`h-4 w-4 mr-2 ${refreshing ? 'animate-spin' : 'group-hover:rotate-180 transition-transform duration-500'}`} />
+            <span className="font-semibold">{refreshing ? t('dashboard.refreshing') : t('dashboard.refresh')}</span>
+          </Button>
         </div>
 
-        {/* Premium 主要数据卡片 */}
-        <div className="dashboard-grid-2">
-          {/* BCC余额卡片 */}
-          <PremiumDataCard
-            title={t('dashboard.bccBalance')}
-            icon={DollarSign}
-            iconColor="text-honey"
-            gradientFrom="from-honey/20"
-            gradientTo="to-orange-500/20"
-            data={[
-              { value: data.bccBalance.toFixed(2), label: t('dashboard.bccBalance'), color: 'text-honey' },
-              { value: data.bccLocked.toFixed(2), label: t('dashboard.bccLocked'), color: 'text-orange-400' }
-            ]}
-            action={{
-              label: t('dashboard.topUp'),
-              onClick: () => setLocation('/tokens'),
-              icon: Plus,
-              testId: 'button-topup'
-            }}
-          />
+        {/* Last Updated */}
+        {data.lastUpdated && (
+          <p className="text-xs text-muted-foreground text-center sm:text-left">
+            {t('dashboard.lastUpdated')}: {new Date(data.lastUpdated).toLocaleString()}
+          </p>
+        )}
 
-          {/* 推荐网络卡片 */}
-          <PremiumDataCard
-            title={t('dashboard.referralNetwork')}
-            icon={Users}
-            iconColor="text-blue-400"
-            gradientFrom="from-blue-500/20"
-            gradientTo="to-purple-500/20"
-            data={[
-              { value: data.directReferrals.toString(), label: t('dashboard.directReferrals'), color: 'text-blue-400' },
-              { value: data.totalTeamSize.toString(), label: t('dashboard.totalTeamSize'), color: 'text-purple-400' }
-            ]}
-          />
+        {/* Main Stats Grid - Desktop: 3 columns, Mobile: 1 column */}
+        <div className={`grid gap-4 sm:gap-6 ${isMobile ? 'grid-cols-1' : 'grid-cols-1 lg:grid-cols-3'}`}>
+          {/* BCC Balance Card */}
+          <Card className="relative overflow-hidden bg-gradient-to-br from-honey/10 via-amber-50/50 to-honey/5 dark:from-honey/5 dark:via-slate-800 dark:to-honey/10 border-2 border-honey/20 hover:border-honey/40 transition-all duration-300 hover:scale-[1.02] shadow-xl hover:shadow-2xl">
+            <div className="absolute inset-0 bg-gradient-to-r from-honey/5 via-transparent to-amber-400/5 opacity-50"></div>
+            <CardHeader className={`relative ${isMobile ? 'pb-3' : 'pb-4'}`}>
+              <CardTitle className="flex items-center gap-3">
+                <div className={`${isMobile ? 'w-8 h-8' : 'w-10 h-10'} bg-gradient-to-br from-honey to-amber-500 rounded-xl flex items-center justify-center shadow-lg`}>
+                  <DollarSign className={`${isMobile ? 'h-4 w-4' : 'h-5 w-5'} text-black`} />
+                </div>
+                <div>
+                  <span className={`${isMobile ? 'text-sm' : 'text-base'} font-bold bg-gradient-to-r from-honey to-amber-500 bg-clip-text text-transparent`}>
+                    {t('dashboard.bccBalance')}
+                  </span>
+                  <p className="text-xs text-muted-foreground mt-0.5">{t('dashboard.yourTokens')}</p>
+                </div>
+              </CardTitle>
+            </CardHeader>
+            <CardContent className={`relative space-y-3 ${isMobile ? 'pt-0' : ''}`}>
+              <div className="flex items-end justify-between">
+                <div>
+                  <p className={`${isMobile ? 'text-2xl' : 'text-3xl'} font-bold text-honey`}>{data.bccBalance.toFixed(2)}</p>
+                  <p className="text-xs text-muted-foreground">{t('dashboard.transferable')}</p>
+                </div>
+                <Badge className="bg-honey/20 text-honey border-honey/30">{t('dashboard.available')}</Badge>
+              </div>
+              <div className="flex items-center gap-2 p-3 bg-black/5 dark:bg-white/5 rounded-lg">
+                <Lock className="h-4 w-4 text-orange-500" />
+                <div className="flex-1">
+                  <p className="text-sm font-semibold text-orange-500">{data.bccLocked.toFixed(2)}</p>
+                  <p className="text-xs text-muted-foreground">{t('dashboard.bccLocked')}</p>
+                </div>
+              </div>
+              <Button
+                onClick={() => setLocation('/tokens')}
+                className={`w-full bg-gradient-to-r from-honey to-amber-400 hover:from-honey/90 hover:to-amber-500 text-black font-bold shadow-lg hover:shadow-xl transition-all duration-300 ${isMobile ? 'h-10' : 'h-11'}`}
+              >
+                <Plus className="h-4 w-4 mr-2" />
+                {t('dashboard.topUp')}
+              </Button>
+            </CardContent>
+          </Card>
+
+          {/* Network Card */}
+          <Card className="relative overflow-hidden bg-gradient-to-br from-blue-50 via-indigo-50/50 to-blue-50 dark:from-blue-950/30 dark:via-slate-800 dark:to-blue-950/20 border-2 border-blue-200 dark:border-blue-800 hover:border-blue-400 dark:hover:border-blue-600 transition-all duration-300 hover:scale-[1.02] shadow-xl hover:shadow-2xl">
+            <div className="absolute inset-0 bg-gradient-to-r from-blue-500/5 via-transparent to-indigo-500/5 opacity-50"></div>
+            <CardHeader className={`relative ${isMobile ? 'pb-3' : 'pb-4'}`}>
+              <CardTitle className="flex items-center gap-3">
+                <div className={`${isMobile ? 'w-8 h-8' : 'w-10 h-10'} bg-gradient-to-br from-blue-500 to-indigo-500 rounded-xl flex items-center justify-center shadow-lg`}>
+                  <Users className={`${isMobile ? 'h-4 w-4' : 'h-5 w-5'} text-white`} />
+                </div>
+                <div>
+                  <span className={`${isMobile ? 'text-sm' : 'text-base'} font-bold bg-gradient-to-r from-blue-600 to-indigo-600 dark:from-blue-400 dark:to-indigo-400 bg-clip-text text-transparent`}>
+                    {t('dashboard.referralNetwork')}
+                  </span>
+                  <p className="text-xs text-muted-foreground mt-0.5">{t('dashboard.yourTeam')}</p>
+                </div>
+              </CardTitle>
+            </CardHeader>
+            <CardContent className={`relative space-y-3 ${isMobile ? 'pt-0' : ''}`}>
+              <div className="grid grid-cols-2 gap-3">
+                <div className="p-3 bg-blue-500/10 dark:bg-blue-500/20 rounded-lg">
+                  <p className={`${isMobile ? 'text-xl' : 'text-2xl'} font-bold text-blue-600 dark:text-blue-400`}>{data.directReferrals}</p>
+                  <p className="text-xs text-muted-foreground">{t('dashboard.directReferrals')}</p>
+                </div>
+                <div className="p-3 bg-indigo-500/10 dark:bg-indigo-500/20 rounded-lg">
+                  <p className={`${isMobile ? 'text-xl' : 'text-2xl'} font-bold text-indigo-600 dark:text-indigo-400`}>{data.totalTeamSize}</p>
+                  <p className="text-xs text-muted-foreground">{t('dashboard.totalTeamSize')}</p>
+                </div>
+              </div>
+              <div className="flex items-center gap-2 p-2 bg-blue-500/5 dark:bg-blue-500/10 rounded-lg">
+                <TrendingUp className="h-4 w-4 text-blue-500" />
+                <p className="text-xs text-muted-foreground">{t('dashboard.maxLayer')}: <span className="font-bold text-blue-600 dark:text-blue-400">{data.maxLayer}</span></p>
+              </div>
+              <Button
+                onClick={() => setLocation('/referrals')}
+                variant="outline"
+                className={`w-full border-2 border-blue-300 dark:border-blue-700 hover:bg-blue-50 dark:hover:bg-blue-950/50 hover:border-blue-400 dark:hover:border-blue-600 transition-all duration-300 ${isMobile ? 'h-10' : 'h-11'}`}
+              >
+                {t('dashboard.viewMatrix')}
+                <ArrowRight className="h-4 w-4 ml-2" />
+              </Button>
+            </CardContent>
+          </Card>
+
+          {/* Rewards Card */}
+          <Card className="relative overflow-hidden bg-gradient-to-br from-emerald-50 via-green-50/50 to-emerald-50 dark:from-emerald-950/30 dark:via-slate-800 dark:to-emerald-950/20 border-2 border-emerald-200 dark:border-emerald-800 hover:border-emerald-400 dark:hover:border-emerald-600 transition-all duration-300 hover:scale-[1.02] shadow-xl hover:shadow-2xl">
+            <div className="absolute inset-0 bg-gradient-to-r from-emerald-500/5 via-transparent to-green-500/5 opacity-50"></div>
+            <CardHeader className={`relative ${isMobile ? 'pb-3' : 'pb-4'}`}>
+              <CardTitle className="flex items-center gap-3">
+                <div className={`${isMobile ? 'w-8 h-8' : 'w-10 h-10'} bg-gradient-to-br from-emerald-500 to-green-500 rounded-xl flex items-center justify-center shadow-lg`}>
+                  <Award className={`${isMobile ? 'h-4 w-4' : 'h-5 w-5'} text-white`} />
+                </div>
+                <div>
+                  <span className={`${isMobile ? 'text-sm' : 'text-base'} font-bold bg-gradient-to-r from-emerald-600 to-green-600 dark:from-emerald-400 dark:to-green-400 bg-clip-text text-transparent`}>
+                    {t('dashboard.rewardCenter')}
+                  </span>
+                  <p className="text-xs text-muted-foreground mt-0.5">{t('dashboard.earnings')}</p>
+                </div>
+              </CardTitle>
+            </CardHeader>
+            <CardContent className={`relative space-y-3 ${isMobile ? 'pt-0' : ''}`}>
+              <div className="p-4 bg-gradient-to-r from-emerald-500/10 to-green-500/10 dark:from-emerald-500/20 dark:to-green-500/20 rounded-lg">
+                <p className="text-xs text-muted-foreground mb-1">{t('dashboard.totalRewards')}</p>
+                <p className={`${isMobile ? 'text-2xl' : 'text-3xl'} font-bold text-emerald-600 dark:text-emerald-400`}>${data.totalRewards.toFixed(2)}</p>
+              </div>
+              <div className="flex items-center justify-between p-3 bg-yellow-500/10 dark:bg-yellow-500/20 rounded-lg">
+                <div>
+                  <p className="text-xs text-muted-foreground">{t('dashboard.claimableRewards')}</p>
+                  <p className="text-lg font-bold text-yellow-600 dark:text-yellow-400">${data.claimableRewards.toFixed(2)}</p>
+                </div>
+                {data.claimableRewards > 0 && <Badge className="bg-yellow-500/20 text-yellow-600 dark:text-yellow-400 animate-pulse">{t('dashboard.ready')}</Badge>}
+              </div>
+              <Button
+                onClick={() => setLocation('/rewards')}
+                className={`w-full bg-gradient-to-r from-emerald-500 to-green-500 hover:from-emerald-600 hover:to-green-600 text-white font-bold shadow-lg hover:shadow-xl transition-all duration-300 ${isMobile ? 'h-10' : 'h-11'}`}
+              >
+                {t('dashboard.claimRewards')}
+                <ArrowRight className="h-4 w-4 ml-2" />
+              </Button>
+            </CardContent>
+          </Card>
         </div>
 
-        {/* 奖励卡片 */}
-        <PremiumDataCard
-          title={t('dashboard.rewardCenter')}
-          icon={Award}
-          iconColor="text-green-400"
-          gradientFrom="from-green-500/20"
-          gradientTo="to-emerald-500/20"
-          data={[
-            { value: `$${data.totalRewards.toFixed(2)}`, label: t('dashboard.totalRewards'), color: 'text-green-400' },
-            { value: `$${data.claimableRewards.toFixed(2)}`, label: t('dashboard.claimableRewards'), color: 'text-yellow-400' }
-          ]}
-          className="mb-6 sm:mb-8"
-        />
+        {/* Referral Link Card */}
+        <Card className="relative overflow-hidden bg-gradient-to-br from-slate-50 via-gray-50 to-slate-50 dark:from-slate-900 dark:via-slate-800 dark:to-slate-900 border-2 border-slate-200 dark:border-slate-700 shadow-xl">
+          <div className="absolute inset-0 bg-gradient-to-r from-honey/5 via-transparent to-amber-400/5 opacity-50"></div>
+          <CardHeader className="relative">
+            <CardTitle className="flex items-center gap-3">
+              <div className={`${isMobile ? 'w-8 h-8' : 'w-10 h-10'} bg-gradient-to-br from-honey to-amber-500 rounded-xl flex items-center justify-center shadow-lg`}>
+                <Users className={`${isMobile ? 'h-4 w-4' : 'h-5 w-5'} text-black`} />
+              </div>
+              <div>
+                <span className={`${isMobile ? 'text-sm' : 'text-lg'} font-bold`}>{t('dashboard.shareReferral')}</span>
+                <p className="text-xs text-muted-foreground mt-0.5">{t('dashboard.shareDescription')}</p>
+              </div>
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="relative">
+            <div className="flex flex-col sm:flex-row gap-3">
+              <div className="flex-1 p-3 bg-slate-100 dark:bg-slate-800 rounded-lg border border-slate-200 dark:border-slate-700 font-mono text-sm break-all">
+                {`${window.location.origin}/welcome?ref=${walletAddress}`}
+              </div>
+              <Button
+                onClick={copyReferralLink}
+                className={`bg-gradient-to-r from-honey to-amber-400 hover:from-honey/90 hover:to-amber-500 text-black font-bold shadow-lg hover:shadow-xl transition-all duration-300 ${isMobile ? 'w-full' : ''}`}
+              >
+                <Copy className="h-4 w-4 mr-2" />
+                {t('dashboard.copyLink')}
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
 
-        {/* 推荐链接卡片 */}
-        <ReferralLinkCard
-          title={t('dashboard.shareReferral')}
-          description={t('dashboard.shareDescription')}
-          referralLink={`${window.location.origin}/welcome?ref=${walletAddress}`}
-          onCopyLink={copyReferralLink}
-          copyButtonText={t('dashboard.copyLink')}
-          className="mb-6 sm:mb-8"
-        />
-
-        {/* 快捷导航 */}
-        <div className="dashboard-grid-nav">
-          <QuickNavigationCard
-            title={t('dashboard.referralNetwork')}
-            description={t('dashboard.viewMatrix')}
-            icon={Users}
-            iconColor="text-blue-400"
-            onClick={() => setLocation('/referrals')}
-          />
-          
-          <QuickNavigationCard
-            title={t('dashboard.rewardCenter')}
-            description={t('dashboard.claimRewards')}
-            icon={Award}
-            iconColor="text-green-400"
-            onClick={() => setLocation('/rewards')}
-          />
-        </div>
-
-        {/* 底部提示 */}
-        <div className="dashboard-footer">
-          <p>{t('dashboard.inviteTip')}</p>
+        {/* Bottom Tip */}
+        <div className="p-4 bg-honey/5 border border-honey/20 rounded-xl text-center">
+          <p className="text-sm text-muted-foreground">{t('dashboard.inviteTip')}</p>
         </div>
       </div>
     </div>
