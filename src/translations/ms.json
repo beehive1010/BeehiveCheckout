@@ -143,6 +143,20 @@
       "connectTitle": "Sambung Dompet Anda"
     }
   },
+  "matrix": {
+    "matrixView": "Paparan Matrix",
+    "layer": "Lapisan",
+    "filled": "Penuh",
+    "previousLayer": "Lapisan Sebelumnya",
+    "nextLayer": "Lapisan Seterusnya",
+    "directReferral": "Rujukan Langsung",
+    "spillover": "Spillover",
+    "emptySlot": "Slot Kosong",
+    "legend": "Legenda",
+    "directReferralDesc": "Ahli yang anda rujuk secara langsung",
+    "spilloverDesc": "Ahli yang ditempatkan oleh spillover upline",
+    "emptySlotDesc": "Kedudukan matrix yang tersedia"
+  },
   "nav": {
     "dashboard": "Papan Pemuka",
     "discover": "Terokai",

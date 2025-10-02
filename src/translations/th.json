@@ -1188,6 +1188,20 @@
       "used": "Used:"
     }
   },
+  "matrix": {
+    "matrixView": "มุมมองเมทริกซ์",
+    "layer": "ชั้น",
+    "filled": "เต็ม",
+    "previousLayer": "ชั้นก่อนหน้า",
+    "nextLayer": "ชั้นถัดไป",
+    "directReferral": "การแนะนำโดยตรง",
+    "spillover": "สปิลโอเวอร์",
+    "emptySlot": "ช่องว่าง",
+    "legend": "คำอธิบายสัญลักษณ์",
+    "directReferralDesc": "สมาชิกที่คุณแนะนำโดยตรง",
+    "spilloverDesc": "สมาชิกที่วางโดยสปิลโอเวอร์จากอัปไลน์",
+    "emptySlotDesc": "ตำแหน่งเมทริกซ์ที่ว่าง"
+  },
   "nav": {
     "dashboard": "Dashboard",
     "discover": "Discover",

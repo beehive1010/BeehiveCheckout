@@ -3424,6 +3424,18 @@
     "processing": "Processing..."
   },
   "matrix": {
+    "matrixView": "Matrix View",
+    "layer": "Layer",
+    "filled": "Filled",
+    "previousLayer": "Previous Layer",
+    "nextLayer": "Next Layer",
+    "directReferral": "Direct Referral",
+    "spillover": "Spillover",
+    "emptySlot": "Empty Slot",
+    "legend": "Legend",
+    "directReferralDesc": "Members you directly referred",
+    "spilloverDesc": "Members placed by upline spillover",
+    "emptySlotDesc": "Available matrix positions",
     "navigation": {
       "education": "Education",
       "features": "Features",
