@@ -10,7 +10,9 @@ import {useIsMobile} from '../hooks/use-mobile';
 import {Card, CardContent, CardHeader, CardTitle} from '../components/ui/card';
 import {Button} from '../components/ui/button';
 import {Badge} from '../components/ui/badge';
+import {DashboardBackground} from '../components/shared/HoneycombBackground';
 import '../components/dashboard/dashboard.css';
+import '../styles/dashboard-background.css';
 
 interface SimpleDashboardData {
   bccBalance: number;        // BCC总余额 
@@ -454,10 +456,13 @@ export default function Dashboard() {
   const isMobile = useIsMobile();
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-background relative overflow-hidden">
+      {/* 蜂巢动画背景 */}
+      <DashboardBackground />
+
       <Navigation />
 
-      <div className="w-full px-4 sm:px-6 lg:container lg:mx-auto py-2 sm:py-4 pb-8 sm:pb-12 lg:pb-16 space-y-3 sm:space-y-4 animate-in fade-in-50 duration-700">
+      <div className="relative z-10 w-full px-4 sm:px-6 lg:container lg:mx-auto py-2 sm:py-4 pb-8 sm:pb-12 lg:pb-16 space-y-3 sm:space-y-4 animate-in fade-in-50 duration-700">
         {/* Enhanced Header */}
         <div className="text-center sm:text-left mb-2 sm:mb-4 animate-in slide-in-from-top-2 duration-500">
           <div className="relative inline-block">

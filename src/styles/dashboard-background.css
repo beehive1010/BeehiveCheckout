@@ -1,0 +1,86 @@
+/* Dashboard蜂巢背景样式增强 */
+
+/* 确保卡片在蜂巢背景上有良好的可读性 */
+.dashboard-card-enhanced {
+  backdrop-filter: blur(12px);
+  background: rgba(15, 23, 42, 0.85) !important;
+  border: 1px solid rgba(212, 175, 55, 0.2);
+  box-shadow:
+    0 4px 24px rgba(0, 0, 0, 0.4),
+    0 0 0 1px rgba(212, 175, 55, 0.1) inset,
+    0 2px 8px rgba(255, 215, 0, 0.05);
+}
+
+.dashboard-card-enhanced:hover {
+  border-color: rgba(212, 175, 55, 0.4);
+  box-shadow:
+    0 8px 32px rgba(0, 0, 0, 0.5),
+    0 0 0 1px rgba(212, 175, 55, 0.2) inset,
+    0 4px 16px rgba(255, 215, 0, 0.1);
+  transform: translateY(-2px);
+  transition: all 0.3s ease;
+}
+
+/* 增强文字对比度 */
+.dashboard-text-enhanced {
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.5);
+}
+
+/* 金色发光效果 */
+.honey-glow {
+  box-shadow:
+    0 0 20px rgba(212, 175, 55, 0.3),
+    0 0 40px rgba(212, 175, 55, 0.15),
+    0 0 60px rgba(212, 175, 55, 0.05);
+  animation: honey-pulse 3s ease-in-out infinite;
+}
+
+@keyframes honey-pulse {
+  0%, 100% {
+    box-shadow:
+      0 0 20px rgba(212, 175, 55, 0.3),
+      0 0 40px rgba(212, 175, 55, 0.15),
+      0 0 60px rgba(212, 175, 55, 0.05);
+  }
+  50% {
+    box-shadow:
+      0 0 25px rgba(212, 175, 55, 0.4),
+      0 0 50px rgba(212, 175, 55, 0.2),
+      0 0 75px rgba(212, 175, 55, 0.1);
+  }
+}
+
+/* 渐变背景增强 */
+.bg-gradient-honey {
+  background: linear-gradient(
+    135deg,
+    rgba(15, 23, 42, 0.9) 0%,
+    rgba(30, 41, 59, 0.85) 50%,
+    rgba(15, 23, 42, 0.9) 100%
+  );
+}
+
+/* 六边形边框效果 */
+.hexagon-border {
+  position: relative;
+}
+
+.hexagon-border::before {
+  content: '';
+  position: absolute;
+  inset: -2px;
+  background: linear-gradient(
+    45deg,
+    rgba(212, 175, 55, 0.4),
+    rgba(255, 215, 0, 0.2),
+    rgba(184, 134, 11, 0.4)
+  );
+  border-radius: inherit;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+  z-index: -1;
+}
+
+.hexagon-border:hover::before {
+  opacity: 1;
+}
