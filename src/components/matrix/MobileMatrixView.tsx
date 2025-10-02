@@ -98,7 +98,7 @@ const MatrixNode: React.FC<MatrixNodeProps> = ({ position, member, onTap }) => {
       
       {/* Username */}
       <div className="text-xs font-medium text-gray-800 dark:text-gray-200 text-center truncate w-full px-1">
-        {member.username || `User${member.wallet.slice(-4)}`}
+        {member.username || `${t('common.user')}${member.wallet.slice(-4)}`}
       </div>
       
       {/* Level Badge */}
@@ -116,15 +116,15 @@ const MatrixNode: React.FC<MatrixNodeProps> = ({ position, member, onTap }) => {
       <div className="flex justify-center space-x-2 mt-2">
         <div className={`flex flex-col items-center space-y-1 ${member.hasChildInL ? 'text-green-400' : 'text-gray-400'}`}>
           <div className={`w-2 h-2 rounded-full ${member.hasChildInL ? 'bg-green-500' : 'bg-gray-300'}`}></div>
-          <span className="text-xs font-medium">L</span>
+          <span className="text-xs font-medium">{t('membershipSystem.matrix.drillDown.positions.left')}</span>
         </div>
         <div className={`flex flex-col items-center space-y-1 ${member.hasChildInM ? 'text-green-400' : 'text-gray-400'}`}>
           <div className={`w-2 h-2 rounded-full ${member.hasChildInM ? 'bg-green-500' : 'bg-gray-300'}`}></div>
-          <span className="text-xs font-medium">M</span>
+          <span className="text-xs font-medium">{t('membershipSystem.matrix.drillDown.positions.middle')}</span>
         </div>
         <div className={`flex flex-col items-center space-y-1 ${member.hasChildInR ? 'text-green-400' : 'text-gray-400'}`}>
           <div className={`w-2 h-2 rounded-full ${member.hasChildInR ? 'bg-green-500' : 'bg-gray-300'}`}></div>
-          <span className="text-xs font-medium">R</span>
+          <span className="text-xs font-medium">{t('membershipSystem.matrix.drillDown.positions.right')}</span>
         </div>
       </div>
     </div>
@@ -181,8 +181,8 @@ const MobileMatrixView: React.FC<MobileMatrixViewProps> = ({
     
     // 保存当前根到历史记录
     setNavigationHistory(prev => [...prev, { 
-      wallet: currentRoot, 
-      username: currentRootUser?.username || `User${currentRoot.slice(-4)}`,
+      wallet: currentRoot,
+      username: currentRootUser?.username || `${t('common.user')}${currentRoot.slice(-4)}`,
       level: navigationHistory.length + 1,
       layer: currentLayer
     }]);
@@ -190,7 +190,7 @@ const MobileMatrixView: React.FC<MobileMatrixViewProps> = ({
     // 切换到新的根，显示该会员的第1层
     setCurrentRoot(memberWallet);
     setCurrentRootUser({
-      username: `User${memberWallet.slice(-4)}`,
+      username: `${t('common.user')}${memberWallet.slice(-4)}`,
       currentLevel: 1
     });
     setCurrentLayer(1); // 重置到第一层
@@ -207,7 +207,7 @@ const MobileMatrixView: React.FC<MobileMatrixViewProps> = ({
       const previous = navigationHistory[navigationHistory.length - 1];
       setCurrentRoot(previous.wallet);
       setCurrentRootUser({
-        username: previous.username || `User${previous.wallet.slice(-4)}`,
+        username: previous.username || `${t('common.user')}${previous.wallet.slice(-4)}`,
         currentLevel: 1
       });
       setNavigationHistory(prev => prev.slice(0, -1));

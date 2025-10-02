@@ -205,7 +205,7 @@ const MatrixLayerStatsView: React.FC<MatrixLayerStatsViewProps> = ({
       {/* Layer Header */}
       <div className="flex justify-between items-center mb-3">
         <Badge variant="outline" className="font-semibold text-xs">
-          Layer {stat.layer}
+          {t('membershipSystem.matrix.stats.layerStats.layer', { layer: stat.layer })}
         </Badge>
         <div className="flex gap-1">
           <Badge 
@@ -224,15 +224,15 @@ const MatrixLayerStatsView: React.FC<MatrixLayerStatsViewProps> = ({
       <div className="grid grid-cols-3 gap-2 mb-3">
         <div className="text-center">
           <div className="text-lg font-bold text-green-400">{stat.leftMembers}</div>
-          <div className="text-xs text-muted-foreground">L</div>
+          <div className="text-xs text-muted-foreground">{t('membershipSystem.matrix.drillDown.positions.left')}</div>
         </div>
         <div className="text-center">
           <div className="text-lg font-bold text-blue-400">{stat.middleMembers}</div>
-          <div className="text-xs text-muted-foreground">M</div>
+          <div className="text-xs text-muted-foreground">{t('membershipSystem.matrix.drillDown.positions.middle')}</div>
         </div>
         <div className="text-center">
           <div className="text-lg font-bold text-purple-400">{stat.rightMembers}</div>
-          <div className="text-xs text-muted-foreground">R</div>
+          <div className="text-xs text-muted-foreground">{t('membershipSystem.matrix.drillDown.positions.right')}</div>
         </div>
       </div>
 
@@ -240,18 +240,18 @@ const MatrixLayerStatsView: React.FC<MatrixLayerStatsViewProps> = ({
       <div className="flex justify-between items-center text-xs mb-2">
         <div className="flex items-center gap-1">
           <Users className="w-3 h-3" />
-          <span>Active: {stat.activeMembers}</span>
+          <span>{t('membershipSystem.matrix.stats.layerStats.active', { count: stat.activeMembers })}</span>
         </div>
         <div className="flex items-center gap-1">
           <Target className="w-3 h-3" />
-          <span>{stat.fillPercentage.toFixed(1)}% Complete</span>
+          <span>{t('membershipSystem.matrix.stats.layerStats.complete', { percent: stat.fillPercentage.toFixed(1) })}</span>
         </div>
       </div>
 
       {/* Fill Progress */}
       <div className="mb-2">
         <div className="flex justify-between text-xs mb-1">
-          <span>Fill Rate</span>
+          <span>{t('membershipSystem.matrix.stats.layerStats.fillRate')}</span>
           <span>{stat.fillPercentage.toFixed(1)}%</span>
         </div>
         <Progress value={stat.fillPercentage} className="h-1.5" />
@@ -260,11 +260,11 @@ const MatrixLayerStatsView: React.FC<MatrixLayerStatsViewProps> = ({
       {/* Completion Progress */}
       <div>
         <div className="flex justify-between text-xs mb-1">
-          <span>Layer Complete</span>
+          <span>{t('membershipSystem.matrix.stats.layerStats.layerComplete')}</span>
           <span>{stat.fillPercentage.toFixed(1)}%</span>
         </div>
-        <Progress 
-          value={stat.fillPercentage} 
+        <Progress
+          value={stat.fillPercentage}
           className="h-1.5"
         />
       </div>
@@ -290,7 +290,7 @@ const MatrixLayerStatsView: React.FC<MatrixLayerStatsViewProps> = ({
             <Users className="w-5 h-5 text-green-400" />
           </div>
           <div className="text-2xl font-bold text-green-400">{totalMembers}</div>
-          <div className="text-xs text-muted-foreground">Total Members</div>
+          <div className="text-xs text-muted-foreground">{t('membershipSystem.matrix.stats.layerStats.totalMembers')}</div>
         </div>
 
         <div className="bg-gradient-to-br from-blue-500/5 to-blue-500/10 rounded-lg p-4 border border-blue-500/20">
@@ -298,7 +298,7 @@ const MatrixLayerStatsView: React.FC<MatrixLayerStatsViewProps> = ({
             <Target className="w-5 h-5 text-blue-400" />
           </div>
           <div className="text-2xl font-bold text-blue-400">{totalActive}</div>
-          <div className="text-xs text-muted-foreground">Active Members</div>
+          <div className="text-xs text-muted-foreground">{t('membershipSystem.matrix.stats.layerStats.activeMembers')}</div>
         </div>
 
         <div className="bg-gradient-to-br from-purple-500/5 to-purple-500/10 rounded-lg p-4 border border-purple-500/20">
@@ -306,7 +306,7 @@ const MatrixLayerStatsView: React.FC<MatrixLayerStatsViewProps> = ({
             <Layers className="w-5 h-5 text-purple-400" />
           </div>
           <div className="text-2xl font-bold text-purple-400">{layersCompleted}/19</div>
-          <div className="text-xs text-muted-foreground">Layers Completed</div>
+          <div className="text-xs text-muted-foreground">{t('membershipSystem.matrix.stats.layerStats.layersCompleted')}</div>
         </div>
 
         <div className="bg-gradient-to-br from-honey/5 to-honey/10 rounded-lg p-4 border border-honey/20">
@@ -314,7 +314,7 @@ const MatrixLayerStatsView: React.FC<MatrixLayerStatsViewProps> = ({
             <Trophy className="w-5 h-5 text-honey" />
           </div>
           <div className="text-2xl font-bold text-honey">{avgCompletionRate.toFixed(1)}%</div>
-          <div className="text-xs text-muted-foreground">Avg Completion</div>
+          <div className="text-xs text-muted-foreground">{t('membershipSystem.matrix.stats.layerStats.avgCompletion')}</div>
         </div>
       </div>
     );
@@ -326,7 +326,7 @@ const MatrixLayerStatsView: React.FC<MatrixLayerStatsViewProps> = ({
         <CardContent className="p-6">
           <div className="text-center py-8">
             <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-honey mx-auto mb-2"></div>
-            <div className="text-sm text-muted-foreground">Loading layer statistics...</div>
+            <div className="text-sm text-muted-foreground">{t('membershipSystem.matrix.stats.layerStats.loading')}</div>
           </div>
         </CardContent>
       </Card>
@@ -338,15 +338,15 @@ const MatrixLayerStatsView: React.FC<MatrixLayerStatsViewProps> = ({
       <Card className="bg-secondary border-border">
         <CardContent className="p-6">
           <div className="text-center py-8">
-            <div className="text-red-400 mb-2">⚠️ Loading failed</div>
+            <div className="text-red-400 mb-2">{t('membershipSystem.matrix.stats.layerStats.loadingFailed')}</div>
             <div className="text-xs text-muted-foreground">{error}</div>
-            <Button 
-              variant="outline" 
-              size="sm" 
+            <Button
+              variant="outline"
+              size="sm"
               className="mt-3"
               onClick={loadLayerStats}
             >
-              Retry
+              {t('membershipSystem.matrix.stats.layerStats.retry')}
             </Button>
           </div>
         </CardContent>
@@ -378,11 +378,11 @@ const MatrixLayerStatsView: React.FC<MatrixLayerStatsViewProps> = ({
         <CardTitle className="flex items-center justify-between text-honey">
           <div className="flex items-center gap-2">
             <Layers className="h-5 w-5" />
-            <span>Matrix Layer Statistics</span>
+            <span>{t('membershipSystem.matrix.stats.layerStats.title')}</span>
           </div>
           <div className="flex items-center gap-2">
             <Badge variant="outline" className="bg-honey/10 text-honey border-honey/30">
-              19 Layers
+              {t('membershipSystem.matrix.stats.layerStats.layerCount')}
             </Badge>
             {compact && (
               <Button
@@ -405,7 +405,7 @@ const MatrixLayerStatsView: React.FC<MatrixLayerStatsViewProps> = ({
 
           {/* Layer Controls */}
           <div className="flex items-center justify-between">
-            <h4 className="font-medium text-honey">Layer Details</h4>
+            <h4 className="font-medium text-honey">{t('membershipSystem.matrix.stats.layerStats.layerDetails')}</h4>
             <div className="flex items-center gap-2">
               <span className="text-xs text-muted-foreground">
                 Showing {visibleLayers.length} of 19 layers
@@ -429,13 +429,11 @@ const MatrixLayerStatsView: React.FC<MatrixLayerStatsViewProps> = ({
 
           {/* Help Text */}
           <div className="text-center text-sm text-muted-foreground bg-muted/20 rounded-lg p-3">
-            <p>💡 <strong>Layer Statistics</strong>: Fill rate shows position occupancy, completion rate shows member activation</p>
-            <p className="text-xs mt-1">
-              🎯 Green layers are fully activated • Blue layers are well-filled • Yellow layers need more members
-            </p>
-            <p className="text-xs mt-1">
-              📊 Each layer capacity: 3^layer positions (Layer 1: 3, Layer 2: 9, Layer 3: 27, etc.)
-            </p>
+            <p><strong>{t('membershipSystem.matrix.stats.layerStats.help.title')}</strong></p>
+            <p className="text-xs mt-1">{t('membershipSystem.matrix.stats.layerStats.help.fillRate')}</p>
+            <p className="text-xs mt-1">{t('membershipSystem.matrix.stats.layerStats.help.activeMembers')}</p>
+            <p className="text-xs mt-1">{t('membershipSystem.matrix.stats.layerStats.help.totalSlots')}</p>
+            <p className="text-xs mt-1">{t('membershipSystem.matrix.stats.layerStats.help.completion')}</p>
           </div>
         </CardContent>
       )}

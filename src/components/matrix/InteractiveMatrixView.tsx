@@ -76,8 +76,8 @@ const InteractiveMatrixView: React.FC<InteractiveMatrixViewProps> = ({
   const handleNavigateToMember = (memberWallet: string, memberData?: MatrixMember) => {
     // 保存当前根到历史记录
     setNavigationHistory(prev => [...prev, { 
-      wallet: currentRoot, 
-      username: currentRootUser?.username || `User${currentRoot.slice(-4)}`,
+      wallet: currentRoot,
+      username: currentRootUser?.username || `${t('common.user')}${currentRoot.slice(-4)}`,
       level: navigationHistory.length + 1,
       layer: currentLayer
     }]);
@@ -85,7 +85,7 @@ const InteractiveMatrixView: React.FC<InteractiveMatrixViewProps> = ({
     // 切换到新的根
     setCurrentRoot(memberWallet);
     setCurrentRootUser({
-      username: memberData?.username || `User${memberWallet.slice(-4)}`,
+      username: memberData?.username || `${t('common.user')}${memberWallet.slice(-4)}`,
       currentLevel: 1
     });
     setCurrentLayer(1); // 重置到第一层
@@ -105,7 +105,7 @@ const InteractiveMatrixView: React.FC<InteractiveMatrixViewProps> = ({
       const previous = navigationHistory[navigationHistory.length - 1];
       setCurrentRoot(previous.wallet);
       setCurrentRootUser({
-        username: previous.username || `User${previous.wallet.slice(-4)}`,
+        username: previous.username || `${t('common.user')}${previous.wallet.slice(-4)}`,
         currentLevel: 1
       });
       setNavigationHistory(prev => prev.slice(0, -1));
@@ -179,7 +179,7 @@ const InteractiveMatrixView: React.FC<InteractiveMatrixViewProps> = ({
               {/* 用户名 */}
               <div className="text-center mb-3">
                 <h3 className="font-semibold text-white text-lg mb-1">
-                  {member.username || `User${member.wallet.slice(-4)}`}
+                  {member.username || `${t('common.user')}${member.wallet.slice(-4)}`}
                 </h3>
                 <p className="text-xs text-yellow-300/70 font-mono bg-black/30 px-2 py-1 rounded border border-yellow-500/30">
                   {formatWallet(member.wallet)}
@@ -193,15 +193,15 @@ const InteractiveMatrixView: React.FC<InteractiveMatrixViewProps> = ({
               <div className="flex justify-center space-x-3">
                 <div className={`flex flex-col items-center space-y-1 ${member.hasChildInL ? 'text-green-400' : 'text-gray-400'}`}>
                   <div className={`w-3 h-3 rounded-full ${member.hasChildInL ? 'bg-green-500' : 'bg-gray-300'}`}></div>
-                  <span className="text-xs font-medium">L</span>
+                  <span className="text-xs font-medium">{t('membershipSystem.matrix.drillDown.positions.left')}</span>
                 </div>
                 <div className={`flex flex-col items-center space-y-1 ${member.hasChildInM ? 'text-green-400' : 'text-gray-400'}`}>
                   <div className={`w-3 h-3 rounded-full ${member.hasChildInM ? 'bg-green-500' : 'bg-gray-300'}`}></div>
-                  <span className="text-xs font-medium">M</span>
+                  <span className="text-xs font-medium">{t('membershipSystem.matrix.drillDown.positions.middle')}</span>
                 </div>
                 <div className={`flex flex-col items-center space-y-1 ${member.hasChildInR ? 'text-green-400' : 'text-gray-400'}`}>
                   <div className={`w-3 h-3 rounded-full ${member.hasChildInR ? 'bg-green-500' : 'bg-gray-300'}`}></div>
-                  <span className="text-xs font-medium">R</span>
+                  <span className="text-xs font-medium">{t('membershipSystem.matrix.drillDown.positions.right')}</span>
                 </div>
               </div>
             </div>
@@ -313,7 +313,7 @@ const InteractiveMatrixView: React.FC<InteractiveMatrixViewProps> = ({
               <div className="flex items-center space-x-2 bg-black/40 px-3 py-1 rounded-lg border border-yellow-500/30">
                 <User className="h-4 w-4 text-yellow-400" />
                 <span className="font-medium text-white">
-                  {currentRootUser?.username || `User${currentRoot.slice(-4)}`}
+                  {currentRootUser?.username || `${t('common.user')}${currentRoot.slice(-4)}`}
                 </span>
                 <span className="text-xs text-yellow-300/70 font-mono">
                   ({formatWallet(currentRoot)})
