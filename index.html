@@ -12,6 +12,35 @@
   </head>
   <body>
     <div id="root"></div>
+
+    <!-- Chunk loading error handler -->
+    <script>
+      window.addEventListener('error', function(e) {
+        const chunkFailedMessage = /Loading chunk [\d]+ failed/;
+        const moduleFailedMessage = /Failed to fetch dynamically imported module/;
+
+        if (chunkFailedMessage.test(e.message) || moduleFailedMessage.test(e.message)) {
+          console.warn('🔄 Chunk loading failed, attempting reload...');
+
+          // Prevent infinite reload loop
+          const reloadCount = parseInt(sessionStorage.getItem('chunkErrorReloadCount') || '0');
+
+          if (reloadCount < 3) {
+            sessionStorage.setItem('chunkErrorReloadCount', String(reloadCount + 1));
+            window.location.reload();
+          } else {
+            console.error('❌ Multiple chunk loading failures. Please clear cache and refresh.');
+            sessionStorage.removeItem('chunkErrorReloadCount');
+          }
+        }
+      });
+
+      // Reset reload counter on successful load
+      window.addEventListener('load', function() {
+        sessionStorage.removeItem('chunkErrorReloadCount');
+      });
+    </script>
+
     <script type="module" src="/src/main.tsx"></script>
     <!-- This is a replit script which adds a banner on the top of the page when opened in development mode outside the replit environment -->
     <script type="text/javascript" src="https://replit.com/public/js/replit-dev-banner.js"></script>

@@ -19,6 +19,7 @@ export default defineConfig({
     sourcemap: false,
     minify: 'esbuild',
     target: 'es2020',
+    assetsInlineLimit: 0, // Don't inline assets, keep them as separate files
     rollupOptions: {
       output: {
         manualChunks: {
@@ -26,11 +27,10 @@ export default defineConfig({
           'thirdweb-react': ['thirdweb/react'],
           'thirdweb-chains': ['thirdweb/chains']
         },
-        // Add retry mechanism for failed chunk loading
-        chunkFileNames: (chunkInfo) => {
-          const facadeModuleId = chunkInfo.facadeModuleId ? chunkInfo.facadeModuleId.split('/').pop() : 'chunk';
-          return `assets/[name]-[hash].js`;
-        }
+        // Consistent file naming for better caching
+        chunkFileNames: 'assets/[name]-[hash].js',
+        entryFileNames: 'assets/[name]-[hash].js',
+        assetFileNames: 'assets/[name]-[hash].[ext]'
       },
       // Improve chunk loading reliability
       external: [],
