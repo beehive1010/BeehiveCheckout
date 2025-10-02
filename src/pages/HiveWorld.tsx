@@ -100,7 +100,11 @@ export default function HiveWorld() {
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {filteredPosts.map((post) => (
-            <Card key={post.id} className="bg-secondary border-border hover:border-honey/50 transition-all duration-300 group cursor-pointer">
+            <Card key={post.id} className="group relative overflow-hidden bg-gradient-to-br from-slate-900/95 via-gray-900/90 to-slate-900/95 dark:from-black/95 dark:via-slate-950/90 dark:to-black/95 border-2 border-slate-700 dark:border-slate-800 hover:border-honey/50 transition-all duration-500 hover:scale-[1.02] shadow-2xl hover:shadow-3xl hover:shadow-honey/20 cursor-pointer">
+              {/* Honey background gradient */}
+              <div className="absolute inset-0 bg-gradient-to-br from-honey/20 via-amber-300/15 to-yellow-400/20 opacity-60 group-hover:opacity-80 transition-opacity duration-300"></div>
+              {/* Animated border glow */}
+              <div className="absolute inset-0 rounded-xl border-2 border-honey/40 opacity-0 group-hover:opacity-100 transition-all duration-300 animate-pulse"></div>
               <div className="aspect-video bg-muted rounded-t-lg overflow-hidden">
                 <img
                   src={post.imageUrl}
@@ -108,7 +112,7 @@ export default function HiveWorld() {
                   className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
                 />
               </div>
-              <CardContent className="p-6">
+              <CardContent className="relative p-6">
                 <div className="space-y-3">
                   <div className="flex flex-wrap gap-2">
                     {post.tags.slice(0, 2).map((tag) => (

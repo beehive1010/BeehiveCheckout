@@ -46,9 +46,10 @@ export const blogApi = {
       return formattedPosts;
     } catch (error) {
       console.error('Blog API: 获取文章列表失败:', error);
-      
+      console.error('Error details:', error);
+
       // 如果数据库查询失败，返回模拟数据
-      console.log('📝 Blog API: 使用模拟数据');
+      console.log('📝 Blog API: 使用模拟数据作为fallback');
       return [
         {
           id: '1',
@@ -67,7 +68,7 @@ export const blogApi = {
           published: true
         },
         {
-          id: '2', 
+          id: '2',
           title: language === 'zh' ? '理解基于NFT的访问控制' : 'Understanding NFT-Based Access Control',
           excerpt: language === 'zh'
             ? '了解NFT如何被用于内容门禁和创建独家社区体验。'
@@ -80,6 +81,70 @@ export const blogApi = {
           views: 892,
           language: language,
           slug: language === 'zh' ? 'nft-access-control-zh' : 'nft-access-control',
+          published: true
+        },
+        {
+          id: '3',
+          title: language === 'zh' ? '矩阵推荐系统完全指南' : 'Complete Guide to Matrix Referral Systems',
+          excerpt: language === 'zh'
+            ? '深入探讨3x3矩阵推荐系统的运作原理及如何最大化您的收益。'
+            : 'Deep dive into how 3x3 matrix referral systems work and how to maximize your earnings.',
+          content: language === 'zh' ? '完整的博客内容在这里...' : 'Full blog content here...',
+          author: language === 'zh' ? 'Beehive团队' : 'Beehive Team',
+          imageUrl: 'https://images.unsplash.com/photo-1551288049-bebda4e38f71?w=800&h=400&fit=crop',
+          publishedAt: '2024-12-15T09:00:00Z',
+          tags: language === 'zh' ? ['矩阵', '推荐', '收益'] : ['Matrix', 'Referral', 'Earnings'],
+          views: 1543,
+          language: language,
+          slug: language === 'zh' ? 'matrix-referral-guide-zh' : 'matrix-referral-guide',
+          published: true
+        },
+        {
+          id: '4',
+          title: language === 'zh' ? 'DeFi与传统金融的对比' : 'DeFi vs Traditional Finance: A Comparison',
+          excerpt: language === 'zh'
+            ? '比较去中心化金融和传统金融系统的优势与挑战。'
+            : 'Comparing the advantages and challenges of decentralized finance vs traditional systems.',
+          content: language === 'zh' ? '完整的博客内容在这里...' : 'Full blog content here...',
+          author: language === 'zh' ? '金融分析师' : 'Finance Analyst',
+          imageUrl: 'https://images.unsplash.com/photo-1579621970563-ebec7560ff3e?w=800&h=400&fit=crop',
+          publishedAt: '2024-12-12T16:45:00Z',
+          tags: language === 'zh' ? ['DeFi', '金融', '分析'] : ['DeFi', 'Finance', 'Analysis'],
+          views: 2108,
+          language: language,
+          slug: language === 'zh' ? 'defi-vs-traditional-zh' : 'defi-vs-traditional',
+          published: true
+        },
+        {
+          id: '5',
+          title: language === 'zh' ? '智能合约安全最佳实践' : 'Smart Contract Security Best Practices',
+          excerpt: language === 'zh'
+            ? '学习如何编写安全的智能合约并避免常见的安全漏洞。'
+            : 'Learn how to write secure smart contracts and avoid common vulnerabilities.',
+          content: language === 'zh' ? '完整的博客内容在这里...' : 'Full blog content here...',
+          author: language === 'zh' ? '安全专家' : 'Security Expert',
+          imageUrl: 'https://images.unsplash.com/photo-1563986768609-322da13575f3?w=800&h=400&fit=crop',
+          publishedAt: '2024-12-10T11:20:00Z',
+          tags: language === 'zh' ? ['安全', '智能合约', '开发'] : ['Security', 'Smart Contracts', 'Development'],
+          views: 1876,
+          language: language,
+          slug: language === 'zh' ? 'smart-contract-security-zh' : 'smart-contract-security',
+          published: true
+        },
+        {
+          id: '6',
+          title: language === 'zh' ? '构建Web3社区的策略' : 'Strategies for Building Web3 Communities',
+          excerpt: language === 'zh'
+            ? '探索成功的Web3社区建设策略和最佳实践。'
+            : 'Explore successful Web3 community building strategies and best practices.',
+          content: language === 'zh' ? '完整的博客内容在这里...' : 'Full blog content here...',
+          author: language === 'zh' ? '社区经理' : 'Community Manager',
+          imageUrl: 'https://images.unsplash.com/photo-1522071820081-009f0129c71c?w=800&h=400&fit=crop',
+          publishedAt: '2024-12-08T13:00:00Z',
+          tags: language === 'zh' ? ['社区', 'Web3', '策略'] : ['Community', 'Web3', 'Strategy'],
+          views: 1392,
+          language: language,
+          slug: language === 'zh' ? 'web3-community-building-zh' : 'web3-community-building',
           published: true
         }
       ];

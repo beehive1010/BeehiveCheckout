@@ -6,14 +6,14 @@ import { Input } from '../components/ui/input';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '../components/ui/tabs';
 import UserProfileCard from '../components/shared/UserProfileCard';
 import { useDiscoverPartners, type DiscoverPartner } from '../hooks/useLevelConfig';
-import { 
-  Search, 
-  ExternalLink, 
-  Users, 
-  Star, 
-  TrendingUp, 
-  Globe, 
-  Shield, 
+import {
+  Search,
+  ExternalLink,
+  Users,
+  Star,
+  TrendingUp,
+  Globe,
+  Shield,
   Zap,
   Award,
   Building,
@@ -21,13 +21,16 @@ import {
   DollarSign,
   Calendar,
   CheckCircle,
-  ArrowUpRight
+  ArrowUpRight,
+  Play
 } from 'lucide-react';
 import styles from '../styles/discover/discover.module.css';
+import { useState } from 'react';
 
 export default function Discover() {
   const { t } = useI18n();
   const { data: partners = [], isLoading, error } = useDiscoverPartners();
+  const [dappUrl, setDappUrl] = useState('');
 
   const getPartnerTypeIcon = (type: string) => {
     switch (type.toLowerCase()) {
@@ -76,16 +79,45 @@ export default function Discover() {
         <UserProfileCard variant="compact" />
       </div>
 
-      {/* Search */}
-      <div className="max-w-md mx-auto mb-8">
-        <div className="relative">
-          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground w-4 h-4" />
-          <Input
-            placeholder={t('discover.searchPlaceholder') || 'Search partners...'}
-            className="pl-10 bg-secondary border-border"
-          />
-        </div>
-      </div>
+      {/* DApp Browser */}
+      <Card className="relative overflow-hidden bg-gradient-to-br from-slate-900/95 via-gray-900/90 to-slate-900/95 dark:from-black/95 dark:via-slate-950/90 dark:to-black/95 border-2 border-slate-700 dark:border-slate-800 shadow-2xl max-w-3xl mx-auto mb-8">
+        <div className="absolute inset-0 bg-gradient-to-br from-purple-500/20 via-fuchsia-400/15 to-purple-600/20 opacity-60"></div>
+        <CardContent className="relative p-6">
+          <div className="flex items-center gap-2 mb-3">
+            <Globe className="w-5 h-5 text-purple-400" />
+            <h3 className="text-lg font-bold text-purple-400">DApp浏览器</h3>
+          </div>
+          <div className="flex gap-2">
+            <div className="relative flex-1">
+              <Globe className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground w-4 h-4" />
+              <Input
+                value={dappUrl}
+                onChange={(e) => setDappUrl(e.target.value)}
+                placeholder="输入DApp URL (例如: https://uniswap.org)"
+                className="pl-10 bg-gradient-to-br from-gray-800 via-gray-700 to-gray-800 border-purple-500/30 text-white placeholder:text-gray-400"
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter' && dappUrl) {
+                    window.open(dappUrl.startsWith('http') ? dappUrl : `https://${dappUrl}`, '_blank');
+                  }
+                }}
+              />
+            </div>
+            <Button
+              onClick={() => {
+                if (dappUrl) {
+                  window.open(dappUrl.startsWith('http') ? dappUrl : `https://${dappUrl}`, '_blank');
+                }
+              }}
+              disabled={!dappUrl}
+              className="bg-gradient-to-r from-purple-500 to-fuchsia-500 hover:from-purple-600 hover:to-fuchsia-600 text-white font-bold shadow-lg hover:shadow-xl transition-all duration-300"
+            >
+              <Play className="w-4 h-4 mr-2" />
+              启动
+            </Button>
+          </div>
+          <p className="text-xs text-muted-foreground mt-2">直接访问任何Web3 DApp应用</p>
+        </CardContent>
+      </Card>
 
       {/* Categories */}
       <Tabs defaultValue="all" className="mb-8">
@@ -116,8 +148,12 @@ export default function Discover() {
                 {partners
                   .filter(partner => partner.featured)
                   .map((partner) => (
-                  <Card key={partner.id} className="bg-secondary border-border hover:border-honey/50 transition-all duration-300 group">
-                    <CardHeader className="pb-3">
+                  <Card key={partner.id} className="group relative overflow-hidden bg-gradient-to-br from-slate-900/95 via-gray-900/90 to-slate-900/95 dark:from-black/95 dark:via-slate-950/90 dark:to-black/95 border-2 border-slate-700 dark:border-slate-800 hover:border-honey/50 transition-all duration-500 hover:scale-[1.02] shadow-2xl hover:shadow-3xl hover:shadow-honey/20">
+                    {/* Honey background gradient */}
+                    <div className="absolute inset-0 bg-gradient-to-br from-honey/20 via-amber-300/15 to-yellow-400/20 opacity-60 group-hover:opacity-80 transition-opacity duration-300"></div>
+                    {/* Animated border glow */}
+                    <div className="absolute inset-0 rounded-xl border-2 border-honey/40 opacity-0 group-hover:opacity-100 transition-all duration-300 animate-pulse"></div>
+                    <CardHeader className="relative pb-3">
                       <div className="flex items-start justify-between">
                         <div className="flex items-center space-x-3">
                           {partner.logoUrl && (
@@ -143,8 +179,8 @@ export default function Discover() {
                         </Badge>
                       </div>
                     </CardHeader>
-                    
-                    <CardContent className="space-y-4">
+
+                    <CardContent className="relative space-y-4">
                       <p className="text-sm text-muted-foreground line-clamp-3">
                         {partner.shortDescription}
                       </p>
@@ -192,8 +228,12 @@ export default function Discover() {
             ) : (
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                 {partners.map((partner) => (
-                <Card key={partner.id} className="bg-secondary border-border hover:border-honey/50 transition-all duration-300">
-                  <CardHeader className="pb-3">
+                <Card key={partner.id} className="group relative overflow-hidden bg-gradient-to-br from-slate-900/95 via-gray-900/90 to-slate-900/95 dark:from-black/95 dark:via-slate-950/90 dark:to-black/95 border-2 border-slate-700 dark:border-slate-800 hover:border-blue-500/50 transition-all duration-500 hover:scale-[1.02] shadow-2xl hover:shadow-3xl hover:shadow-blue-500/20">
+                  {/* Blue background gradient */}
+                  <div className="absolute inset-0 bg-gradient-to-br from-blue-500/20 via-indigo-400/15 to-blue-600/20 opacity-60 group-hover:opacity-80 transition-opacity duration-300"></div>
+                  {/* Animated border glow */}
+                  <div className="absolute inset-0 rounded-xl border-2 border-blue-500/40 opacity-0 group-hover:opacity-100 transition-all duration-300 animate-pulse"></div>
+                  <CardHeader className="relative pb-3">
                     <div className="flex items-start justify-between">
                       <div className="flex items-center space-x-3">
                         {partner.logoUrl && (
@@ -215,8 +255,8 @@ export default function Discover() {
                       </div>
                     </div>
                   </CardHeader>
-                  
-                  <CardContent className="space-y-3">
+
+                  <CardContent className="relative space-y-3">
                     <p className="text-sm text-muted-foreground line-clamp-2">
                       {partner.shortDescription}
                     </p>

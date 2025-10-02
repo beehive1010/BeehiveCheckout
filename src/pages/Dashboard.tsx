@@ -528,26 +528,26 @@ export default function Dashboard() {
                   <DollarSign className={`${isMobile ? 'h-3.5 w-3.5' : 'h-4 w-4'} text-black`} />
                 </div>
                 <div className="flex-1 min-w-0">
-                  <span className={`${isMobile ? 'text-sm' : 'text-base'} font-bold text-honey group-hover:text-amber-300 transition-colors duration-300 block truncate`}>
+                  <span className={`${isMobile ? 'text-base' : 'text-base'} font-bold text-honey group-hover:text-amber-300 transition-colors duration-300 block truncate`}>
                     {t('dashboard.bccBalance')}
                   </span>
-                  <p className="text-xs text-gray-400 dark:text-gray-500 mt-0.5 truncate">{t('dashboard.yourTokens')}</p>
+                  <p className={`${isMobile ? 'text-sm' : 'text-xs'} text-gray-400 dark:text-gray-500 mt-0.5 truncate`}>{t('dashboard.yourTokens')}</p>
                 </div>
               </CardTitle>
             </CardHeader>
             <CardContent className={`relative space-y-2 sm:space-y-3 ${isMobile ? 'pt-0' : ''}`}>
               <div className="flex items-end justify-between">
                 <div className="flex-1 min-w-0">
-                  <p className={`${isMobile ? 'text-2xl' : 'text-3xl'} font-bold text-honey group-hover:text-amber-300 transition-colors duration-300 truncate`}>{data.bccBalance.toFixed(2)}</p>
-                  <p className="text-xs text-gray-400 dark:text-gray-500 truncate">{t('dashboard.transferable')}</p>
+                  <p className={`${isMobile ? 'text-3xl' : 'text-3xl'} font-bold text-honey group-hover:text-amber-300 transition-colors duration-300 truncate`}>{data.bccBalance.toFixed(2)}</p>
+                  <p className={`${isMobile ? 'text-sm' : 'text-xs'} text-gray-400 dark:text-gray-500 truncate`}>{t('dashboard.transferable')}</p>
                 </div>
                 <Badge className="bg-honey/20 text-honey border-honey/30 group-hover:bg-honey/30 transition-all duration-300 flex-shrink-0">{t('dashboard.available')}</Badge>
               </div>
               <div className="flex items-center gap-2 p-2 sm:p-3 bg-gradient-to-br from-gray-800 via-gray-700 to-gray-800 hover:from-orange-900/20 hover:via-orange-800/10 hover:to-orange-900/20 border border-orange-500/30 rounded-lg transition-all duration-300">
                 <Lock className="h-4 w-4 text-orange-400 flex-shrink-0" />
                 <div className="flex-1 min-w-0">
-                  <p className="text-sm font-semibold text-orange-400 truncate">{data.bccLocked.toFixed(2)}</p>
-                  <p className="text-xs text-gray-400 dark:text-gray-500 truncate">{t('dashboard.bccLocked')}</p>
+                  <p className={`${isMobile ? 'text-base' : 'text-sm'} font-semibold text-orange-400 truncate`}>{data.bccLocked.toFixed(2)}</p>
+                  <p className={`${isMobile ? 'text-sm' : 'text-xs'} text-gray-400 dark:text-gray-500 truncate`}>{t('dashboard.bccLocked')}</p>
                 </div>
               </div>
               <Button
@@ -574,27 +574,27 @@ export default function Dashboard() {
                   <Users className={`${isMobile ? 'h-3.5 w-3.5' : 'h-4 w-4'} text-white`} />
                 </div>
                 <div className="flex-1 min-w-0">
-                  <span className={`${isMobile ? 'text-sm' : 'text-base'} font-bold text-blue-400 group-hover:text-blue-300 transition-colors duration-300 block truncate`}>
+                  <span className={`${isMobile ? 'text-base' : 'text-base'} font-bold text-blue-400 group-hover:text-blue-300 transition-colors duration-300 block truncate`}>
                     {t('dashboard.referralNetwork')}
                   </span>
-                  <p className="text-xs text-gray-400 dark:text-gray-500 mt-0.5 truncate">{t('dashboard.yourTeam')}</p>
+                  <p className={`${isMobile ? 'text-sm' : 'text-xs'} text-gray-400 dark:text-gray-500 mt-0.5 truncate`}>{t('dashboard.yourTeam')}</p>
                 </div>
               </CardTitle>
             </CardHeader>
             <CardContent className={`relative space-y-2 sm:space-y-3 ${isMobile ? 'pt-0' : ''}`}>
               <div className="grid grid-cols-2 gap-2 sm:gap-3">
                 <div className="p-2 sm:p-3 bg-gradient-to-br from-gray-800 via-gray-700 to-gray-800 hover:from-blue-900/20 hover:via-blue-800/10 hover:to-blue-900/20 border border-blue-500/30 rounded-lg transition-all duration-300">
-                  <p className={`${isMobile ? 'text-xl' : 'text-2xl'} font-bold text-blue-400 truncate`}>{data.directReferrals}</p>
-                  <p className="text-xs text-gray-400 dark:text-gray-500 truncate">{t('dashboard.directReferrals')}</p>
+                  <p className={`${isMobile ? 'text-2xl' : 'text-2xl'} font-bold text-blue-400 truncate`}>{data.directReferrals}</p>
+                  <p className={`${isMobile ? 'text-sm' : 'text-xs'} text-gray-400 dark:text-gray-500 truncate`}>{t('dashboard.directReferrals')}</p>
                 </div>
                 <div className="p-2 sm:p-3 bg-gradient-to-br from-gray-800 via-gray-700 to-gray-800 hover:from-indigo-900/20 hover:via-indigo-800/10 hover:to-indigo-900/20 border border-indigo-500/30 rounded-lg transition-all duration-300">
-                  <p className={`${isMobile ? 'text-xl' : 'text-2xl'} font-bold text-indigo-400 truncate`}>{data.totalTeamSize}</p>
-                  <p className="text-xs text-gray-400 dark:text-gray-500 truncate">{t('dashboard.totalTeamSize')}</p>
+                  <p className={`${isMobile ? 'text-2xl' : 'text-2xl'} font-bold text-indigo-400 truncate`}>{data.totalTeamSize}</p>
+                  <p className={`${isMobile ? 'text-sm' : 'text-xs'} text-gray-400 dark:text-gray-500 truncate`}>{t('dashboard.totalTeamSize')}</p>
                 </div>
               </div>
               <div className="flex items-center gap-2 p-2 bg-gradient-to-br from-gray-800 via-gray-700 to-gray-800 border border-blue-500/30 rounded-lg">
                 <TrendingUp className="h-4 w-4 text-blue-400 flex-shrink-0" />
-                <p className="text-xs text-gray-400 dark:text-gray-500 flex-1 truncate">{t('dashboard.maxLayer')}: <span className="font-bold text-blue-400">{data.maxLayer}</span></p>
+                <p className={`${isMobile ? 'text-sm' : 'text-xs'} text-gray-400 dark:text-gray-500 flex-1 truncate`}>{t('dashboard.maxLayer')}: <span className="font-bold text-blue-400">{data.maxLayer}</span></p>
               </div>
               <Button
                 onClick={() => setLocation('/referrals')}
@@ -620,22 +620,22 @@ export default function Dashboard() {
                   <Award className={`${isMobile ? 'h-3.5 w-3.5' : 'h-4 w-4'} text-white`} />
                 </div>
                 <div className="flex-1 min-w-0">
-                  <span className={`${isMobile ? 'text-sm' : 'text-base'} font-bold text-emerald-400 group-hover:text-emerald-300 transition-colors duration-300 block truncate`}>
+                  <span className={`${isMobile ? 'text-base' : 'text-base'} font-bold text-emerald-400 group-hover:text-emerald-300 transition-colors duration-300 block truncate`}>
                     {t('dashboard.rewardCenter')}
                   </span>
-                  <p className="text-xs text-gray-400 dark:text-gray-500 mt-0.5 truncate">{t('dashboard.earnings')}</p>
+                  <p className={`${isMobile ? 'text-sm' : 'text-xs'} text-gray-400 dark:text-gray-500 mt-0.5 truncate`}>{t('dashboard.earnings')}</p>
                 </div>
               </CardTitle>
             </CardHeader>
             <CardContent className={`relative space-y-2 sm:space-y-3 ${isMobile ? 'pt-0' : ''}`}>
               <div className="p-3 sm:p-4 bg-gradient-to-br from-gray-800 via-gray-700 to-gray-800 hover:from-emerald-900/20 hover:via-emerald-800/10 hover:to-emerald-900/20 border border-emerald-500/30 rounded-lg transition-all duration-300">
-                <p className="text-xs text-gray-400 dark:text-gray-500 mb-1">{t('dashboard.totalRewards')}</p>
-                <p className={`${isMobile ? 'text-2xl' : 'text-3xl'} font-bold text-emerald-400 truncate`}>${data.totalRewards.toFixed(2)}</p>
+                <p className={`${isMobile ? 'text-sm' : 'text-xs'} text-gray-400 dark:text-gray-500 mb-1`}>{t('dashboard.totalRewards')}</p>
+                <p className={`${isMobile ? 'text-3xl' : 'text-3xl'} font-bold text-emerald-400 truncate`}>${data.totalRewards.toFixed(2)}</p>
               </div>
               <div className="flex items-center justify-between p-2 sm:p-3 bg-gradient-to-br from-gray-800 via-gray-700 to-gray-800 hover:from-yellow-900/20 hover:via-yellow-800/10 hover:to-yellow-900/20 border border-yellow-500/30 rounded-lg transition-all duration-300">
                 <div className="flex-1 min-w-0">
-                  <p className="text-xs text-gray-400 dark:text-gray-500 truncate">{t('dashboard.claimableRewards')}</p>
-                  <p className="text-lg font-bold text-yellow-400 truncate">${data.claimableRewards.toFixed(2)}</p>
+                  <p className={`${isMobile ? 'text-sm' : 'text-xs'} text-gray-400 dark:text-gray-500 truncate`}>{t('dashboard.claimableRewards')}</p>
+                  <p className={`${isMobile ? 'text-xl' : 'text-lg'} font-bold text-yellow-400 truncate`}>${data.claimableRewards.toFixed(2)}</p>
                 </div>
                 {data.claimableRewards > 0 && <Badge className="bg-yellow-500/20 text-yellow-400 border-yellow-500/30 animate-pulse flex-shrink-0">{t('dashboard.ready')}</Badge>}
               </div>
