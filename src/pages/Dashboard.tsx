@@ -136,11 +136,11 @@ export default function Dashboard() {
           .select('wallet_address, current_level, activation_time')
           .eq('referrer_wallet', walletAddress),
           
-        // Matrix团队统计
+        // Matrix团队统计 - 使用matrix_referrals表
         supabase
-          .from('referrals')
-          .select('member_wallet, layer, placement_type')
-          .eq('root_wallet', walletAddress),
+          .from('matrix_referrals')
+          .select('member_wallet, layer, referral_type')
+          .eq('matrix_root_wallet', walletAddress),
           
         // 当前用户信息
         supabase
