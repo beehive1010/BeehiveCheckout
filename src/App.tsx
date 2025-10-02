@@ -39,6 +39,7 @@ import SupabaseAuth from "@/pages/SupabaseAuth";
 import AuthCallback from "@/pages/AuthCallback";
 import AdminNFTsPage from "@/pages/AdminNFTs";
 import TestUpgradeMembership from "@/pages/TestUpgradeMembership";
+import MultiChainClaimDemo from "@/pages/MultiChainClaimDemo";
 // import PhotoUploadDemo from "@/pages/PhotoUploadDemo";
 
 // Import proper Header and Navigation components
@@ -407,7 +408,8 @@ function Router() {
         {/* Public routes - No authentication required */}
         <Route path="/matrix-explanation" component={MatrixExplanation} />
         <Route path="/matrix-test" component={MatrixTestPage} />
-        
+        <Route path="/multi-chain-claim-demo" component={MultiChainClaimDemo} />
+
         {/* Test routes */}
         <Route path="/testUpgradeMembership" component={() => (
           <MemberGuard requireActivation={true} redirectTo="/welcome">

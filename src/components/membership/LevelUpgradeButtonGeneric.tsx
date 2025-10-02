@@ -1,9 +1,8 @@
 import {useEffect, useState} from 'react';
-import {useActiveAccount, useActiveWalletChain, useSwitchActiveWalletChain} from 'thirdweb/react';
-import {createThirdwebClient, getContract, sendTransaction, waitForReceipt} from 'thirdweb';
+import {useActiveAccount, useActiveWalletChain, useSwitchActiveWalletChain, TransactionButton} from 'thirdweb/react';
+import {getContract, prepareContractCall} from 'thirdweb';
 import {arbitrum} from 'thirdweb/chains';
-import {balanceOf, claimTo} from 'thirdweb/extensions/erc1155';
-import {allowance, approve, balanceOf as erc20BalanceOf} from 'thirdweb/extensions/erc20';
+import {balanceOf} from 'thirdweb/extensions/erc1155';
 import {Button} from '../ui/button';
 import {Card, CardContent, CardHeader, CardTitle} from '../ui/card';
 import {Badge} from '../ui/badge';
@@ -11,6 +10,7 @@ import {useToast} from '../../hooks/use-toast';
 import {Clock, Coins, Crown, Loader2, Star, TrendingUp} from 'lucide-react';
 import {supabase} from '../../lib/supabase';
 import {useI18n} from '../../contexts/I18nContext';
+import {client} from '../../lib/thirdwebClient';
 
 interface LevelUpgradeButtonGenericProps {
   targetLevel: number;
@@ -22,9 +22,9 @@ interface LevelUpgradeButtonGenericProps {
 
 // Dynamic pricing based on level (Layer 2-19: 150-1000 USDC)
 const getLevelPrice = (level: number): number => {
-  const prices = {
+  const prices: Record<number, number> = {
     1: 130,   // Level 1 activation
-    2: 150,   // Level 2 upgrade 
+    2: 150,   // Level 2 upgrade
     3: 200,   // Level 3 upgrade
     4: 250,   // Level 4 upgrade
     5: 300,   // Level 5 upgrade
@@ -53,12 +53,12 @@ const getLevelRequirements = (level: number): { directReferrals: number; descrip
   return { directReferrals: 0, description: `Sequential upgrade from Level ${level - 1}` };
 };
 
-export function LevelUpgradeButtonGeneric({ 
-  targetLevel, 
-  currentLevel, 
-  directReferralsCount, 
-  onSuccess, 
-  className = '' 
+export function LevelUpgradeButtonGeneric({
+  targetLevel,
+  currentLevel,
+  directReferralsCount,
+  onSuccess,
+  className = ''
 }: LevelUpgradeButtonGenericProps): JSX.Element {
   const account = useActiveAccount();
   const activeChain = useActiveWalletChain();
@@ -70,20 +70,15 @@ export function LevelUpgradeButtonGeneric({
   const [canClaimLevel, setCanClaimLevel] = useState(false);
   const [isCheckingEligibility, setIsCheckingEligibility] = useState(true);
   const [isWrongNetwork, setIsWrongNetwork] = useState(false);
-  
+
   // Dynamic pricing and requirements
   const LEVEL_PRICE_USDC = getLevelPrice(targetLevel);
-  const LEVEL_PRICE_WEI = BigInt(LEVEL_PRICE_USDC) * BigInt('1000000000000000000');
+  const LEVEL_PRICE_WEI = BigInt(LEVEL_PRICE_USDC) * BigInt('1000000'); // USDC has 6 decimals
   const LEVEL_REQUIREMENTS = getLevelRequirements(targetLevel);
-  
+
   const API_BASE = 'https://cdjmtevekxpmgrixkiqt.supabase.co/functions/v1';
   const PAYMENT_TOKEN_CONTRACT = "0xaf88d065e77c8cC2239327C5EDb3A432268e5831"; // Arbitrum USDC (native)
   const NFT_CONTRACT = "0x36a1aC6D8F0204827Fad16CA5e222F1Aeae4Adc8"; // ARB ONE Membership Contract
-  const THIRDWEB_CLIENT_ID = import.meta.env.VITE_THIRDWEB_CLIENT_ID;
-
-  const client = createThirdwebClient({
-    clientId: THIRDWEB_CLIENT_ID,
-  });
 
   // Check network status
   useEffect(() => {
@@ -103,11 +98,11 @@ export function LevelUpgradeButtonGeneric({
 
   const checkLevelEligibility = async () => {
     if (!account?.address) return;
-    
+
     setIsCheckingEligibility(true);
     try {
       console.log(`🔍 Checking Level ${targetLevel} eligibility for:`, account.address);
-      
+
       // Check if user is at the correct current level
       if (currentLevel !== targetLevel - 1) {
         console.log(`❌ User current level: ${currentLevel}, but target level ${targetLevel} requires level ${targetLevel - 1}`);
@@ -131,13 +126,13 @@ export function LevelUpgradeButtonGeneric({
           address: NFT_CONTRACT,
           chain: arbitrum
         });
-        
+
         const levelBalance = await balanceOf({
           contract: nftContract,
           owner: account.address,
           tokenId: BigInt(targetLevel)
         });
-        
+
         if (Number(levelBalance) > 0) {
           console.log(`❌ User already owns Level ${targetLevel} NFT`);
           setCanClaimLevel(false);
@@ -147,19 +142,11 @@ export function LevelUpgradeButtonGeneric({
       } catch (nftCheckError) {
         console.warn(`⚠️ Could not check Level ${targetLevel} NFT balance:`, nftCheckError);
       }
-      
+
       // All checks passed
       console.log(`✅ User eligible for Level ${targetLevel} claim`);
-      console.log(`🔧 ELIGIBILITY DEBUG:`, {
-        targetLevel,
-        currentLevel,
-        directReferralsCount,
-        'currentLevel === targetLevel - 1': currentLevel === targetLevel - 1,
-        'hasNFTAlready': 'checked above - should be false',
-        'level2Requirements': targetLevel === 2 ? `${directReferralsCount}/${LEVEL_REQUIREMENTS.directReferrals}` : 'N/A'
-      });
       setCanClaimLevel(true);
-      
+
     } catch (error) {
       console.error(`❌ Error checking Level ${targetLevel} eligibility:`, error);
       setCanClaimLevel(false);
@@ -168,52 +155,9 @@ export function LevelUpgradeButtonGeneric({
     }
   };
 
-  const sendTransactionWithRetry = async (transaction: unknown, account: unknown, description: string = 'transaction', useGasless: boolean = true) => {
-    let lastError: any = null;
-    const maxRetries = 3;
-    const baseDelay = 2000;
-    
-    for (let attempt = 1; attempt <= maxRetries; attempt++) {
-      try {
-        const gasMode = useGasless ? 'with gas sponsorship' : 'with regular gas';
-        console.log(`📤 Sending ${description} ${gasMode} (attempt ${attempt}/${maxRetries})...`);
-        
-        if (attempt > 1) {
-          await new Promise(resolve => setTimeout(resolve, baseDelay * attempt));
-        }
-        
-        const result = await sendTransaction({
-          transaction: transaction as any,
-          account: account as any
-        });
-        
-        console.log(`✅ ${description} successful ${gasMode} on attempt ${attempt}`);
-        return result;
-        
-      } catch (error: any) {
-        lastError = error;
-        console.error(`❌ ${description} failed on attempt ${attempt}:`, error.message);
-        
-        if (error.message?.includes('User rejected') || 
-            error.message?.includes('user denied') ||
-            error.message?.includes('User cancelled')) {
-          throw new Error('Transaction cancelled by user');
-        }
-        
-        if (attempt === maxRetries) {
-          break;
-        }
-        
-        console.log(`🔄 Retrying ${description} in ${baseDelay * attempt}ms...`);
-      }
-    }
-    
-    throw new Error(`${description} failed after ${maxRetries} attempts: ${lastError?.message || 'Unknown error'}`);
-  };
-
   const handleSwitchNetwork = async () => {
     if (!switchChain) return;
-    
+
     try {
       setIsProcessing(true);
       await switchChain(arbitrum);
@@ -234,312 +178,83 @@ export function LevelUpgradeButtonGeneric({
     }
   };
 
-  const handleClaimLevelNFT = async () => {
-    console.log(`🎯 Level ${targetLevel} NFT Claim attempt started`);
-    
-    if (!account?.address) {
-      toast({
-        title: t('claim.walletNotConnected'),
-        description: t('claim.connectWalletToClaimNFT'),
-        variant: "destructive",
-      });
-      return;
-    }
+  // Handle transaction success from TransactionButton
+  const handleTransactionSuccess = async (result: any) => {
+    console.log(`🎉 Level ${targetLevel} Transaction successful:`, result);
 
-    if (!canClaimLevel) {
-      toast({
-        title: `Level ${targetLevel} Requirements Not Met`,
-        description: LEVEL_REQUIREMENTS.description,
-        variant: "destructive",
-      });
-      return;
-    }
+    toast({
+      title: `🎉 Level ${targetLevel} NFT Claimed!`,
+      description: `Processing Level ${targetLevel} upgrade...`,
+      duration: 5000
+    });
 
     setIsProcessing(true);
+    setCurrentStep(t('membership.claiming.processing', { level: targetLevel }));
 
     try {
-      // Step 1: Network check
-      const chainId = activeChain?.id;
-      if (chainId !== arbitrum.id) {
-        throw new Error(`Please switch to Arbitrum One network. Current: ${chainId}, Required: ${arbitrum.id}`);
-      }
+      await new Promise(resolve => setTimeout(resolve, 3000));
 
-      // Step 2: Skip ETH balance check - gas is sponsored
-      console.log('⛽ Gas fees are sponsored - skipping ETH balance check');
-
-      // Step 3: Setup contracts
-      const usdcContract = getContract({
-        client,
-        address: PAYMENT_TOKEN_CONTRACT,
-        chain: arbitrum
+      const upgradeResponse = await fetch(`${API_BASE}/level-upgrade`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${import.meta.env.VITE_SUPABASE_ANON_KEY}`,
+          'x-wallet-address': account?.address || '',
+        },
+        body: JSON.stringify({
+          action: 'upgrade_level',
+          walletAddress: account?.address,
+          targetLevel: targetLevel,
+          transactionHash: result.transactionHash,
+          network: 'mainnet'
+        })
       });
 
-      const nftContract = getContract({
-        client,
-        address: NFT_CONTRACT,
-        chain: arbitrum
-      });
+      const upgradeResult = await upgradeResponse.json();
 
-      // Step 4: Check if user already owns target level NFT (double-check)
-      console.log(`🔍 Double-checking Level ${targetLevel} NFT ownership...`);
-      try {
-        const existingBalance = await balanceOf({
-          contract: nftContract,
-          owner: account.address,
-          tokenId: BigInt(targetLevel)
-        });
-        
-        if (Number(existingBalance) > 0) {
-          console.log(`✅ User already owns Level ${targetLevel} NFT`);
-          toast({
-            title: t('claim.welcomeBack'),
-            description: `You already own Level ${targetLevel} NFT.`,
-            variant: "default",
-            duration: 3000,
-          });
-          
-          if (onSuccess) {
-            setTimeout(() => onSuccess(), 1500);
-          }
-          return;
-        }
-      } catch (balanceCheckError) {
-        console.warn('⚠️ Could not check NFT balance:', balanceCheckError);
-      }
-
-      // Step 5: Check USDC balance and approval
-      console.log('💰 Checking USDC balance and approval...');
-      setCurrentStep('Checking USDC balance...');
-      
-      try {
-        const tokenBalance = await erc20BalanceOf({
-          contract: usdcContract,
-          address: account.address
-        });
-        
-        if (tokenBalance < LEVEL_PRICE_WEI) {
-          throw new Error(`Insufficient USDC balance. You have ${(Number(tokenBalance) / 1e18).toFixed(2)} USDC but need ${LEVEL_PRICE_USDC} USDC for Level ${targetLevel}`);
-        }
-        
-        console.log('✅ Sufficient USDC balance confirmed');
-      } catch (balanceError: any) {
-        if (balanceError.message.includes('Insufficient USDC')) {
-          throw balanceError;
-        }
-        console.warn('⚠️ Could not check USDC balance:', balanceError);
-      }
-
-      // Check and request approval
-      setCurrentStep('Checking USDC approval...');
-      
-      const currentAllowance = await allowance({
-        contract: usdcContract,
-        owner: account.address,
-        spender: NFT_CONTRACT
-      });
-      
-      console.log(`💰 Current allowance: ${Number(currentAllowance) / 1e18} USDC, Required: ${LEVEL_PRICE_USDC} USDC`);
-      
-      if (currentAllowance < LEVEL_PRICE_WEI) {
-        console.log('💰 Requesting USDC approval...');
-        
-        const approveTransaction = approve({
-          contract: usdcContract,
-          spender: NFT_CONTRACT,
-          amount: LEVEL_PRICE_WEI.toString()
-        });
-
-        setCurrentStep('Waiting for approval...');
-        
-        const approveTxResult = await sendTransactionWithRetry(
-          approveTransaction, 
-          account, 
-          'USDC approval transaction',
-          false // Use regular gas for ERC20 approval
-        );
-
-        await waitForReceipt({
-          client,
-          chain: arbitrum,
-          transactionHash: approveTxResult?.transactionHash,
-        });
-        
-        console.log('✅ USDC approval confirmed');
-        
-        // Verify the approval was successful
-        const newAllowance = await allowance({
-          contract: usdcContract,
-          owner: account.address,
-          spender: NFT_CONTRACT
-        });
-        
-        console.log(`✅ New allowance after approval: ${Number(newAllowance) / 1e18} USDC`);
-        
-        if (newAllowance < LEVEL_PRICE_WEI) {
-          throw new Error(`Approval failed. Current allowance: ${Number(newAllowance) / 1e18} USDC, Required: ${LEVEL_PRICE_USDC} USDC`);
-        }
-      } else {
-        console.log('✅ Sufficient allowance already exists');
-      }
-
-      // Step 6: Claim target level NFT
-      console.log(`🎁 Claiming Level ${targetLevel} NFT...`);
-      setCurrentStep(`Minting Level ${targetLevel} NFT...`);
-      
-      const claimTransaction = claimTo({
-        contract: nftContract,
-        to: account.address,
-        tokenId: BigInt(targetLevel),
-        quantity: BigInt(1)
-      });
-
-      const claimTxResult = await sendTransactionWithRetry(
-        claimTransaction,
-        account,
-        `Level ${targetLevel} NFT claim transaction`,
-        false // Temporarily disable gasless for NFT claim to test
-      );
-
-      // Wait for confirmation
-      setCurrentStep('Waiting for NFT confirmation...');
-      const receipt = await waitForReceipt({
-        client,
-        chain: arbitrum,
-        transactionHash: claimTxResult.transactionHash,
-        maxBlocksWaitTime: 50
-      });
-      
-      console.log(`✅ Level ${targetLevel} NFT claim confirmed`);
-      console.log(`📦 Level ${targetLevel} Claim成功，区块号:`, receipt.blockNumber);
-      console.log('🔗 交易哈希:', claimTxResult.transactionHash);
-      console.log('📋 事件 logs:', receipt.logs);
-      console.log('✅ Receipt status:', receipt.status);
-
-      // Step 7: Process level upgrade using level-upgrade Edge Function
-      let activationSuccess = false;
-      if (claimTxResult?.transactionHash) {
-        console.log(`🚀 Processing Level ${targetLevel} upgrade via level-upgrade function...`);
-        setCurrentStep(t('membership.claiming.processing', { level: targetLevel }));
-        
-        await new Promise(resolve => setTimeout(resolve, 3000));
-        
-        try {
-          // Call level-upgrade Edge Function for proper processing
-          console.log(`📡 Calling level-upgrade function for Level ${targetLevel}...`);
-          
-          const upgradeResponse = await fetch(`${API_BASE}/level-upgrade`, {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
-              'Authorization': `Bearer ${import.meta.env.VITE_SUPABASE_ANON_KEY}`,
-              'x-wallet-address': account.address,
-            },
-            body: JSON.stringify({
-              action: 'upgrade_level',
-              walletAddress: account.address,
-              targetLevel: targetLevel,
-              transactionHash: claimTxResult.transactionHash,
-              network: 'mainnet'
-            })
-          });
-
-          const upgradeResult = await upgradeResponse.json();
-
-          if (!upgradeResult.success) {
-            throw new Error(`Level upgrade failed: ${upgradeResult.error || upgradeResult.message}`);
-          }
-
-          console.log(`✅ Level ${targetLevel} upgrade processed successfully:`, upgradeResult);
-          activationSuccess = true;
-          
-        } catch (backendError: any) {
-          console.error(`❌ Level ${targetLevel} backend processing error:`, backendError);
-          // Fallback to direct database update if Edge Function fails
-          try {
-            console.log(`🔄 Fallback: Direct database update for Level ${targetLevel}...`);
-            
-            const { data: updateResult, error: updateError } = await supabase
-              .from('members')
-              .update({ 
-                current_level: targetLevel
-              })
-              .eq('wallet_address', account.address)
-              .select('*')
-              .single();
-
-            if (updateError) {
-              throw new Error(`Fallback database update failed: ${updateError.message}`);
-            }
-
-            console.log(`✅ Fallback update successful for Level ${targetLevel}:`, updateResult);
-            activationSuccess = true;
-            
-          } catch (fallbackError: any) {
-            console.error(`❌ Fallback update also failed:`, fallbackError);
-            activationSuccess = false;
-          }
-        }
-      }
-
-      // Show success message
-      if (activationSuccess) {
-        console.log(`✅ Complete success: Level ${targetLevel} NFT minted and membership activated with Layer ${targetLevel} rewards`);
+      if (upgradeResult.success) {
+        console.log(`✅ Level ${targetLevel} upgrade processed successfully:`, upgradeResult);
         toast({
           title: t('membership.claiming.successEmoji', { level: targetLevel }),
           description: `Congratulations! Your Level ${targetLevel} membership is now active. Layer ${targetLevel} rewards have been processed.`,
           variant: "default",
           duration: 6000,
         });
+
+        if (onSuccess) {
+          onSuccess();
+        }
       } else {
-        console.log(`⚠️ Partial success: Level ${targetLevel} NFT minted but backend activation failed`);
-        toast({
-          title: t('membership.claiming.successCheck', { level: targetLevel }),
-          description: `Your Level ${targetLevel} NFT is minted on blockchain. Backend activation is pending - please contact support if needed.`,
-          variant: "default",
-          duration: 8000,
-        });
+        throw new Error(`Level upgrade failed: ${upgradeResult.error || upgradeResult.message}`);
       }
-
-      // Refresh eligibility check
-      await checkLevelEligibility();
-
-      if (onSuccess) {
-        onSuccess();
-      }
-
     } catch (error: any) {
-      console.error(`❌ Level ${targetLevel} NFT claim error:`, error);
-      
-      const errorMessage = error instanceof Error ? error.message : String(error);
-      
-      if (errorMessage.includes('User rejected') || errorMessage.includes('user denied')) {
-        toast({
-          title: 'Transaction Cancelled',
-          description: 'You cancelled the transaction.',
-          variant: "destructive",
-        });
-      } else if (errorMessage.includes('Insufficient USDC')) {
-        toast({
-          title: 'Insufficient USDC',
-          description: errorMessage,
-          variant: "destructive",
-        });
-      } else if (errorMessage.includes('network')) {
-        toast({
-          title: 'Network Error',
-          description: 'Please switch to Arbitrum One network.',
-          variant: "destructive",
-        });
-      } else {
-        toast({
-          title: t('membership.claiming.failed', { level: targetLevel }),
-          description: errorMessage,
-          variant: "destructive",
-        });
-      }
+      console.error(`❌ Level ${targetLevel} backend processing error:`, error);
+      toast({
+        title: t('membership.claiming.successCheck', { level: targetLevel }),
+        description: `Your Level ${targetLevel} NFT is minted on blockchain. Backend activation is pending - please contact support if needed.`,
+        variant: "default",
+        duration: 8000,
+      });
     } finally {
       setIsProcessing(false);
+      setCurrentStep('');
+      await checkLevelEligibility();
     }
+  };
+
+  const handleTransactionError = (error: any) => {
+    console.error(`❌ Level ${targetLevel} Transaction error:`, error);
+
+    const errorMessage = error?.message || 'Transaction failed';
+    toast({
+      title: t('membership.claiming.failed', { level: targetLevel }),
+      description: errorMessage,
+      variant: 'destructive',
+      duration: 5000
+    });
+
+    setIsProcessing(false);
+    setCurrentStep('');
   };
 
   const getLevelIcon = () => {
@@ -557,6 +272,25 @@ export function LevelUpgradeButtonGeneric({
   };
 
   const Icon = getLevelIcon();
+
+  // Prepare claim transaction
+  const nftContract = getContract({
+    client,
+    address: NFT_CONTRACT,
+    chain: arbitrum
+  });
+
+  const claimTransaction = prepareContractCall({
+    contract: nftContract,
+    method: "function claim(address to, uint256 tokenId, uint256 quantity, address currency, uint256 pricePerToken) payable",
+    params: [
+      account?.address || '0x0',
+      BigInt(targetLevel), // Target level token ID
+      BigInt(1), // Quantity
+      PAYMENT_TOKEN_CONTRACT, // USDC currency
+      LEVEL_PRICE_WEI // Price
+    ]
+  });
 
   return (
     <Card className={`bg-gradient-to-br from-blue/5 to-blue/15 border-blue/30 ${className}`}>
@@ -605,7 +339,7 @@ export function LevelUpgradeButtonGeneric({
               • Must own Level 1 NFT ✅
             </p>
             <p className="text-sm text-orange-700">
-              • Need {LEVEL_REQUIREMENTS.directReferrals}+ direct referrals 
+              • Need {LEVEL_REQUIREMENTS.directReferrals}+ direct referrals
               {directReferralsCount >= LEVEL_REQUIREMENTS.directReferrals ? ' ✅' : ` (${directReferralsCount}/${LEVEL_REQUIREMENTS.directReferrals})`}
             </p>
           </div>
@@ -621,10 +355,10 @@ export function LevelUpgradeButtonGeneric({
                 <span className="text-sm font-medium text-yellow-800">Wrong Network</span>
               </div>
               <p className="text-xs text-yellow-700 mb-3">
-                You're on {activeChain?.id === 1 ? 'Ethereum Mainnet' : `Network ${activeChain?.id}`}. 
+                You're on {activeChain?.id === 1 ? 'Ethereum Mainnet' : `Network ${activeChain?.id}`}.
                 Switch to Arbitrum One to claim your Level {targetLevel} NFT.
               </p>
-              <Button 
+              <Button
                 onClick={handleSwitchNetwork}
                 disabled={isProcessing}
                 className="w-full bg-yellow-600 hover:bg-yellow-700 text-white"
@@ -642,10 +376,23 @@ export function LevelUpgradeButtonGeneric({
             </div>
           )}
 
-          <Button 
-            onClick={handleClaimLevelNFT}
-            disabled={isProcessing || !account?.address || isWrongNetwork || !canClaimLevel || isCheckingEligibility}
-            className={`w-full h-12 bg-gradient-to-r ${getLevelColor()} hover:from-blue-400/90 hover:to-blue-600/90 text-white font-semibold text-lg shadow-lg disabled:opacity-50`}
+          <TransactionButton
+            transaction={() => claimTransaction}
+            onTransactionConfirmed={handleTransactionSuccess}
+            onError={handleTransactionError}
+            disabled={!account?.address || isWrongNetwork || !canClaimLevel || isCheckingEligibility}
+            className={`w-full h-12 !bg-gradient-to-r ${getLevelColor()} hover:!from-blue-400/90 hover:!to-blue-600/90 !text-white !font-semibold !text-lg !shadow-lg !transition-all disabled:!opacity-50`}
+            payModal={{
+              theme: 'dark',
+              supportedTokens: {
+                1: [{ address: '0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48', name: 'USDC', symbol: 'USDC' }], // Ethereum
+                137: [{ address: '0x2791Bca1f2de4661ED88A30C99A7a9449Aa84174', name: 'USDC', symbol: 'USDC' }], // Polygon
+                42161: [{ address: PAYMENT_TOKEN_CONTRACT, name: 'USDC', symbol: 'USDC' }], // Arbitrum
+                10: [{ address: '0x7F5c764cBc14f9669B88837ca1490cCa17c31607', name: 'USDC', symbol: 'USDC' }], // Optimism
+                8453: [{ address: '0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913', name: 'USDC', symbol: 'USDC' }], // Base
+                56: [{ address: '0x8AC76a51cc950d9822D68b83fE1Ad97B32Cd580d', name: 'USDC', symbol: 'USDC' }], // BSC
+              }
+            }}
           >
             {!account?.address ? (
               <>
@@ -667,19 +414,14 @@ export function LevelUpgradeButtonGeneric({
                 <Crown className="mr-2 h-5 w-5" />
                 Requirements Not Met
               </>
-            ) : isProcessing ? (
-              <>
-                <Loader2 className="mr-2 h-5 w-5 animate-spin" />
-                {currentStep || 'Processing...'}
-              </>
             ) : (
-              <>
-                <Icon className="mr-2 h-5 w-5" />
-                Upgrade to Level {targetLevel} - {LEVEL_PRICE_USDC} USDC
-              </>
+              <div className="flex items-center justify-center gap-2">
+                <Icon className="h-5 w-5" />
+                <span>Upgrade to Level {targetLevel} - {LEVEL_PRICE_USDC} USDC</span>
+              </div>
             )}
-          </Button>
-          
+          </TransactionButton>
+
           {/* Progress indicator */}
           {isProcessing && currentStep && (
             <div className="mt-3 p-3 bg-muted/50 rounded-lg border border-border/50">
@@ -697,9 +439,9 @@ export function LevelUpgradeButtonGeneric({
         {/* Additional Information */}
         <div className="text-center text-xs text-muted-foreground pt-2 space-y-1">
           <p>📈 Level {currentLevel} → Level {targetLevel} upgrade</p>
-          <p>💳 USDC payment required</p>
+          <p>💳 Multi-chain payment supported</p>
+          <p>🌉 Automatic cross-chain bridging</p>
           <p>⚡ Instant level activation</p>
-          <p>🎭 NFT minted to your wallet</p>
           <p>💰 Layer {targetLevel} rewards ({LEVEL_PRICE_USDC} USDC) processed</p>
         </div>
       </CardContent>

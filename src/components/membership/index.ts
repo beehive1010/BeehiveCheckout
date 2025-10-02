@@ -5,4 +5,9 @@ export { LevelUpgradeButton } from './LevelUpgradeButton';
 export { LevelUpgradeButtonGeneric } from './LevelUpgradeButtonGeneric';
 export { ActiveMembershipClaimButton } from './ActiveMembershipClaimButton';
 
+// Multi-chain payment components (using Thirdweb PayModal)
+export { Level1ClaimButtonWithPayModal } from './Level1ClaimButtonWithPayModal';
+export { MultiChainNFTClaimButton } from './MultiChainNFTClaimButton';
+export { default as MultiChainMembershipClaim } from './MultiChainMembershipClaim';
+
 export { default as MembershipBadge } from './MembershipBadge';
