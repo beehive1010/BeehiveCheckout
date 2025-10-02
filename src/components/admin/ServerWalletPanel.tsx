@@ -26,7 +26,7 @@ const SUPPORTED_CHAINS = [
     name: 'Arbitrum One', 
     symbol: 'ARB', 
     icon: '🔵',
-    usdtAddress: '0xfA278827a612BBA895e7F0A4fBA504b22ff3E7C9',
+    usdtAddress: '0xaf88d065e77c8cC2239327C5EDb3A432268e5831',
     testUsdtAddress: '0x75faf114eafb1BDbe2F0316DF893fd58CE46AA4d',
     decimals: 18,
     explorer: 'https://arbiscan.io'

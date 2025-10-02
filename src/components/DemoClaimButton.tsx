@@ -30,7 +30,7 @@ export default function DemoClaimButton({
 
   // Contract addresses from environment
   const DEMO_MEMBERSHIP_NFT = '0x36a1aC6D8F0204827Fad16CA5e222F1Aeae4Adc8'; // ARB ONE Membership Contract
-  const DEMO_USDT = '0xfA278827a612BBA895e7F0A4fBA504b22ff3E7C9'; // ARB ONE Payment Token
+  const DEMO_USDT = '0xaf88d065e77c8cC2239327C5EDb3A432268e5831'; // ARB ONE Payment Token
   const CHAIN = arbitrum;
 
   // Handle successful NFT claim
