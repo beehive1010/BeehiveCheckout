@@ -155,7 +155,44 @@
     "social": {
       "shareOn": "分享到"
     },
-    "inviteTip": "💡 邀請朋友解鎖更多功能和獎勵"
+    "inviteTip": "💡 邀請朋友解鎖更多功能和獎勵",
+    "membershipLevel": "會員等級",
+    "yourNFT": "您的NFT",
+    "currentLevel": "當前等級",
+    "upgradeMembership": "升級會員",
+    "welcomeMember": "歡迎，會員！",
+    "buildNetwork": "讓我們一起建立您的蜂巢網絡",
+    "bccBalance": "BCC餘額",
+    "bccLocked": "BCC鎖定",
+    "transferable": "可轉賬",
+    "available": "可用",
+    "yourTokens": "您的代幣",
+    "referralNetwork": "推薦網絡",
+    "yourTeam": "您的團隊",
+    "directReferrals": "直推人數",
+    "totalTeamSize": "團隊總人數",
+    "maxLayer": "最大層級",
+    "ready": "就緒",
+    "topUp": "充值",
+    "refresh": "刷新",
+    "refreshing": "刷新中",
+    "loadingData": "加載數據中",
+    "balance": "餘額",
+    "network": "網絡",
+    "rewards": "獎勵",
+    "lastUpdated": "最後更新",
+    "success": {
+      "copied": "已複製",
+      "linkCopiedToClipboard": "推薦連結已複製到剪貼板",
+      "refreshed": "已刷新",
+      "dataUpdated": "數據已更新"
+    },
+    "errors": {
+      "loadError": "加載錯誤",
+      "dataLoadFailed": "數據加載失敗",
+      "refreshToRetry": "請刷新重試",
+      "retry": "重試"
+    }
   },
   "matrix": {
     "matrixView": "矩陣視圖",
