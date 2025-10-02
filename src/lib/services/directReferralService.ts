@@ -7,16 +7,16 @@ import {supabase} from '../supabase';
 export async function getDirectReferralCount(referrerWallet: string): Promise<number> {
   try {
     console.log(`🔍 Fetching direct referrals for wallet: ${referrerWallet}`);
-    
-    // Primary: Use referrals_matrix_stats for optimized referral stats
+
+    // Primary: Use referrals_stats_view for optimized referral stats
     const { data, error } = await supabase
-      .from('referrals_matrix_stats')
+      .from('referrals_stats_view')
       .select('direct_referrals')
-      .ilike('matrix_root_wallet', referrerWallet)
+      .ilike('referrer_wallet', referrerWallet)
       .single();
 
     if (error) {
-      console.error('❌ referrals_matrix_stats query failed:', error);
+      console.error('❌ referrals_stats_view query failed:', error);
       
       // Fallback to direct referrals table query
       console.log('🔄 Falling back to referrals table...');
