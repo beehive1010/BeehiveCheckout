@@ -4637,12 +4637,21 @@
         "positions": "Each layer has Left, Middle, and Right positions",
         "rewards": "Rewards are triggered when members in these positions upgrade",
         "title": "3×3 Matrix Structure",
+        "level": "Level",
         "animationTitle": "Live Animation Features",
         "animationActive": "Golden nodes show active members with current upgrades",
         "animationPending": "Gray nodes represent pending or future matrix positions",
         "animationRewards": "Pulsing rings indicate members with available rewards",
         "animationConnections": "Golden lines show active connection paths in the matrix",
-        "interactiveHint": "Watch the animation cycle to see how rewards flow through matrix levels!"
+        "interactiveHint": "Watch the animation cycle to see how rewards flow through matrix levels!",
+        "legend": {
+          "member": "Member",
+          "members": "Members",
+          "activeMember": "Active Member",
+          "pendingMember": "Pending Member",
+          "hasRewards": "Has Rewards",
+          "you": "You"
+        }
       },
       "pendingSystem": {
         "expiry": "After 72 hours, unclaimed rewards roll up to eligible upline members",

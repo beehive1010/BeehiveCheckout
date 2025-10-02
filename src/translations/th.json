@@ -1504,7 +1504,15 @@
       "rightPosition": "Right Position",
       "spillover": "Spillover",
       "title": "Matrix Visualization",
-      "viewDetails": "View Details"
+      "viewDetails": "View Details",
+      "legend": {
+        "member": "สมาชิก",
+        "members": "สมาชิก",
+        "activeMember": "สมาชิกที่ใช้งาน",
+        "pendingMember": "สมาชิกที่รอดำเนินการ",
+        "hasRewards": "มีรางวัล",
+        "you": "คุณ"
+      }
     },
     "max_layers": "Max Layers",
     "networkStats": {

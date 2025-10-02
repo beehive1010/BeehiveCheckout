@@ -166,6 +166,21 @@
     "referrals": "Rujukan",
     "tasks": "Tugas"
   },
+  "rewards": {
+    "information": {
+      "matrixVisualization": {
+        "level": "Tahap",
+        "legend": {
+          "member": "Ahli",
+          "members": "Ahli",
+          "activeMember": "Ahli Aktif",
+          "pendingMember": "Ahli Tertunda",
+          "hasRewards": "Mempunyai Ganjaran",
+          "you": "Anda"
+        }
+      }
+    }
+  },
   "withdrawal": {
     "amount": "Jumlah",
     "available_balance": "Baki Tersedia",

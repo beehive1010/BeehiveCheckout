@@ -1106,12 +1106,21 @@
         "description": "您的下线按3×3矩阵组织，共19层",
         "positions": "每层有左、中、右位置",
         "rewards": "当这些位置的成员升级时会触发奖励",
+        "level": "等级",
         "animationTitle": "动画图例",
         "animationActive": "活跃成员位置",
         "animationPending": "待处理成员槽位",
         "animationRewards": "奖励触发点",
         "animationConnections": "矩阵连接",
-        "interactiveHint": "矩阵可视化显示实时成员放置和奖励机会"
+        "interactiveHint": "矩阵可视化显示实时成员放置和奖励机会",
+        "legend": {
+          "member": "会员",
+          "members": "会员",
+          "activeMember": "活跃会员",
+          "pendingMember": "待处理会员",
+          "hasRewards": "有奖励",
+          "you": "您"
+        }
       },
       "bccReleaseSystem": {
         "title": "BCC释放系统",
