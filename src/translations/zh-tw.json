@@ -97,5 +97,11 @@
   "nav": {
     "referrals": "推薦",
     "dashboard": "儀表板"
+  },
+  "header": {
+    "connectWallet": "連接錢包"
+  },
+  "claim": {
+    "checkingOwnership": "檢查NFT持有狀態..."
   }
 }

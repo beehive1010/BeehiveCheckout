@@ -87,7 +87,7 @@ export default function Welcome() {
   useEffect(() => {
     const checkMembershipStatus = async () => {
       if (!account?.address) return;
-      
+
       setIsCheckingMembership(true);
       try {
         console.log('🔍 Welcome page: Checking membership status for:', account.address);
@@ -96,28 +96,23 @@ export default function Welcome() {
         console.log('📊 Welcome page: isActivated =', membershipResult.isActivated);
         console.log('📊 Welcome page: memberData =', membershipResult.memberData);
         console.log('📊 Welcome page: current_level =', membershipResult.memberData?.current_level);
-        
-        // Check condition step by step
+
+        // Only redirect if BOTH conditions are met:
+        // 1. User is activated in database (isActivated = true)
+        // 2. User has Level 1 or higher (current_level >= 1)
         const isActivated = membershipResult.isActivated;
-        const currentLevel = membershipResult.memberData?.current_level;
+        const currentLevel = membershipResult.memberData?.current_level || 0;
         const shouldRedirect = isActivated && currentLevel >= 1;
-        
+
         console.log('📊 Welcome page: Condition check - isActivated:', isActivated, 'currentLevel:', currentLevel, 'shouldRedirect:', shouldRedirect);
-        
+
         if (shouldRedirect) {
-          console.log('✅ Welcome page: User already has Level', currentLevel, '- redirecting to dashboard');
+          console.log('✅ Welcome page: User is fully activated (Level', currentLevel, ') - redirecting to dashboard');
           setLocation('/dashboard');
           return;
         }
-        
-        // Additional check: If user has Level 1 NFT but database shows no activation, redirect to dashboard  
-        if (currentLevel >= 1) {
-          console.log('✅ Welcome page: User has Level 1 NFT but database not synced - redirecting to dashboard');
-          setLocation('/dashboard');
-          return;
-        }
-        
-        console.log('🎯 Welcome page: User is not activated (Level', currentLevel || 0, ') - showing claim interface');
+
+        console.log('🎯 Welcome page: User needs activation (isActivated:', isActivated, ', Level:', currentLevel, ') - showing claim interface');
       } catch (error) {
         console.warn('⚠️ Welcome page: Failed to check membership status:', error);
         // Continue showing welcome page on error - let user try to claim

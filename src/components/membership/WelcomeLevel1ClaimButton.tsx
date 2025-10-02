@@ -325,46 +325,71 @@ export function WelcomeLevel1ClaimButton({ onSuccess, referrerWallet, className 
 
       // Step 6: Check if user already owns Level 1 NFT
       console.log('🔍 Checking Level 1 NFT ownership...');
-      
-      // First check database records using authService
-      try {
-        const membershipResult = await authService.isActivatedMember(account.address);
-        
-        if (membershipResult.isActivated && membershipResult.memberData?.current_level >= 1) {
-          console.log('✅ User already has Level 1+ membership in database - redirecting');
-          toast({
-            title: 'Welcome Back! 🎉',
-            description: `You already have Level ${membershipResult.memberData.current_level} membership. Redirecting to dashboard.`,
-            variant: "default",
-            duration: 3000,
-          });
-          
-          if (onSuccess) {
-            setTimeout(() => onSuccess(), 1500);
-          }
-          return;
-        }
-      } catch (dbError) {
-        console.warn('⚠️ Could not check membership database:', dbError);
-      }
-      
-      // Also check blockchain NFT balance as backup
+      setCurrentStep(t('claim.checkingOwnership') || 'Checking NFT ownership...');
+
+      // First check blockchain NFT balance (primary source of truth)
+      let hasNFTOnChain = false;
       try {
         const existingBalance = await balanceOf({
           contract: nftContract,
           owner: account.address,
           tokenId: BigInt(1)
         });
-        
-        if (Number(existingBalance) > 0) {
-          console.log('✅ User already owns Level 1 NFT on blockchain - redirecting');
+
+        hasNFTOnChain = Number(existingBalance) > 0;
+        console.log('🔗 Blockchain NFT check:', hasNFTOnChain ? 'NFT found' : 'No NFT');
+
+        if (hasNFTOnChain) {
+          console.log('✅ User already owns Level 1 NFT on blockchain');
+
+          // Check if database is synced
+          try {
+            const membershipResult = await authService.isActivatedMember(account.address);
+            if (!membershipResult.isActivated || membershipResult.memberData?.current_level < 1) {
+              console.warn('⚠️ NFT found on-chain but database not synced - attempting sync...');
+
+              // Try to sync via activation endpoint
+              try {
+                const syncResponse = await fetch(`${API_BASE}/activate-membership`, {
+                  method: 'POST',
+                  headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${import.meta.env.VITE_SUPABASE_ANON_KEY}`,
+                    'apikey': import.meta.env.VITE_SUPABASE_ANON_KEY,
+                    'x-wallet-address': account.address
+                  },
+                  body: JSON.stringify({
+                    transactionHash: 'sync',
+                    level: 1,
+                    paymentMethod: 'sync',
+                    referrerWallet: referrerWallet || null
+                  })
+                });
+
+                if (syncResponse.ok) {
+                  console.log('✅ Database synced successfully');
+                  toast({
+                    title: 'Database Synced! 🔄',
+                    description: 'Your NFT ownership has been synced. Redirecting to dashboard.',
+                    variant: "default",
+                    duration: 3000,
+                  });
+                }
+              } catch (syncError) {
+                console.warn('⚠️ Could not sync database:', syncError);
+              }
+            }
+          } catch (dbCheckError) {
+            console.warn('⚠️ Could not check database status:', dbCheckError);
+          }
+
           toast({
             title: 'Welcome Back! 🎉',
             description: 'You already own Level 1 NFT. Redirecting to dashboard.',
             variant: "default",
             duration: 3000,
           });
-          
+
           if (onSuccess) {
             setTimeout(() => onSuccess(), 1500);
           }
@@ -372,7 +397,33 @@ export function WelcomeLevel1ClaimButton({ onSuccess, referrerWallet, className 
         }
       } catch (balanceCheckError) {
         console.warn('⚠️ Could not check NFT balance on blockchain:', balanceCheckError);
+        // Continue with claim process if blockchain check fails
       }
+
+      // Also check database records (secondary check)
+      try {
+        const membershipResult = await authService.isActivatedMember(account.address);
+
+        if (membershipResult.isActivated && membershipResult.memberData?.current_level >= 1 && !hasNFTOnChain) {
+          console.warn('⚠️ Database shows activated but no NFT on blockchain - data inconsistency detected');
+          console.log('🔄 Allowing user to proceed with claim to fix inconsistency');
+
+          toast({
+            title: 'Data Inconsistency Detected',
+            description: 'Database shows activation but NFT not found. Proceeding with claim to fix this.',
+            variant: "default",
+            duration: 4000,
+          });
+          // Don't return - let user claim to fix the issue
+        } else if (membershipResult.isActivated && membershipResult.memberData?.current_level >= 1) {
+          console.log('✅ Database confirms activation and blockchain has NFT');
+          // Already handled above, this is just a confirmation
+        }
+      } catch (dbError) {
+        console.warn('⚠️ Could not check membership database:', dbError);
+      }
+
+      console.log('✅ No existing Level 1 NFT found - proceeding with claim');
 
       // Step 7: Check and approve USDT
       console.log('💰 Checking USDT balance and approval...');
