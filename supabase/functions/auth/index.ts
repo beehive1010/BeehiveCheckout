@@ -71,11 +71,18 @@ serve(async (req: Request) => {
 // User registration function - only creates user records, not member records
 async function registerUser(supabase: any, walletAddress: string, data: any) {
   console.log(`👤 Registering user: ${walletAddress}`);
+
+  // 🔧 STRICT VALIDATION: Username is REQUIRED - no auto-generation allowed
+  if (!data.username || data.username.trim().length === 0) {
+    console.error(`❌ Registration failed: username is required for ${walletAddress}`);
+    throw new Error('Username is required for registration');
+  }
+
   try {
     // Use updated database function to handle user registration
     const { data: registrationResult, error } = await supabase.rpc('process_user_registration', {
       p_wallet_address: walletAddress,
-      p_username: data.username || `user_${walletAddress.slice(-6)}`,
+      p_username: data.username.trim(), // No fallback - username is mandatory
       p_referrer_wallet: data.referrerWallet || data.referrer_wallet
     });
     if (error) {

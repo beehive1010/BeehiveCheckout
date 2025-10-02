@@ -5,7 +5,7 @@ import {useLocation} from 'wouter';
 import {useToast} from '../hooks/use-toast';
 import Navigation from '../components/shared/Navigation';
 import {supabase} from '../lib/supabase';
-import {Award, DollarSign, Plus, RefreshCw, Users, Copy, ArrowRight, TrendingUp, Lock, Share2} from 'lucide-react';
+import {Award, DollarSign, Plus, RefreshCw, Users, Copy, ArrowRight, TrendingUp, Lock, Share2, Crown} from 'lucide-react';
 import {useIsMobile} from '../hooks/use-mobile';
 import {Card, CardContent, CardHeader, CardTitle} from '../components/ui/card';
 import {Button} from '../components/ui/button';
@@ -520,8 +520,51 @@ export default function Dashboard() {
           </p>
         )}
 
-        {/* Main Stats Grid - Desktop: 3 columns, Mobile: 1 column */}
-        <div className={`grid gap-3 sm:gap-4 ${isMobile ? 'grid-cols-1' : 'grid-cols-1 lg:grid-cols-3'} animate-in slide-in-from-bottom-2 duration-500`}>
+        {/* Main Stats Grid - Desktop: 4 columns, Mobile: 1 column */}
+        <div className={`grid gap-3 sm:gap-4 ${isMobile ? 'grid-cols-1' : 'grid-cols-1 lg:grid-cols-4'} animate-in slide-in-from-bottom-2 duration-500`}>
+          {/* Membership Level Card */}
+          <Card className="group relative overflow-hidden bg-gradient-to-br from-slate-900/95 via-gray-900/90 to-slate-900/95 dark:from-black/95 dark:via-slate-950/90 dark:to-black/95 border-2 border-slate-700 dark:border-slate-800 hover:border-purple-500/50 transition-all duration-500 hover:scale-[1.02] shadow-2xl hover:shadow-3xl hover:shadow-purple-500/20">
+            {/* Purple background gradient */}
+            <div className="absolute inset-0 bg-gradient-to-br from-purple-500/20 via-violet-400/15 to-purple-600/20 opacity-60 group-hover:opacity-80 transition-opacity duration-300"></div>
+            {/* Animated border glow */}
+            <div className="absolute inset-0 rounded-xl border-2 border-purple-500/40 opacity-0 group-hover:opacity-100 transition-all duration-300 animate-pulse"></div>
+            <div className="absolute inset-0 bg-gradient-to-r from-purple-500/5 via-transparent to-violet-500/5 opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
+
+            <CardHeader className={`relative ${isMobile ? 'pb-2' : 'pb-3'}`}>
+              <CardTitle className="flex items-center gap-2 sm:gap-3">
+                <div className={`${isMobile ? 'w-7 h-7' : 'w-9 h-9'} bg-gradient-to-br from-purple-500 to-violet-500 rounded-xl flex items-center justify-center shadow-lg group-hover:scale-110 transition-all duration-300`}>
+                  <Crown className={`${isMobile ? 'h-3.5 w-3.5' : 'h-4 w-4'} text-white`} />
+                </div>
+                <div className="flex-1 min-w-0">
+                  <span className={`${isMobile ? 'text-base' : 'text-base'} font-bold text-purple-400 group-hover:text-purple-300 transition-colors duration-300 block truncate`}>
+                    {t('dashboard.membershipLevel')}
+                  </span>
+                  <p className={`${isMobile ? 'text-sm' : 'text-xs'} text-gray-400 dark:text-gray-500 mt-0.5 truncate`}>{t('dashboard.yourNFT')}</p>
+                </div>
+              </CardTitle>
+            </CardHeader>
+            <CardContent className={`relative space-y-2 sm:space-y-3 ${isMobile ? 'pt-0' : ''}`}>
+              <div className="flex items-end justify-between">
+                <div className="flex-1 min-w-0">
+                  <p className={`${isMobile ? 'text-3xl' : 'text-3xl'} font-bold text-purple-400 group-hover:text-purple-300 transition-colors duration-300 truncate`}>
+                    Level {userData?.membershipLevel || 0}
+                  </p>
+                  <p className={`${isMobile ? 'text-sm' : 'text-xs'} text-gray-400 dark:text-gray-500 truncate`}>{t('dashboard.currentLevel')}</p>
+                </div>
+                <Badge className="bg-purple-500/20 text-purple-400 border-purple-500/30 group-hover:bg-purple-500/30 transition-all duration-300 flex-shrink-0">
+                  NFT
+                </Badge>
+              </div>
+              <Button
+                onClick={() => setLocation('/membership')}
+                className={`w-full bg-gradient-to-r from-purple-500 to-violet-500 hover:from-purple-600 hover:to-violet-600 text-white font-bold shadow-lg hover:shadow-xl transition-all duration-300 ${isMobile ? 'h-9' : 'h-10'}`}
+              >
+                <Crown className="h-4 w-4 mr-2" />
+                {t('dashboard.upgradeMembership')}
+              </Button>
+            </CardContent>
+          </Card>
+
           {/* BCC Balance Card */}
           <Card className="group relative overflow-hidden bg-gradient-to-br from-slate-900/95 via-gray-900/90 to-slate-900/95 dark:from-black/95 dark:via-slate-950/90 dark:to-black/95 border-2 border-slate-700 dark:border-slate-800 hover:border-honey/50 transition-all duration-500 hover:scale-[1.02] shadow-2xl hover:shadow-3xl hover:shadow-honey/20">
             {/* Golden background gradient */}
