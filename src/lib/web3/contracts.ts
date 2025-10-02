@@ -164,22 +164,22 @@ export const usdtContract = getContract({
 
 // Helper function to get contract by chain ID
 export function getUSDTContract(chainId: number) {
-  const chainMap = { 
-    1: 'ethereum', 
-    137: 'polygon', 
-    42161: 'arbitrum', 
-    10: 'optimism', 
-    56: 'bsc', 
-    8453: 'base', 
-    141941: 'alphaCentauri', 
-    421614: 'arbitrumSepolia' 
+  const chainMap = {
+    1: 'ethereum',
+    137: 'polygon',
+    42161: 'arbitrum',
+    10: 'optimism',
+    56: 'bsc',
+    8453: 'base',
+    141941: 'alphaCentauri',
+    421614: 'arbitrumSepolia'
   };
-  
+
   const chainKey = chainMap[chainId as keyof typeof chainMap];
   if (!chainKey || !contractAddresses.USDT[chainKey as keyof typeof contractAddresses.USDT]) {
     throw new Error(`USDT not supported on chain ${chainId}`);
   }
-  
+
   // Get chain based on chainId
   let chain;
   switch(chainId) {
@@ -193,10 +193,13 @@ export function getUSDTContract(chainId: number) {
     case 421614: chain = arbitrumSepolia; break;
     default: chain = ethereum; break;
   }
-  
+
   return getContract({
     client,
     chain,
     address: contractAddresses.USDT[chainKey as keyof typeof contractAddresses.USDT],
   });
 }
+
+// Alias for USDC (same as USDT for our purposes)
+export const getUSDCContract = getUSDTContract;
