@@ -368,15 +368,16 @@ export function WelcomePage() {
         });
 
         // Wait a moment for backend processing to complete
-        await new Promise(resolve => setTimeout(resolve, 2000));
+        await new Promise(resolve => setTimeout(resolve, 3000));
 
         // Refresh user status to check if activation was successful
-        await checkUserStatus();
+        console.log('🔄 Checking user activation status after claim...');
+        const statusCheckResult = await checkUserStatus();
 
-        // Additional redirect as fallback (if checkUserStatus doesn't redirect)
-        setTimeout(() => {
-            setLocation('/dashboard');
-        }, 1000);
+        // Only redirect if activation was confirmed
+        // checkUserStatus will handle the redirect if user is activated
+        // No need for fallback redirect - let user stay on page if activation failed
+        console.log('✅ Claim success handler completed');
     };
 
     // Show error if no referrer is provided

@@ -707,10 +707,15 @@ export function WelcomeLevel1ClaimButton({ onSuccess, referrerWallet, className 
           variant: "default",
           duration: 6000,
         });
+
+        // Only trigger onSuccess if activation was successful
+        if (onSuccess) {
+          onSuccess();
+        }
       } else {
         console.log('⚠️ Partial success: NFT minted but backend activation failed');
         console.log('🔄 Attempting fallback activation via database function...');
-        
+
         // Try fallback activation using database function directly
         try {
           const fallbackResponse = await (supabase as any).rpc('activate_membership_fallback', {
@@ -722,18 +727,24 @@ export function WelcomeLevel1ClaimButton({ onSuccess, referrerWallet, className 
 
           if (fallbackResponse.data?.success) {
             console.log('✅ Fallback activation successful!');
+            activationSuccess = true;
             toast({
               title: '🎉 Level 1 NFT Claimed!',
               description: 'Welcome to BEEHIVE! Your Level 1 membership is now active.',
               variant: "default",
               duration: 6000,
             });
+
+            // Trigger onSuccess after fallback activation
+            if (onSuccess) {
+              onSuccess();
+            }
           } else {
             throw new Error(fallbackResponse.data?.error || 'Fallback activation failed');
           }
         } catch (fallbackError) {
           console.error('❌ Fallback activation also failed:', fallbackError);
-          
+
           // Final fallback: Try webhook-based activation
           console.log('🔄 Trying webhook-based activation as last resort...');
           try {
@@ -771,12 +782,18 @@ export function WelcomeLevel1ClaimButton({ onSuccess, referrerWallet, className 
             if (webhookResponse.ok) {
               const webhookResult = await webhookResponse.json();
               console.log('✅ Webhook activation successful:', webhookResult);
+              activationSuccess = true;
               toast({
                 title: '🎉 Level 1 NFT Claimed!',
                 description: 'Welcome to BEEHIVE! Your Level 1 membership is now active via webhook.',
                 variant: "default",
                 duration: 6000,
               });
+
+              // Trigger onSuccess after webhook activation
+              if (onSuccess) {
+                onSuccess();
+              }
             } else {
               throw new Error('Webhook activation failed');
             }
@@ -788,12 +805,9 @@ export function WelcomeLevel1ClaimButton({ onSuccess, referrerWallet, className 
               variant: "default",
               duration: 8000,
             });
+            // Don't trigger onSuccess if activation failed
           }
         }
-      }
-
-      if (onSuccess) {
-        onSuccess();
       }
 
     } catch (error: any) {

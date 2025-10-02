@@ -192,15 +192,10 @@ serve(async (req) => {
     }
 
     // Step 3: Record new membership claim
+    // membership table only has: id, wallet_address, level, created_at
     const membershipData = {
       wallet_address: walletAddress, // 保持原始大小写
-      nft_level: level,
-      claim_price: data.paymentAmount || 130,
-      claimed_at: new Date().toISOString(),
-      is_upgrade: false,
-      previous_level: null,
-      platform_activation_fee: 0,
-      total_cost: data.paymentAmount || 130
+      level: level
     };
 
     const { data: membership, error: membershipError } = await supabase
@@ -296,7 +291,47 @@ serve(async (req) => {
     // Matrix placement was already done in Step 5
     let matrixResult = referralRecord;
 
-    // Step 6: Process layer reward for Level 1 activation (direct referral to upline)
+    // Step 6: Process USDC transfer for Level 1 activation
+    let usdcTransferResult = null;
+    if (level === 1 && transactionHash) {
+      try {
+        console.log(`💰 Processing USDC transfer for Level 1 activation...`);
+        console.log(`🎯 NFT Claim transaction: ${transactionHash}`);
+
+        // Call the USDC transfer function
+        const supabaseUrl = Deno.env.get('VITE_SUPABASE_URL') || Deno.env.get('SUPABASE_URL');
+        const supabaseAnonKey = Deno.env.get('VITE_SUPABASE_ANON_KEY') || Deno.env.get('SUPABASE_ANON_KEY');
+
+        const usdcTransferResponse = await fetch(
+          `${supabaseUrl}/functions/v1/nft-claim-usdc-transfer`,
+          {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'Authorization': `Bearer ${supabaseAnonKey}`,
+            },
+            body: JSON.stringify({
+              token_id: '1',
+              claimer_address: walletAddress,
+              transaction_hash: transactionHash,
+            }),
+          }
+        );
+
+        if (usdcTransferResponse.ok) {
+          usdcTransferResult = await usdcTransferResponse.json();
+          console.log(`✅ USDC transfer initiated:`, usdcTransferResult);
+        } else {
+          const errorText = await usdcTransferResponse.text();
+          console.warn(`⚠️ USDC transfer failed: ${errorText}`);
+        }
+
+      } catch (usdcTransferErr) {
+        console.warn('⚠️ USDC transfer error (non-critical):', usdcTransferErr);
+      }
+    }
+
+    // Step 7: Process layer reward for Level 1 activation (direct referral to upline)
     let layerRewardResult = null;
     if (level === 1 && normalizedReferrerWallet && normalizedReferrerWallet !== '0x0000000000000000000000000000000000000001') {
       try {
@@ -345,6 +380,7 @@ serve(async (req) => {
         member: memberRecord,
         referral: referralRecord,
         matrixPlacement: matrixResult,
+        usdcTransfer: usdcTransferResult,
         layerReward: layerRewardResult,
         transactionHash,
         level,
@@ -355,6 +391,7 @@ serve(async (req) => {
           memberRecordCreated: !!memberRecord,
           referralRecorded: !!referralRecord,
           matrixPlaced: !!matrixResult,
+          usdcTransferInitiated: !!usdcTransferResult,
           layerRewardProcessed: !!layerRewardResult
         }
       },
