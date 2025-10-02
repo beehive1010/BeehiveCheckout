@@ -1,4 +1,6 @@
 import { createRoot } from "react-dom/client";
+import { SpeedInsights } from "@vercel/speed-insights/react";
+import { Analytics } from "@vercel/analytics/react";
 import App from "./App";
 import "./index.css";
 // 导入测试工具（在控制台中可用）
@@ -13,7 +15,13 @@ const renderApp = () => {
       throw new Error("Root element not found");
     }
     
-    createRoot(rootElement).render(<App />);
+    createRoot(rootElement).render(
+      <>
+        <App />
+        <Analytics />
+        <SpeedInsights />
+      </>
+    );
   } catch (error) {
     console.error("❌ Failed to initialize app:", error);
     
