@@ -1,13 +1,13 @@
 import {useEffect, useState, useCallback} from 'react';
-import {useActiveAccount, useActiveWalletChain, useSwitchActiveWalletChain, TransactionButton} from 'thirdweb/react';
-import {getContract, prepareContractCall} from 'thirdweb';
+import {useActiveAccount, useActiveWalletChain, useSwitchActiveWalletChain, PayEmbed} from 'thirdweb/react';
+import {getContract} from 'thirdweb';
 import {arbitrum} from 'thirdweb/chains';
-import {balanceOf} from 'thirdweb/extensions/erc1155';
+import {balanceOf, claimTo} from 'thirdweb/extensions/erc1155';
 import {Button} from '../ui/button';
 import {Card, CardContent, CardHeader, CardTitle} from '../ui/card';
 import {Badge} from '../ui/badge';
 import {useToast} from '../../hooks/use-toast';
-import {Coins, Crown, Gift, Loader2, Zap} from 'lucide-react';
+import {Coins, Crown, Gift, Loader2, Zap, X} from 'lucide-react';
 import {supabase} from '../../lib/supabaseClient';
 import {authService} from '../../lib/supabase';
 import {useI18n} from '../../contexts/I18nContext';
@@ -34,6 +34,7 @@ export function WelcomeLevel1ClaimButton({ onSuccess, referrerWallet, className 
   const [isStabilizing, setIsStabilizing] = useState(false);
   const [isEligible, setIsEligible] = useState(false);
   const [hasNFT, setHasNFT] = useState(false);
+  const [showPayEmbed, setShowPayEmbed] = useState(false);
 
   // Fixed Level 1 pricing and info
   const LEVEL_1_PRICE_USDC = 130;
@@ -273,138 +274,25 @@ export function WelcomeLevel1ClaimButton({ onSuccess, referrerWallet, className 
     }
   };
 
-  // Handle transaction success from TransactionButton
-  const handleTransactionSuccess = async (result: any) => {
-    console.log('🎉 Transaction successful:', result);
-
-    toast({
-      title: '🎉 Level 1 NFT Claimed!',
-      description: 'Processing membership activation...',
-      duration: 5000
-    });
-
-    setIsProcessing(true);
-    setCurrentStep('Activating membership...');
-
-    try {
-      // Trigger USDC transfer
-      try {
-        console.log('💰 Triggering USDC transfer for NFT Token #1 claim...');
-        await supabase.functions.invoke('nft-claim-usdc-transfer', {
-          body: {
-            token_id: '1',
-            claimer_address: account?.address,
-            transaction_hash: result.transactionHash,
-            block_number: result.blockNumber ? Number(result.blockNumber) : undefined
-          }
-        });
-      } catch (usdcTransferError) {
-        console.error('⚠️ USDC transfer error:', usdcTransferError);
-      }
-
-      // Activate membership
-      console.log('🚀 Activating Level 1 membership...');
-
-      const maxRetries = 5;
-      const retryDelay = 10000;
-      let activationSuccess = false;
-
-      for (let attempt = 1; attempt <= maxRetries; attempt++) {
-        try {
-          const activateResponse = await fetch(`${API_BASE}/activate-membership`, {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
-              'Authorization': `Bearer ${import.meta.env.VITE_SUPABASE_ANON_KEY}`,
-              'apikey': import.meta.env.VITE_SUPABASE_ANON_KEY,
-              'x-wallet-address': account?.address || ''
-            },
-            body: JSON.stringify({
-              transactionHash: result.transactionHash,
-              level: 1,
-              paymentMethod: 'multi_chain',
-              paymentAmount: LEVEL_1_PRICE_USDC,
-              referrerWallet: referrerWallet
-            })
-          });
-
-          if (activateResponse.ok) {
-            activationSuccess = true;
-            break;
-          }
-        } catch (error: any) {
-          console.warn(`⚠️ Activation attempt ${attempt} failed:`, error.message);
-          if (attempt < maxRetries) {
-            await new Promise(resolve => setTimeout(resolve, retryDelay));
-          }
-        }
-      }
-
-      if (activationSuccess) {
-        toast({
-          title: '🎉 Level 1 NFT Claimed!',
-          description: 'Welcome to BEEHIVE! Your Level 1 membership is now active.',
-          variant: "default",
-          duration: 6000,
-        });
-        if (onSuccess) {
-          onSuccess();
-        }
-      } else {
-        toast({
-          title: '✅ NFT Claimed Successfully!',
-          description: 'Your Level 1 NFT is minted. Membership activation is processing.',
-          variant: "default",
-          duration: 8000,
-        });
-      }
-    } catch (error) {
-      console.error('❌ Activation error:', error);
-      toast({
-        title: '⚠️ Activation Pending',
-        description: 'NFT claimed, but activation is processing. Please refresh in a moment.',
-        duration: 8000
-      });
-    } finally {
-      setIsProcessing(false);
-      setCurrentStep('');
-      checkEligibility();
-    }
-  };
-
-  const handleTransactionError = (error: any) => {
-    console.error('❌ Transaction error:', error);
-
-    const errorMessage = error?.message || 'Transaction failed';
-    toast({
-      title: 'Claim Failed',
-      description: errorMessage,
-      variant: 'destructive',
-      duration: 5000
-    });
-
-    setIsProcessing(false);
-    setCurrentStep('');
-  };
-
-  // Prepare claim transaction
+  // Get NFT contract
   const nftContract = getContract({
     client,
     address: NFT_CONTRACT,
     chain: arbitrum
   });
 
-  const claimTransaction = prepareContractCall({
-    contract: nftContract,
-    method: "function claim(address to, uint256 tokenId, uint256 quantity, address currency, uint256 pricePerToken) payable",
-    params: [
-      account?.address || '0x0',
-      BigInt(1), // Level 1 token ID
-      BigInt(1), // Quantity
-      PAYMENT_TOKEN_CONTRACT, // USDC currency
-      LEVEL_1_PRICE_WEI // Price
-    ]
-  });
+  // Open PayEmbed modal
+  const handleOpenPayEmbed = () => {
+    if (!isEligible || hasNFT || isWrongNetwork || !account?.address) {
+      return;
+    }
+    setShowPayEmbed(true);
+  };
+
+  // Close PayEmbed modal
+  const handleClosePayEmbed = () => {
+    setShowPayEmbed(false);
+  };
 
   return (
     <ErrorBoundary>
@@ -499,23 +387,10 @@ export function WelcomeLevel1ClaimButton({ onSuccess, referrerWallet, className 
                 <p className="text-xs text-green-700 mt-1">Your membership is active</p>
               </div>
             ) : (
-              <TransactionButton
-                transaction={() => claimTransaction}
-                onTransactionConfirmed={handleTransactionSuccess}
-                onError={handleTransactionError}
-                disabled={!account?.address || isWrongNetwork || isStabilizing || !isEligible}
-                className="w-full h-12 !bg-gradient-to-r !from-honey !to-orange-500 hover:!from-honey/90 hover:!to-orange-500/90 !text-white !font-semibold !text-lg !shadow-lg !transition-all disabled:!opacity-50"
-                payModal={{
-                  theme: 'dark',
-                  supportedTokens: {
-                    1: [{ address: '0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48', name: 'USDC', symbol: 'USDC' }], // Ethereum
-                    137: [{ address: '0x2791Bca1f2de4661ED88A30C99A7a9449Aa84174', name: 'USDC', symbol: 'USDC' }], // Polygon
-                    42161: [{ address: PAYMENT_TOKEN_CONTRACT, name: 'USDC', symbol: 'USDC' }], // Arbitrum
-                    10: [{ address: '0x7F5c764cBc14f9669B88837ca1490cCa17c31607', name: 'USDC', symbol: 'USDC' }], // Optimism
-                    8453: [{ address: '0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913', name: 'USDC', symbol: 'USDC' }], // Base
-                    56: [{ address: '0x8AC76a51cc950d9822D68b83fE1Ad97B32Cd580d', name: 'USDC', symbol: 'USDC' }], // BSC
-                  }
-                }}
+              <Button
+                onClick={handleOpenPayEmbed}
+                disabled={!account?.address || isWrongNetwork || isStabilizing || !isEligible || isProcessing}
+                className="w-full h-12 bg-gradient-to-r from-honey to-orange-500 hover:from-honey/90 hover:to-orange-500/90 text-white font-semibold text-lg shadow-lg transition-all disabled:opacity-50"
               >
                 {!account?.address ? (
                   <>
@@ -543,7 +418,7 @@ export function WelcomeLevel1ClaimButton({ onSuccess, referrerWallet, className 
                     <span>Claim Level 1 - {LEVEL_1_PRICE_USDC} USDC</span>
                   </div>
                 )}
-              </TransactionButton>
+              </Button>
             )}
 
             {/* Progress indicator */}
@@ -578,6 +453,97 @@ export function WelcomeLevel1ClaimButton({ onSuccess, referrerWallet, className 
         referrerWallet={referrerWallet}
         onRegistrationComplete={handleRegistrationComplete}
       />
+
+      {/* PayEmbed Modal */}
+      {showPayEmbed && account?.address && (
+        <div className="fixed inset-0 z-[9999] flex items-center justify-center">
+          <div className="absolute inset-0 bg-black/80 backdrop-blur-sm" onClick={handleClosePayEmbed} />
+          <div
+            className="relative p-4 max-h-[min(90vh,800px)] overflow-y-auto bg-black rounded-2xl w-full max-w-[500px]"
+            onClick={e => e.stopPropagation()}
+          >
+            <button
+              onClick={handleClosePayEmbed}
+              className="absolute top-4 right-4 z-10 text-gray-400 hover:text-white p-2 rounded-full bg-gray-800/50 hover:bg-gray-700/50 transition-colors"
+              title="Close"
+            >
+              <X size={24} />
+            </button>
+            <PayEmbed
+              client={client}
+              payOptions={{
+                mode: "transaction",
+                transaction: claimTo({
+                  contract: nftContract,
+                  to: account.address,
+                  tokenId: BigInt(1),
+                  quantity: BigInt(1),
+                }),
+                metadata: {
+                  name: "BEEHIVE Level 1 Membership NFT",
+                  image: "https://your-nft-image-url.com/level1.png",
+                },
+              }}
+              onPaymentSuccess={async (result) => {
+                console.log('🎉 Payment successful:', result);
+                setShowPayEmbed(false);
+
+                toast({
+                  title: '🎉 Level 1 NFT Claimed!',
+                  description: 'Processing membership activation...',
+                  duration: 5000
+                });
+
+                setIsProcessing(true);
+                setCurrentStep('Activating membership...');
+
+                try {
+                  // Activate membership
+                  const activateResponse = await fetch(`${API_BASE}/activate-membership`, {
+                    method: 'POST',
+                    headers: {
+                      'Content-Type': 'application/json',
+                      'Authorization': `Bearer ${import.meta.env.VITE_SUPABASE_ANON_KEY}`,
+                      'apikey': import.meta.env.VITE_SUPABASE_ANON_KEY,
+                      'x-wallet-address': account.address
+                    },
+                    body: JSON.stringify({
+                      transactionHash: result.transactionHash,
+                      level: 1,
+                      paymentMethod: 'multi_chain',
+                      paymentAmount: LEVEL_1_PRICE_USDC,
+                      referrerWallet: referrerWallet
+                    })
+                  });
+
+                  if (activateResponse.ok) {
+                    toast({
+                      title: '🎉 Welcome to BEEHIVE!',
+                      description: 'Your Level 1 membership is now active.',
+                      variant: "default",
+                      duration: 6000,
+                    });
+                    if (onSuccess) {
+                      onSuccess();
+                    }
+                  }
+                } catch (error) {
+                  console.error('❌ Activation error:', error);
+                  toast({
+                    title: '⚠️ Activation Pending',
+                    description: 'NFT claimed, please refresh to complete activation.',
+                    duration: 8000
+                  });
+                } finally {
+                  setIsProcessing(false);
+                  setCurrentStep('');
+                  checkEligibility();
+                }
+              }}
+            />
+          </div>
+        </div>
+      )}
     </ErrorBoundary>
   );
 }

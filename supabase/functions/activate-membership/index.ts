@@ -192,10 +192,12 @@ serve(async (req) => {
     }
 
     // Step 3: Record new membership claim
-    // membership table only has: id, wallet_address, level, created_at
+    // membership table has: id, wallet_address, nft_level, claim_price, claimed_at, is_member, unlock_membership_level
     const membershipData = {
       wallet_address: walletAddress, // 保持原始大小写
-      level: level
+      nft_level: level,
+      is_member: true,
+      claimed_at: new Date().toISOString()
     };
 
     const { data: membership, error: membershipError } = await supabase
