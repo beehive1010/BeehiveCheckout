@@ -39,7 +39,7 @@ export function Level2ClaimButtonV2({ onSuccess, className = '' }: Level2ClaimBu
   
   // Fixed Level 2 pricing - corrected to match layer rewards (150 USDC)
   const LEVEL_2_PRICE_USDC = 150;
-  const LEVEL_2_PRICE_WEI = BigInt(LEVEL_2_PRICE_USDC) * BigInt('1000000000000000000');
+  const LEVEL_2_PRICE_WEI = BigInt(LEVEL_2_PRICE_USDC) * BigInt('1000000');
 
   // Check data synchronization between NFT ownership and database records
   const checkDataSynchronization = async (walletAddress: string) => {
@@ -373,7 +373,7 @@ export function Level2ClaimButtonV2({ onSuccess, className = '' }: Level2ClaimBu
         });
         
         if (tokenBalance < LEVEL_2_PRICE_WEI) {
-          throw new Error(`Insufficient USDC balance. You have ${(Number(tokenBalance) / 1e18).toFixed(2)} USDC but need ${LEVEL_2_PRICE_USDC} USDC for Level 2`);
+          throw new Error(`Insufficient USDC balance. You have ${(Number(tokenBalance) / 1e6).toFixed(2)} USDC but need ${LEVEL_2_PRICE_USDC} USDC for Level 2`);
         }
         
         console.log('✅ Sufficient USDC balance confirmed');
@@ -393,7 +393,7 @@ export function Level2ClaimButtonV2({ onSuccess, className = '' }: Level2ClaimBu
         spender: NFT_CONTRACT
       });
       
-      console.log(`💰 Current allowance: ${Number(currentAllowance) / 1e18} USDC, Required: ${LEVEL_2_PRICE_USDC} USDC`);
+      console.log(`💰 Current allowance: ${Number(currentAllowance) / 1e6} USDC, Required: ${LEVEL_2_PRICE_USDC} USDC`);
       
       if (currentAllowance < LEVEL_2_PRICE_WEI) {
         console.log('💰 Requesting USDC approval...');
@@ -428,10 +428,10 @@ export function Level2ClaimButtonV2({ onSuccess, className = '' }: Level2ClaimBu
           spender: NFT_CONTRACT
         });
         
-        console.log(`✅ New allowance after approval: ${Number(newAllowance) / 1e18} USDC`);
+        console.log(`✅ New allowance after approval: ${Number(newAllowance) / 1e6} USDC`);
         
         if (newAllowance < LEVEL_2_PRICE_WEI) {
-          throw new Error(`Approval failed. Current allowance: ${Number(newAllowance) / 1e18} USDC, Required: ${LEVEL_2_PRICE_USDC} USDC`);
+          throw new Error(`Approval failed. Current allowance: ${Number(newAllowance) / 1e6} USDC, Required: ${LEVEL_2_PRICE_USDC} USDC`);
         }
       } else {
         console.log('✅ Sufficient allowance already exists');

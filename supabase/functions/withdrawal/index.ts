@@ -159,10 +159,10 @@ serve(async (req) => {
         'USDT': { address: '0xc2132D05D31c914a87C6611C10748AEb04B58e8F', symbol: 'USDT', decimals: 6, isNative: false },
         'USDC': { address: '0x2791Bca1f2de4661ED88A30C99A7a9449Aa84174', symbol: 'USDC', decimals: 6, isNative: false }
       },
-      42161: { 
+      42161: {
         'ETH': { address: null, symbol: 'ETH', decimals: 18, isNative: true },
         'ARB': { address: '0x912CE59144191C1204E64559FE8253a0e49E6548', symbol: 'ARB', decimals: 18, isNative: false },
-        'USDT': { address: '0xfA278827a612BBA895e7F0A4fBA504b22ff3E7C9', symbol: 'USDT', decimals: 18, isNative: false },
+        'USDT': { address: '0xFd086bC7CD5C481DCC9C85ebE478A1C0b69FCbb9', symbol: 'USDT', decimals: 6, isNative: false },
         'USDC': { address: '0xaf88d065e77c8cC2239327C5EDb3A432268e5831', symbol: 'USDC', decimals: 6, isNative: false }
       },
       10: { 
@@ -191,12 +191,12 @@ serve(async (req) => {
         return chainTokens[tokenSymbol]
       }
       
-      // Fallback to USDT on ARB if token not found
-      return SUPPORTED_TOKENS[42161]['USDT']
+      // Fallback to USDC on ARB if token not found
+      return SUPPORTED_TOKENS[42161]['USDC']
     }
 
-    // Get source token (we settle in ARB USDT)
-    const sourceTokenSymbol = 'USDT'
+    // Get source token (we settle in ARB USDC - native USDC on Arbitrum)
+    const sourceTokenSymbol = 'USDC'
     const sourceToken = getTokenInfo(sourceChainId || 42161, sourceTokenSymbol)
 
     const calculateAmountWithDecimals = (amount: number, decimals: number): string => {
@@ -205,11 +205,11 @@ serve(async (req) => {
     }
 
     // Get target token info based on user's choice
-    const requestedTokenSymbol = targetTokenSymbol || selectedToken || 'USDT'
+    const requestedTokenSymbol = targetTokenSymbol || selectedToken || 'USDC'
     const targetTokenInfo = getTokenInfo(targetChainId, requestedTokenSymbol)
-    
-    // Source: We settle in ARB USDT
-    const sourceTokenAddress = sourceToken.address // ARB USDT
+
+    // Source: We settle in ARB USDC (native USDC on Arbitrum)
+    const sourceTokenAddress = sourceToken.address // ARB USDC: 0xaf88d065e77c8cC2239327C5EDb3A432268e5831
     const targetTokenAddress = targetTokenInfo.address // Could be null for native tokens
 
     let result: any = {}
@@ -222,7 +222,7 @@ serve(async (req) => {
     if (isDirectTransfer) {
       // Direct transfer on same chain with same token
       console.log('🔄 Direct transfer on same chain using thirdweb wallets/send API')
-      
+
       await logger.logInfo('direct-transfer-initiated', 'api_calls', {
         transferType: 'direct',
         targetChainId,
@@ -230,12 +230,45 @@ serve(async (req) => {
         netAmount,
         recipientAddress
       })
-      
+
+      // Calculate amount with proper decimals
       const amountInWei = calculateAmountWithDecimals(netAmount, targetTokenInfo.decimals)
-      
+
+      console.log('💰 Amount calculation:', {
+        netAmount,
+        decimals: targetTokenInfo.decimals,
+        amountInWei,
+        tokenSymbol: targetTokenInfo.symbol
+      })
+
+      // Check server wallet balance before attempting transfer
+      console.log('🔍 Checking server wallet balance...')
+      const serverWalletAddress = Deno.env.get('VITE_SERVER_WALLET_ADDRESS')
+
+      // Query server wallet balance using Thirdweb API
+      try {
+        const balanceCheckUrl = `https://api.thirdweb.com/v1/wallets/${serverWalletAddress}/balances?chainId=${targetChainId}`
+        console.log('📊 Balance check URL:', balanceCheckUrl)
+
+        const balanceResponse = await fetch(balanceCheckUrl, {
+          headers: {
+            'x-secret-key': Deno.env.get('VITE_THIRDWEB_SECRET_KEY') || ''
+          }
+        })
+
+        if (balanceResponse.ok) {
+          const balanceData = await balanceResponse.json()
+          console.log('💰 Server wallet balance:', JSON.stringify(balanceData, null, 2))
+        } else {
+          console.warn('⚠️ Could not check wallet balance:', await balanceResponse.text())
+        }
+      } catch (balanceError) {
+        console.warn('⚠️ Balance check failed (non-critical):', balanceError)
+      }
+
       // Prepare request body - omit tokenAddress for native tokens
       const requestBody: any = {
-        from: Deno.env.get('VITE_SERVER_WALLET_ADDRESS'),
+        from: serverWalletAddress,
         chainId: targetChainId.toString(),
         recipients: [
           {
@@ -244,7 +277,7 @@ serve(async (req) => {
           }
         ]
       }
-      
+
       // Only add tokenAddress for ERC20 tokens, not for native tokens
       if (!targetTokenInfo.isNative && targetTokenAddress) {
         requestBody.tokenAddress = targetTokenAddress
@@ -452,7 +485,7 @@ serve(async (req) => {
         processing_steps: result.bridged ? 
           [`swap_${sourceToken.symbol}_to_${targetTokenInfo.symbol}`, 'send_to_user'] : 
           [`direct_send_${targetTokenInfo.symbol}`],
-        settlement_currency: 'ARB_USDT',
+        settlement_currency: 'ARB_USDC',
         target_currency: targetTokenInfo.symbol
       }
     })

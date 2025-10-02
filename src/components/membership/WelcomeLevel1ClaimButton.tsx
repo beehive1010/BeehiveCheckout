@@ -35,10 +35,10 @@ export function WelcomeLevel1ClaimButton({ onSuccess, referrerWallet, className 
   
   // Fixed Level 1 pricing and info
   const LEVEL_1_PRICE_USDC = 130;
-  const LEVEL_1_PRICE_WEI = BigInt(LEVEL_1_PRICE_USDC) * BigInt('1000000000000000000'); // 130 * 10^18
+  const LEVEL_1_PRICE_WEI = BigInt(LEVEL_1_PRICE_USDC) * BigInt('1000000'); // 130 * 10^6 (USDC has 6 decimals)
   
   const API_BASE = 'https://cvqibjcbfrwsgkvthccp.supabase.co/functions/v1';
-  const PAYMENT_TOKEN_CONTRACT = import.meta.env.VITE_USDT_TESTNET; // Use env variable for custom USDT
+  const PAYMENT_TOKEN_CONTRACT = '0xaf88d065e77c8cC2239327C5EDb3A432268e5831'; // Arbitrum USDC (native)
   const NFT_CONTRACT = import.meta.env.VITE_MEMBERSHIP_NFT_CONTRACT; // Use env variable
   const THIRDWEB_CLIENT_ID = import.meta.env.VITE_THIRDWEB_CLIENT_ID;
 
@@ -437,13 +437,13 @@ export function WelcomeLevel1ClaimButton({ onSuccess, referrerWallet, className 
         });
         
         if (tokenBalance < LEVEL_1_PRICE_WEI) {
-          throw new Error(`Insufficient USDC balance. You have ${(Number(tokenBalance) / 1e18).toFixed(2)} USDC but need ${LEVEL_1_PRICE_USDC} USDC for Level 1`);
+          throw new Error(`Insufficient USDC balance. You have ${(Number(tokenBalance) / 1e6).toFixed(2)} USDC but need ${LEVEL_1_PRICE_USDC} USDC for Level 1`);
         }
       } catch (balanceError: any) {
-        if (balanceError.message.includes('Insufficient USDT')) {
+        if (balanceError.message.includes('Insufficient USDC')) {
           throw balanceError;
         }
-        console.warn('⚠️ Could not check USDT balance:', balanceError);
+        console.warn('⚠️ Could not check USDC balance:', balanceError);
       }
 
       // Check and request approval
@@ -455,10 +455,10 @@ export function WelcomeLevel1ClaimButton({ onSuccess, referrerWallet, className 
         spender: NFT_CONTRACT
       });
       
-      console.log(`💰 Current allowance: ${Number(currentAllowance) / 1e18} USDT, Required: ${LEVEL_1_PRICE_USDC} USDT`);
-      
+      console.log(`💰 Current allowance: ${Number(currentAllowance) / 1e6} USDC, Required: ${LEVEL_1_PRICE_USDC} USDC`);
+
       if (currentAllowance < LEVEL_1_PRICE_WEI) {
-        console.log('💰 Requesting USDT approval...');
+        console.log('💰 Requesting USDC approval...');
         
         const approveTransaction = approve({
           contract: usdcContract,
@@ -490,10 +490,10 @@ export function WelcomeLevel1ClaimButton({ onSuccess, referrerWallet, className 
           spender: NFT_CONTRACT
         });
         
-        console.log(`✅ New allowance after approval: ${Number(newAllowance) / 1e18} USDT`);
-        
+        console.log(`✅ New allowance after approval: ${Number(newAllowance) / 1e6} USDC`);
+
         if (newAllowance < LEVEL_1_PRICE_WEI) {
-          throw new Error(`Approval failed. Current allowance: ${Number(newAllowance) / 1e18} USDT, Required: ${LEVEL_1_PRICE_USDC} USDT`);
+          throw new Error(`Approval failed. Current allowance: ${Number(newAllowance) / 1e6} USDC, Required: ${LEVEL_1_PRICE_USDC} USDC`);
         }
       } else {
         console.log('✅ Sufficient allowance already exists');
@@ -508,7 +508,7 @@ export function WelcomeLevel1ClaimButton({ onSuccess, referrerWallet, className 
         nftContractAddress: NFT_CONTRACT,
         paymentTokenAddress: PAYMENT_TOKEN_CONTRACT,
         priceWei: LEVEL_1_PRICE_WEI.toString(),
-        priceUSDT: LEVEL_1_PRICE_USDC,
+        priceUSDC: LEVEL_1_PRICE_USDC,
         walletAddress: account.address
       });
       
@@ -571,7 +571,7 @@ export function WelcomeLevel1ClaimButton({ onSuccess, referrerWallet, className 
                 account.address,        // to
                 BigInt(1),             // tokenId (Level 1)
                 BigInt(1),             // quantity
-                PAYMENT_TOKEN_CONTRACT, // currency (USDT)
+                PAYMENT_TOKEN_CONTRACT, // currency (USDC)
                 LEVEL_1_PRICE_WEI,     // pricePerToken
               ]
             });
