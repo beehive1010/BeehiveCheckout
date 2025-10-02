@@ -651,28 +651,17 @@
       "totalRewardsPaid": "Total Rewards Paid"
     },
     "information": {
-      "badge": "Educational",
       "bccPhasesPreview": "BCC Phases Preview",
-      "bccRewards": "BCC Staking",
-      "bccRewardsDescription": "Learn about the four-phase BCC release system based on member activation milestones. Rewards decrease progressively to ensure long-term sustainability.",
-      "bccRewardsDetailDescription": "Four-phase BCC release system with decreasing rewards based on total activated member count.",
-      "bccRewardsDetailTitle": "BCC Staking Rewards - Release Schedule",
       "bccRewardsMobileDesc": "Four-phase BCC release system based on member activation milestones. Each phase has different reward amounts that decrease over time.",
       "bccRewardsSubtitle": "BCC Release Rewards",
       "bccRewardsSystem": "BCC Release System",
       "bccRewardsSystemDesc": "Four-phase BCC release system based on member activation milestones. Rewards decrease progressively to ensure long-term sustainability.",
-      "bccRewardsTitle": "BCC Release Rewards",
       "complete19LayerStructure": "Complete 19-Layer Reward Structure",
       "condition1": "Members in layers upgrade membership levels",
       "condition2": "Trigger corresponding rewards based on upgrade level",
       "condition3": "Each layer can receive multiple rewards",
       "current": "Current",
-      "detailedRewardStructure": "Detailed Reward Structure",
-      "eligibilityRules": {
-        "firstSecondTitle": "1st & 2nd Rewards",
-        "thirdOnwardTitle": "3rd+ Rewards",
-        "importantTitle": "Important"
-      },
+      "eligibilityRules": "Eligibility Rules & Timing",
       "fourPhasesSystem": "4-phase decreasing release system",
       "highestRewardLayer": "Highest reward layer",
       "layer11to15Rewards": "Layer 11-15 Rewards",
@@ -682,10 +671,6 @@
       "layer1to5Rewards": "Layer 1-5 Rewards",
       "layer2Amount": "Layer 2: $150 (Level 2 NFT price)",
       "layer6to10Rewards": "Layer 6-10 Rewards",
-      "layerRewards": "Layer Rewards",
-      "layerRewardsDescription": "Understand how layer rewards work when members in your matrix upgrade their membership levels. Each layer has specific eligibility requirements and reward amounts.",
-      "layerRewardsDetailDescription": "Comprehensive explanation of the 19-layer reward system with eligibility rules and payout mechanisms.",
-      "layerRewardsDetailTitle": "Layer Rewards - Complete Guide",
       "layerRewardsDialogDesc": "Comprehensive explanation of the 19-layer reward system, including eligibility rules and payout mechanisms",
       "layerRewardsDialogTitle": "Layer Rewards - Complete 19-Layer Details",
       "layerRewardsMobileDesc": "When members in your matrix upgrade membership levels, corresponding layer rewards are triggered. 19 layers total, each layer reward amount is 100% of the corresponding level NFT price.",
@@ -694,61 +679,22 @@
       "layerRewardsSummary": "Layer Rewards Summary",
       "layerRewardsSystem": "Layer Rewards System",
       "layerRewardsSystemDesc": "Layer rewards are triggered by member upgrades in your downline. Layer 1 rewards are based on direct referrals but display through matrix hierarchy. Layers 2-19 follow standard matrix placement with recursive tree view up to 19 levels.",
-      "layerRewardsTitle": "Layer Rewards System",
       "levelUpgradeTriggered": "Level {{level}} upgrade triggered",
-      "matrixDescription": "This visualization shows how the matrix structure works. When members upgrade levels in your layers, it triggers corresponding layer rewards.",
-      "matrixPreview": "Matrix Structure Preview",
       "matrixPrinciple": "Matrix Structure Principle: ",
       "matrixPrincipleDesc": "BEEHIVE uses a 19-layer 3×3 matrix system, with each level representing one layer in the matrix.",
       "matrixStructureExplanation": "Matrix Structure Explanation",
-      "matrixVisualization": "Matrix Structure Visualization",
       "nftPricePercent": "100% NFT price",
       "phase": "Phase",
       "releaseMechanism": "BCC Release Mechanism",
-      "maxLayer": "Max",
-      "nftPrice": "NFT Price",
-      "liveAnimation": "Live Animation",
-      "matrixStructureTitle": "Matrix Structure",
-      "matrixStructureDesc": "Each level represents a layer in the matrix. When members in your layer upgrade their membership level, it triggers layer rewards based on the upgraded level.",
-      "layerRewardText": "Layer {{layer}} Reward",
-      "triggeredByLevel": "Triggered by Level {{layer}} upgrades in your layer {{layer}}",
-      "firstSecond": "1st & 2nd",
-      "thirdPlus": "3rd+",
-      "ofLevelNftPrice": "of Level {{level}} NFT price",
-      "instantPayout": "Instant payout if eligible",
-      "continuesToLayer19": "Continues to Layer 19",
-      "layer19RewardMax": "Layer 19 Reward (Maximum)",
-      "max": "MAX",
-      "finalLayerReward": "Final layer reward - highest earning potential",
-      "ofLevel19NftPrice": "of Level 19 NFT price",
       "instantRewards": "Instant Rewards",
-      "firstSecondRewards": "1st & 2nd Rewards per Layer",
-      "levelMustEqualLayer": "Your level must equal the layer level to receive instantly",
-      "thirdPlusRewards": "3rd+ Rewards per Layer",
-      "levelMustBeGreater": "Your level must be greater than the layer level",
-      "pendingSystem": {
-        "notEligibleTitle": "Not Eligible",
-        "windowTitle": "72-Hour Window",
-        "immediateTitle": "Immediate Claim",
-        "rollupTitle": "Roll-up System"
-      },
-      "seventyTwoHourPending": "72-Hour Pending",
-      "levelRequirementsNotMet": "If level requirements not met, reward enters pending state",
-      "upgradeToClaim": "Upgrade to Claim",
-      "activateRequiredLevel": "Activate required level to claim immediately",
-      "expiryRedistribution": "Expiry Redistribution",
-      "expiredRewardsRedistribute": "Expired rewards go to eligible members above",
-      "layerText": "Layer {{layer}}",
+      "pendingSystem": "Pending System (72 Hours)",
       "rewardAmounts": "Reward Amounts:",
-      "subtitle": "Learn about Layer Rewards and BCC Release Mechanisms",
-      "title": "Reward System Information",
       "toLayer19Summary": "... to L19 ($1,000) total 19 layers",
       "triggerConditions": "Trigger Conditions:",
       "viewAll19Layers": "View All 19 Layers",
       "viewAll19LayersDetails": "View All 19 Layer Details",
       "viewAllPhases": "View All Phases",
       "viewAllPhasesDetails": "View All Phase Details",
-      "viewDetails": "View Full Details",
       "referralRewardToUpline": "Direct referral reward to upline",
       "activationFeePerMember": "Plus $30 activation fee per member",
       "levelUpgradeTrigger": "Triggered when Level {level} members upgrade",
@@ -939,7 +885,6 @@
     "totalRewards": "Total Rewards",
     "totalTeamSize": "Total Team Size",
     "upgrade": "Upgrade",
-    "yourTokens": "Your Tokens",
     "uplineNetwork": {
       "earnings": "Earnings",
       "loading": "Loading network data...",
@@ -1532,13 +1477,58 @@
       "instantReward1Desc": "Instantly claimable when your level equals layer level",
       "instantReward2": "Second Reward",
       "instantReward2Desc": "Instantly claimable when your level equals layer level",
-      "pendingSystem": "Pending System",
+      "pendingSystem": "Pending System (72 Hours)",
       "pending72Hours": "72-Hour Window",
       "pending72HoursDesc": "Rewards enter pending if level requirement not met",
       "upgradeToClain": "Upgrade to Claim",
       "upgradeToClainDesc": "Upgrade within 72 hours to claim pending rewards",
       "expiredReallocation": "Expired Reallocation",
-      "expiredReallocationDesc": "After 72h, unclaimed rewards roll up to qualified upline"
+      "expiredReallocationDesc": "After 72h, unclaimed rewards roll up to qualified upline",
+      "eligibilityRules": "Eligibility Rules & Timing",
+      "title": "Reward System Information",
+      "subtitle": "Learn about Layer Rewards and BCC Release Mechanisms",
+      "badge": "Educational",
+      "bccRewards": "BCC Staking",
+      "matrixPreview": "Matrix Structure Preview",
+      "matrixDescription": "This visualization shows how the matrix structure works. When members upgrade levels in your layers, it triggers corresponding layer rewards.",
+      "layerRewardsTitle": "Layer Rewards System",
+      "layerRewardsDescription": "Understand how layer rewards work when members in your matrix upgrade their membership levels. Each layer has specific eligibility requirements and reward amounts.",
+      "viewDetails": "View Full Details",
+      "layerText": "Layer {{layer}}",
+      "maxLayer": "Max",
+      "nftPrice": "NFT Price",
+      "bccRewardsTitle": "BCC Release Rewards",
+      "bccRewardsDescription": "Learn about the four-phase BCC release system based on member activation milestones. Rewards decrease progressively to ensure long-term sustainability.",
+      "layerRewardsDetailTitle": "Layer Rewards - Complete Guide",
+      "layerRewardsDetailDescription": "Comprehensive explanation of the 19-layer reward system with eligibility rules and payout mechanisms.",
+      "matrixVisualization": "Matrix Structure Visualization",
+      "liveAnimation": "Live Animation",
+      "matrixStructureTitle": "Matrix Structure",
+      "matrixStructureDesc": "Each level represents a layer in the matrix. When members in your layer upgrade their membership level, it triggers layer rewards based on the upgraded level.",
+      "detailedRewardStructure": "Detailed Reward Structure",
+      "layerRewardText": "Layer {{layer}} Reward",
+      "triggeredByLevel": "Triggered by Level {{layer}} upgrades in your layer {{layer}}",
+      "firstSecond": "1st & 2nd",
+      "thirdPlus": "3rd+",
+      "ofLevelNftPrice": "of Level {{level}} NFT price",
+      "instantPayout": "Instant payout if eligible",
+      "continuesToLayer19": "Continues to Layer 19",
+      "layer19RewardMax": "Layer 19 Reward (Maximum)",
+      "max": "MAX",
+      "finalLayerReward": "Final layer reward - highest earning potential",
+      "ofLevel19NftPrice": "of Level 19 NFT price",
+      "firstSecondRewards": "1st & 2nd Rewards per Layer",
+      "levelMustEqualLayer": "Your level must equal the layer level to receive instantly",
+      "thirdPlusRewards": "3rd+ Rewards per Layer",
+      "levelMustBeGreater": "Your level must be greater than the layer level",
+      "seventyTwoHourPending": "72-Hour Pending",
+      "levelRequirementsNotMet": "If level requirements not met, reward enters pending state",
+      "upgradeToClaim": "Upgrade to Claim",
+      "activateRequiredLevel": "Activate required level to claim immediately",
+      "expiryRedistribution": "Expiry Redistribution",
+      "expiredRewardsRedistribute": "Expired rewards go to eligible members above",
+      "bccRewardsDetailTitle": "BCC Staking Rewards - Release Schedule",
+      "bccRewardsDetailDescription": "Four-phase BCC release system with decreasing rewards based on total activated member count."
     },
     "learnMore": "Learn More",
     "loading": "Loading rewards data...",
@@ -2059,61 +2049,30 @@
     "title": "Education Center"
   },
   "nfts": {
+    "title": "NFT Marketplace",
+    "subtitle": "Discover and collect unique digital assets",
+    "stats": {
+      "advertisement": "Advertisement NFTs",
+      "merchant": "Merchant NFTs"
+    },
     "advertisement": {
-      "subtitle": "Web3 services and platform advertisements - purchase with BCC",
       "title": "Advertisement NFTs",
+      "subtitle": "Promote your brand with NFT advertising",
       "views": "Views"
     },
-    "balance": {
-      "available": "Available BCC",
-      "bccBalance": "BCC Balance"
-    },
-    "categories": {
-      "all": "All Categories",
-      "art": "Art",
-      "collectible": "Collectible",
-      "defi": "DeFi",
-      "gaming": "Gaming",
-      "utility": "Utility"
-    },
-    "errors": {
-      "loadAdvertisementFailed": "Failed to load advertisement NFTs",
-      "loadFailed": "Error",
-      "loadMerchantFailed": "Failed to load merchant NFTs",
-      "loadPurchasesFailed": "Failed to load your NFT purchases"
-    },
     "merchant": {
-      "sold": "Sold",
-      "soldOut": "Sold Out",
-      "subtitle": "Professional services and digital products from verified merchants",
-      "supply": "Supply",
-      "title": "Merchant NFTs"
+      "title": "Merchant NFTs",
+      "subtitle": "Digital goods and services from merchants"
     },
     "myCollection": {
-      "empty": "No NFTs in your collection yet",
-      "emptyDesc": "Purchase your first NFT to get started!",
-      "subtitle": "Your purchased NFTs and active services",
-      "title": "My NFT Collection"
+      "title": "My Collection",
+      "subtitle": "NFTs you own",
+      "empty": "You don't own any NFTs yet"
     },
     "purchase": {
       "button": "Purchase",
-      "connectWallet": "Please connect your wallet to purchase NFTs",
-      "failed": "Purchase Failed",
-      "failedDesc": "Failed to purchase NFT. Please try again.",
-      "insufficientBcc": "Insufficient BCC",
-      "needBcc": "You need {amount} BCC to purchase this NFT (current: {current} BCC)",
-      "purchasing": "Purchasing...",
-      "success": "Purchase Successful!",
-      "successDesc": "NFT purchased successfully! Check your collection.",
-      "walletRequired": "Wallet Required"
-    },
-    "stats": {
-      "advertisement": "Advertisement",
-      "merchant": "Merchant",
-      "owned": "Owned"
-    },
-    "subtitle": "Explore, collect, and trade unique digital assets with your BCC tokens",
-    "title": "NFT Marketplace"
+      "purchasing": "Purchasing..."
+    }
   },
   "discover": {
     "categories": {
@@ -2764,32 +2723,6 @@
       "remaining": "Remaining:",
       "title": "Withdrawal Limits",
       "used": "Used:"
-    }
-  },
-  "nfts": {
-    "title": "NFT Marketplace",
-    "subtitle": "Discover and collect unique digital assets",
-    "stats": {
-      "advertisement": "Advertisement NFTs",
-      "merchant": "Merchant NFTs"
-    },
-    "advertisement": {
-      "title": "Advertisement NFTs",
-      "subtitle": "Promote your brand with NFT advertising",
-      "views": "Views"
-    },
-    "merchant": {
-      "title": "Merchant NFTs",
-      "subtitle": "Digital goods and services from merchants"
-    },
-    "myCollection": {
-      "title": "My Collection",
-      "subtitle": "NFTs you own",
-      "empty": "You don't own any NFTs yet"
-    },
-    "purchase": {
-      "button": "Purchase",
-      "purchasing": "Purchasing..."
     }
   },
   "nav": {

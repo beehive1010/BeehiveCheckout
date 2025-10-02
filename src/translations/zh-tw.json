@@ -75,17 +75,54 @@
       "ensuresNoRewardLost": "確保沒有獎勵遺失",
       "noUpgradeRollup": "未升級 → 回滾給合格贊助商",
       "currentPhase": "當前階段",
-      "matrixVisualization": {
-        "level": "級別",
-        "legend": {
-          "member": "成員",
-          "members": "成員",
-          "activeMember": "活躍成員",
-          "pendingMember": "待處理成員",
-          "hasRewards": "有獎勵",
-          "you": "您"
-        }
-      }
+      "matrixVisualization": "矩陣視覺化",
+      "title": "獎勵系統資訊",
+      "subtitle": "瞭解層級獎勵和BCC釋放機制",
+      "badge": "教育性",
+      "layerRewards": "層級獎勵",
+      "bccRewards": "BCC鎖倉",
+      "matrixPreview": "矩陣結構預覽",
+      "matrixDescription": "此視覺化展示矩陣結構的運作原理。當您層級中的成員升級等級時，將觸發相應的層級獎勵。",
+      "layerRewardsTitle": "層級獎勵系統",
+      "layerRewardsDescription": "瞭解當矩陣中的成員升級會員等級時，層級獎勵如何運作。每個層級都有特定的資格要求和獎勵金額。",
+      "viewDetails": "查看完整詳情",
+      "layerText": "第{{layer}}層",
+      "maxLayer": "最大",
+      "nftPrice": "NFT價格",
+      "bccRewardsTitle": "BCC釋放獎勵",
+      "bccRewardsDescription": "瞭解基於成員啟動里程碑的四階段BCC釋放系統。獎勵逐步遞減以確保長期可持續性。",
+      "layerRewardsDetailTitle": "層級獎勵 - 完整指南",
+      "layerRewardsDetailDescription": "19層獎勵系統的全面說明，包括資格規則和支付機制。",
+      "liveAnimation": "即時動畫",
+      "matrixStructureTitle": "矩陣結構",
+      "matrixStructureDesc": "每個級別代表矩陣中的一層。當您層級中的成員升級其會員等級時，將根據升級的等級觸發層級獎勵。",
+      "detailedRewardStructure": "詳細獎勵結構",
+      "layerRewardText": "第{{layer}}層獎勵",
+      "triggeredByLevel": "由您第{{layer}}層中的Level {{layer}}升級觸發",
+      "firstSecond": "第1和第2",
+      "thirdPlus": "第3+",
+      "ofLevelNftPrice": "Level {{level}} NFT價格的",
+      "instantPayout": "符合條件時即時支付",
+      "continuesToLayer19": "持續到第19層",
+      "layer19RewardMax": "第19層獎勵（最大）",
+      "max": "最大",
+      "finalLayerReward": "最終層級獎勵 - 最高收益潛力",
+      "ofLevel19NftPrice": "Level 19 NFT價格的",
+      "eligibilityRules": "資格規則與時間機制",
+      "instantRewards": "即時獎勵",
+      "firstSecondRewards": "每層第1和第2獎勵",
+      "levelMustEqualLayer": "您的等級必須等於層級等級才能即時領取",
+      "thirdPlusRewards": "每層第3+獎勵",
+      "levelMustBeGreater": "您的等級必須高於層級等級",
+      "pendingSystem": "待處理系統（72小時）",
+      "seventyTwoHourPending": "72小時待處理",
+      "levelRequirementsNotMet": "如果不滿足等級要求，獎勵進入待處理狀態",
+      "upgradeToClaim": "升級領取",
+      "activateRequiredLevel": "啟動所需等級以立即領取",
+      "expiryRedistribution": "過期重新分配",
+      "expiredRewardsRedistribute": "過期獎勵分配給上級符合條件的成員",
+      "bccRewardsDetailTitle": "BCC鎖倉獎勵 - 釋放時間表",
+      "bccRewardsDetailDescription": "基於總啟動成員數的四階段BCC釋放系統，獎勵遞減。"
     }
   },
   "common": {
@@ -99,21 +136,12 @@
     "dashboard": "儀表板"
   },
   "dashboard": {
-    "social": {
-      "facebook": "Facebook",
-      "telegram": "Telegram",
-      "twitter": "X (Twitter)",
-      "whatsapp": "WhatsApp",
-      "shareOn": "分享到"
-    }
+    "welcomeBack": "歡迎回來，{username}！"
   },
   "header": {
     "connectWallet": "連接錢包"
   },
   "claim": {
     "checkingOwnership": "檢查NFT持有狀態..."
-  },
-  "dashboard": {
-    "welcomeBack": "歡迎回來，{username}！"
   }
 }
