@@ -2706,6 +2706,32 @@
       "used": "Used:"
     }
   },
+  "nfts": {
+    "title": "NFT Marketplace",
+    "subtitle": "Discover and collect unique digital assets",
+    "stats": {
+      "advertisement": "Advertisement NFTs",
+      "merchant": "Merchant NFTs"
+    },
+    "advertisement": {
+      "title": "Advertisement NFTs",
+      "subtitle": "Promote your brand with NFT advertising",
+      "views": "Views"
+    },
+    "merchant": {
+      "title": "Merchant NFTs",
+      "subtitle": "Digital goods and services from merchants"
+    },
+    "myCollection": {
+      "title": "My Collection",
+      "subtitle": "NFTs you own",
+      "empty": "You don't own any NFTs yet"
+    },
+    "purchase": {
+      "button": "Purchase",
+      "purchasing": "Purchasing..."
+    }
+  },
   "nav": {
     "dashboard": "Dashboard",
     "discover": "Discover",
