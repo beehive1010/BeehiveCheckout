@@ -188,51 +188,10 @@ async function getUser(supabase: any, walletAddress: string) {
       };
     }
 
-    // 🔧 FALLBACK: If members table shows no activation, check membership table
+    // 🔧 STRICT CHECK: Only use members table for activation status
+    // Do NOT fallback to membership table - this causes false positives
+    // Users MUST be in users table to be considered registered
     let finalStatus = statusResult;
-  if (!statusResult.is_member || !statusResult.is_activated) {
-    console.log(`🔍 Checking membership table fallback for ${walletAddress}`);
-    const { data: membershipData, error: membershipError } = await supabase
-      .from('membership')
-      .select('nft_level, is_member, claimed_at')
-      .ilike('wallet_address', walletAddress)
-      .order('nft_level', { ascending: false })
-      .limit(1)
-      .maybeSingle();
-
-    if (!membershipError && membershipData && membershipData.is_member) {
-      console.log(`✅ Found active membership record: Level ${membershipData.nft_level}`);
-      finalStatus = {
-        ...statusResult,
-        is_member: true,
-        is_activated: true,
-        current_level: membershipData.nft_level,
-        activation_time: membershipData.claimed_at,
-        can_access_referrals: true
-      };
-    } else {
-      // Additional fallback: Check if user has any membership record at all
-      const { data: anyMembership, error: anyError } = await supabase
-        .from('membership')
-        .select('nft_level, claimed_at')
-        .ilike('wallet_address', walletAddress)
-        .order('nft_level', { ascending: false })
-        .limit(1)
-        .maybeSingle();
-
-      if (!anyError && anyMembership) {
-        console.log(`✅ Found membership record without is_member flag: Level ${anyMembership.nft_level}`);
-        finalStatus = {
-          ...statusResult,
-          is_member: true,
-          is_activated: true,
-          current_level: anyMembership.nft_level,
-          activation_time: anyMembership.claimed_at,
-          can_access_referrals: true
-        };
-      }
-    }
-  }
   // Get referral statistics only if member - using MasterSpec table structure
   let referralStats = null;
   if (finalStatus.is_member) {

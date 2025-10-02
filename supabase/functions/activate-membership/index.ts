@@ -135,6 +135,7 @@ serve(async (req) => {
     console.log(`🚀 Starting membership activation for: ${walletAddress}, Level: ${level}`);
 
     // Step 1: Check if user is registered (case-insensitive query)
+    // 🔧 STRICT CHECK: User MUST be registered before claiming NFT
     let { data: userData, error: userError } = await supabase
       .from('users')
       .select('*')
@@ -142,38 +143,21 @@ serve(async (req) => {
       .single();
 
     if (userError || !userData) {
-      console.log(`⚠️ User not registered: ${walletAddress}, attempting to create user record...`);
-
-      // Fallback: Create user record if missing
-      const { data: newUser, error: createError } = await supabase
-        .from('users')
-        .insert({
-          wallet_address: walletAddress,
-          referrer_wallet: normalizedReferrerWallet,
-          username: `user_${walletAddress.slice(2, 8)}`, // Default username
-          created_at: new Date().toISOString()
-        })
-        .select()
-        .single();
-
-      if (createError) {
-        console.error(`❌ Failed to create user record:`, createError);
-        return new Response(JSON.stringify({
-          success: false,
-          error: 'Failed to create user registration: ' + createError.message,
-          isRegistered: false,
-          isActivated: false
-        }), {
-          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-          status: 500
-        });
-      }
-
-      userData = newUser;
-      console.log(`✅ User record created automatically: ${newUser.wallet_address}`);
-    } else {
-      console.log(`✅ User registration confirmed: ${userData.wallet_address}`);
+      console.error(`❌ User not registered: ${walletAddress}`);
+      return new Response(JSON.stringify({
+        success: false,
+        error: 'REGISTRATION_REQUIRED',
+        message: 'User must complete registration before claiming NFT',
+        isRegistered: false,
+        isActivated: false,
+        requiresRegistration: true
+      }), {
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        status: 400
+      });
     }
+
+    console.log(`✅ User registration confirmed: ${userData.wallet_address}`);
 
     // 如果前端没有传递referrerWallet，从用户数据中获取
     if (!normalizedReferrerWallet && userData.referrer_wallet) {
