@@ -11,6 +11,7 @@ import {Card, CardContent, CardHeader, CardTitle} from '../components/ui/card';
 import {Button} from '../components/ui/button';
 import {Badge} from '../components/ui/badge';
 import {DashboardBackground} from '../components/shared/HoneycombBackground';
+import BackgroundErrorBoundary from '../components/shared/SafeBackground';
 import '../components/dashboard/dashboard.css';
 import '../styles/dashboard-background.css';
 
@@ -457,8 +458,10 @@ export default function Dashboard() {
 
   return (
     <div className="min-h-screen bg-background relative overflow-hidden">
-      {/* 蜂巢动画背景 */}
-      <DashboardBackground />
+      {/* 蜂巢动画背景 - 带错误边界保护 */}
+      <BackgroundErrorBoundary>
+        <DashboardBackground />
+      </BackgroundErrorBoundary>
 
       <Navigation />
 

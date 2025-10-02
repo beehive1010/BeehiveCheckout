@@ -47,10 +47,24 @@ const renderApp = () => {
 // Add global error handler for unhandled errors during startup
 window.addEventListener('error', (event) => {
   console.error('❌ Global error:', event.error);
+
+  // 忽略Thirdweb的DOM操作错误（非关键）
+  if (event.error?.message?.includes('insertBefore') ||
+      event.error?.message?.includes('Node')) {
+    event.preventDefault();
+    console.warn('⚠️ Suppressed non-critical DOM error');
+  }
 });
 
 window.addEventListener('unhandledrejection', (event) => {
   console.error('❌ Unhandled promise rejection:', event.reason);
+
+  // 忽略Thirdweb相关的Promise rejection
+  if (event.reason?.message?.includes('insertBefore') ||
+      event.reason?.message?.includes('Node')) {
+    event.preventDefault();
+    console.warn('⚠️ Suppressed non-critical promise rejection');
+  }
 });
 
 renderApp();

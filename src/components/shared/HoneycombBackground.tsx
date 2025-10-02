@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect, useRef } from 'react';
 import { motion } from 'framer-motion';
 
 // 蜂巢六边形背景组件
@@ -6,8 +6,8 @@ export const HoneycombBackground: React.FC = () => {
   // 生成蜂巢六边形网格
   const generateHexagons = () => {
     const hexagons = [];
-    const rows = 12;
-    const cols = 8;
+    const rows = 8;  // 减少行数
+    const cols = 6;  // 减少列数
     const hexSize = 60;
     const hexHeight = hexSize * Math.sqrt(3);
     const hexWidth = hexSize * 2;
@@ -91,8 +91,16 @@ export const HoneycombBackground: React.FC = () => {
 
 // 蜜蜂动画组件
 export const BeeAnimation: React.FC = () => {
-  // 生成多只蜜蜂
-  const bees = Array.from({ length: 8 }, (_, i) => {
+  const mountedRef = useRef(true);
+
+  useEffect(() => {
+    return () => {
+      mountedRef.current = false;
+    };
+  }, []);
+
+  // 生成多只蜜蜂 - 减少数量
+  const bees = Array.from({ length: 4 }, (_, i) => {
     // 随机起始位置
     const startX = Math.random() * 100;
     const startY = Math.random() * 100;
@@ -213,7 +221,7 @@ export const BeeAnimation: React.FC = () => {
 
 // 金色粒子闪烁效果
 export const GoldenParticles: React.FC = () => {
-  const particles = Array.from({ length: 30 }, (_, i) => {
+  const particles = Array.from({ length: 15 }, (_, i) => {  // 减少粒子数量
     const x = Math.random() * 100;
     const y = Math.random() * 100;
     const size = 2 + Math.random() * 4;
@@ -254,21 +262,33 @@ export const GoldenParticles: React.FC = () => {
   );
 };
 
-// 组合背景组件
+// 组合背景组件 - 优化性能和稳定性
 export const DashboardBackground: React.FC = () => {
+  const [isReady, setIsReady] = React.useState(false);
+
+  React.useEffect(() => {
+    // 延迟加载动画，避免初始渲染冲突
+    const timer = setTimeout(() => setIsReady(true), 100);
+    return () => clearTimeout(timer);
+  }, []);
+
   return (
     <>
       {/* 深色渐变基础背景 */}
       <div className="fixed inset-0 bg-gradient-to-br from-slate-950 via-gray-900 to-slate-950" />
 
-      {/* 蜂巢图案 */}
-      <HoneycombBackground />
+      {isReady && (
+        <>
+          {/* 蜂巢图案 */}
+          <HoneycombBackground />
 
-      {/* 金色粒子 */}
-      <GoldenParticles />
+          {/* 金色粒子 */}
+          <GoldenParticles />
 
-      {/* 蜜蜂动画 */}
-      <BeeAnimation />
+          {/* 蜜蜂动画 */}
+          <BeeAnimation />
+        </>
+      )}
 
       {/* 顶部金色光晕 */}
       <div className="fixed top-0 left-0 w-full h-96 bg-gradient-radial from-yellow-500/10 via-transparent to-transparent pointer-events-none" />
