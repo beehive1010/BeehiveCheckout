@@ -107,35 +107,141 @@ export function WelcomeLevel1ClaimButton({ onSuccess, referrerWallet, className 
   }, [showRegistrationModal]);
 
   const checkEligibility = async () => {
+    console.log('🔍 Checking Level 1 NFT claim eligibility...');
+
     if (!account?.address) {
       setIsEligible(false);
       return;
     }
 
+    // Validate referrer requirements
+    if (!referrerWallet) {
+      toast({
+        title: t('claim.referrerRequired'),
+        description: t('claim.referrerRequiredDesc'),
+        variant: "destructive",
+      });
+      setIsEligible(false);
+      return;
+    }
+
+    // Prevent self-referral
+    if (referrerWallet.toLowerCase() === account.address.toLowerCase()) {
+      toast({
+        title: t('claim.selfReferralNotAllowed'),
+        description: t('claim.selfReferralNotAllowedDesc'),
+        variant: "destructive",
+      });
+      setIsEligible(false);
+      return;
+    }
+
     try {
-      // 1. Check registration
-      const { data: userData } = await authService.getUser(account.address);
-      if (!userData) {
-        console.log('❌ User not registered');
+      // 1. Check if user is registered
+      console.log('🔍 Checking user registration status...');
+
+      try {
+        const { data: userData } = await authService.getUser(account.address);
+
+        if (!userData) {
+          console.log('❌ User not registered:', {
+            walletAddress: account.address
+          });
+
+          // Show user-friendly message
+          toast({
+            title: t('registration.required'),
+            description: t('registration.requiredDesc'),
+            duration: 3000
+          });
+
+          setIsEligible(false);
+
+          // Add stabilization delay before showing modal
+          setIsStabilizing(true);
+          setTimeout(() => {
+            setIsStabilizing(false);
+            setTimeout(() => {
+              setShowRegistrationModal(true);
+            }, 300);
+          }, 800);
+          return;
+        }
+
+        console.log('✅ User registration confirmed:', {
+          walletAddress: userData.wallet_address,
+          username: userData.username
+        });
+
+      } catch (registrationError) {
+        console.error('❌ Failed to check user registration:', registrationError);
+
+        // Treat as unregistered and show registration modal
+        toast({
+          title: "Registration Check Failed",
+          description: "Please complete your registration to proceed.",
+          duration: 3000
+        });
+
+        setIsEligible(false);
+
+        setTimeout(() => {
+          setShowRegistrationModal(true);
+        }, 500);
+        return;
+      }
+
+      // 2. Validate referrer with fallback logic
+      console.log('🔍 Validating referrer...');
+
+      let referrerData = null;
+      let isValidReferrer = false;
+
+      try {
+        // First try to get referrer as activated member
+        const membershipResult = await authService.isActivatedMember(referrerWallet);
+
+        if (membershipResult.isActivated && membershipResult.memberData) {
+          referrerData = membershipResult.memberData;
+          isValidReferrer = true;
+          console.log('✅ Referrer found as activated member:', {
+            wallet: membershipResult.memberData.wallet_address,
+            username: membershipResult.memberData.username
+          });
+        } else {
+          // Fallback: try to get referrer as registered user
+          const { data: userReferrer } = await authService.getUser(referrerWallet);
+
+          if (userReferrer) {
+            referrerData = userReferrer;
+            isValidReferrer = true;
+            console.log('✅ Referrer found as registered user:', {
+              wallet: userReferrer.wallet_address,
+              username: userReferrer.username
+            });
+          }
+        }
+      } catch (referrerError) {
+        console.error('❌ Error validating referrer:', referrerError);
+      }
+
+      if (!isValidReferrer || !referrerData) {
+        console.log('❌ Referrer validation failed - referrer not found:', {
+          referrerWallet
+        });
+        toast({
+          title: t('claim.invalidReferrer'),
+          description: t('claim.referrerMustBeRegistered') || 'Referrer must be a registered user on the platform',
+          variant: "destructive",
+        });
         setIsEligible(false);
         return;
       }
 
-      // 2. Check referrer
-      if (!referrerWallet || referrerWallet.toLowerCase() === account.address.toLowerCase()) {
-        console.log('❌ Invalid referrer');
-        setIsEligible(false);
-        return;
-      }
-
-      const membershipResult = await authService.isActivatedMember(referrerWallet);
-      const { data: userReferrer } = await authService.getUser(referrerWallet);
-
-      if (!membershipResult.isActivated && !userReferrer) {
-        console.log('❌ Referrer not valid');
-        setIsEligible(false);
-        return;
-      }
+      console.log('✅ Referrer validation passed:', {
+        referrerWallet: referrerData.wallet_address,
+        referrerUsername: referrerData.username
+      });
 
       // 3. Check if already owns NFT
       const nftContract = getContract({
@@ -158,6 +264,7 @@ export function WelcomeLevel1ClaimButton({ onSuccess, referrerWallet, className 
       }
 
       // All checks passed
+      console.log('✅ All eligibility checks passed');
       setIsEligible(true);
       setHasNFT(false);
     } catch (error) {
