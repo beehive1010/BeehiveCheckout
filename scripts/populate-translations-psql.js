@@ -33,7 +33,7 @@ async function populateTranslations() {
   // Clear existing translations
   console.log('🗑️ Clearing existing translations...');
   try {
-    await execAsync(`PGPASSWORD=bee8881941 psql "postgresql://postgres:bee8881941@db.cvqibjcbfrwsgkvthccp.supabase.co:5432/postgres" -c "DELETE FROM app_translations;"`);
+    await execAsync(`PGPASSWORD=bee8881941 psql "postgresql://postgres:bee8881941@db.cdjmtevekxpmgrixkiqt.supabase.co:5432/postgres" -c "DELETE FROM app_translations;"`);
     console.log('✅ Cleared existing translations');
   } catch (error) {
     console.error('❌ Error clearing translations:', error.message);
@@ -83,7 +83,7 @@ async function populateTranslations() {
     `;
     
     try {
-      await execAsync(`PGPASSWORD=bee8881941 psql "postgresql://postgres:bee8881941@db.cvqibjcbfrwsgkvthccp.supabase.co:5432/postgres" -c "${insertSQL.replace(/"/g, '\\"')}"`);
+      await execAsync(`PGPASSWORD=bee8881941 psql "postgresql://postgres:bee8881941@db.cdjmtevekxpmgrixkiqt.supabase.co:5432/postgres" -c "${insertSQL.replace(/"/g, '\\"')}"`);
       console.log(`✅ Inserted batch ${Math.floor(i / batchSize) + 1} (${batch.length} records)`);
     } catch (error) {
       console.error(`❌ Error inserting batch ${Math.floor(i / batchSize) + 1}:`, error.message);
@@ -92,7 +92,7 @@ async function populateTranslations() {
   
   // Verify insertion
   try {
-    const { stdout } = await execAsync(`PGPASSWORD=bee8881941 psql "postgresql://postgres:bee8881941@db.cvqibjcbfrwsgkvthccp.supabase.co:5432/postgres" -t -c "SELECT COUNT(*) FROM app_translations;"`);
+    const { stdout } = await execAsync(`PGPASSWORD=bee8881941 psql "postgresql://postgres:bee8881941@db.cdjmtevekxpmgrixkiqt.supabase.co:5432/postgres" -t -c "SELECT COUNT(*) FROM app_translations;"`);
     const count = parseInt(stdout.trim());
     console.log(`🎉 Translation population complete! Total records: ${count}`);
   } catch (error) {

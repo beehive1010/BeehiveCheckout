@@ -32,7 +32,7 @@ echo ""
 echo -e "${YELLOW}📋 Step 1: Listing deployed functions...${NC}"
 echo "----------------------------------------"
 
-if supabase functions list --project-ref cvqibjcbfrwsgkvthccp; then
+if supabase functions list --project-ref cdjmtevekxpmgrixkiqt; then
     echo -e "${GREEN}✅ Functions listed successfully${NC}"
 else
     echo -e "${RED}❌ Failed to list functions${NC}"
@@ -64,7 +64,7 @@ done
 
 echo ""
 echo "Current secrets in project:"
-if supabase secrets list --project-ref cvqibjcbfrwsgkvthccp; then
+if supabase secrets list --project-ref cdjmtevekxpmgrixkiqt; then
     echo -e "${GREEN}✅ Secrets listed successfully${NC}"
 else
     echo -e "${RED}❌ Failed to list secrets${NC}"
@@ -226,7 +226,7 @@ echo "Next steps:"
 echo "1. Fix any missing secrets identified above"
 echo "2. Address import/environment issues in function files"
 echo "3. Test functions locally before deploying"
-echo "4. Check logs with: supabase functions logs --project-ref cvqibjcbfrwsgkvthccp"
+echo "4. Check logs with: supabase functions logs --project-ref cdjmtevekxpmgrixkiqt"
 echo ""
 echo "For detailed function debugging:"
-echo "  supabase functions logs <function-name> --project-ref cvqibjcbfrwsgkvthccp"
+echo "  supabase functions logs <function-name> --project-ref cdjmtevekxpmgrixkiqt"

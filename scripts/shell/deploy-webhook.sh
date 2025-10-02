@@ -7,7 +7,7 @@ set -e
 echo "🔗 开始部署 ThirdWeb Webhook Edge Function..."
 
 # 配置信息
-PROJECT_REF="cvqibjcbfrwsgkvthccp"
+PROJECT_REF="cdjmtevekxpmgrixkiqt"
 FUNCTION_NAME="thirdweb-webhook"
 
 # 检查必要的环境变量
@@ -34,7 +34,7 @@ if [ $? -eq 0 ]; then
     echo "   THIRDWEB_WEBHOOK_SECRET=5aada87a79b4e45573607a1f46e0f3c8a04141d71044e3f6003c3a5a70e828f6"
     echo ""
     echo "2. 在 ThirdWeb Dashboard 中配置 Webhook URL:"
-    echo "   https://cvqibjcbfrwsgkvthccp.supabase.co/functions/v1/thirdweb-webhook"
+    echo "   https://cdjmtevekxpmgrixkiqt.supabase.co/functions/v1/thirdweb-webhook"
     echo ""
     echo "3. 创建webhook_processing_log表 (如果还没有):"
     echo "   运行: sql/create_webhook_system.sql"

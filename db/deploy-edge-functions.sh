@@ -6,8 +6,8 @@
 echo "🚀 开始部署修复后的Edge Functions..."
 
 # 设置项目引用
-PROJECT_REF="cvqibjcbfrwsgkvthccp"
-ACCESS_TOKEN="sbp_92c70391157352d8248124dcf96b62368b45afe1"
+PROJECT_REF="cdjmtevekxpmgrixkiqt"
+ACCESS_TOKEN="sbp_a7588eb0725800c535148983a1cdefd90ce309b7"
 
 # 验证项目状态
 echo "📊 检查项目状态..."
@@ -44,9 +44,9 @@ echo "5. ✅ matrix函数: 将集成安全的placement算法"
 
 echo ""
 echo "🔗 项目信息:"
-echo "  - 项目URL: https://cvqibjcbfrwsgkvthccp.supabase.co"
-echo "  - API URL: https://cvqibjcbfrwsgkvthccp.supabase.co/rest/v1/"
-echo "  - 实时URL: wss://cvqibjcbfrwsgkvthccp.supabase.co/realtime/v1/"
+echo "  - 项目URL: https://cdjmtevekxpmgrixkiqt.supabase.co"
+echo "  - API URL: https://cdjmtevekxpmgrixkiqt.supabase.co/rest/v1/"
+echo "  - 实时URL: wss://cdjmtevekxpmgrixkiqt.supabase.co/realtime/v1/"
 
 echo ""
 echo "📋 部署后验证清单:"

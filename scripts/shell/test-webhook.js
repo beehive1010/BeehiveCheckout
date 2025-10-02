@@ -6,7 +6,7 @@
 import crypto from 'crypto';
 
 // 配置
-const WEBHOOK_URL = 'https://cvqibjcbfrwsgkvthccp.supabase.co/functions/v1/thirdweb-webhook';
+const WEBHOOK_URL = 'https://cdjmtevekxpmgrixkiqt.supabase.co/functions/v1/thirdweb-webhook';
 const WEBHOOK_SECRET = '5aada87a79b4e45573607a1f46e0f3c8a04141d71044e3f6003c3a5a70e828f6';
 
 // 生成签名

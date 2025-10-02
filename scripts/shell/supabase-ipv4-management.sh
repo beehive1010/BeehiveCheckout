@@ -17,7 +17,7 @@ echo "==================================="
 
 # Project configuration
 export SUPABASE_ACCESS_TOKEN="sbp_537d0dbe16b7a13c92181067507bd4cb32bd1302"
-export PROJECT_REF="cvqibjcbfrwsgkvthccp"
+export PROJECT_REF="cdjmtevekxpmgrixkiqt"
 
 echo -e "${YELLOW}📋 Project Details:${NC}"
 echo "Project Reference: $PROJECT_REF"

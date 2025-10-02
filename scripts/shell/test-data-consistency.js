@@ -1,7 +1,7 @@
 // 测试useWallet和activate-membership Edge Function的数据一致性
 import { createClient } from '@supabase/supabase-js';
 
-const SUPABASE_URL = 'https://cvqibjcbfrwsgkvthccp.supabase.co';
+const SUPABASE_URL = 'https://cdjmtevekxpmgrixkiqt.supabase.co';
 const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImN2cWliamNiZnJ3c2drdnRoY2NwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MjY0MTI2MzQsImV4cCI6MjA0MTk4ODYzNH0.ZfZYFl6mWuGQlZVaHsK5YjbmjEJr6caxVHh4Sb6pxjQ';
 
 const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
@@ -15,7 +15,7 @@ async function testDataConsistency() {
     try {
         // 1. Test Edge Function get-member-info action (simulating useWallet logic)
         console.log('\n=== Testing Edge Function get-member-info ===');
-        const edgeFunctionResponse = await fetch('https://cvqibjcbfrwsgkvthccp.supabase.co/functions/v1/activate-membership', {
+        const edgeFunctionResponse = await fetch('https://cdjmtevekxpmgrixkiqt.supabase.co/functions/v1/activate-membership', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',

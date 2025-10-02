@@ -13,9 +13,9 @@ BLUE='\033[0;34m'
 NC='\033[0m' # No Color
 
 # Configuration
-API_BASE="https://cvqibjcbfrwsgkvthccp.supabase.co/functions/v1"
+API_BASE="https://cdjmtevekxpmgrixkiqt.supabase.co/functions/v1"
 AUTH_TOKEN="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImN2cWliamNiZnJ3c2drdnRoY2NwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MjU5MDQxNjYsImV4cCI6MjA0MTQ4MDE2Nn0.9_rqPVSQrOafqYNtdj-Jt1J4o3tWZuNZrYqKwUGTsBI"
-DB_URL="postgresql://postgres:bee8881941@db.cvqibjcbfrwsgkvthccp.supabase.co:5432/postgres"
+DB_URL="postgresql://postgres:bee8881941@db.cdjmtevekxpmgrixkiqt.supabase.co:5432/postgres"
 
 # Generate unique test user
 TIMESTAMP=$(date +%s)

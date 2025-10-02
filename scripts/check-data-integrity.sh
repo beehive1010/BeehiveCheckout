@@ -15,7 +15,7 @@ BLUE='\033[0;34m'
 NC='\033[0m' # No Color
 
 # Configuration
-DB_HOST="db.cvqibjcbfrwsgkvthccp.supabase.co"
+DB_HOST="db.cdjmtevekxpmgrixkiqt.supabase.co"
 DB_PORT="5432"
 DB_NAME="postgres"
 DB_USER="postgres"

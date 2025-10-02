@@ -4,7 +4,7 @@
 echo "🧪 完整ThirdWeb Webhook测试"
 echo "============================"
 
-WEBHOOK_URL="https://cvqibjcbfrwsgkvthccp.supabase.co/functions/v1/thirdweb-webhook"
+WEBHOOK_URL="https://cdjmtevekxpmgrixkiqt.supabase.co/functions/v1/thirdweb-webhook"
 WEBHOOK_SECRET="5aada87a79b4e45573607a1f46e0f3c8a04141d71044e3f6003c3a5a70e828f6"
 TIMESTAMP=$(date +%s)
 

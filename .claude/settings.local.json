@@ -64,10 +64,10 @@
     "thirdweb-mcp"
   ],
   "env": {
-    "DATABASE_URL": "postgresql://postgres:bee8881941@db.cvqibjcbfrwsgkvthccp.supabase.co:5432/postgres",
-    "SUPABASE_URL": "https://cvqibjcbfrwsgkvthccp.supabase.co",
-    "SUPABASE_ANON_KEY": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImN2cWliamNiZnJ3c2drdnRoY2NwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTcwNjU0MDUsImV4cCI6MjA3MjY0MTQwNX0.7CfL8CS1dQ8Gua89maSCDkgnMsNb19qp97mJyoJqJjs",
-    "SUPABASE_PROJECT_REF": "cvqibjcbfrwsgkvthccp"
+    "DATABASE_URL": "postgresql://postgres.cdjmtevekxpmgrixkiqt:bee8881941@aws-0-ap-southeast-1.pooler.supabase.com:6543/postgres",
+    "SUPABASE_URL": "https://cdjmtevekxpmgrixkiqt.supabase.co",
+    "SUPABASE_SERVICE_ROLE_KEY": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImNkam10ZXZla3hwbWdyaXhraXF0Iiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc1OTQxMjYwNywiZXhwIjoyMDc0OTg4NjA3fQ.20rKbos2eXue5HfMps0k8-RjXJ3g6IbbYtZkEW6vMo4",
+    "SUPABASE_PROJECT_REF": "cdjmtevekxpmgrixkiqt"
   }
 }
 

@@ -7,7 +7,7 @@ async function checkDatabase() {
         
         // First check the root member
         console.log('\n=== ROOT MEMBER CHECK ===');
-        const rootCheck = await fetch('https://cvqibjcbfrwsgkvthccp.supabase.co/functions/v1/activate-membership', {
+        const rootCheck = await fetch('https://cdjmtevekxpmgrixkiqt.supabase.co/functions/v1/activate-membership', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
@@ -21,7 +21,7 @@ async function checkDatabase() {
         
         // Test the activation function with a demo transaction
         console.log('\n=== ACTIVATION FUNCTION TEST ===');
-        const activationTest = await fetch('https://cvqibjcbfrwsgkvthccp.supabase.co/functions/v1/activate-membership', {
+        const activationTest = await fetch('https://cdjmtevekxpmgrixkiqt.supabase.co/functions/v1/activate-membership', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',

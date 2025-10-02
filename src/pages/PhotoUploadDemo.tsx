@@ -181,7 +181,7 @@ export default function PhotoUploadDemo() {
                   <div>
                     <span className="font-medium">S3 Endpoint:</span>
                     <p className="text-xs text-muted-foreground mt-1 break-all">
-                      https://cvqibjcbfrwsgkvthccp.storage.supabase.co
+                      https://cdjmtevekxpmgrixkiqt.storage.supabase.co
                     </p>
                   </div>
                   <div>

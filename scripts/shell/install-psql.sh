@@ -116,7 +116,7 @@ if command -v psql &> /dev/null; then
     echo "  npm run audit:rls"
     echo ""
     echo "Or use psql directly:"
-    echo "  psql \"postgresql://postgres:bee8881941@db.cvqibjcbfrwsgkvthccp.supabase.co:5432/postgres\""
+    echo "  psql \"postgresql://postgres:bee8881941@db.cdjmtevekxpmgrixkiqt.supabase.co:5432/postgres\""
 else
     echo -e "${RED}❌ psql command still not found${NC}"
     echo "You may need to:"
@@ -128,7 +128,7 @@ fi
 echo ""
 echo -e "${BLUE}💡 Alternative: Supabase Dashboard${NC}"
 echo "If psql installation fails, you can always use:"
-echo "1. Open: https://supabase.com/dashboard/project/cvqibjcbfrwsgkvthccp"
+echo "1. Open: https://supabase.com/dashboard/project/cdjmtevekxpmgrixkiqt"
 echo "2. Go to: SQL Editor"
 echo "3. Copy/paste contents from sql/ files"
 echo "4. Execute the queries"

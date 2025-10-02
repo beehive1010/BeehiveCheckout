@@ -15,7 +15,7 @@ NC='\033[0m' # No Color
 echo -e "${BLUE}🔄 Beehive Type Sync Tool${NC}"
 echo "=========================="
 
-PROJECT_ID="cvqibjcbfrwsgkvthccp"
+PROJECT_ID="cdjmtevekxpmgrixkiqt"
 TYPES_FILE="types/database.types.ts"
 BACKUP_FILE="types/database.types.ts.backup"
 TEMP_FILE="types/database.types.ts.new"
