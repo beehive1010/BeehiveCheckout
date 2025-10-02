@@ -281,11 +281,12 @@ serve(async (req) => {
     }
 
     // Step 5: Record referral if referrer exists - use matrix placement function
+    // 🔧 FIX: Allow default referrer (0x00...001) for matrix placement
     let referralRecord = null;
-    if (normalizedReferrerWallet && normalizedReferrerWallet !== '0x0000000000000000000000000000000000000001' && memberRecord) {
+    if (normalizedReferrerWallet && memberRecord) {
       try {
         console.log(`🔗 Recording referral for: ${walletAddress} -> ${normalizedReferrerWallet}`);
-        
+
         // Use the recursive matrix placement function to place member in all upline matrices
         const matrixPlacementResult = await supabase.rpc(
           'recursive_matrix_placement',
@@ -304,6 +305,8 @@ serve(async (req) => {
       } catch (referralErr) {
         console.warn('⚠️ Matrix placement error (non-critical):', referralErr);
       }
+    } else {
+      console.warn(`⚠️ Skipping matrix placement: referrer=${normalizedReferrerWallet}, memberRecord=${!!memberRecord}`);
     }
 
     // Matrix placement was already done in Step 5

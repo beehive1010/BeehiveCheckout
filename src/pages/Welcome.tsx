@@ -97,22 +97,30 @@ export default function Welcome() {
         console.log('📊 Welcome page: memberData =', membershipResult.memberData);
         console.log('📊 Welcome page: current_level =', membershipResult.memberData?.current_level);
 
-        // Only redirect if BOTH conditions are met:
-        // 1. User is activated in database (isActivated = true)
-        // 2. User has Level 1 or higher (current_level >= 1)
-        const isActivated = membershipResult.isActivated;
+        // STRICT CHECK: Only redirect if user has actually claimed Level 1 NFT
+        // Don't trust isActivated alone - must verify current_level >= 1
         const currentLevel = membershipResult.memberData?.current_level || 0;
-        const shouldRedirect = isActivated && currentLevel >= 1;
+        const hasClaimedNFT = currentLevel >= 1;
 
-        console.log('📊 Welcome page: Condition check - isActivated:', isActivated, 'currentLevel:', currentLevel, 'shouldRedirect:', shouldRedirect);
+        // Additional safety: Check if user has activation_sequence (confirms they went through claim process)
+        const hasActivationSequence = !!membershipResult.memberData?.activation_sequence;
+
+        // Only redirect if user has BOTH claimed NFT AND has activation sequence
+        const shouldRedirect = hasClaimedNFT && hasActivationSequence;
+
+        console.log('📊 Welcome page: Strict activation check:');
+        console.log('  - currentLevel:', currentLevel);
+        console.log('  - hasClaimedNFT:', hasClaimedNFT);
+        console.log('  - hasActivationSequence:', hasActivationSequence);
+        console.log('  - shouldRedirect:', shouldRedirect);
 
         if (shouldRedirect) {
-          console.log('✅ Welcome page: User is fully activated (Level', currentLevel, ') - redirecting to dashboard');
+          console.log('✅ Welcome page: User has claimed NFT (Level', currentLevel, ') - redirecting to dashboard');
           setLocation('/dashboard');
           return;
         }
 
-        console.log('🎯 Welcome page: User needs activation (isActivated:', isActivated, ', Level:', currentLevel, ') - showing claim interface');
+        console.log('🎯 Welcome page: User has NOT claimed NFT yet (Level:', currentLevel, ') - showing claim interface');
       } catch (error) {
         console.warn('⚠️ Welcome page: Failed to check membership status:', error);
         // Continue showing welcome page on error - let user try to claim
