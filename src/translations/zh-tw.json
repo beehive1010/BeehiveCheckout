@@ -133,10 +133,44 @@
   },
   "nav": {
     "referrals": "推薦",
-    "dashboard": "儀表板"
+    "dashboard": "儀表板",
+    "tasks": "任務",
+    "education": "教育中心",
+    "hiveworld": "蜂巢世界",
+    "nfts": "NFTs",
+    "home": "首頁",
+    "discover": "探索"
   },
   "dashboard": {
-    "welcomeBack": "歡迎回來，{username}！"
+    "welcomeBack": "歡迎回來，{username}！",
+    "viewMatrix": "查看矩陣",
+    "rewardCenter": "獎勵中心",
+    "earnings": "您的收益",
+    "totalRewards": "總獎勵",
+    "claimableRewards": "可領取獎勵",
+    "claimRewards": "領取獎勵",
+    "shareReferral": "分享推薦連結",
+    "shareDescription": "分享您的連結邀請朋友並賺取推薦獎勵",
+    "copyLink": "複製連結",
+    "social": {
+      "shareOn": "分享到"
+    },
+    "inviteTip": "💡 邀請朋友解鎖更多功能和獎勵"
+  },
+  "matrix": {
+    "matrixView": "矩陣視圖",
+    "layer": "層級",
+    "filled": "已滿",
+    "previousLayer": "上一層",
+    "nextLayer": "下一層",
+    "directReferral": "直接推薦",
+    "spillover": "溢出",
+    "emptySlot": "空位",
+    "legend": "圖例",
+    "directReferralDesc": "您直接推薦的成員",
+    "spilloverDesc": "上級溢出放置的成員",
+    "emptySlotDesc": "可用的矩陣位置",
+    "waitingToJoin": "等待加入"
   },
   "header": {
     "connectWallet": "連接錢包"
