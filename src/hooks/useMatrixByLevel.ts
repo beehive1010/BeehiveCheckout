@@ -239,50 +239,90 @@ export function useLayeredMatrix(currentViewWallet: string, targetLayer: number 
       console.log('🔍 Getting matrix data for current view wallet:', currentViewWallet, 'layer:', targetLayer, 'original root:', originalRootWallet);
       
       try {
-        // 确定矩阵根钱包 - 当查看不同层级时，currentViewWallet就是我们要查询的矩阵根
-        const matrixRootWallet = currentViewWallet;
-        
-        // 使用matrix_referrals_tree_view查询当前节点的指定层级数据
-        // 为每个层级生成正确的位置过滤器
-        let positionFilter = ['L', 'M', 'R'];
-        if (targetLayer === 2) {
-          positionFilter = ['L.L', 'L.M', 'L.R', 'M.L', 'M.M', 'M.R', 'R.L', 'R.M', 'R.R'];
-        } else if (targetLayer >= 3) {
-          // 对于第3层及以上，生成对应层级的所有可能位置
-          // 例如第3层: L.L.L, L.L.M, L.L.R, L.M.L, L.M.M, L.M.R, L.R.L, L.R.M, L.R.R, M.L.L, etc.
-          // 但为了保持3x3显示，我们不使用位置过滤，而是在后面的逻辑中处理
-          positionFilter = null;
+        // 确定矩阵根钱包
+        // 如果有originalRootWallet，说明我们在drill-down模式，需要查询子节点的下级
+        // 否则currentViewWallet就是矩阵根
+        const matrixRootWallet = originalRootWallet || currentViewWallet;
+        const isDrillDown = !!originalRootWallet && currentViewWallet !== originalRootWallet;
+
+        console.log('🔍 Query mode:', isDrillDown ? 'DRILL-DOWN' : 'ROOT-VIEW');
+        console.log('📍 Matrix root:', matrixRootWallet);
+        console.log('👁️ Current view:', currentViewWallet);
+        console.log('🎚️ Target layer:', targetLayer);
+
+        // 方案：使用 matrix_referrals 表直接查询 parent_wallet
+        // 当drill-down时，查询以currentViewWallet为parent的成员
+        let query;
+
+        if (isDrillDown && targetLayer === 1) {
+          // Drill-down模式：查询currentViewWallet的直接下级（parent_wallet = currentViewWallet）
+          console.log('🔽 Drill-down mode: Getting children of', currentViewWallet);
+
+          query = supabase
+            .from('matrix_referrals')
+            .select(`
+              member_wallet,
+              matrix_root_wallet,
+              layer,
+              position,
+              referral_type,
+              created_at,
+              parent_wallet
+            `)
+            .eq('matrix_root_wallet', matrixRootWallet)
+            .eq('parent_wallet', currentViewWallet);
+
+        } else {
+          // 正常模式：使用原有的tree view查询
+          let positionFilter = ['L', 'M', 'R'];
+          if (targetLayer === 2) {
+            positionFilter = ['L.L', 'L.M', 'L.R', 'M.L', 'M.M', 'M.R', 'R.L', 'R.M', 'R.R'];
+          } else if (targetLayer >= 3) {
+            positionFilter = null;
+          }
+
+          query = supabase
+            .from('matrix_referrals_tree_view')
+            .select(`
+              member_wallet,
+              matrix_root_wallet,
+              matrix_layer,
+              matrix_position,
+              referral_type,
+              placed_at
+            `)
+            .eq('matrix_root_wallet', matrixRootWallet)
+            .eq('matrix_layer', targetLayer);
+
+          if (positionFilter) {
+            query = query.in('matrix_position', positionFilter);
+          }
         }
-        
-        let query = supabase
-          .from('matrix_referrals_tree_view')
-          .select(`
-            member_wallet,
-            matrix_root_wallet,
-            matrix_layer,
-            matrix_position,
-            referral_type,
-            placed_at
-          `)
-          .eq('matrix_root_wallet', matrixRootWallet)
-          .eq('matrix_layer', targetLayer);
-          
-        // 只对前2层应用position过滤，第3层及以上不过滤，获取所有该层级数据
-        if (positionFilter) {
-          query = query.in('matrix_position', positionFilter);
-        }
-        
-        const { data: matrixData, error: matrixError } = await query.order('matrix_position');
-          
+
+        const { data: matrixData, error: matrixError } = await query.order(
+          isDrillDown && targetLayer === 1 ? 'position' : 'matrix_position'
+        );
+
         if (matrixError) {
           console.error('❌ Error fetching matrix data:', matrixError);
           throw matrixError;
         }
-        
-        console.log(`📊 Matrix layer ${targetLayer} data for root ${currentViewWallet}:`, matrixData);
+
+        console.log(`📊 Matrix layer ${targetLayer} data for current view ${currentViewWallet}:`, matrixData);
+
+        // 标准化数据格式（drill-down模式的字段名不同）
+        const normalizedData = matrixData?.map((item: any) => ({
+          member_wallet: item.member_wallet,
+          matrix_root_wallet: item.matrix_root_wallet,
+          matrix_position: isDrillDown && targetLayer === 1 ? item.position : item.matrix_position,
+          referral_type: item.referral_type,
+          placed_at: isDrillDown && targetLayer === 1 ? item.created_at : item.placed_at
+        })) || [];
+
+        console.log(`📊 Normalized matrix data:`, normalizedData);
         
         // 获取用户信息
-        const memberWallets = matrixData?.map(m => m.member_wallet) || [];
+        const memberWallets = normalizedData?.map(m => m.member_wallet) || [];
         let usersData = [];
 
         if (memberWallets.length > 0) {
@@ -290,7 +330,7 @@ export function useLayeredMatrix(currentViewWallet: string, targetLayer: number 
             .from('users')
             .select('wallet_address, username')
             .in('wallet_address', memberWallets);
-            
+
           if (!usersError) {
             usersData = users || [];
           }
@@ -298,48 +338,58 @@ export function useLayeredMatrix(currentViewWallet: string, targetLayer: number 
 
         // 组织成标准3x3格式 - 根据层级不同处理
         let matrix3x3 = [];
-        
+
         if (targetLayer === 1) {
           // Layer 1: 标准L, M, R布局
           const matrixPositions = ['L', 'M', 'R'];
-          matrix3x3 = matrixPositions.map(position => {
-            const member = matrixData?.find((m: any) => m.matrix_position === position);
-            return createMemberObject(member, position, usersData);
+          const memberPromises = matrixPositions.map(async position => {
+            // 在drill-down模式下，position可能是完整路径（如"L.M.R"），我们需要提取最后一个字母
+            const member = normalizedData?.find((m: any) => {
+              const pos = m.matrix_position;
+              if (!pos) return false;
+              // 如果是drill-down模式，position可能包含点，取最后一部分
+              const lastPart = pos.includes('.') ? pos.split('.').pop() : pos;
+              return lastPart === position;
+            });
+            return await createMemberObject(member, position, usersData);
           });
+          matrix3x3 = await Promise.all(memberPromises);
         } else if (targetLayer === 2) {
           // Layer 2: 按照L下级、M下级、R下级分组显示
           const displayPositions = ['L', 'M', 'R'];
-          matrix3x3 = displayPositions.map((position) => {
+          const memberPromises = displayPositions.map(async (position) => {
             // 查找该父位置下的所有子成员 (例如 L.L, L.M, L.R)
-            const childMembers = matrixData?.filter(m => 
+            const childMembers = normalizedData?.filter(m =>
               m.matrix_position && m.matrix_position.startsWith(`${position}.`)
             ) || [];
-            
+
             // 如果有多个子成员，优先显示第一个（按位置排序）
-            const sortedChildren = childMembers.sort((a, b) => 
+            const sortedChildren = childMembers.sort((a, b) =>
               (a.matrix_position || '').localeCompare(b.matrix_position || '')
             );
             const member = sortedChildren[0] || null;
-            
-            return createMemberObject(member, position, usersData);
+
+            return await createMemberObject(member, position, usersData);
           });
+          matrix3x3 = await Promise.all(memberPromises);
         } else {
           // Layer 3+: 获取该层级所有成员，按顺序显示前3个在L, M, R位置
           // 这样确保每一层都有清晰的3x3布局，用户可以点击任意成员继续深入
           const matrixPositions = ['L', 'M', 'R'];
-          const sortedMembers = matrixData?.sort((a, b) => {
+          const sortedMembers = normalizedData?.sort((a, b) => {
             // 按位置字符串排序，确保显示顺序一致
             return (a.matrix_position || '').localeCompare(b.matrix_position || '');
           }) || [];
-          
-          matrix3x3 = matrixPositions.map((position, index) => {
+
+          const memberPromises = matrixPositions.map(async (position, index) => {
             const member = sortedMembers[index];
-            return createMemberObject(member, position, usersData);
+            return await createMemberObject(member, position, usersData);
           });
+          matrix3x3 = await Promise.all(memberPromises);
         }
 
         // 辅助函数：创建成员对象
-        function createMemberObject(member: any, position: string, usersData: any[]) {
+        async function createMemberObject(member: any, position: string, usersData: any[]) {
           if (!member) {
             return {
               position,
@@ -347,9 +397,37 @@ export function useLayeredMatrix(currentViewWallet: string, targetLayer: number 
             };
           }
 
-          const userData = usersData.find((u: any) => 
+          const userData = usersData.find((u: any) =>
             u.wallet_address.toLowerCase() === member.member_wallet.toLowerCase()
           );
+
+          // 查询该成员的下级，检查L/M/R位置是否有成员
+          let hasChildInL = false;
+          let hasChildInM = false;
+          let hasChildInR = false;
+
+          try {
+            const { data: childrenData } = await supabase
+              .from('matrix_referrals')
+              .select('position')
+              .eq('matrix_root_wallet', matrixRootWallet)
+              .eq('parent_wallet', member.member_wallet);
+
+            if (childrenData && childrenData.length > 0) {
+              // 检查每个位置
+              childrenData.forEach((child: any) => {
+                const pos = child.position;
+                if (!pos) return;
+                // 提取最后一个位置字母
+                const lastPart = pos.includes('.') ? pos.split('.').pop() : pos;
+                if (lastPart === 'L') hasChildInL = true;
+                if (lastPart === 'M') hasChildInM = true;
+                if (lastPart === 'R') hasChildInR = true;
+              });
+            }
+          } catch (error) {
+            console.warn('Could not check children for', member.member_wallet, error);
+          }
 
           return {
             position,
@@ -361,13 +439,15 @@ export function useLayeredMatrix(currentViewWallet: string, targetLayer: number 
               isActivated: true,
               isDirect: member.referral_type === 'is_direct',
               isSpillover: member.referral_type === 'is_spillover',
-              hasChildInL: false,
-              hasChildInM: false,
-              hasChildInR: false,
+              hasChildInL,
+              hasChildInM,
+              hasChildInR,
               actualPosition: member.matrix_position || position // 保留实际位置信息
             }
           };
         }
+
+        // 使用 Promise.all 并行创建所有成员对象
 
         console.log(`📊 Organized matrix 3x3 for ${currentViewWallet}:`, matrix3x3);
 
@@ -375,10 +455,10 @@ export function useLayeredMatrix(currentViewWallet: string, targetLayer: number 
           matrixRootWallet: currentViewWallet,
           targetLayer,
           layer1Matrix: matrix3x3, // 保持兼容性
-          totalLayer1Members: matrixData?.length || 0,
+          totalLayer1Members: normalizedData?.length || 0,
           // 新增字段
           currentLayerMatrix: matrix3x3,
-          totalCurrentLayerMembers: matrixData?.length || 0
+          totalCurrentLayerMembers: normalizedData?.length || 0
         };
         
       } catch (error) {
