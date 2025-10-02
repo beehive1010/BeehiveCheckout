@@ -129,46 +129,22 @@ export function ActiveMembershipClaimButton({
     }
   };
 
-  // Function to register new user
+  // 🔧 FIX: Do NOT auto-register users - require proper registration first
+  // This function has been removed to prevent auto-registration with auto-generated usernames
+  // Users must go through the proper registration flow before claiming NFTs
   const registerUser = async () => {
     if (!account?.address) return false;
-    
-    setIsRegistering(true);
-    try {
-      console.log('🚀 Registering new user...');
-      
-      // Get referrer from localStorage
-      const referrerWallet = localStorage.getItem('beehive-referrer') || '0x0000000000000000000000000000000000000001';
-      
-      const { data, error } = await supabase
-        .from('users')
-        .insert({
-          wallet_address: account.address,
-          username: `user_${account.address.slice(-6)}`,
-          referrer_wallet: referrerWallet,
-          created_at: new Date().toISOString()
-        })
-        .select()
-        .single();
-      
-      if (error) {
-        console.error('❌ User registration failed:', error);
-        toast.error('User registration failed. Please try again.');
-        return false;
-      }
-      
-      console.log('✅ User registered successfully:', data);
-      toast.success('User registered successfully!');
-      setIsUserRegistered(true);
-      return true;
-      
-    } catch (error) {
-      console.error('❌ User registration error:', error);
-      toast.error('Registration failed. Please try again.');
-      return false;
-    } finally {
-      setIsRegistering(false);
-    }
+
+    // User is not registered - show error and redirect to registration
+    console.error('❌ User not registered:', account.address);
+    toast.error('Please complete registration before claiming NFT. Redirecting to Welcome page...');
+
+    // Redirect to Welcome page which has proper registration flow
+    setTimeout(() => {
+      window.location.href = '/';
+    }, 2000);
+
+    return false;
   };
 
   // Check user registration and allowance when account changes
