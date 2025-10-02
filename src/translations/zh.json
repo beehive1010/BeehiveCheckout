@@ -111,6 +111,15 @@
     "rewards": "奖励",
     "tasks": "任务"
   },
+  "dashboard": {
+    "social": {
+      "facebook": "Facebook",
+      "telegram": "Telegram",
+      "twitter": "X (Twitter)",
+      "whatsapp": "WhatsApp",
+      "shareOn": "分享到"
+    }
+  },
   "notifications": {
     "mark_all_read": "标记全部已读",
     "new_reward": "新奖励到账",
@@ -1025,5 +1034,8 @@
   },
   "claim": {
     "checkingOwnership": "检查NFT持有状态..."
+  },
+  "dashboard": {
+    "welcomeBack": "欢迎回来，{username}！"
   }
 }

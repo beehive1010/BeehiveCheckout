@@ -893,9 +893,11 @@
     "shareReferral": "Share Referral Link",
     "shareToEarn": "Share your link to earn commissions from your referrals",
     "social": {
+      "facebook": "Facebook",
       "telegram": "Telegram",
-      "twitter": "Twitter",
-      "whatsapp": "WhatsApp"
+      "twitter": "X (Twitter)",
+      "whatsapp": "WhatsApp",
+      "shareOn": "Share on"
     },
     "stats": {
       "allTime": "All Time",

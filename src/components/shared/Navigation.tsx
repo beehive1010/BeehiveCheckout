@@ -34,21 +34,21 @@ export default function Navigation() {
       {/* Desktop Navigation */}
       <nav className="hidden md:block bg-secondary border-b border-border">
         <div className="container mx-auto px-4">
-          <div className="flex overflow-x-auto">
+          <div className="flex flex-nowrap overflow-x-auto scrollbar-hide">
             {navItems.map((item) => {
               const isActive = location === item.path;
-              
+
               return (
-                <Link 
-                  key={item.key} 
+                <Link
+                  key={item.key}
                   href={item.path}
                   data-testid={`link-${item.key}`}
                 >
                   <button
                     className={`
-                      tab-btn flex-shrink-0 px-6 py-4 transition-colors border-b-2
-                      ${isActive 
-                        ? 'border-honey text-honey' 
+                      tab-btn flex-shrink-0 px-6 py-4 transition-colors border-b-2 whitespace-nowrap
+                      ${isActive
+                        ? 'border-honey text-honey'
                         : 'border-transparent text-muted-foreground hover:bg-muted hover:text-honey'
                       }
                     `}

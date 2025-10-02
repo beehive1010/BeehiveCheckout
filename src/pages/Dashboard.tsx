@@ -5,7 +5,7 @@ import {useLocation} from 'wouter';
 import {useToast} from '../hooks/use-toast';
 import Navigation from '../components/shared/Navigation';
 import {supabase} from '../lib/supabase';
-import {Award, DollarSign, Plus, RefreshCw, Users, Copy, ArrowRight, TrendingUp, Lock} from 'lucide-react';
+import {Award, DollarSign, Plus, RefreshCw, Users, Copy, ArrowRight, TrendingUp, Lock, Share2} from 'lucide-react';
 import {useIsMobile} from '../hooks/use-mobile';
 import {Card, CardContent, CardHeader, CardTitle} from '../components/ui/card';
 import {Button} from '../components/ui/button';
@@ -367,6 +367,31 @@ export default function Dashboard() {
     });
   };
 
+  const shareToSocial = (platform: 'facebook' | 'whatsapp' | 'twitter' | 'telegram') => {
+    const referralLink = `${window.location.origin}/welcome?ref=${walletAddress}`;
+    const shareText = t('dashboard.shareDescription');
+    const fullText = `${shareText}\n\n${referralLink}`;
+
+    let shareUrl = '';
+
+    switch (platform) {
+      case 'facebook':
+        shareUrl = `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(referralLink)}`;
+        break;
+      case 'whatsapp':
+        shareUrl = `https://wa.me/?text=${encodeURIComponent(fullText)}`;
+        break;
+      case 'twitter':
+        shareUrl = `https://twitter.com/intent/tweet?text=${encodeURIComponent(shareText)}&url=${encodeURIComponent(referralLink)}`;
+        break;
+      case 'telegram':
+        shareUrl = `https://t.me/share/url?url=${encodeURIComponent(referralLink)}&text=${encodeURIComponent(shareText)}`;
+        break;
+    }
+
+    window.open(shareUrl, '_blank', 'width=600,height=400');
+  };
+
   // 初始数据加载
   useEffect(() => {
     if (walletAddress) {
@@ -432,9 +457,9 @@ export default function Dashboard() {
     <div className="min-h-screen bg-background">
       <Navigation />
 
-      <div className="w-full px-4 sm:px-6 lg:container lg:mx-auto py-4 sm:py-6 pb-8 sm:pb-12 lg:pb-16 space-y-4 sm:space-y-6 animate-in fade-in-50 duration-700">
+      <div className="w-full px-4 sm:px-6 lg:container lg:mx-auto py-2 sm:py-4 pb-8 sm:pb-12 lg:pb-16 space-y-3 sm:space-y-4 animate-in fade-in-50 duration-700">
         {/* Enhanced Header */}
-        <div className="text-center sm:text-left mb-4 sm:mb-6 animate-in slide-in-from-top-2 duration-500">
+        <div className="text-center sm:text-left mb-2 sm:mb-4 animate-in slide-in-from-top-2 duration-500">
           <div className="relative inline-block">
             <div className="absolute inset-0 bg-gradient-to-r from-honey/20 to-amber-400/20 rounded-2xl blur-xl animate-pulse"></div>
             <h1 className="relative text-3xl sm:text-4xl lg:text-5xl font-bold bg-gradient-to-r from-honey via-amber-400 to-honey bg-clip-text text-transparent mb-2 sm:mb-3">
@@ -488,41 +513,46 @@ export default function Dashboard() {
         )}
 
         {/* Main Stats Grid - Desktop: 3 columns, Mobile: 1 column */}
-        <div className={`grid gap-4 sm:gap-6 ${isMobile ? 'grid-cols-1' : 'grid-cols-1 lg:grid-cols-3'}`}>
+        <div className={`grid gap-3 sm:gap-4 ${isMobile ? 'grid-cols-1' : 'grid-cols-1 lg:grid-cols-3'} animate-in slide-in-from-bottom-2 duration-500`}>
           {/* BCC Balance Card */}
-          <Card className="relative overflow-hidden bg-gradient-to-br from-honey/10 via-amber-50/50 to-honey/5 dark:from-honey/5 dark:via-slate-800 dark:to-honey/10 border-2 border-honey/20 hover:border-honey/40 transition-all duration-300 hover:scale-[1.02] shadow-xl hover:shadow-2xl">
-            <div className="absolute inset-0 bg-gradient-to-r from-honey/5 via-transparent to-amber-400/5 opacity-50"></div>
-            <CardHeader className={`relative ${isMobile ? 'pb-3' : 'pb-4'}`}>
-              <CardTitle className="flex items-center gap-3">
-                <div className={`${isMobile ? 'w-8 h-8' : 'w-10 h-10'} bg-gradient-to-br from-honey to-amber-500 rounded-xl flex items-center justify-center shadow-lg`}>
-                  <DollarSign className={`${isMobile ? 'h-4 w-4' : 'h-5 w-5'} text-black`} />
+          <Card className="group relative overflow-hidden bg-gradient-to-br from-slate-900/95 via-gray-900/90 to-slate-900/95 dark:from-black/95 dark:via-slate-950/90 dark:to-black/95 border-2 border-slate-700 dark:border-slate-800 hover:border-honey/50 transition-all duration-500 hover:scale-[1.02] shadow-2xl hover:shadow-3xl hover:shadow-honey/20">
+            {/* Golden background gradient */}
+            <div className="absolute inset-0 bg-gradient-to-br from-honey/20 via-amber-300/15 to-yellow-400/20 opacity-60 group-hover:opacity-80 transition-opacity duration-300"></div>
+            {/* Animated border glow */}
+            <div className="absolute inset-0 rounded-xl border-2 border-honey/40 opacity-0 group-hover:opacity-100 transition-all duration-300 animate-pulse"></div>
+            <div className="absolute inset-0 bg-gradient-to-r from-honey/5 via-transparent to-amber-400/5 opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
+
+            <CardHeader className={`relative ${isMobile ? 'pb-2' : 'pb-3'}`}>
+              <CardTitle className="flex items-center gap-2 sm:gap-3">
+                <div className={`${isMobile ? 'w-7 h-7' : 'w-9 h-9'} bg-gradient-to-br from-honey/80 via-honey to-amber-400 rounded-xl flex items-center justify-center shadow-lg group-hover:scale-110 transition-all duration-300`}>
+                  <DollarSign className={`${isMobile ? 'h-3.5 w-3.5' : 'h-4 w-4'} text-black`} />
                 </div>
-                <div>
-                  <span className={`${isMobile ? 'text-sm' : 'text-base'} font-bold bg-gradient-to-r from-honey to-amber-500 bg-clip-text text-transparent`}>
+                <div className="flex-1 min-w-0">
+                  <span className={`${isMobile ? 'text-sm' : 'text-base'} font-bold text-honey group-hover:text-amber-300 transition-colors duration-300 block truncate`}>
                     {t('dashboard.bccBalance')}
                   </span>
-                  <p className="text-xs text-muted-foreground mt-0.5">{t('dashboard.yourTokens')}</p>
+                  <p className="text-xs text-gray-400 dark:text-gray-500 mt-0.5 truncate">{t('dashboard.yourTokens')}</p>
                 </div>
               </CardTitle>
             </CardHeader>
-            <CardContent className={`relative space-y-3 ${isMobile ? 'pt-0' : ''}`}>
+            <CardContent className={`relative space-y-2 sm:space-y-3 ${isMobile ? 'pt-0' : ''}`}>
               <div className="flex items-end justify-between">
-                <div>
-                  <p className={`${isMobile ? 'text-2xl' : 'text-3xl'} font-bold text-honey`}>{data.bccBalance.toFixed(2)}</p>
-                  <p className="text-xs text-muted-foreground">{t('dashboard.transferable')}</p>
+                <div className="flex-1 min-w-0">
+                  <p className={`${isMobile ? 'text-2xl' : 'text-3xl'} font-bold text-honey group-hover:text-amber-300 transition-colors duration-300 truncate`}>{data.bccBalance.toFixed(2)}</p>
+                  <p className="text-xs text-gray-400 dark:text-gray-500 truncate">{t('dashboard.transferable')}</p>
                 </div>
-                <Badge className="bg-honey/20 text-honey border-honey/30">{t('dashboard.available')}</Badge>
+                <Badge className="bg-honey/20 text-honey border-honey/30 group-hover:bg-honey/30 transition-all duration-300 flex-shrink-0">{t('dashboard.available')}</Badge>
               </div>
-              <div className="flex items-center gap-2 p-3 bg-black/5 dark:bg-white/5 rounded-lg">
-                <Lock className="h-4 w-4 text-orange-500" />
-                <div className="flex-1">
-                  <p className="text-sm font-semibold text-orange-500">{data.bccLocked.toFixed(2)}</p>
-                  <p className="text-xs text-muted-foreground">{t('dashboard.bccLocked')}</p>
+              <div className="flex items-center gap-2 p-2 sm:p-3 bg-gradient-to-br from-gray-800 via-gray-700 to-gray-800 hover:from-orange-900/20 hover:via-orange-800/10 hover:to-orange-900/20 border border-orange-500/30 rounded-lg transition-all duration-300">
+                <Lock className="h-4 w-4 text-orange-400 flex-shrink-0" />
+                <div className="flex-1 min-w-0">
+                  <p className="text-sm font-semibold text-orange-400 truncate">{data.bccLocked.toFixed(2)}</p>
+                  <p className="text-xs text-gray-400 dark:text-gray-500 truncate">{t('dashboard.bccLocked')}</p>
                 </div>
               </div>
               <Button
                 onClick={() => setLocation('/tokens')}
-                className={`w-full bg-gradient-to-r from-honey to-amber-400 hover:from-honey/90 hover:to-amber-500 text-black font-bold shadow-lg hover:shadow-xl transition-all duration-300 ${isMobile ? 'h-10' : 'h-11'}`}
+                className={`w-full bg-gradient-to-r from-honey to-amber-400 hover:from-honey/90 hover:to-amber-500 text-black font-bold shadow-lg hover:shadow-xl transition-all duration-300 ${isMobile ? 'h-9' : 'h-10'}`}
               >
                 <Plus className="h-4 w-4 mr-2" />
                 {t('dashboard.topUp')}
@@ -531,40 +561,44 @@ export default function Dashboard() {
           </Card>
 
           {/* Network Card */}
-          <Card className="relative overflow-hidden bg-gradient-to-br from-blue-50 via-indigo-50/50 to-blue-50 dark:from-blue-950/30 dark:via-slate-800 dark:to-blue-950/20 border-2 border-blue-200 dark:border-blue-800 hover:border-blue-400 dark:hover:border-blue-600 transition-all duration-300 hover:scale-[1.02] shadow-xl hover:shadow-2xl">
-            <div className="absolute inset-0 bg-gradient-to-r from-blue-500/5 via-transparent to-indigo-500/5 opacity-50"></div>
-            <CardHeader className={`relative ${isMobile ? 'pb-3' : 'pb-4'}`}>
-              <CardTitle className="flex items-center gap-3">
-                <div className={`${isMobile ? 'w-8 h-8' : 'w-10 h-10'} bg-gradient-to-br from-blue-500 to-indigo-500 rounded-xl flex items-center justify-center shadow-lg`}>
-                  <Users className={`${isMobile ? 'h-4 w-4' : 'h-5 w-5'} text-white`} />
+          <Card className="group relative overflow-hidden bg-gradient-to-br from-slate-900/95 via-gray-900/90 to-slate-900/95 dark:from-black/95 dark:via-slate-950/90 dark:to-black/95 border-2 border-slate-700 dark:border-slate-800 hover:border-blue-500/50 transition-all duration-500 hover:scale-[1.02] shadow-2xl hover:shadow-3xl hover:shadow-blue-500/20">
+            {/* Blue background gradient */}
+            <div className="absolute inset-0 bg-gradient-to-br from-blue-500/20 via-indigo-400/15 to-blue-600/20 opacity-60 group-hover:opacity-80 transition-opacity duration-300"></div>
+            {/* Animated border glow */}
+            <div className="absolute inset-0 rounded-xl border-2 border-blue-500/40 opacity-0 group-hover:opacity-100 transition-all duration-300 animate-pulse"></div>
+            <div className="absolute inset-0 bg-gradient-to-r from-blue-500/5 via-transparent to-indigo-500/5 opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
+
+            <CardHeader className={`relative ${isMobile ? 'pb-2' : 'pb-3'}`}>
+              <CardTitle className="flex items-center gap-2 sm:gap-3">
+                <div className={`${isMobile ? 'w-7 h-7' : 'w-9 h-9'} bg-gradient-to-br from-blue-500 to-indigo-500 rounded-xl flex items-center justify-center shadow-lg group-hover:scale-110 transition-all duration-300`}>
+                  <Users className={`${isMobile ? 'h-3.5 w-3.5' : 'h-4 w-4'} text-white`} />
                 </div>
-                <div>
-                  <span className={`${isMobile ? 'text-sm' : 'text-base'} font-bold bg-gradient-to-r from-blue-600 to-indigo-600 dark:from-blue-400 dark:to-indigo-400 bg-clip-text text-transparent`}>
+                <div className="flex-1 min-w-0">
+                  <span className={`${isMobile ? 'text-sm' : 'text-base'} font-bold text-blue-400 group-hover:text-blue-300 transition-colors duration-300 block truncate`}>
                     {t('dashboard.referralNetwork')}
                   </span>
-                  <p className="text-xs text-muted-foreground mt-0.5">{t('dashboard.yourTeam')}</p>
+                  <p className="text-xs text-gray-400 dark:text-gray-500 mt-0.5 truncate">{t('dashboard.yourTeam')}</p>
                 </div>
               </CardTitle>
             </CardHeader>
-            <CardContent className={`relative space-y-3 ${isMobile ? 'pt-0' : ''}`}>
-              <div className="grid grid-cols-2 gap-3">
-                <div className="p-3 bg-blue-500/10 dark:bg-blue-500/20 rounded-lg">
-                  <p className={`${isMobile ? 'text-xl' : 'text-2xl'} font-bold text-blue-600 dark:text-blue-400`}>{data.directReferrals}</p>
-                  <p className="text-xs text-muted-foreground">{t('dashboard.directReferrals')}</p>
+            <CardContent className={`relative space-y-2 sm:space-y-3 ${isMobile ? 'pt-0' : ''}`}>
+              <div className="grid grid-cols-2 gap-2 sm:gap-3">
+                <div className="p-2 sm:p-3 bg-gradient-to-br from-gray-800 via-gray-700 to-gray-800 hover:from-blue-900/20 hover:via-blue-800/10 hover:to-blue-900/20 border border-blue-500/30 rounded-lg transition-all duration-300">
+                  <p className={`${isMobile ? 'text-xl' : 'text-2xl'} font-bold text-blue-400 truncate`}>{data.directReferrals}</p>
+                  <p className="text-xs text-gray-400 dark:text-gray-500 truncate">{t('dashboard.directReferrals')}</p>
                 </div>
-                <div className="p-3 bg-indigo-500/10 dark:bg-indigo-500/20 rounded-lg">
-                  <p className={`${isMobile ? 'text-xl' : 'text-2xl'} font-bold text-indigo-600 dark:text-indigo-400`}>{data.totalTeamSize}</p>
-                  <p className="text-xs text-muted-foreground">{t('dashboard.totalTeamSize')}</p>
+                <div className="p-2 sm:p-3 bg-gradient-to-br from-gray-800 via-gray-700 to-gray-800 hover:from-indigo-900/20 hover:via-indigo-800/10 hover:to-indigo-900/20 border border-indigo-500/30 rounded-lg transition-all duration-300">
+                  <p className={`${isMobile ? 'text-xl' : 'text-2xl'} font-bold text-indigo-400 truncate`}>{data.totalTeamSize}</p>
+                  <p className="text-xs text-gray-400 dark:text-gray-500 truncate">{t('dashboard.totalTeamSize')}</p>
                 </div>
               </div>
-              <div className="flex items-center gap-2 p-2 bg-blue-500/5 dark:bg-blue-500/10 rounded-lg">
-                <TrendingUp className="h-4 w-4 text-blue-500" />
-                <p className="text-xs text-muted-foreground">{t('dashboard.maxLayer')}: <span className="font-bold text-blue-600 dark:text-blue-400">{data.maxLayer}</span></p>
+              <div className="flex items-center gap-2 p-2 bg-gradient-to-br from-gray-800 via-gray-700 to-gray-800 border border-blue-500/30 rounded-lg">
+                <TrendingUp className="h-4 w-4 text-blue-400 flex-shrink-0" />
+                <p className="text-xs text-gray-400 dark:text-gray-500 flex-1 truncate">{t('dashboard.maxLayer')}: <span className="font-bold text-blue-400">{data.maxLayer}</span></p>
               </div>
               <Button
                 onClick={() => setLocation('/referrals')}
-                variant="outline"
-                className={`w-full border-2 border-blue-300 dark:border-blue-700 hover:bg-blue-50 dark:hover:bg-blue-950/50 hover:border-blue-400 dark:hover:border-blue-600 transition-all duration-300 ${isMobile ? 'h-10' : 'h-11'}`}
+                className={`w-full bg-gradient-to-r from-blue-500 to-indigo-500 hover:from-blue-600 hover:to-indigo-600 text-white font-bold shadow-lg hover:shadow-xl transition-all duration-300 ${isMobile ? 'h-9' : 'h-10'}`}
               >
                 {t('dashboard.viewMatrix')}
                 <ArrowRight className="h-4 w-4 ml-2" />
@@ -573,36 +607,41 @@ export default function Dashboard() {
           </Card>
 
           {/* Rewards Card */}
-          <Card className="relative overflow-hidden bg-gradient-to-br from-emerald-50 via-green-50/50 to-emerald-50 dark:from-emerald-950/30 dark:via-slate-800 dark:to-emerald-950/20 border-2 border-emerald-200 dark:border-emerald-800 hover:border-emerald-400 dark:hover:border-emerald-600 transition-all duration-300 hover:scale-[1.02] shadow-xl hover:shadow-2xl">
-            <div className="absolute inset-0 bg-gradient-to-r from-emerald-500/5 via-transparent to-green-500/5 opacity-50"></div>
-            <CardHeader className={`relative ${isMobile ? 'pb-3' : 'pb-4'}`}>
-              <CardTitle className="flex items-center gap-3">
-                <div className={`${isMobile ? 'w-8 h-8' : 'w-10 h-10'} bg-gradient-to-br from-emerald-500 to-green-500 rounded-xl flex items-center justify-center shadow-lg`}>
-                  <Award className={`${isMobile ? 'h-4 w-4' : 'h-5 w-5'} text-white`} />
+          <Card className="group relative overflow-hidden bg-gradient-to-br from-slate-900/95 via-gray-900/90 to-slate-900/95 dark:from-black/95 dark:via-slate-950/90 dark:to-black/95 border-2 border-slate-700 dark:border-slate-800 hover:border-emerald-500/50 transition-all duration-500 hover:scale-[1.02] shadow-2xl hover:shadow-3xl hover:shadow-emerald-500/20">
+            {/* Green background gradient */}
+            <div className="absolute inset-0 bg-gradient-to-br from-emerald-500/20 via-green-400/15 to-emerald-600/20 opacity-60 group-hover:opacity-80 transition-opacity duration-300"></div>
+            {/* Animated border glow */}
+            <div className="absolute inset-0 rounded-xl border-2 border-emerald-500/40 opacity-0 group-hover:opacity-100 transition-all duration-300 animate-pulse"></div>
+            <div className="absolute inset-0 bg-gradient-to-r from-emerald-500/5 via-transparent to-green-500/5 opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
+
+            <CardHeader className={`relative ${isMobile ? 'pb-2' : 'pb-3'}`}>
+              <CardTitle className="flex items-center gap-2 sm:gap-3">
+                <div className={`${isMobile ? 'w-7 h-7' : 'w-9 h-9'} bg-gradient-to-br from-emerald-500 to-green-500 rounded-xl flex items-center justify-center shadow-lg group-hover:scale-110 transition-all duration-300`}>
+                  <Award className={`${isMobile ? 'h-3.5 w-3.5' : 'h-4 w-4'} text-white`} />
                 </div>
-                <div>
-                  <span className={`${isMobile ? 'text-sm' : 'text-base'} font-bold bg-gradient-to-r from-emerald-600 to-green-600 dark:from-emerald-400 dark:to-green-400 bg-clip-text text-transparent`}>
+                <div className="flex-1 min-w-0">
+                  <span className={`${isMobile ? 'text-sm' : 'text-base'} font-bold text-emerald-400 group-hover:text-emerald-300 transition-colors duration-300 block truncate`}>
                     {t('dashboard.rewardCenter')}
                   </span>
-                  <p className="text-xs text-muted-foreground mt-0.5">{t('dashboard.earnings')}</p>
+                  <p className="text-xs text-gray-400 dark:text-gray-500 mt-0.5 truncate">{t('dashboard.earnings')}</p>
                 </div>
               </CardTitle>
             </CardHeader>
-            <CardContent className={`relative space-y-3 ${isMobile ? 'pt-0' : ''}`}>
-              <div className="p-4 bg-gradient-to-r from-emerald-500/10 to-green-500/10 dark:from-emerald-500/20 dark:to-green-500/20 rounded-lg">
-                <p className="text-xs text-muted-foreground mb-1">{t('dashboard.totalRewards')}</p>
-                <p className={`${isMobile ? 'text-2xl' : 'text-3xl'} font-bold text-emerald-600 dark:text-emerald-400`}>${data.totalRewards.toFixed(2)}</p>
+            <CardContent className={`relative space-y-2 sm:space-y-3 ${isMobile ? 'pt-0' : ''}`}>
+              <div className="p-3 sm:p-4 bg-gradient-to-br from-gray-800 via-gray-700 to-gray-800 hover:from-emerald-900/20 hover:via-emerald-800/10 hover:to-emerald-900/20 border border-emerald-500/30 rounded-lg transition-all duration-300">
+                <p className="text-xs text-gray-400 dark:text-gray-500 mb-1">{t('dashboard.totalRewards')}</p>
+                <p className={`${isMobile ? 'text-2xl' : 'text-3xl'} font-bold text-emerald-400 truncate`}>${data.totalRewards.toFixed(2)}</p>
               </div>
-              <div className="flex items-center justify-between p-3 bg-yellow-500/10 dark:bg-yellow-500/20 rounded-lg">
-                <div>
-                  <p className="text-xs text-muted-foreground">{t('dashboard.claimableRewards')}</p>
-                  <p className="text-lg font-bold text-yellow-600 dark:text-yellow-400">${data.claimableRewards.toFixed(2)}</p>
+              <div className="flex items-center justify-between p-2 sm:p-3 bg-gradient-to-br from-gray-800 via-gray-700 to-gray-800 hover:from-yellow-900/20 hover:via-yellow-800/10 hover:to-yellow-900/20 border border-yellow-500/30 rounded-lg transition-all duration-300">
+                <div className="flex-1 min-w-0">
+                  <p className="text-xs text-gray-400 dark:text-gray-500 truncate">{t('dashboard.claimableRewards')}</p>
+                  <p className="text-lg font-bold text-yellow-400 truncate">${data.claimableRewards.toFixed(2)}</p>
                 </div>
-                {data.claimableRewards > 0 && <Badge className="bg-yellow-500/20 text-yellow-600 dark:text-yellow-400 animate-pulse">{t('dashboard.ready')}</Badge>}
+                {data.claimableRewards > 0 && <Badge className="bg-yellow-500/20 text-yellow-400 border-yellow-500/30 animate-pulse flex-shrink-0">{t('dashboard.ready')}</Badge>}
               </div>
               <Button
                 onClick={() => setLocation('/rewards')}
-                className={`w-full bg-gradient-to-r from-emerald-500 to-green-500 hover:from-emerald-600 hover:to-green-600 text-white font-bold shadow-lg hover:shadow-xl transition-all duration-300 ${isMobile ? 'h-10' : 'h-11'}`}
+                className={`w-full bg-gradient-to-r from-emerald-500 to-green-500 hover:from-emerald-600 hover:to-green-600 text-white font-bold shadow-lg hover:shadow-xl transition-all duration-300 ${isMobile ? 'h-9' : 'h-10'}`}
               >
                 {t('dashboard.claimRewards')}
                 <ArrowRight className="h-4 w-4 ml-2" />
@@ -612,31 +651,86 @@ export default function Dashboard() {
         </div>
 
         {/* Referral Link Card */}
-        <Card className="relative overflow-hidden bg-gradient-to-br from-slate-50 via-gray-50 to-slate-50 dark:from-slate-900 dark:via-slate-800 dark:to-slate-900 border-2 border-slate-200 dark:border-slate-700 shadow-xl">
-          <div className="absolute inset-0 bg-gradient-to-r from-honey/5 via-transparent to-amber-400/5 opacity-50"></div>
+        <Card className="group relative overflow-hidden bg-gradient-to-br from-slate-900/95 via-gray-900/90 to-slate-900/95 dark:from-black/95 dark:via-slate-950/90 dark:to-black/95 border-2 border-slate-700 dark:border-slate-800 hover:border-honey/50 transition-all duration-500 shadow-2xl hover:shadow-3xl hover:shadow-honey/20 animate-in slide-in-from-bottom-2 duration-500">
+          <div className="absolute inset-0 bg-gradient-to-br from-honey/20 via-amber-300/15 to-yellow-400/20 opacity-50 group-hover:opacity-70 transition-opacity duration-300"></div>
+          <div className="absolute inset-0 rounded-xl border-2 border-honey/30 opacity-0 group-hover:opacity-100 transition-all duration-300 animate-pulse"></div>
+
           <CardHeader className="relative">
-            <CardTitle className="flex items-center gap-3">
-              <div className={`${isMobile ? 'w-8 h-8' : 'w-10 h-10'} bg-gradient-to-br from-honey to-amber-500 rounded-xl flex items-center justify-center shadow-lg`}>
-                <Users className={`${isMobile ? 'h-4 w-4' : 'h-5 w-5'} text-black`} />
+            <CardTitle className="flex items-center gap-2 sm:gap-3">
+              <div className={`${isMobile ? 'w-7 h-7' : 'w-9 h-9'} bg-gradient-to-br from-honey/80 via-honey to-amber-400 rounded-xl flex items-center justify-center shadow-lg group-hover:scale-110 transition-all duration-300`}>
+                <Users className={`${isMobile ? 'h-3.5 w-3.5' : 'h-4 w-4'} text-black`} />
               </div>
-              <div>
-                <span className={`${isMobile ? 'text-sm' : 'text-lg'} font-bold`}>{t('dashboard.shareReferral')}</span>
-                <p className="text-xs text-muted-foreground mt-0.5">{t('dashboard.shareDescription')}</p>
+              <div className="flex-1 min-w-0">
+                <span className={`${isMobile ? 'text-sm' : 'text-base'} font-bold text-honey group-hover:text-amber-300 transition-colors duration-300 block truncate`}>{t('dashboard.shareReferral')}</span>
+                <p className="text-xs text-gray-400 dark:text-gray-500 mt-0.5 truncate">{t('dashboard.shareDescription')}</p>
               </div>
             </CardTitle>
           </CardHeader>
-          <CardContent className="relative">
-            <div className="flex flex-col sm:flex-row gap-3">
-              <div className="flex-1 p-3 bg-slate-100 dark:bg-slate-800 rounded-lg border border-slate-200 dark:border-slate-700 font-mono text-sm break-all">
+          <CardContent className="relative space-y-3">
+            <div className="flex flex-col sm:flex-row gap-2 sm:gap-3">
+              <div className="flex-1 p-2 sm:p-3 bg-gradient-to-br from-gray-800 via-gray-700 to-gray-800 border border-honey/30 rounded-lg font-mono text-xs sm:text-sm text-gray-300 break-all overflow-x-auto">
                 {`${window.location.origin}/welcome?ref=${walletAddress}`}
               </div>
               <Button
                 onClick={copyReferralLink}
-                className={`bg-gradient-to-r from-honey to-amber-400 hover:from-honey/90 hover:to-amber-500 text-black font-bold shadow-lg hover:shadow-xl transition-all duration-300 ${isMobile ? 'w-full' : ''}`}
+                className={`bg-gradient-to-r from-honey to-amber-400 hover:from-honey/90 hover:to-amber-500 text-black font-bold shadow-lg hover:shadow-xl transition-all duration-300 ${isMobile ? 'w-full h-9' : 'h-auto'}`}
               >
                 <Copy className="h-4 w-4 mr-2" />
                 {t('dashboard.copyLink')}
               </Button>
+            </div>
+
+            {/* Social Share Buttons */}
+            <div className="flex flex-col gap-2">
+              <div className="flex items-center gap-2">
+                <Share2 className="h-4 w-4 text-honey" />
+                <span className="text-xs text-gray-400">{t('dashboard.social.shareOn')}:</span>
+              </div>
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+                <Button
+                  onClick={() => shareToSocial('facebook')}
+                  variant="outline"
+                  className="group border-blue-600/50 hover:border-blue-500 hover:bg-blue-600/10 transition-all duration-300"
+                >
+                  <svg className="h-4 w-4 mr-2 fill-current text-blue-500 group-hover:scale-110 transition-transform" viewBox="0 0 24 24">
+                    <path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/>
+                  </svg>
+                  <span className="text-xs font-semibold">Facebook</span>
+                </Button>
+
+                <Button
+                  onClick={() => shareToSocial('whatsapp')}
+                  variant="outline"
+                  className="group border-green-600/50 hover:border-green-500 hover:bg-green-600/10 transition-all duration-300"
+                >
+                  <svg className="h-4 w-4 mr-2 fill-current text-green-500 group-hover:scale-110 transition-transform" viewBox="0 0 24 24">
+                    <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413Z"/>
+                  </svg>
+                  <span className="text-xs font-semibold">WhatsApp</span>
+                </Button>
+
+                <Button
+                  onClick={() => shareToSocial('twitter')}
+                  variant="outline"
+                  className="group border-slate-600/50 hover:border-slate-400 hover:bg-slate-600/10 transition-all duration-300"
+                >
+                  <svg className="h-4 w-4 mr-2 fill-current text-slate-300 group-hover:scale-110 transition-transform" viewBox="0 0 24 24">
+                    <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/>
+                  </svg>
+                  <span className="text-xs font-semibold">X</span>
+                </Button>
+
+                <Button
+                  onClick={() => shareToSocial('telegram')}
+                  variant="outline"
+                  className="group border-sky-600/50 hover:border-sky-500 hover:bg-sky-600/10 transition-all duration-300"
+                >
+                  <svg className="h-4 w-4 mr-2 fill-current text-sky-400 group-hover:scale-110 transition-transform" viewBox="0 0 24 24">
+                    <path d="M11.944 0A12 12 0 0 0 0 12a12 12 0 0 0 12 12 12 12 0 0 0 12-12A12 12 0 0 0 12 0a12 12 0 0 0-.056 0zm4.962 7.224c.1-.002.321.023.465.14a.506.506 0 0 1 .171.325c.016.093.036.306.02.472-.18 1.898-.962 6.502-1.36 8.627-.168.9-.499 1.201-.82 1.23-.696.065-1.225-.46-1.9-.902-1.056-.693-1.653-1.124-2.678-1.8-1.185-.78-.417-1.21.258-1.91.177-.184 3.247-2.977 3.307-3.23.007-.032.014-.15-.056-.212s-.174-.041-.249-.024c-.106.024-1.793 1.14-5.061 3.345-.48.33-.913.49-1.302.48-.428-.008-1.252-.241-1.865-.44-.752-.245-1.349-.374-1.297-.789.027-.216.325-.437.893-.663 3.498-1.524 5.83-2.529 6.998-3.014 3.332-1.386 4.025-1.627 4.476-1.635z"/>
+                  </svg>
+                  <span className="text-xs font-semibold">Telegram</span>
+                </Button>
+              </div>
             </div>
           </CardContent>
         </Card>

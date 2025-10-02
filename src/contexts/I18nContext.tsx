@@ -153,12 +153,14 @@ const I18nProvider = ({ children }: { children: React.ReactNode }) => {
         return key;
       }
       
-      // Handle interpolation for local-only mode
+      // Handle interpolation for both modes
       if (interpolations && typeof result === 'string') {
         for (const [placeholder, replacement] of Object.entries(interpolations)) {
-          result = result.replace(new RegExp(`\\\\{\\\\{${placeholder}\\\\}\\\\}`, 'g'), String(replacement));
-          result = result.replace(new RegExp(`\\\\{${placeholder}\\\\}`, 'g'), String(replacement));
-          result = result.replace(new RegExp(`\\\\$\\\\{\\\\{${placeholder}\\\\}\\\\}`, 'g'), String(replacement));
+          // Support multiple placeholder formats:
+          // {{placeholder}}, {placeholder}, ${{placeholder}}
+          result = result.replace(new RegExp(`\\{\\{${placeholder}\\}\\}`, 'g'), String(replacement));
+          result = result.replace(new RegExp(`\\{${placeholder}\\}`, 'g'), String(replacement));
+          result = result.replace(new RegExp(`\\$\\{\\{${placeholder}\\}\\}`, 'g'), String(replacement));
         }
       }
       
