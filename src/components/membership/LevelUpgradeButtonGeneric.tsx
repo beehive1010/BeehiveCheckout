@@ -385,7 +385,11 @@ export function LevelUpgradeButtonGeneric({
                   name: `BEEHIVE Level ${targetLevel} Membership NFT`,
                   image: `https://your-nft-image-url.com/level${targetLevel}.png`,
                 },
+                buyWithCrypto: {
+                  testMode: false,
+                },
               }}
+              theme="dark"
               onPaymentSuccess={async (result) => {
                 console.log(`🎉 Level ${targetLevel} Payment successful:`, result);
                 setShowPayEmbed(false);

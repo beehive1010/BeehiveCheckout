@@ -376,7 +376,11 @@ export function Level2ClaimButtonV2({ onSuccess, className = '' }: Level2ClaimBu
                   name: "BEEHIVE Level 2 Membership NFT",
                   image: "https://your-nft-image-url.com/level2.png",
                 },
+                buyWithCrypto: {
+                  testMode: false,
+                },
               }}
+              theme="dark"
               onPaymentSuccess={async (result) => {
                 console.log('🎉 Level 2 Payment successful:', result);
                 setShowPayEmbed(false);

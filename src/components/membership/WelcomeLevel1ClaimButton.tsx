@@ -312,13 +312,17 @@ export function WelcomeLevel1ClaimButton({ onSuccess, referrerWallet, className 
 
     // Check if user is registered before opening PayEmbed
     try {
-      const { data: userData } = await authService.getUser(account.address);
+      console.log('🔍 Checking registration status for:', account.address);
+      const userResult = await authService.getUser(account.address);
+      console.log('📊 User check result:', userResult);
+
+      const userData = userResult?.data;
 
       if (!userData) {
         console.log('❌ User not registered - showing registration modal');
         toast({
-          title: t('registration.required'),
-          description: t('registration.requiredDesc'),
+          title: t('registration.required') || 'Registration Required',
+          description: t('registration.requiredDesc') || 'Please register to claim your NFT',
           duration: 3000
         });
 
@@ -326,35 +330,52 @@ export function WelcomeLevel1ClaimButton({ onSuccess, referrerWallet, className 
         setTimeout(() => {
           setIsStabilizing(false);
           setTimeout(() => {
+            console.log('🔄 Opening registration modal');
             setShowRegistrationModal(true);
           }, 300);
         }, 800);
         return;
       }
 
+      console.log('✅ User is registered:', userData);
+
       // User is registered and eligible, open PayEmbed
       if (isEligible) {
+        console.log('✅ Opening PayEmbed');
         setShowPayEmbed(true);
       } else {
+        console.log('⚠️ Re-checking eligibility...');
         // Re-check eligibility
         await checkEligibility();
         if (isEligible) {
           setShowPayEmbed(true);
         } else {
           toast({
-            title: t('claim.notEligible'),
-            description: t('claim.checkRequirements'),
+            title: t('claim.notEligible') || 'Not Eligible',
+            description: t('claim.checkRequirements') || 'Please check requirements',
             variant: "destructive",
           });
         }
       }
     } catch (error) {
       console.error('❌ Error checking registration:', error);
+
+      // If error occurs, assume user is not registered and show registration modal
+      console.log('⚠️ Treating error as not registered - showing registration modal');
       toast({
-        title: t('error.checkFailed'),
-        description: t('error.tryAgain'),
-        variant: "destructive",
+        title: t('registration.required') || 'Registration Required',
+        description: t('registration.requiredDesc') || 'Please register to claim your NFT',
+        duration: 3000
       });
+
+      setIsStabilizing(true);
+      setTimeout(() => {
+        setIsStabilizing(false);
+        setTimeout(() => {
+          console.log('🔄 Opening registration modal (from error)');
+          setShowRegistrationModal(true);
+        }, 300);
+      }, 800);
     }
   };
 
@@ -547,7 +568,11 @@ export function WelcomeLevel1ClaimButton({ onSuccess, referrerWallet, className 
                   name: "BEEHIVE Level 1 Membership NFT",
                   image: "https://your-nft-image-url.com/level1.png",
                 },
+                buyWithCrypto: {
+                  testMode: false,
+                },
               }}
+              theme="dark"
               onPaymentSuccess={async (result) => {
                 console.log('🎉 Payment successful:', result);
                 setShowPayEmbed(false);
