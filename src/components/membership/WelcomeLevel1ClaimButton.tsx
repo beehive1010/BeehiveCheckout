@@ -281,12 +281,81 @@ export function WelcomeLevel1ClaimButton({ onSuccess, referrerWallet, className 
     chain: arbitrum
   });
 
-  // Open PayEmbed modal
-  const handleOpenPayEmbed = () => {
-    if (!isEligible || hasNFT || isWrongNetwork || !account?.address) {
+  // Open PayEmbed modal (with registration check)
+  const handleOpenPayEmbed = async () => {
+    if (!account?.address) {
+      toast({
+        title: t('wallet.connectRequired'),
+        description: t('wallet.connectRequiredDesc'),
+        variant: "destructive",
+      });
       return;
     }
-    setShowPayEmbed(true);
+
+    if (isWrongNetwork) {
+      toast({
+        title: t('wallet.wrongNetwork'),
+        description: t('wallet.switchToArbitrum'),
+        variant: "destructive",
+      });
+      return;
+    }
+
+    if (hasNFT) {
+      toast({
+        title: t('claim.alreadyOwnsNFT'),
+        description: t('claim.alreadyOwnsNFTDesc'),
+        variant: "default",
+      });
+      return;
+    }
+
+    // Check if user is registered before opening PayEmbed
+    try {
+      const { data: userData } = await authService.getUser(account.address);
+
+      if (!userData) {
+        console.log('❌ User not registered - showing registration modal');
+        toast({
+          title: t('registration.required'),
+          description: t('registration.requiredDesc'),
+          duration: 3000
+        });
+
+        setIsStabilizing(true);
+        setTimeout(() => {
+          setIsStabilizing(false);
+          setTimeout(() => {
+            setShowRegistrationModal(true);
+          }, 300);
+        }, 800);
+        return;
+      }
+
+      // User is registered and eligible, open PayEmbed
+      if (isEligible) {
+        setShowPayEmbed(true);
+      } else {
+        // Re-check eligibility
+        await checkEligibility();
+        if (isEligible) {
+          setShowPayEmbed(true);
+        } else {
+          toast({
+            title: t('claim.notEligible'),
+            description: t('claim.checkRequirements'),
+            variant: "destructive",
+          });
+        }
+      }
+    } catch (error) {
+      console.error('❌ Error checking registration:', error);
+      toast({
+        title: t('error.checkFailed'),
+        description: t('error.tryAgain'),
+        variant: "destructive",
+      });
+    }
   };
 
   // Close PayEmbed modal
