@@ -458,7 +458,7 @@ export function WelcomeLevel1ClaimButton({ onSuccess, referrerWallet, className 
             ) : (
               <Button
                 onClick={handleOpenPayEmbed}
-                disabled={!account?.address || isWrongNetwork || isStabilizing || !isEligible || isProcessing}
+                disabled={!account?.address || isWrongNetwork || isStabilizing || isProcessing}
                 className="w-full h-12 bg-gradient-to-r from-honey to-orange-500 hover:from-honey/90 hover:to-orange-500/90 text-white font-semibold text-lg shadow-lg transition-all disabled:opacity-50"
               >
                 {!account?.address ? (
@@ -476,15 +476,10 @@ export function WelcomeLevel1ClaimButton({ onSuccess, referrerWallet, className 
                     <Loader2 className="mr-2 h-5 w-5 animate-spin" />
                     Stabilizing...
                   </>
-                ) : !isEligible ? (
-                  <>
-                    <Crown className="mr-2 h-5 w-5" />
-                    Check Eligibility
-                  </>
                 ) : (
                   <div className="flex items-center justify-center gap-2">
                     <Crown className="h-5 w-5" />
-                    <span>Claim Level 1 - {LEVEL_1_PRICE_USDC} USDC</span>
+                    <span>{isEligible ? `Claim Level 1 - ${LEVEL_1_PRICE_USDC} USDC` : 'Register & Claim Level 1'}</span>
                   </div>
                 )}
               </Button>
