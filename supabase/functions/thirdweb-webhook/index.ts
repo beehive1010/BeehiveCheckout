@@ -62,27 +62,33 @@ serve(async (req) => {
     }
 
     // Handle different webhook event types
-    const { eventType, data } = body
+    const { eventType, type, data } = body
+    const actualEventType = eventType || type
 
-    switch (eventType) {
+    switch (actualEventType) {
       case 'transaction.sent':
         await handleTransactionSent(supabase, data)
         break
-        
+
       case 'transaction.mined':
         await handleTransactionMined(supabase, data)
         break
-        
+
       case 'transaction.failed':
         await handleTransactionFailed(supabase, data)
         break
-        
+
       case 'wallet.send':
         await handleWalletSend(supabase, data)
         break
-        
+
+      case 'token_transfer':
+      case 'transfer':
+        await handleTokenTransfer(supabase, data)
+        break
+
       default:
-        console.log(`⚠️ Unhandled webhook event type: ${eventType}`)
+        console.log(`⚠️ Unhandled webhook event type: ${actualEventType}`)
     }
 
     return new Response(JSON.stringify({
@@ -390,6 +396,108 @@ async function updateUserBalanceAfterWithdrawal(supabase: any, withdrawal: any) 
     
   } catch (error) {
     console.error('❌ Error in updateUserBalanceAfterWithdrawal:', error)
+  }
+}
+
+// Handle token transfer event - auto transfer platform fee
+async function handleTokenTransfer(supabase: any, data: any) {
+  try {
+    const { chainId, contractAddress, from, to, value, transactionHash } = data
+
+    console.log(`💰 Token transfer detected:`, {
+      chainId,
+      contractAddress,
+      from,
+      to,
+      value,
+      transactionHash
+    })
+
+    // Configuration
+    const SERVER_WALLET = Deno.env.get('SERVER_WALLET_ADDRESS')?.toLowerCase()
+    const PLATFORM_RECIPIENT = Deno.env.get('PLATFORM_FEE_RECIPIENT')?.toLowerCase() || '0x0bA198F73DF3A1374a49Acb2c293ccA20e150Fe0'.toLowerCase()
+    const USDC_ADDRESS_ARB = '0xaf88d065e77c8cC2239327C5EDb3A432268e5831'.toLowerCase()
+    const MIN_AMOUNT_USDC = 130 // Minimum 130 USDC to trigger auto transfer
+    const PLATFORM_FEE_USDC = 30 // Transfer 30 USDC to platform
+
+    // Check if this is a transfer to our server wallet
+    if (to?.toLowerCase() !== SERVER_WALLET) {
+      console.log(`⚠️ Transfer not to server wallet, ignoring`)
+      return
+    }
+
+    // Check if it's USDC on Arbitrum
+    if (chainId !== '42161' && chainId !== 42161) {
+      console.log(`⚠️ Not Arbitrum chain, ignoring`)
+      return
+    }
+
+    if (contractAddress?.toLowerCase() !== USDC_ADDRESS_ARB) {
+      console.log(`⚠️ Not USDC token, ignoring`)
+      return
+    }
+
+    // Convert value to USDC (6 decimals)
+    const amountUSDC = parseInt(value) / 1_000_000
+
+    console.log(`💵 Received ${amountUSDC} USDC from ${from}`)
+
+    // Check if amount >= 130 USDC
+    if (amountUSDC < MIN_AMOUNT_USDC) {
+      console.log(`⚠️ Amount ${amountUSDC} USDC < ${MIN_AMOUNT_USDC} USDC, no auto transfer`)
+      return
+    }
+
+    console.log(`✅ Triggering auto platform fee transfer: ${PLATFORM_FEE_USDC} USDC → ${PLATFORM_RECIPIENT}`)
+
+    // Call nft-claim-usdc-transfer function to execute the transfer
+    const supabaseUrl = Deno.env.get('SUPABASE_URL')
+    const supabaseAnonKey = Deno.env.get('SUPABASE_ANON_KEY')
+
+    const transferResponse = await fetch(
+      `${supabaseUrl}/functions/v1/nft-claim-usdc-transfer`,
+      {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${supabaseAnonKey}`,
+        },
+        body: JSON.stringify({
+          token_id: '1',
+          claimer_address: from,
+          transaction_hash: transactionHash,
+          usdc_received: value
+        }),
+      }
+    )
+
+    if (transferResponse.ok) {
+      const transferResult = await transferResponse.json()
+      console.log(`✅ Auto platform fee transfer completed:`, transferResult)
+
+      // Log to audit
+      await supabase.from('audit_logs').insert({
+        user_wallet: SERVER_WALLET,
+        action: 'auto_platform_fee_transfer',
+        old_values: {
+          received_amount: amountUSDC,
+          from_address: from,
+          trigger_tx: transactionHash
+        },
+        new_values: {
+          transferred_amount: PLATFORM_FEE_USDC,
+          to_address: PLATFORM_RECIPIENT,
+          transfer_result: transferResult
+        }
+      })
+
+    } else {
+      const errorText = await transferResponse.text()
+      console.error(`❌ Auto transfer failed:`, errorText)
+    }
+
+  } catch (error) {
+    console.error('❌ Error in handleTokenTransfer:', error)
   }
 }
 
