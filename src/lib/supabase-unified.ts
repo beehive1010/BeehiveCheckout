@@ -175,22 +175,30 @@ export const authService = {
       const result = await callEdgeFunction('auth', {
         action: 'get-user'
       }, walletAddress);
-      
+
       if (!result.success) {
+        // If user is not registered, return false without error
+        if (result.error === 'REGISTRATION_REQUIRED' || result.error === 'User not found') {
+          return { isActivated: false, memberData: null, error: null };
+        }
         return { isActivated: false, memberData: null, error: { message: result.error } };
       }
-      
+
       // Extract activation status from auth response
       const isActivated = result.isMember && result.membershipLevel > 0;
       const memberData = result.member || null;
-      
-      return { 
-        isActivated, 
+
+      return {
+        isActivated,
         memberData,
-        error: null 
+        error: null
       };
     } catch (error: any) {
       console.error('Error checking activated member:', error);
+      // Don't throw error for unregistered users
+      if (error.message?.includes('REGISTRATION_REQUIRED') || error.message?.includes('User not found')) {
+        return { isActivated: false, memberData: null, error: null };
+      }
       return { isActivated: false, memberData: null, error: { message: error.message } };
     }
   },

@@ -615,10 +615,6 @@ export function WelcomeLevel1ClaimButton({ onSuccess, referrerWallet, className 
                   tokenId: BigInt(1),
                   quantity: BigInt(1),
                 }),
-                metadata: {
-                  name: "BEEHIVE Level 1 Membership NFT",
-                  image: "https://your-nft-image-url.com/level1.png",
-                },
                 buyWithCrypto: {
                   testMode: false,
                 },
