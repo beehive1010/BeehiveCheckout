@@ -206,7 +206,7 @@ export const WithdrawRewardsV2: React.FC<WithdrawRewardsV2Props> = ({ walletAddr
       }
       
       // Call server-wallet function via supabase functions
-      const response = await fetch('https://cdjmtevekxpmgrixkiqt.supabase.co/functions/v1/server-wallet', {
+      const response = await fetch('https://cvqibjcbfrwsgkvthccp.supabase.co/functions/v1/server-wallet', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

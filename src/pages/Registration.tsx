@@ -28,7 +28,7 @@ export default function Registration() {
       email?: string;
       referrerWallet?: string;
     }) => {
-      const response = await fetch('https://cdjmtevekxpmgrixkiqt.supabase.co/functions/v1/auth', {
+      const response = await fetch('https://cvqibjcbfrwsgkvthccp.supabase.co/functions/v1/auth', {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${import.meta.env.VITE_SUPABASE_ANON_KEY}`,
@@ -144,7 +144,7 @@ export default function Registration() {
       }
       
       try {
-        const response = await fetch('https://cdjmtevekxpmgrixkiqt.supabase.co/functions/v1/auth', {
+        const response = await fetch('https://cvqibjcbfrwsgkvthccp.supabase.co/functions/v1/auth', {
           method: 'POST',
           headers: {
             'Authorization': `Bearer ${import.meta.env.VITE_SUPABASE_ANON_KEY}`,

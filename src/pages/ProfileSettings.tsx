@@ -36,7 +36,7 @@ export default function ProfileSettings() {
 
   const handleSaveProfile = async () => {
     try {
-      const response = await fetch('https://cdjmtevekxpmgrixkiqt.supabase.co/functions/v1/auth', {
+      const response = await fetch('https://cvqibjcbfrwsgkvthccp.supabase.co/functions/v1/auth', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

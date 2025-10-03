@@ -77,7 +77,7 @@ export function LevelUpgradeButtonGeneric({
   const LEVEL_PRICE_WEI = BigInt(LEVEL_PRICE_USDC) * BigInt('1000000'); // USDC has 6 decimals
   const LEVEL_REQUIREMENTS = getLevelRequirements(targetLevel);
 
-  const API_BASE = 'https://cdjmtevekxpmgrixkiqt.supabase.co/functions/v1';
+  const API_BASE = 'https://cvqibjcbfrwsgkvthccp.supabase.co/functions/v1';
   const PAYMENT_TOKEN_CONTRACT = "0xaf88d065e77c8cC2239327C5EDb3A432268e5831"; // Arbitrum USDC (native)
   const NFT_CONTRACT = "0x36a1aC6D8F0204827Fad16CA5e222F1Aeae4Adc8"; // ARB ONE Membership Contract
 

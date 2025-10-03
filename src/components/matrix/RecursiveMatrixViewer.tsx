@@ -56,7 +56,7 @@ const RecursiveMatrixViewer: React.FC<RecursiveMatrixViewerProps> = ({
       await loadSingleMatrix(walletAddress, recursiveMatrices);
       
       // 使用 matrix-view function 获取用户下级的matrix数据
-      const response = await fetch('https://cdjmtevekxpmgrixkiqt.supabase.co/functions/v1/matrix-view', {
+      const response = await fetch('https://cvqibjcbfrwsgkvthccp.supabase.co/functions/v1/matrix-view', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -93,7 +93,7 @@ const RecursiveMatrixViewer: React.FC<RecursiveMatrixViewerProps> = ({
   const loadSingleMatrix = async (matrixRoot: string, dataContainer: RecursiveMatrixData) => {
     try {
       // 使用 matrix-view function 获取matrix数据
-      const response = await fetch('https://cdjmtevekxpmgrixkiqt.supabase.co/functions/v1/matrix-view', {
+      const response = await fetch('https://cvqibjcbfrwsgkvthccp.supabase.co/functions/v1/matrix-view', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

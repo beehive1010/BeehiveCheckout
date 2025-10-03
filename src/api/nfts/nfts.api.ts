@@ -225,7 +225,7 @@ export const nftsApi = {
       }
 
       // Use Edge Function for secure purchase processing
-      const baseUrl = 'https://cdjmtevekxpmgrixkiqt.supabase.co/functions/v1';
+      const baseUrl = 'https://cvqibjcbfrwsgkvthccp.supabase.co/functions/v1';
       const anonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
       
       const purchaseResponse = await fetch(`${baseUrl}/nft-purchase`, {

@@ -182,7 +182,7 @@ function Web3ContextProvider({ children }: { children: React.ReactNode }) {
             // If auth function doesn't show member status, check members table directly
             if (!isActiveMember) {
               try {
-                const memberResponse = await fetch('https://cdjmtevekxpmgrixkiqt.supabase.co/functions/v1/activate-membership', {
+                const memberResponse = await fetch('https://cvqibjcbfrwsgkvthccp.supabase.co/functions/v1/activate-membership', {
                   method: 'POST',
                   headers: {
                     'Authorization': `Bearer ${import.meta.env.VITE_SUPABASE_ANON_KEY}`,
