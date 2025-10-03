@@ -276,10 +276,17 @@ export const edgeFunctions = {
     }),
     
   auth: (data: any, walletAddress?: string, options?: EdgeFunctionOptions) =>
-    callEdgeFunction('auth', data, walletAddress, { 
+    callEdgeFunction('auth', data, walletAddress, {
       timeout: 15000,
       retries: 2,
-      ...options 
+      ...options
+    }),
+
+  syncMembers: (data: any, walletAddress?: string, options?: EdgeFunctionOptions) =>
+    callEdgeFunction('sync-members', data, walletAddress, {
+      timeout: 60000, // 60s for batch sync operations
+      retries: 1,
+      ...options
     })
 };
 

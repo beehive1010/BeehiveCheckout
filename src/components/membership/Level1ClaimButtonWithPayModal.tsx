@@ -33,9 +33,9 @@ export function Level1ClaimButtonWithPayModal({
   const [hasNFT, setHasNFT] = useState(false);
 
   const NFT_CONTRACT = import.meta.env.VITE_MEMBERSHIP_NFT_CONTRACT;
-  const USDC_CONTRACT = '0xaf88d065e77c8cC2239327C5EDb3A432268e5831'; // Arbitrum USDC
-  const LEVEL_1_PRICE_USDC = 130;
-  const LEVEL_1_PRICE_WEI = BigInt(LEVEL_1_PRICE_USDC) * BigInt('1000000'); // 6 decimals
+  const USDT_CONTRACT = '0xFd086bC7CD5C481DCC9C85ebE478A1C0b69FCbb9'; // Arbitrum USDT
+  const LEVEL_1_PRICE_USDT = 130;
+  const LEVEL_1_PRICE_WEI = BigInt(LEVEL_1_PRICE_USDT) * BigInt('1000000'); // 6 decimals
 
   // Check user registration
   useEffect(() => {
@@ -131,7 +131,7 @@ export function Level1ClaimButtonWithPayModal({
             transactionHash: result.transactionHash,
             level: 1,
             paymentMethod: 'multi_chain',
-            paymentAmount: LEVEL_1_PRICE_USDC,
+            paymentAmount: LEVEL_1_PRICE_USDT,
             referrerWallet: referrerWallet
           })
         }
@@ -242,7 +242,7 @@ export function Level1ClaimButtonWithPayModal({
       account.address,
       BigInt(1), // Level 1 token ID
       BigInt(1), // Quantity
-      USDC_CONTRACT, // USDC currency
+      USDT_CONTRACT, // USDT currency
       LEVEL_1_PRICE_WEI // Price
     ]
   });
@@ -256,7 +256,7 @@ export function Level1ClaimButtonWithPayModal({
             <CardTitle className="text-xl">Level 1 NFT</CardTitle>
           </div>
           <Badge className="bg-honey/20 text-honey border-honey/50">
-            {LEVEL_1_PRICE_USDC} USDC
+            {LEVEL_1_PRICE_USDT} USDT
           </Badge>
         </div>
       </CardHeader>
@@ -269,7 +269,7 @@ export function Level1ClaimButtonWithPayModal({
             <div>
               <p className="text-sm font-medium text-blue-400">Multi-Chain Payment Enabled</p>
               <p className="text-xs text-muted-foreground mt-1">
-                Pay with USDC from any supported chain. Thirdweb will handle the bridging automatically.
+                Pay with USDT from any supported chain. Thirdweb will handle the bridging automatically.
               </p>
             </div>
           </div>
@@ -286,19 +286,19 @@ export function Level1ClaimButtonWithPayModal({
             theme: 'dark',
             // Supported chains for payment
             supportedTokens: {
-              // Users can pay with USDC from these chains
-              1: [{ address: '0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48', name: 'USDC', symbol: 'USDC' }], // Ethereum
-              137: [{ address: '0x2791Bca1f2de4661ED88A30C99A7a9449Aa84174', name: 'USDC', symbol: 'USDC' }], // Polygon
-              42161: [{ address: USDC_CONTRACT, name: 'USDC', symbol: 'USDC' }], // Arbitrum
-              10: [{ address: '0x7F5c764cBc14f9669B88837ca1490cCa17c31607', name: 'USDC', symbol: 'USDC' }], // Optimism
-              8453: [{ address: '0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913', name: 'USDC', symbol: 'USDC' }], // Base
-              56: [{ address: '0x8AC76a51cc950d9822D68b83fE1Ad97B32Cd580d', name: 'USDC', symbol: 'USDC' }], // BSC
+              // Users can pay with USDT from these chains
+              1: [{ address: '0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48', name: 'USDT', symbol: 'USDT' }], // Ethereum
+              137: [{ address: '0x2791Bca1f2de4661ED88A30C99A7a9449Aa84174', name: 'USDT', symbol: 'USDT' }], // Polygon
+              42161: [{ address: USDT_CONTRACT, name: 'USDT', symbol: 'USDT' }], // Arbitrum
+              10: [{ address: '0x7F5c764cBc14f9669B88837ca1490cCa17c31607', name: 'USDT', symbol: 'USDT' }], // Optimism
+              8453: [{ address: '0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913', name: 'USDT', symbol: 'USDT' }], // Base
+              56: [{ address: '0x8AC76a51cc950d9822D68b83fE1Ad97B32Cd580d', name: 'USDT', symbol: 'USDT' }], // BSC
             }
           }}
         >
           <div className="flex items-center justify-center gap-2">
             <Crown className="h-5 w-5" />
-            <span>Claim Level 1 NFT - {LEVEL_1_PRICE_USDC} USDC</span>
+            <span>Claim Level 1 NFT - {LEVEL_1_PRICE_USDT} USDT</span>
           </div>
         </TransactionButton>
 

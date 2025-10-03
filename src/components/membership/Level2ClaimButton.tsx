@@ -37,11 +37,11 @@ export function Level2ClaimButton({ onSuccess, className = '' }: Level2ClaimButt
   const [canClaimLevel2, setCanClaimLevel2] = useState(false);
   
   // Fixed Level 2 pricing
-  const LEVEL_2_PRICE_USDC = 150;
-  const LEVEL_2_PRICE_WEI = BigInt(LEVEL_2_PRICE_USDC) * BigInt('1000000');
-  
+  const LEVEL_2_PRICE_USDT = 150;
+  const LEVEL_2_PRICE_WEI = BigInt(LEVEL_2_PRICE_USDT) * BigInt('1000000');
+
   const API_BASE = 'https://cvqibjcbfrwsgkvthccp.supabase.co/functions/v1';
-  const PAYMENT_TOKEN_CONTRACT = "0xaf88d065e77c8cC2239327C5EDb3A432268e5831"; // Arbitrum USDC (native)
+  const PAYMENT_TOKEN_CONTRACT = "0xFd086bC7CD5C481DCC9C85ebE478A1C0b69FCbb9"; // Arbitrum USDT
   const NFT_CONTRACT = "0x36a1aC6D8F0204827Fad16CA5e222F1Aeae4Adc8"; // ARB ONE Membership Contract
   const THIRDWEB_CLIENT_ID = import.meta.env.VITE_THIRDWEB_CLIENT_ID;
 
@@ -248,9 +248,9 @@ export function Level2ClaimButton({ onSuccess, className = '' }: Level2ClaimButt
         console.warn('⚠️ Could not check NFT balance:', balanceCheckError);
       }
 
-      // Step 5: Check USDC balance and approval
-      console.log('💰 Checking USDC balance and approval...');
-      setCurrentStep('Checking USDC balance...');
+      // Step 5: Check USDT balance and approval
+      console.log('💰 Checking USDT balance and approval...');
+      setCurrentStep('Checking USDT balance...');
       
       try {
         const tokenBalance = await erc20BalanceOf({
@@ -259,17 +259,17 @@ export function Level2ClaimButton({ onSuccess, className = '' }: Level2ClaimButt
         });
         
         if (tokenBalance < LEVEL_2_PRICE_WEI) {
-          throw new Error(`Insufficient USDC balance. You have ${(Number(tokenBalance) / 1e6).toFixed(2)} USDC but need ${LEVEL_2_PRICE_USDC} USDC for Level 2`);
+          throw new Error(`Insufficient USDT balance. You have ${(Number(tokenBalance) / 1e6).toFixed(2)} USDT but need ${LEVEL_2_PRICE_USDT} USDT for Level 2`);
         }
       } catch (balanceError: any) {
-        if (balanceError.message.includes('Insufficient USDC')) {
+        if (balanceError.message.includes('Insufficient USDT')) {
           throw balanceError;
         }
-        console.warn('⚠️ Could not check USDC balance:', balanceError);
+        console.warn('⚠️ Could not check USDT balance:', balanceError);
       }
 
       // Check and request approval
-      setCurrentStep('Checking USDC approval...');
+      setCurrentStep('Checking USDT approval...');
       
       const currentAllowance = await allowance({
         contract: usdcContract,
@@ -277,10 +277,10 @@ export function Level2ClaimButton({ onSuccess, className = '' }: Level2ClaimButt
         spender: NFT_CONTRACT
       });
       
-      console.log(`💰 Current allowance: ${Number(currentAllowance) / 1e6} USDC, Required: ${LEVEL_2_PRICE_USDC} USDC`);
+      console.log(`💰 Current allowance: ${Number(currentAllowance) / 1e6} USDT, Required: ${LEVEL_2_PRICE_USDT} USDT`);
       
       if (currentAllowance < LEVEL_2_PRICE_WEI) {
-        console.log('💰 Requesting USDC approval...');
+        console.log('💰 Requesting USDT approval...');
         
         const approveTransaction = approve({
           contract: usdcContract,
@@ -293,7 +293,7 @@ export function Level2ClaimButton({ onSuccess, className = '' }: Level2ClaimButt
         const approveTxResult = await sendTransactionWithRetry(
           approveTransaction, 
           account, 
-          'USDC approval transaction',
+          'USDT approval transaction',
           false // Use regular gas for ERC20 approval
         );
 
@@ -303,7 +303,7 @@ export function Level2ClaimButton({ onSuccess, className = '' }: Level2ClaimButt
           transactionHash: approveTxResult?.transactionHash,
         });
         
-        console.log('✅ USDC approval confirmed');
+        console.log('✅ USDT approval confirmed');
         
         // Verify the approval was successful
         const newAllowance = await allowance({
@@ -312,10 +312,10 @@ export function Level2ClaimButton({ onSuccess, className = '' }: Level2ClaimButt
           spender: NFT_CONTRACT
         });
         
-        console.log(`✅ New allowance after approval: ${Number(newAllowance) / 1e6} USDC`);
+        console.log(`✅ New allowance after approval: ${Number(newAllowance) / 1e6} USDT`);
         
         if (newAllowance < LEVEL_2_PRICE_WEI) {
-          throw new Error(`Approval failed. Current allowance: ${Number(newAllowance) / 1e6} USDC, Required: ${LEVEL_2_PRICE_USDC} USDC`);
+          throw new Error(`Approval failed. Current allowance: ${Number(newAllowance) / 1e6} USDT, Required: ${LEVEL_2_PRICE_USDT} USDT`);
         }
       } else {
         console.log('✅ Sufficient allowance already exists');
@@ -442,9 +442,9 @@ export function Level2ClaimButton({ onSuccess, className = '' }: Level2ClaimButt
           description: errorMessage,
           variant: "destructive",
         });
-      } else if (errorMessage.includes('Insufficient USDC')) {
+      } else if (errorMessage.includes('Insufficient USDT')) {
         toast({
-          title: 'Insufficient USDC',
+          title: 'Insufficient USDT',
           description: errorMessage,
           variant: "destructive",
         });
@@ -542,7 +542,7 @@ export function Level2ClaimButton({ onSuccess, className = '' }: Level2ClaimButt
         <div className="grid grid-cols-2 gap-4">
           <div className="text-center p-4 bg-gradient-to-br from-orange-500/10 to-orange-500/5 rounded-lg border border-orange-500/20">
             <Coins className="h-6 w-6 text-orange-400 mx-auto mb-2" />
-            <h3 className="font-semibold text-orange-400 mb-1">{LEVEL_2_PRICE_USDC} USDC</h3>
+            <h3 className="font-semibold text-orange-400 mb-1">{LEVEL_2_PRICE_USDT} USDT</h3>
             <p className="text-xs text-muted-foreground">Level 2 Price</p>
           </div>
           <div className="text-center p-4 bg-gradient-to-br from-purple-500/10 to-purple-500/5 rounded-lg border border-purple-500/20">
@@ -582,7 +582,7 @@ export function Level2ClaimButton({ onSuccess, className = '' }: Level2ClaimButt
             ) : (
               <>
                 <Crown className="mr-2 h-5 w-5" />
-                Claim Level 2 - {LEVEL_2_PRICE_USDC} USDC
+                Claim Level 2 - {LEVEL_2_PRICE_USDT} USDT
               </>
             )}
           </Button>
@@ -604,7 +604,7 @@ export function Level2ClaimButton({ onSuccess, className = '' }: Level2ClaimButt
         {/* Requirements Info */}
         <div className="text-center text-xs text-muted-foreground pt-2 space-y-1">
           <p>📋 Requires 3 active Level 1+ referrals</p>
-          <p>💳 USDC payment required</p>
+          <p>💳 USDT payment required</p>
           <p>⚡ Instant Level 2 activation</p>
         </div>
       </CardContent>

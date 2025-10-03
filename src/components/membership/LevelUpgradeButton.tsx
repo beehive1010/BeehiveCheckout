@@ -34,7 +34,7 @@ export function LevelUpgradeButton({ onSuccess, targetLevel, className = '' }: L
   const { levelInfo, isLoading: isLevelLoading, refetch: refetchLevel, getLevelName, formatPrice } = useNFTLevelClaim(targetLevel);
   
   const API_BASE = 'https://cvqibjcbfrwsgkvthccp.supabase.co/functions/v1';
-  const PAYMENT_TOKEN_CONTRACT = "0xaf88d065e77c8cC2239327C5EDb3A432268e5831"; // Arbitrum USDC (native)
+  const PAYMENT_TOKEN_CONTRACT = "0xFd086bC7CD5C481DCC9C85ebE478A1C0b69FCbb9"; // Arbitrum USDT
   const NFT_CONTRACT = "0x36a1aC6D8F0204827Fad16CA5e222F1Aeae4Adc8"; // ARB ONE Membership Contract
   const THIRDWEB_CLIENT_ID = import.meta.env.VITE_THIRDWEB_CLIENT_ID;
 
@@ -212,9 +212,9 @@ export function LevelUpgradeButton({ onSuccess, targetLevel, className = '' }: L
         console.warn('⚠️ Could not check NFT balance:', balanceCheckError);
       }
 
-      // Step 5: Check USDC balance and approval
-      console.log('💰 Checking USDC balance and approval...');
-      setCurrentStep('Checking USDC balance...');
+      // Step 5: Check USDT balance and approval
+      console.log('💰 Checking USDT balance and approval...');
+      setCurrentStep('Checking USDT balance...');
       
       const finalAmount = levelInfo.priceInWei;
       
@@ -225,19 +225,19 @@ export function LevelUpgradeButton({ onSuccess, targetLevel, className = '' }: L
         });
         
         if (tokenBalance < finalAmount) {
-          throw new Error(`Insufficient USDC balance. You have ${(Number(tokenBalance) / 1e18).toFixed(2)} USDC but need ${formatPrice(levelInfo.priceInUSDC)} USDC for Level ${upgradeLevel}`);
+          throw new Error(`Insufficient USDT balance. You have ${(Number(tokenBalance) / 1e18).toFixed(2)} USDT but need ${formatPrice(levelInfo.priceInUSDT)} USDT for Level ${upgradeLevel}`);
         }
         
-        console.log('✅ Sufficient USDC balance confirmed');
+        console.log('✅ Sufficient USDT balance confirmed');
       } catch (balanceError: any) {
-        if (balanceError.message.includes('Insufficient USDC')) {
+        if (balanceError.message.includes('Insufficient USDT')) {
           throw balanceError;
         }
-        console.warn('⚠️ Could not check USDC balance:', balanceError);
+        console.warn('⚠️ Could not check USDT balance:', balanceError);
       }
 
       // Check and request approval
-      setCurrentStep('Checking USDC approval...');
+      setCurrentStep('Checking USDT approval...');
       
       const currentAllowance = await allowance({
         contract: usdcContract,
@@ -245,10 +245,10 @@ export function LevelUpgradeButton({ onSuccess, targetLevel, className = '' }: L
         spender: NFT_CONTRACT
       });
       
-      console.log(`💰 Current allowance: ${Number(currentAllowance) / 1e18} USDC, Required: ${formatPrice(levelInfo.priceInUSDC)} USDC`);
+      console.log(`💰 Current allowance: ${Number(currentAllowance) / 1e18} USDT, Required: ${formatPrice(levelInfo.priceInUSDT)} USDT`);
       
       if (currentAllowance < finalAmount) {
-        console.log('💰 Requesting USDC approval...');
+        console.log('💰 Requesting USDT approval...');
         
         const approveTransaction = approve({
           contract: usdcContract,
@@ -261,7 +261,7 @@ export function LevelUpgradeButton({ onSuccess, targetLevel, className = '' }: L
         const approveTxResult = await sendTransactionWithRetry(
           approveTransaction, 
           account, 
-          'USDC approval transaction',
+          'USDT approval transaction',
           false // Use regular gas for ERC20 approval
         );
 
@@ -271,7 +271,7 @@ export function LevelUpgradeButton({ onSuccess, targetLevel, className = '' }: L
           transactionHash: approveTxResult?.transactionHash,
         });
         
-        console.log('✅ USDC approval confirmed');
+        console.log('✅ USDT approval confirmed');
         
         // Verify the approval was successful
         const newAllowance = await allowance({
@@ -280,10 +280,10 @@ export function LevelUpgradeButton({ onSuccess, targetLevel, className = '' }: L
           spender: NFT_CONTRACT
         });
         
-        console.log(`✅ New allowance after approval: ${Number(newAllowance) / 1e18} USDC`);
+        console.log(`✅ New allowance after approval: ${Number(newAllowance) / 1e18} USDT`);
         
         if (newAllowance < finalAmount) {
-          throw new Error(`Approval failed. Current allowance: ${Number(newAllowance) / 1e18} USDC, Required: ${formatPrice(levelInfo.priceInUSDC)} USDC`);
+          throw new Error(`Approval failed. Current allowance: ${Number(newAllowance) / 1e18} USDT, Required: ${formatPrice(levelInfo.priceInUSDT)} USDT`);
         }
       } else {
         console.log('✅ Sufficient allowance already exists');
@@ -381,7 +381,7 @@ export function LevelUpgradeButton({ onSuccess, targetLevel, className = '' }: L
                   transactionHash: claimTxResult.transactionHash,
                   level: upgradeLevel,
                   paymentMethod: 'token_payment',
-                  paymentAmount: levelInfo.priceInUSDC
+                  paymentAmount: levelInfo.priceInUSDT
                 })
               });
 
@@ -460,9 +460,9 @@ export function LevelUpgradeButton({ onSuccess, targetLevel, className = '' }: L
           description: errorMessage,
           variant: "destructive",
         });
-      } else if (errorMessage.includes('Insufficient USDC')) {
+      } else if (errorMessage.includes('Insufficient USDT')) {
         toast({
-          title: 'Insufficient USDC',
+          title: 'Insufficient USDT',
           description: errorMessage,
           variant: "destructive",
         });
@@ -560,7 +560,7 @@ export function LevelUpgradeButton({ onSuccess, targetLevel, className = '' }: L
           <div className="text-center p-4 bg-gradient-to-br from-orange-500/10 to-orange-500/5 rounded-lg border border-orange-500/20">
             <Coins className="h-6 w-6 text-orange-400 mx-auto mb-2" />
             <h3 className="font-semibold text-orange-400 mb-1">
-              {isLoading ? '...' : `${formatPrice(levelInfo.priceInUSDC)} USDC`}
+              {isLoading ? '...' : `${formatPrice(levelInfo.priceInUSDT)} USDT`}
             </h3>
             <p className="text-xs text-muted-foreground">
               {isLoading ? 'Loading...' : `${getLevelName(upgradeLevel)} Price`}
@@ -612,7 +612,7 @@ export function LevelUpgradeButton({ onSuccess, targetLevel, className = '' }: L
             ) : (
               <>
                 <TrendingUp className="mr-2 h-5 w-5" />
-                Upgrade to {getLevelName(upgradeLevel)} - {formatPrice(levelInfo.priceInUSDC)} USDC
+                Upgrade to {getLevelName(upgradeLevel)} - {formatPrice(levelInfo.priceInUSDT)} USDT
               </>
             )}
           </Button>
@@ -634,7 +634,7 @@ export function LevelUpgradeButton({ onSuccess, targetLevel, className = '' }: L
         {/* Additional Information */}
         <div className="text-center text-xs text-muted-foreground pt-2 space-y-1">
           <p>📈 Sequential level progression (3→4→5...→19)</p>
-          <p>💳 USDC payment required</p>
+          <p>💳 USDT payment required</p>
           <p>⚡ Instant level activation</p>
           <p>🎭 NFT minted to your wallet</p>
         </div>

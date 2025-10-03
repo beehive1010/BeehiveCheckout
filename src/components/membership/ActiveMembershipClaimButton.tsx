@@ -14,7 +14,7 @@ import { readContract } from "thirdweb";
 
 // Contract addresses from environment
 const MEMBERSHIP_NFT_CONTRACT = import.meta.env.VITE_MEMBERSHIP_NFT_CONTRACT;
-const USDC_CONTRACT = '0xaf88d065e77c8cC2239327C5EDb3A432268e5831'; // Arbitrum USDC
+const USDT_CONTRACT = '0xFd086bC7CD5C481DCC9C85ebE478A1C0b69FCbb9'; // Arbitrum USDT
 
 // Configure wallets with ARB One sponsorship
 const wallets = [
@@ -39,7 +39,7 @@ const nftContract = getContract({
 const usdtContract = getContract({
   client,
   chain: arbitrum, 
-  address: USDC_CONTRACT,
+  address: USDT_CONTRACT,
 });
 
 interface ActiveMembershipClaimButtonProps {
@@ -64,16 +64,16 @@ export function ActiveMembershipClaimButton({
   const [isRegistering, setIsRegistering] = useState(false);
   const [isUserRegistered, setIsUserRegistered] = useState(false);
   
-  // USDC has 6 decimals on Arbitrum
-  const REQUIRED_AMOUNT = "130000000"; // 130 USDC (6 decimals)
+  // USDT has 6 decimals on Arbitrum
+  const REQUIRED_AMOUNT = "130000000"; // 130 USDT (6 decimals)
   const DISPLAY_AMOUNT = "130"; // For display purposes
 
-  // Function to check USDC allowance
-  const checkUSDCAllowance = async () => {
-    if (!account?.address || !USDC_CONTRACT || !MEMBERSHIP_NFT_CONTRACT) {
+  // Function to check USDT allowance
+  const checkUSDTAllowance = async () => {
+    if (!account?.address || !USDT_CONTRACT || !MEMBERSHIP_NFT_CONTRACT) {
       console.warn('⚠️ Missing required data for allowance check:', {
         address: account?.address,
-        usdtContract: USDC_CONTRACT,
+        usdtContract: USDT_CONTRACT,
         nftContract: MEMBERSHIP_NFT_CONTRACT
       });
       setNeedsApproval(true);
@@ -83,8 +83,8 @@ export function ActiveMembershipClaimButton({
     
     setIsCheckingAllowance(true);
     try {
-      console.log('🔍 Checking USDC allowance for:', account.address);
-      console.log('🔍 USDC Contract:', USDC_CONTRACT);
+      console.log('🔍 Checking USDT allowance for:', account.address);
+      console.log('🔍 USDT Contract:', USDT_CONTRACT);
       console.log('🔍 NFT Contract:', MEMBERSHIP_NFT_CONTRACT);
       
       // Skip allowance check for now - just set to needs approval
@@ -92,7 +92,7 @@ export function ActiveMembershipClaimButton({
       setNeedsApproval(true);
       
     } catch (error) {
-      console.error('❌ Error checking USDC allowance:', error);
+      console.error('❌ Error checking USDT allowance:', error);
       console.error('❌ Error details:', (error as any)?.message || error);
       // Assume approval is needed on error
       setNeedsApproval(true);
@@ -151,7 +151,7 @@ export function ActiveMembershipClaimButton({
   useEffect(() => {
     if (account?.address) {
       checkUserRegistration();
-      checkUSDCAllowance();
+      checkUSDTAllowance();
     }
   }, [account?.address]);
 
@@ -281,8 +281,8 @@ export function ActiveMembershipClaimButton({
   };
 
   const handleApprovalSuccess = async (result: any) => {
-    console.log('✅ USDC Approval successful:', result);
-    toast.success('USDC approval confirmed! You can now claim the NFT.');
+    console.log('✅ USDT Approval successful:', result);
+    toast.success('USDT approval confirmed! You can now claim the NFT.');
     setIsApproving(false);
     
     // Set to not needing approval anymore
@@ -290,7 +290,7 @@ export function ActiveMembershipClaimButton({
   };
 
   const handleApprovalError = (error: Error) => {
-    console.error('❌ USDC Approval failed:', error);
+    console.error('❌ USDT Approval failed:', error);
     console.error('❌ Approval error name:', error.name);
     console.error('❌ Approval error message:', error.message);
     console.error('❌ Approval error stack:', error.stack);
@@ -330,7 +330,7 @@ export function ActiveMembershipClaimButton({
           🎫 Claim Level 1 Membership NFT
         </h3>
         <div className="space-y-2 text-sm text-gray-600">
-          <p>• Payment: {DISPLAY_AMOUNT} USDC</p>
+          <p>• Payment: {DISPLAY_AMOUNT} USDT</p>
           <p>• Token ID: 1</p>
           <p>• Network: Arbitrum One</p>
           <p>• Gas fees sponsored ✨</p>
@@ -340,10 +340,10 @@ export function ActiveMembershipClaimButton({
             <p className="text-red-600 font-medium">👤 Step 1: Register user account</p>
           )}
           {isUserRegistered && isCheckingAllowance && (
-            <p className="text-blue-600 font-medium">🔍 Step 2: Checking USDC allowance...</p>
+            <p className="text-blue-600 font-medium">🔍 Step 2: Checking USDT allowance...</p>
           )}
           {isUserRegistered && !isCheckingAllowance && needsApproval && (
-            <p className="text-orange-600 font-medium">🔓 Step 2: Approve USDC spending</p>
+            <p className="text-orange-600 font-medium">🔓 Step 2: Approve USDT spending</p>
           )}
           {isUserRegistered && !isCheckingAllowance && !needsApproval && (
             <p className="text-green-600 font-medium">✅ Step 3: Ready to claim NFT</p>
@@ -374,13 +374,13 @@ export function ActiveMembershipClaimButton({
       ) : isCheckingAllowance ? (
         <div className="w-full bg-gray-200 text-gray-600 font-bold py-4 px-6 rounded-lg flex items-center justify-center space-x-2">
           <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-gray-600"></div>
-          <span>Checking USDC allowance...</span>
+          <span>Checking USDT allowance...</span>
         </div>
       ) : needsApproval ? (
-        /* Show USDC approval button */
+        /* Show USDT approval button */
         <TransactionButton
           transaction={() => {
-            console.log('🚀 Preparing USDC approval transaction...');
+            console.log('🚀 Preparing USDT approval transaction...');
             console.log('🚀 Approving for spender:', MEMBERSHIP_NFT_CONTRACT);
             console.log('🚀 Amount to approve:', REQUIRED_AMOUNT);
             setIsApproving(true);
@@ -399,7 +399,7 @@ export function ActiveMembershipClaimButton({
           }}
           onTransactionSent={(result) => {
             console.log('📡 Approval transaction sent:', result.transactionHash);
-            toast.loading('Processing USDC approval...', { id: 'approval-tx' });
+            toast.loading('Processing USDT approval...', { id: 'approval-tx' });
           }}
           onTransactionConfirmed={handleApprovalSuccess}
           onError={handleApprovalError}
@@ -409,12 +409,12 @@ export function ActiveMembershipClaimButton({
           {isApproving ? (
             <div className="flex items-center justify-center space-x-2">
               <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white"></div>
-              <span>Approving USDC...</span>
+              <span>Approving USDT...</span>
             </div>
           ) : (
             <div className="flex items-center justify-center space-x-2">
               <span>🔓</span>
-              <span>Approve {DISPLAY_AMOUNT} USDC</span>
+              <span>Approve {DISPLAY_AMOUNT} USDT</span>
             </div>
           )}
         </TransactionButton>
@@ -427,7 +427,7 @@ export function ActiveMembershipClaimButton({
             console.log('🚀 To address:', account.address);
             console.log('🚀 Token ID:', 1);
             console.log('🚀 Quantity:', 1);
-            console.log('🚀 Currency:', USDC_CONTRACT);
+            console.log('🚀 Currency:', USDT_CONTRACT);
             console.log('🚀 Price per token:', REQUIRED_AMOUNT);
             setIsProcessing(true);
             
@@ -437,7 +437,7 @@ export function ActiveMembershipClaimButton({
                 to: account.address,
                 tokenId: 1n,
                 quantity: 1n,
-                // currencyAddress: USDC_CONTRACT,
+                // currencyAddress: USDT_CONTRACT,
                 pricePerToken: REQUIRED_AMOUNT,
               });
             } catch (error) {
@@ -463,7 +463,7 @@ export function ActiveMembershipClaimButton({
           ) : (
             <div className="flex items-center justify-center space-x-2">
               <span>🎫</span>
-              <span>Claim Level 1 NFT ({DISPLAY_AMOUNT} USDC)</span>
+              <span>Claim Level 1 NFT ({DISPLAY_AMOUNT} USDT)</span>
             </div>
           )}
         </TransactionButton>
