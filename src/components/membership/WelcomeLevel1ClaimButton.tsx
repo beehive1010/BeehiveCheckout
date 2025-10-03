@@ -1,9 +1,9 @@
 import {useEffect, useState, useCallback, useRef} from 'react';
-import {useActiveAccount, useActiveWalletChain, useSwitchActiveWalletChain, PayEmbed, TransactionButton} from 'thirdweb/react';
+import {useActiveAccount, useActiveWalletChain, useSwitchActiveWalletChain, PayEmbed} from 'thirdweb/react';
 import {arbitrum} from 'thirdweb/chains';
 import {balanceOf, claimTo} from 'thirdweb/extensions/erc1155';
-import {approve, allowance} from 'thirdweb/extensions/erc20';
-import {getContract} from 'thirdweb';
+import {getApprovalForTransaction} from 'thirdweb/extensions/erc20';
+import {sendAndConfirmTransaction} from 'thirdweb';
 import {Button} from '../ui/button';
 import {Card, CardContent, CardHeader, CardTitle} from '../ui/card';
 import {Badge} from '../ui/badge';
@@ -37,13 +37,12 @@ export function WelcomeLevel1ClaimButton({ onSuccess, referrerWallet, className 
   const [isEligible, setIsEligible] = useState(false);
   const [hasNFT, setHasNFT] = useState(false);
   const [showPayEmbed, setShowPayEmbed] = useState(false);
-  const [hasApproval, setHasApproval] = useState(false);
-  const [isCheckingApproval, setIsCheckingApproval] = useState(false);
+  const [approvalStep, setApprovalStep] = useState<'idle' | 'approving' | 'approved'>('idle');
+  const [isApproving, setIsApproving] = useState(false);
   const payEmbedRef = useRef<HTMLDivElement | null>(null);
 
   // Fixed Level 1 pricing and info
   const LEVEL_1_PRICE_USDC = 130;
-  const USDC_CONTRACT_ADDRESS = '0xaf88d065e77c8cC2239327C5EDb3A432268e5831';
   const API_BASE = import.meta.env.VITE_API_BASE_URL || 'https://cvqibjcbfrwsgkvthccp.supabase.co/functions/v1';
 
   // Check network status
@@ -62,45 +61,6 @@ export function WelcomeLevel1ClaimButton({ onSuccess, referrerWallet, className 
     }
   }, [account?.address, referrerWallet]);
 
-  // Check USDC approval
-  useEffect(() => {
-    if (account?.address && nftContract) {
-      checkUSDCApproval();
-    }
-  }, [account?.address, nftContract]);
-
-  const checkUSDCApproval = async () => {
-    if (!account?.address || !nftContract) return;
-
-    setIsCheckingApproval(true);
-    try {
-      const usdcContract = getContract({
-        client,
-        address: USDC_CONTRACT_ADDRESS,
-        chain: arbitrum,
-      });
-
-      const currentAllowance = await allowance({
-        contract: usdcContract,
-        owner: account.address,
-        spender: nftContract.address,
-      });
-
-      const requiredAmount = BigInt(LEVEL_1_PRICE_USDC * 1_000_000); // USDC has 6 decimals
-      setHasApproval(currentAllowance >= requiredAmount);
-
-      console.log('🔍 USDC Approval Check:', {
-        currentAllowance: currentAllowance.toString(),
-        requiredAmount: requiredAmount.toString(),
-        hasApproval: currentAllowance >= requiredAmount
-      });
-    } catch (error) {
-      console.error('Error checking USDC approval:', error);
-      setHasApproval(false);
-    } finally {
-      setIsCheckingApproval(false);
-    }
-  };
 
   const handleSwitchNetwork = async () => {
     if (!switchChain) return;
@@ -301,12 +261,7 @@ export function WelcomeLevel1ClaimButton({ onSuccess, referrerWallet, className 
   };
 
   const handleApproveAndClaim = async () => {
-    if (!account?.address) {
-      toast({
-        title: t('wallet.connectRequired'),
-        description: t('wallet.connectRequiredDesc'),
-        variant: "destructive",
-      });
+    if (!account?.address || isApproving || hasNFT) {
       return;
     }
 
@@ -319,92 +274,86 @@ export function WelcomeLevel1ClaimButton({ onSuccess, referrerWallet, className 
       return;
     }
 
-    if (hasNFT) {
-      toast({
-        title: t('claim.alreadyOwnsNFT'),
-        description: t('claim.alreadyOwnsNFTDesc'),
-        variant: "default",
-      });
-      return;
-    }
-
     // Check registration before proceeding
     try {
       console.log('🔍 Checking registration status for:', account.address);
       const userResult = await authService.getUser(account.address);
-      console.log('📊 User check result:', userResult);
 
-      const userData = userResult?.data;
-
-      if (!userData) {
+      if (!userResult?.data) {
         console.log('❌ User not registered - showing registration modal');
         toast({
           title: t('registration.required') || 'Registration Required',
           description: t('registration.requiredDesc') || 'Please register to claim your NFT',
           duration: 3000
         });
-
-        setIsStabilizing(true);
-        setTimeout(() => {
-          setIsStabilizing(false);
-          setTimeout(() => {
-            console.log('🔄 Opening registration modal');
-            setShowRegistrationModal(true);
-          }, 300);
-        }, 800);
+        setShowRegistrationModal(true);
         return;
       }
 
-      console.log('✅ User is registered:', userData);
+      // Start approval + claim process
+      setIsApproving(true);
+      setApprovalStep('approving');
 
-      if (!isEligible) {
-        console.log('⚠️ Re-checking eligibility...');
-        await checkEligibility();
-        if (!isEligible) {
-          toast({
-            title: t('claim.notEligible') || 'Not Eligible',
-            description: t('claim.checkRequirements') || 'Please check requirements',
-            variant: "destructive",
-          });
-          return;
-        }
-      }
-
-      // Check if USDC approval is needed
-      await checkUSDCApproval();
-
-      if (!hasApproval) {
-        toast({
-          title: t('claim.approvalRequired') || 'Approval Required',
-          description: t('claim.approveUSDC') || 'Please approve USDC spending first',
-          duration: 3000
-        });
-        // Don't open PayEmbed yet, user needs to approve first
-        return;
-      }
-
-      // User is registered, eligible, and has approval - open PayEmbed
-      console.log('✅ Opening PayEmbed for NFT claim');
-      setShowPayEmbed(true);
-
-    } catch (error) {
-      console.error('❌ Error checking registration:', error);
-
-      console.log('⚠️ Treating error as not registered - showing registration modal');
       toast({
-        title: t('registration.required') || 'Registration Required',
-        description: t('registration.requiredDesc') || 'Please register to claim your NFT',
-        duration: 3000
+        title: '⏳ Processing Approval',
+        description: 'Please sign the transaction in your wallet to approve USDC spending',
+        duration: 5000
       });
 
-      setIsStabilizing(true);
-      setTimeout(() => {
-        setIsStabilizing(false);
-        setTimeout(() => {
-          console.log('🔄 Opening registration modal (from error)');
-          setShowRegistrationModal(true);
-        }, 300);
-      }, 800);
+      const claimTx = claimTo({
+        contract: nftContract,
+        to: account.address as `0x${string}`,
+        tokenId: BigInt(1),
+        quantity: BigInt(1),
+      });
+
+      const approveTx = await getApprovalForTransaction({
+        transaction: claimTx,
+        account,
+      });
+
+      if (approveTx) {
+        toast({
+          title: '⏳ Approval Pending',
+          description: 'Waiting for blockchain confirmation...',
+          duration: 10000
+        });
+
+        await sendAndConfirmTransaction({
+          transaction: approveTx,
+          account,
+        });
+
+        toast({
+          title: '✅ USDC Approved',
+          description: 'Opening payment interface...',
+          duration: 3000
+        });
+      }
+
+      setApprovalStep('approved');
+      setShowPayEmbed(true);
+
+    } catch (error: any) {
+      console.error('❌ Approval error:', error);
+
+      let errorMessage = 'Failed to approve USDC';
+      if (error.message?.includes('insufficient funds')) {
+        errorMessage = 'Insufficient ETH for gas fees';
+      } else if (error.message?.includes('user rejected')) {
+        errorMessage = 'Transaction rejected by user';
+      }
+
+      toast({
+        title: '❌ Approval Failed',
+        description: errorMessage,
+        variant: 'destructive',
+        duration: 5000
+      });
+
+      setApprovalStep('idle');
+    } finally {
+      setIsApproving(false);
     }
   };
 
@@ -593,6 +542,14 @@ export function WelcomeLevel1ClaimButton({ onSuccess, referrerWallet, className 
                       <div className="w-6 h-6 rounded-full bg-blue-500/20 flex items-center justify-center text-blue-400 font-semibold">1</div>
                       <span>Approve USDC spending</span>
                     </div>
+
+                    {/* Important note about the approval amount display */}
+                    <div className="p-2 bg-blue-500/10 border border-blue-500/20 rounded-lg">
+                      <p className="text-xs text-blue-400">
+                        💡 You're approving <strong>130 USDC</strong> (not millions!). The large number you see is the wei value.
+                      </p>
+                    </div>
+
                     <TransactionButton
                       transaction={() => {
                         const usdcContract = getContract({
