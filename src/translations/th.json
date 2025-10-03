@@ -132,7 +132,19 @@
     "getStarted": "Get Started",
     "topUp": "Top Up",
     "useNftService": "Use NFT Service",
-    "viewInCenter": "View in NFT Center"
+    "viewInCenter": "View in NFT Center",
+    "back": "返回",
+    "claim": "領取",
+    "connect_wallet": "連接錢包",
+    "continue": "繼續",
+    "copy": "複製",
+    "disconnect": "断開連接",
+    "finish": "完成",
+    "next": "下一步",
+    "refresh": "刷新",
+    "try_again": "重試",
+    "view_transaction": "查看交易",
+    "withdraw": "提現"
   },
   "claim": {
     "alreadyHaveNFT": "You already have your Level 1 membership NFT. Redirecting to dashboard...",
@@ -181,12 +193,60 @@
     "waitingBlockchainConfirmation": "Waiting for blockchain confirmation...",
     "waitingNFTConfirmation": "Waiting for NFT minting confirmation...",
     "walletNotConnected": "Wallet not connected",
-    "welcomeBack": "🎉 Welcome Back!"
+    "welcomeBack": "🎉 Welcome Back!",
+    "checkingOwnership": "检查NFT持有狀態...",
+    "referrerMustBeRegistered": "Referrer must be a registered user on the platform"
   },
   "common": {
     "backToProfile": "Back to Profile",
     "cancel": "Cancel",
-    "user": "ผู้ใช้"
+    "user": "ผู้ใช้",
+    "active": "激活",
+    "address_copied": "地址已複製",
+    "back": "返回",
+    "block_explorer": "區块瀏覽器",
+    "caution": "注意",
+    "claim_failed": "領取失敗",
+    "close": "關閉",
+    "confirm": "確認",
+    "connected": "已連接",
+    "connecting": "連接中...",
+    "copy_address": "複製地址",
+    "critical": "严重",
+    "disconnected": "已断開",
+    "error": "錯誤",
+    "failed_status": "失敗",
+    "hide_details": "隐藏詳情",
+    "loading": "加載中...",
+    "loading_status": "加載中...",
+    "nft_claimed_successfully": "NFT 領取成功！",
+    "no_wallet_address": "无錢包地址",
+    "pending": "待處理",
+    "refresh": "刷新",
+    "retry": "重試",
+    "safe": "安全",
+    "save": "保存",
+    "success": "成功",
+    "success_status": "成功！",
+    "transaction_hash": "交易哈希",
+    "view_details": "查看詳情",
+    "warning": "警告",
+    "accessDenied": "Access Denied",
+    "allPartners": "All Partners",
+    "authenticationFailed": "Authentication Failed",
+    "comingSoon": "Coming Soon",
+    "errorLoading": "Error Loading",
+    "expired": "EXPIRED",
+    "featuredPartners": "Featured Partners",
+    "healthy": "Healthy",
+    "info": "Info",
+    "maintenance": "Maintenance",
+    "noRecentErrors": "No Recent Errors",
+    "pageNotFound": "Page Not Found",
+    "thisMayTakeAFewSeconds": "This may take a few seconds",
+    "thisRequiresConnectedWallet": "This requires a connected wallet",
+    "tokenPurchase": "Token Purchase",
+    "unknown": "Unknown"
   },
   "connectWallet": {
     "description": "Please connect your wallet to access the membership system",
@@ -369,7 +429,9 @@
     "social": {
       "telegram": "Telegram",
       "twitter": "Twitter",
-      "whatsapp": "WhatsApp"
+      "whatsapp": "WhatsApp",
+      "facebook": "Facebook",
+      "shareOn": "分享到"
     },
     "stats": {
       "allTime": "All Time",
@@ -417,7 +479,112 @@
     "verifying": "Verifying NFT ownership...",
     "viewMatrix": "View Matrix",
     "welcomeBack": "Welcome back, {username}!",
-    "welcomeMember": "Welcome back, Member!"
+    "welcomeMember": "Welcome back, Member!",
+    "transferable": "可轉帳",
+    "available": "可用",
+    "yourTokens": "您的代幣",
+    "yourTeam": "您的團隊",
+    "earnings": "您的收益",
+    "ready": "就绪",
+    "balance": "餘額",
+    "network": "網絡",
+    "rewards": "獎勵",
+    "yourNFT": "您的NFT",
+    "currentLevel": "當前等級",
+    "upgradeMembership": "升級会員",
+    "information": {
+      "bccPhasesPreview": "BCC Phases Preview",
+      "bccRewardsMobileDesc": "Four-phase BCC release system based on member activation milestones. Each phase has different reward amounts that decrease over time.",
+      "bccRewardsSubtitle": "BCC Release Rewards",
+      "bccRewardsSystem": "BCC Release System",
+      "bccRewardsSystemDesc": "Four-phase BCC release system based on member activation milestones. Rewards decrease progressively to ensure long-term sustainability.",
+      "complete19LayerStructure": "Complete 19-Layer Reward Structure",
+      "condition1": "Members in layers upgrade membership levels",
+      "condition2": "Trigger corresponding rewards based on upgrade level",
+      "condition3": "Each layer can receive multiple rewards",
+      "current": "Current",
+      "eligibilityRules": "Eligibility Rules & Timing",
+      "fourPhasesSystem": "4-phase decreasing release system",
+      "highestRewardLayer": "Highest reward layer",
+      "layer11to15Rewards": "Layer 11-15 Rewards",
+      "layer16to19Rewards": "Layer 16-19 Rewards",
+      "layer19Amount": "Layer 19: $1,000 (Level 19 NFT price)",
+      "layer1Amount": "Layer 1: $100 (Level 1 NFT price)",
+      "layer1to5Rewards": "Layer 1-5 Rewards",
+      "layer2Amount": "Layer 2: $150 (Level 2 NFT price)",
+      "layer6to10Rewards": "Layer 6-10 Rewards",
+      "layerRewardsDialogDesc": "Comprehensive explanation of the 19-layer reward system, including eligibility rules and payout mechanisms",
+      "layerRewardsDialogTitle": "Layer Rewards - Complete 19-Layer Details",
+      "layerRewardsMobileDesc": "When members in your matrix upgrade membership levels, corresponding layer rewards are triggered. 19 layers total, each layer reward amount is 100% of the corresponding level NFT price.",
+      "layerRewardsPreview": "Layer Rewards Preview",
+      "layerRewardsSubtitle": "19-Layer Reward System",
+      "layerRewardsSummary": "Layer Rewards Summary",
+      "layerRewardsSystem": "Layer Rewards System",
+      "layerRewardsSystemDesc": "Layer rewards are triggered by member upgrades in your downline. Layer 1 rewards are based on direct referrals but display through matrix hierarchy. Layers 2-19 follow standard matrix placement with recursive tree view up to 19 levels.",
+      "levelUpgradeTriggered": "Level {{level}} upgrade triggered",
+      "matrixPrinciple": "Matrix Structure Principle: ",
+      "matrixPrincipleDesc": "BEEHIVE uses a 19-layer 3×3 matrix system, with each level representing one layer in the matrix.",
+      "matrixStructureExplanation": "Matrix Structure Explanation",
+      "nftPricePercent": "100% NFT price",
+      "phase": "Phase",
+      "releaseMechanism": "BCC Release Mechanism",
+      "instantRewards": "Instant Rewards",
+      "pendingSystem": "Pending System (72 Hours)",
+      "rewardAmounts": "Reward Amounts:",
+      "toLayer19Summary": "... to L19 ($1,000) total 19 layers",
+      "triggerConditions": "Trigger Conditions:",
+      "viewAll19Layers": "View All 19 Layers",
+      "viewAll19LayersDetails": "View All 19 Layer Details",
+      "viewAllPhases": "View All Phases",
+      "viewAllPhasesDetails": "View All Phase Details",
+      "referralRewardToUpline": "Direct referral reward to upline",
+      "activationFeePerMember": "Plus $30 activation fee per member",
+      "levelUpgradeTrigger": "Triggered when Level {level} members upgrade",
+      "percentageNftPrice": "100% of NFT price",
+      "bccLockingRewardsTitle": "BCC Locking & Release Rewards",
+      "bccLockingRewardsDesc": "Four-phase BCC token release system based on global member activation count",
+      "bccReleaseMechanism": "BCC Release Mechanism",
+      "bccReleaseMechanismDesc": "BCC tokens are automatically released when members activate any level, with amounts decreasing across four phases",
+      "autoDistribution": "Auto Distribution",
+      "completeFourPhaseDetails": "Complete Four-Phase BCC Release Details",
+      "currentPhase": "Current Phase",
+      "completeReleaseSchedule": "Complete Release Schedule",
+      "levelBasic": "Basic Levels (1-5)",
+      "levelIntermediate": "Intermediate Levels (6-10)",
+      "levelAdvanced": "Advanced Levels (11-15)",
+      "levelTop": "Top Levels (16-19)",
+      "activatedMembers": "Activated Members",
+      "perMemberTotalLockingPool": "Per Member Total Locking Pool",
+      "claimableInstant": "Claimable (Instant)",
+      "pendingHours": "Pending (72 Hours)",
+      "rollupSystem": "Rollup System",
+      "referrerLevelRequired": "Referrer level >= layer level required",
+      "levelVerificationPassed": "Level verification passed automatically",
+      "rewardDistributedImmediately": "Reward distributed immediately",
+      "exampleLayer3Reward": "Example: Layer 3 reward ($200)",
+      "referrerHasLevel3": "Referrer has Level 3 or higher",
+      "referrerLevelInsufficient": "Referrer level insufficient for instant claim",
+      "hourUpgradeWindow": "72-hour upgrade window available",
+      "canClaimByUpgrading": "Can claim by upgrading to required level",
+      "referrerHasLevel1": "Referrer has Level 1 (needs Level 3+)",
+      "expiredRewards": "After 72 hours, expired rewards roll up",
+      "rollsUpToQualified": "Rolls up to next qualified upline member",
+      "ensuresNoRewardLost": "Ensures no rewards are lost in the system",
+      "noUpgradeRollup": "No upgrade within 72h → rolls up to qualified upline",
+      "complete19LayerRewardStructure": "Complete 19-Layer Reward Structure",
+      "layerGroupBasicBadge": "Basic",
+      "layerGroupIntermediateBadge": "Intermediate",
+      "layerGroupAdvancedBadge": "Advanced",
+      "layerGroupTopBadge": "Top",
+      "rewardStatusSystem": "Reward Status & Verification System",
+      "eligibilityRulesAndTiming": "Eligibility Rules & Timing",
+      "upgradeToClain": "Upgrade to Claim",
+      "upgradeToClainDesc": "Members can upgrade during pending period to claim immediately",
+      "expiredReallocation": "Expired Reallocation",
+      "expiredReallocationDesc": "System automatically redistributes expired rewards to qualified upline members",
+      "pending72Hours": "72-hour pending period",
+      "pending72HoursDesc": "If referrer level insufficient, reward enters 72-hour pending state"
+    }
   },
   "discover": {
     "categories": {
@@ -635,7 +802,26 @@
       "requiresUpgrade": "Requires Level {level}"
     },
     "subtitle": "Learn blockchain, DeFi, and Web3 technologies",
-    "title": "Education Center"
+    "title": "Education Center",
+    "payment": {
+      "confirm_title": "確認支付",
+      "course_details": "課程詳情",
+      "price": "價格",
+      "method": "支付方式",
+      "balance": "餘額",
+      "blockchain": "區块鏈支付",
+      "coming_soon": "即將推出",
+      "blockchain_description": "鏈上直接支付功能即將推出",
+      "wallet": "錢包地址",
+      "sufficient_balance": "餘額充足",
+      "remaining": "剩餘",
+      "insufficient_balance": "BCC餘額不足",
+      "processing": "處理中...",
+      "confirm": "確認支付",
+      "success": "支付成功！",
+      "failed": "支付失敗",
+      "cancelled": "支付已取消"
+    }
   },
   "error": {
     "generic": "An error occurred",
@@ -650,12 +836,21 @@
     "inactive": "Inactive",
     "insufficientBcc": "Insufficient BCC",
     "maxLevel": "Max Level",
-    "walletNotConnected": "Wallet not connected"
+    "walletNotConnected": "Wallet not connected",
+    "insufficient_funds": "資金不足",
+    "invalid_address": "无效錢包地址",
+    "network_error": "網絡錯誤",
+    "transaction_failed": "交易失敗",
+    "unknown_error": "發生未知錯誤",
+    "user_rejected": "用戶拒绝交易"
   },
   "footer": {
     "contact": "Contact Us",
     "cookies": "Cookie Policy",
-    "copyright": "© 2024 Beehive. All rights reserved.",
+    "copyright": {
+      "blockchain": "Powered by blockchain technology",
+      "rights": "All rights reserved"
+    },
     "description": "Web3 membership and learning platform with blockchain-based rewards.",
     "documentation": "Documentation",
     "helpCenter": "Help Center",
@@ -664,7 +859,18 @@
     "privacy": "Privacy Policy",
     "status": "Status",
     "support": "Support",
-    "terms": "Terms of Service"
+    "terms": "Terms of Service",
+    "backToTop": "Back to Top",
+    "brand": {
+      "tagline": "Building the future of Web3 membership and education"
+    },
+    "newsletter": {
+      "button": "Subscribe",
+      "description": "Subscribe to our newsletter for the latest updates and announcements",
+      "disclaimer": "We respect your privacy and will never share your email",
+      "placeholder": "Enter your email address",
+      "title": "Stay Updated"
+    }
   },
   "header": {
     "connectWallet": "Connect Wallet"
@@ -753,7 +959,8 @@
     "cta": {
       "button": "Join Beehive Now",
       "description": "Join thousands of members already earning in the Beehive ecosystem",
-      "title": "Ready to Start Your Journey?"
+      "title": "Ready to Start Your Journey?",
+      "subtitle": "Join thousands of members earning passive income"
     },
     "ctaStats": {
       "earningPotential": "Earning Potential",
@@ -784,6 +991,18 @@
       "tokens": {
         "description": "Dual token system with transferable and restricted buckets",
         "title": "BCC Rewards"
+      },
+      "matrixRewards": {
+        "description": "指數級財富增長系統",
+        "title": "矩陣獎勵"
+      },
+      "nftMarketplace": {
+        "description": "交易獨家 Beehive NFT",
+        "title": "NFT 市場"
+      },
+      "smartContracts": {
+        "description": "100% 自動化區塊鏈執行",
+        "title": "智能合約"
       }
     },
     "getStarted": "Get Started",
@@ -839,7 +1058,21 @@
       "bccRestricted": "Beehive Crypto Coin (Restricted)",
       "bccTransferable": "Beehive Crypto Coin (Transferable)",
       "cth": "Centauri Honey (CTH)",
-      "usdt": "USDT Balance"
+      "usdt": "USDT Balance",
+      "title": "增强餘額詳情",
+      "transferableBCC": "可轉帳BCC",
+      "restrictedBCC": "限製BCC",
+      "lockedBCC": "鎖定BCC",
+      "totalUSDTEarned": "總USDT收益",
+      "totalTeamSize": "團隊總人數",
+      "directReferrals": "直推人數",
+      "deepestLayer": "最深層級",
+      "spilloverRate": "溢出率",
+      "layerRewards": "層級獎勵",
+      "matrixTree": "矩阵树",
+      "analytics": "分析",
+      "nftUpgrade": "NFT升級",
+      "balances": "餘額"
     },
     "directReferrals": "Direct Referrals",
     "editProfile": "Edit Profile",
@@ -882,7 +1115,70 @@
     "subtitle": "View your stats, balances, and account details",
     "title": "Profile & Settings",
     "totalEarnings": "Total Earnings",
-    "totalReferrals": "Total Referrals"
+    "totalReferrals": "Total Referrals",
+    "profile": {
+      "editProfile": "编辑資料"
+    },
+    "performance": {
+      "overview": "矩阵性能概覽",
+      "totalTeamSize": "團隊總規模",
+      "directReferrals": "直接推薦",
+      "deepestLayer": "最深層級",
+      "spilloverRate": "溢出率",
+      "layerRewards": "層級獎勵",
+      "matrixTree": "矩阵树",
+      "analytics": "數據分析",
+      "stats": "統計",
+      "upgrade": "升級",
+      "balance": "餘額",
+      "rewardPerformance": "獎勵性能",
+      "totalEarnings": "總收益",
+      "readyToClaim": "可領取",
+      "pendingRewards": "待處理獎勵",
+      "efficiency": "效率",
+      "detailedMetrics": "詳細性能指標",
+      "growthVelocity": "增长速度",
+      "rewardEfficiency": "獎勵效率",
+      "layerDistribution": "層級分布",
+      "membersPerDay": "成員/天",
+      "usdtPerMember": "USDT/成員"
+    },
+    "tokens": {
+      "management": "BCC代幣管理",
+      "transferable": "可轉移",
+      "restricted": "受限",
+      "locked": "鎖定",
+      "active": "活跃",
+      "limited": "受限",
+      "usage": "用途"
+    },
+    "usdt": {
+      "earningsBreakdown": "USDT收益明細",
+      "totalEarned": "總收益",
+      "available": "可用",
+      "withdrawn": "已提取",
+      "pending": "待處理"
+    },
+    "account": {
+      "information": "帳戶信息",
+      "activationTier": "激活等級",
+      "activationOrder": "激活序号",
+      "memberSince": "成員自",
+      "lastUpdated": "最后更新",
+      "dataRefresh": "數據刷新"
+    },
+    "loading": {
+      "balanceDetails": "加載餘額詳情...",
+      "noBalanceData": "无餘額數據"
+    },
+    "system": {
+      "subtitle": "V2矩阵系統 • 基于層級的獎勵 • 高級分析",
+      "refresh": "刷新",
+      "profileRefreshed": "個人資料已刷新",
+      "refreshSuccess": "所有數據已成功更新",
+      "refreshFailed": "刷新失敗",
+      "refreshError": "刷新個人資料數據失敗"
+    }
   },
   "membership": {
     "claiming": {
@@ -919,7 +1215,9 @@
       "previousLevelRequired": "You must own Level {level} before upgrading to Level {nextLevel}",
       "sequentialUpgrade": "You must upgrade to Level {nextLevel} first",
       "verificationFailed": "Failed to verify referral requirements",
-      "walletRequired": "Wallet Required"
+      "walletRequired": "Wallet Required",
+      "level2ReferralRequirement": "Level 2 requires 3+ direct referrals. You currently have {count}.",
+      "requirementsNotMet": "Requirements Not Met"
     },
     "exclusiveBenefits": "Exclusive Benefits",
     "featured": "Featured",
@@ -947,15 +1245,38 @@
       "distributionResult": "{claimableCount} claimable, {pendingCount} pending rewards created",
       "distributionWarning": "Reward Distribution Issue"
     },
-    "status": {
-      "available": "Available",
-      "locked": "Locked",
-      "owned": "Owned"
-    },
+    "status": "狀態",
     "statusNotQualified": "❌ Not Qualified: {count}/{needed} referrals needed",
     "subtitle": "Unlock higher levels and exclusive benefits",
     "title": "Membership Levels",
-    "unlockNow": "Unlock Now ${price}"
+    "unlockNow": "Unlock Now ${price}",
+    "active": "激活",
+    "benefits": "权益",
+    "expired": "已過期",
+    "level": "等級",
+    "pending": "待處理",
+    "upgrade": "升級",
+    "yourTokens": "您的代幣",
+    "currentDirectReferrals": "Current Direct Referrals",
+    "currentReferrals": "Current referrals: {count}",
+    "goToWelcome": "Go to Welcome Page →",
+    "level2DirectReferralsRequired": "3+ Direct Referrals Required",
+    "level2RequiresReferrals": "Level 2 requires 3+ direct referrals",
+    "levelUpgradeTitle": "Level {level} Upgrade",
+    "maxLevelReached": "Maximum level reached!",
+    "navigating": "Navigating...",
+    "needsActivation": "Please activate your Level 1 membership on the Welcome page first.",
+    "nftClaimDescription": "Use blockchain NFT claiming to upgrade your membership level instantly",
+    "nftClaimNote": "Your NFT will be stored securely on the blockchain as proof of membership",
+    "nftDetected": "🎉 Level 2 NFT Detected!",
+    "quickUpgrade": "Quick Upgrade",
+    "quickUpgradeNow": "Quick Upgrade Now",
+    "refreshNow": "Refresh Now",
+    "syncingData": "Your membership data is syncing. Please refresh the page in a few moments to access Level 3 upgrade.",
+    "upgradeInstruction": "Scrolled to Quick Upgrade section. Use the upgrade button above to claim Level {level}.",
+    "upgradeSuccess": "Upgrade Successful!",
+    "upgradeSuccessDescription": "Your membership has been upgraded successfully",
+    "usdcPayment": "USDC Payment"
   },
   "membershipSystem": {
     "activation": {
@@ -1029,7 +1350,11 @@
       },
       "errors": {
         "copyFailed": "Failed to copy link",
-        "loadFailed": "Failed to load matrix data"
+        "loadFailed": "Failed to load matrix data",
+        "loadLayerStatsFailed": "Failed to load layer statistics",
+        "loadMatrixStatsFailed": "Failed to load matrix statistics",
+        "loadRecursiveMatrixFailed": "Failed to load recursive matrix data",
+        "loadTreeDataFailed": "Failed to load matrix tree data"
       },
       "layerFillStatus": "Layer Fill Status",
       "quickStats": {
@@ -1128,7 +1453,39 @@
           "left": "ซ้าย",
           "middle": "กลาง",
           "right": "ขวา"
+        },
+        "title": "3×3 Matrix - Layer 1",
+        "loading": "Loading matrix data...",
+        "noData": "No matrix data",
+        "rootNode": "Root Node",
+        "rootNodeTitle": "Matrix Root Node",
+        "upline": "Upline",
+        "uplineTitle": "Upline Referrer",
+        "emptySlot": "Empty Slot",
+        "directReferral": "Direct Referral",
+        "spillover": "Spillover",
+        "expand": "Expand",
+        "collapse": "Collapse",
+        "loadingChildren": "Loading children...",
+        "loadingFailed": "Loading failed",
+        "noChildren": "No children yet",
+        "childrenTitle": "Sub Matrix",
+        "childrenCount": "({count}/3)",
+        "explanation": {
+          "title": "3×3 Matrix Structure Explanation",
+          "rootPosition": "Center position shows matrix root node (ROOT) - Your position",
+          "lmrPositions": "L (Left), M (Middle), R (Right) three positions surround root node",
+          "expandFeature": "Click members with children to expand and view their 3×3 sub-matrix",
+          "spilloverLogic": "When layer 1 is full, new members will spillover to sublevel",
+          "layeredDisplay": "Layered display avoids gaps and maintains clear parent-child relationships"
         }
+      },
+      "navigation": {
+        "home": "Home",
+        "features": "Features",
+        "howItWorks": "How It Works",
+        "education": "Education",
+        "getStarted": "Get Started"
       }
     },
     "rewards": {
@@ -1136,7 +1493,9 @@
         "claim": "Claim"
       },
       "errors": {
-        "claimFailed": "Failed to claim reward"
+        "claimFailed": "Failed to claim reward",
+        "third_reward_level_insufficient": "Level upgrade required to claim 3rd reward",
+        "member_verification_failed": "Member verification failed"
       },
       "levelProgress": {
         "completeRequirements": "Complete requirements to unlock Level {{level}}",
@@ -1157,6 +1516,12 @@
       },
       "success": {
         "claimed": "Successfully claimed {{amount}} USDC!"
+      },
+      "messages": {
+        "claim_successful": "Reward claimed successfully"
+      },
+      "countdown": {
+        "hours_72_from_activation": "72 hours from activation"
       }
     },
     "upgrade": {
@@ -1200,7 +1565,73 @@
     "legend": "คำอธิบายสัญลักษณ์",
     "directReferralDesc": "สมาชิกที่คุณแนะนำโดยตรง",
     "spilloverDesc": "สมาชิกที่วางโดยสปิลโอเวอร์จากอัปไลน์",
-    "emptySlotDesc": "ตำแหน่งเมทริกซ์ที่ว่าง"
+    "emptySlotDesc": "ตำแหน่งเมทริกซ์ที่ว่าง",
+    "interactiveView": {
+      "title": "交互式矩阵視圖",
+      "subtitle": "實時探索您的3×3矩阵結構"
+    },
+    "maxLayer": "最大層級",
+    "other": "其他",
+    "myMatrix": "我的矩阵",
+    "level": "等級",
+    "waitingToJoin": "等待加入",
+    "loadingData": "加載矩阵數據...",
+    "loadFailed": "加載矩阵數據失敗",
+    "noData": "无矩阵數據",
+    "navigationPath": "導航路径",
+    "current": "當前",
+    "drillDown": {
+      "title": "3×3矩阵 - 第1層",
+      "loading": "加載矩阵數據...",
+      "noData": "无矩阵數據",
+      "rootNode": "根节點",
+      "rootNodeTitle": "矩阵根节點",
+      "upline": "上級",
+      "uplineTitle": "上級推薦人",
+      "emptySlot": "空位",
+      "directReferral": "直推",
+      "spillover": "溢出",
+      "expand": "展開",
+      "collapse": "收起",
+      "loadingChildren": "加載子成員...",
+      "loadingFailed": "加載失敗",
+      "noChildren": "暂无子成員",
+      "childrenTitle": "子矩阵",
+      "childrenCount": "({count}/3)",
+      "explanation": {
+        "title": "3×3矩阵結構說明",
+        "rootPosition": "中心位置顯示矩阵根节點（ROOT）- 您的位置",
+        "lmrPositions": "L（左）、M（下）、R（右）三個位置圍绕根节點",
+        "expandFeature": "點击有子級的成員可展開查看其3×3子矩阵",
+        "spilloverLogic": "當第1層满員時，新成員將溢出到子級",
+        "layeredDisplay": "分層顯示避免空隙并保持清晰的父子關系"
+      },
+      "positions": {
+        "left": "左",
+        "middle": "中",
+        "right": "右"
+      }
+    },
+    "ui": {
+      "showAllLayers": "顯示全部19層",
+      "showLess": "顯示更少",
+      "unknown": "未知"
+    },
+    "errors": {
+      "copyFailed": "複製鏈接失敗",
+      "loadFailed": "加載矩阵數據失敗",
+      "loadLayerStatsFailed": "加載層級統計失敗",
+      "loadMatrixStatsFailed": "加載矩阵統計失敗",
+      "loadRecursiveMatrixFailed": "加載遞歸矩阵數據失敗",
+      "loadTreeDataFailed": "加載矩阵树數據失敗"
+    },
+    "navigation": {
+      "education": "Education",
+      "features": "Features",
+      "getStarted": "Get Started",
+      "home": "Home",
+      "howItWorks": "How It Works"
+    }
   },
   "nav": {
     "dashboard": "Dashboard",
@@ -1318,7 +1749,13 @@
       "system_update": "System Update",
       "upgrade_reminder": "Upgrade Reminder",
       "withdrawal_completed": "Withdrawal Completed"
-    }
+    },
+    "mark_all_read": "標記全部已讀",
+    "new_reward": "新獎勵到帳",
+    "no_notifications": "暂无通知",
+    "transaction_confirmed": "交易確認",
+    "withdrawal_completed": "提現完成",
+    "withdrawal_failed": "提現失敗"
   },
   "notificationsPage": {
     "backToDashboard": "Back to Dashboard",
@@ -1573,7 +2010,8 @@
     "tabs": {
       "matrix": "3x3 Matrix",
       "rewards": "Rewards",
-      "stats": "Statistics"
+      "stats": "Statistics",
+      "team": "我的團隊"
     },
     "team_overview": "Team Overview",
     "title": "Referral System",
@@ -1584,7 +2022,8 @@
       "description": "Track upgrade rewards from your matrix layers. You have 72 hours to upgrade when members purchase higher level NFTs."
     },
     "view_matrix": "View Matrix",
-    "yourLink": "Your Referral Link"
+    "yourLink": "Your Referral Link",
+    "recent": "最近加入"
   },
   "registration": {
     "accountExists": "Account already exists, no need to register again",
@@ -1608,7 +2047,19 @@
       "passwordTooShort": "Password must be at least 6 characters",
       "referrerRequired": "A valid referral link is required to register",
       "usernameRequired": "Username is required",
-      "usernameTooShort": "Username must be at least 3 characters"
+      "usernameTooShort": "Username must be at least 3 characters",
+      "alreadyRegistered": "Already Registered",
+      "alreadyRegisteredDescription": "You are already registered! Redirecting to welcome page...",
+      "cannotReferSelf": "You cannot refer yourself",
+      "failedToValidateReferrer": "Failed to validate referrer",
+      "invalidReferrer": "Invalid Referrer",
+      "invalidReferrerDescription": "Please check your referral link",
+      "referrerNotValid": "Referrer is not a valid activated member",
+      "referrerRequiredDescription": "You must use a valid referral link to register. Please ask an existing member for a referral link.",
+      "registrationFailed": "Registration Failed",
+      "registrationFailedDescription": "Please try again later",
+      "walletRequired": "Wallet Required",
+      "walletRequiredDescription": "Please connect your wallet first"
     },
     "failed": "Registration Failed",
     "invalidReferrer": "Invalid referrer",
@@ -1661,7 +2112,39 @@
     "welcomeBack": "Welcome Back!",
     "welcomeMessage": "Your profile has been created. You can now activate your membership.",
     "required": "ต้องลงทะเบียน",
-    "requiredDesc": "กรุณาลงทะเบียนให้เรียบร้อยเพื่อเคลม Level 1 NFT ของคุณ"
+    "requiredDesc": "กรุณาลงทะเบียนให้เรียบร้อยเพื่อเคลม Level 1 NFT ของคุณ",
+    "newUserCreated": "新用戶創建成功",
+    "userExists": "用戶已存在",
+    "registrationComplete": "注册完成",
+    "enterUsername": "請輸入用戶名",
+    "enterEmail": "請輸入郵箱（可選）",
+    "createAccount": "創建帳戶",
+    "processing": "處理中...",
+    "checkingStatus": "Checking registration status...",
+    "connected": "Connected",
+    "description": "Complete your registration to join the BEEHIVE community",
+    "emailLabel": "Email (optional)",
+    "footerText": "By registering, you'll be part of the 3x3 matrix referral system.",
+    "level": "Level",
+    "nextStepsDescription": {
+      "step1": "Complete registration to create your account",
+      "step2": "Claim your Level 1 NFT for 130 USDC (100 NFT + 30 fee)",
+      "step3": "Join the 3x3 matrix referral system",
+      "step4": "Start earning BCC tokens and USDC rewards"
+    },
+    "referralLinkExample": "💡 Referral links look like:",
+    "referralLinkRequired": "Referral Link Required",
+    "referralRequired": {
+      "description": "You need a valid referral link to join Beehive Community. Please ask an existing member to share their referral link with you.",
+      "title": "Referral Required"
+    },
+    "referralStatus": "Referral Status",
+    "registerButton": "Register & Join Beehive",
+    "registeringButton": "Registering...",
+    "successDescription": "Welcome to Beehive! Redirecting to claim your Level 1 NFT...",
+    "usernameLabel": "Username *",
+    "validReferrer": "Valid referrer",
+    "validatingReferrer": "Validating referrer..."
   },
   "rewardHistory": {
     "completed": "Completed",
@@ -1675,23 +2158,35 @@
     "upgradeReward": "Upgrade Reward (Pending)"
   },
   "rewards": {
-    "claimable": {
-      "claimAll": "Claim All",
-      "noRewards": "No claimable rewards",
-      "noRewardsDescription": "Complete tasks and invite referrals to earn rewards",
-      "title": "Claimable Rewards"
-    },
+    "claimable": "Claimable",
     "history": {
       "noHistory": "No transactions yet",
       "noHistoryDescription": "Your reward and transaction history will appear here",
-      "title": "Transaction History"
+      "title": "Transaction History",
+      "allLayers": "All Layers",
+      "allStatus": "All Status",
+      "clearFilters": "Clear Filters",
+      "items": "History Items",
+      "noFilteredResults": "No transactions match your filters",
+      "of": "of",
+      "results": "results",
+      "search": "Search transactions...",
+      "showing": "Showing",
+      "subtitle": "Complete transaction history",
+      "totalTransactions": "Total Transactions",
+      "transactions": "Transaction History"
     },
     "overview": {
       "availableBalance": "Available Balance",
       "pendingRewards": "Pending Rewards",
       "recentActivity": "Recent Activity",
       "rewardsThisMonth": "This Month",
-      "totalEarnings": "Total Earnings"
+      "totalEarnings": "Total Earnings",
+      "totalEarned": "總收益",
+      "totalWithdrawn": "總提現",
+      "pending": "待處理",
+      "claimable": "可領取",
+      "title": "Rewards Overview"
     },
     "pendingCountdowns": "การนับถอยหลังของรางวัลที่รอดำเนินการ",
     "pendingRewardDescription": "รางวัลชั้น {layer} จะหมดอายุเร็วๆ นี้ - อัปเกรดเพื่อรับ",
@@ -1700,9 +2195,417 @@
     "tabs": {
       "claimable": "Claimable",
       "history": "History",
-      "overview": "Overview"
+      "overview": "Overview",
+      "pending": "待處理",
+      "rollup": "回滚",
+      "withdrawal": "提現"
     },
-    "title": "Rewards & Earnings"
+    "title": "Rewards & Earnings",
+    "loading": "加載獎勵中...",
+    "error": "加載獎勵出錯",
+    "available_to_claim": "可領取",
+    "available_rewards": "可用獎勵",
+    "claim_rewards": "領取獎勵",
+    "no_rewards": "暂无可用獎勵",
+    "pending_rewards": "待處理獎勵",
+    "reward_history": "獎勵歷史",
+    "claimAll": "領取所有獎勵",
+    "pendingDescription": "監控您的待處理獎勵并在過期前領取",
+    "management": "獎勵管理",
+    "selectCategory": "選擇下面的類別來查看和管理您的獎勵",
+    "rewardReady": "獎勵就绪！",
+    "rewardReadyDescription": "待處理獎勵已可領取",
+    "claimSuccess": "獎勵已領取！",
+    "claimFailed": "領取失敗",
+    "claimFailedDescription": "領取獎勵失敗，請重試",
+    "rollup": {
+      "title": "回滚獎勵系統",
+      "subtitle": "自動將未領取的獎勵分配给符合條件的上級成員",
+      "autoDistribution": "自動分配",
+      "automatic": "自動",
+      "distribution": "分配",
+      "networkBased": "網絡",
+      "based": "基础",
+      "realTime": "實時",
+      "tracking": "追踪",
+      "transparent": "透明",
+      "system": "系統"
+    },
+    "errors": {
+      "loadFailed": "加載獎勵數據失敗",
+      "claimFailed": "領取獎勵失敗",
+      "third_reward_level_insufficient": "需要升級等級才能領取第三個獎勵",
+      "member_verification_failed": "成員驗證失敗"
+    },
+    "information": {
+      "title": "獎勵系統信息",
+      "subtitle": "了解層級獎勵和BCC釋放系統",
+      "badge": "信息",
+      "layerRewards": "層級獎勵",
+      "layerRewardsSubtitle": "19層矩阵獎勵結構",
+      "bccRewards": "BCC釋放獎勵",
+      "bccRewardsSubtitle": "4阶段BCC代幣釋放系統",
+      "layerRewardsSystem": "層級獎勵系統",
+      "layerRewardsSystemDesc": "當您的矩阵成員升級等級時獲得獎勵",
+      "layerRewardsMobileDesc": "矩阵成員升級觸發層級特定獎勵",
+      "layerRewardsPreview": "層級獎勵預覽",
+      "viewAll19Layers": "查看所有19層",
+      "viewAll19LayersDetails": "查看所有19層詳情",
+      "bccRewardsSystem": "BCC釋放系統",
+      "bccRewardsSystemDesc": "基于成員激活數量的分阶段BCC代幣釋放",
+      "bccRewardsMobileDesc": "通過4阶段激活系統釋放BCC代幣",
+      "bccPhasesPreview": "BCC阶段預覽",
+      "viewAllPhases": "查看所有阶段",
+      "viewAllPhasesDetails": "查看所有阶段詳情",
+      "layerRewardsDialogTitle": "層級獎勵 - 完整19層詳情",
+      "highestRewardLayer": "最高獎勵層級",
+      "layerRewardsSummary": "層級獎勵摘要",
+      "instantReward1": "第一個獎勵",
+      "instantReward1Desc": "當您的等級等于層級等級時立即可領取",
+      "instantReward2": "第二個獎勵",
+      "instantReward2Desc": "當您的等級等于層級等級時立即可領取",
+      "bccReleaseOperationMechanism": "BCC釋放操作機製",
+      "phase": "阶段",
+      "current": "當前",
+      "fourPhasesSystem": "4阶段釋放系統",
+      "layerRewardsDialogDesc": "19層矩阵獎勵結構的完整分解",
+      "matrixStructureExplanation": "您的矩阵網絡跨越19層，每層都有獎勵觸發",
+      "triggerConditions": "觸發條件",
+      "triggerCondition1": "会員在您的矩阵中升級到相應級別",
+      "triggerCondition2": "您的等級必須满足該層級要求",
+      "triggerCondition3": "獎勵按照矩阵位置顺序分配",
+      "rewardAmounts": "獎勵金額",
+      "rewardAmount1": "Layer 1: $100 (Level 1升級觸發)",
+      "rewardAmount2": "Layer 10: $550 (Level 10升級觸發)",
+      "rewardAmount19": "Layer 19: $1000 (Level 19升級觸發)",
+      "complete19LayerRewardStructure": "完整19層獎勵結構",
+      "layerGroupBasicBadge": "初級",
+      "layerGroupIntermediateBadge": "中級",
+      "layerGroupAdvancedBadge": "高級",
+      "layerGroupTopBadge": "頂級",
+      "referralRewardToUpline": "给上級的推薦獎勵",
+      "activationFeePerMember": "+ 每位成員$30激活費",
+      "levelUpgradeTrigger": "Level {level} 升級觸發",
+      "percentageNftPrice": "100% NFT價格",
+      "bccLockingRewardsTitle": "BCC鎖倉獎勵",
+      "bccLockingRewardsDesc": "基于全球成員激活數量的四阶段BCC代幣釋放系統",
+      "bccReleaseMechanism": "BCC釋放機製",
+      "bccReleaseMechanismDesc": "BCC代幣在成員激活任何級別時自動釋放，金額在四個阶段中遞減",
+      "autoDistribution": "自動分發",
+      "completeFourPhaseDetails": "完整四阶段釋放詳情",
+      "currentPhase": "當前阶段",
+      "completeReleaseSchedule": "完整釋放時間表",
+      "levelBasic": "基础級別 (1-5)",
+      "levelIntermediate": "中級級別 (6-10)",
+      "levelAdvanced": "高級級別 (11-15)",
+      "levelTop": "頂級級別 (16-19)",
+      "activatedMembers": "激活成員",
+      "perMemberTotalLockingPool": "每位成員總鎖倉池",
+      "claimableInstant": "可領取（即時）",
+      "pendingHours": "待處理（72小時）",
+      "rollupSystem": "回滚系統",
+      "referrerLevelRequired": "推薦者等級 ≥ 層級等級",
+      "levelVerificationPassed": "等級驗證通過",
+      "rewardDistributedImmediately": "獎勵立即分發",
+      "exampleLayer3Reward": "示例：層級3獎勵",
+      "referrerHasLevel3": "推薦者有3級+ → 即時$200",
+      "referrerLevelInsufficient": "推薦者等級不足，无法即時領取",
+      "hourUpgradeWindow": "72小時升級窗口可用",
+      "canClaimByUpgrading": "可通過升級到所需級別來領取",
+      "referrerHasLevel1": "推薦者有1級（需要3級+）",
+      "expiredRewards": "72小時后，過期獎勵回滚",
+      "rollsUpToQualified": "回滚给下一個合格的上級成員",
+      "ensuresNoRewardLost": "確保系統中没有獎勵丢失",
+      "noUpgradeRollup": "72小時內未升級 → 回滚给合格上級",
+      "rewardStatusSystem": "獎勵狀態與驗證系統",
+      "eligibilityRulesAndTiming": "資格規則與時間機製",
+      "upgradeToClain": "升級領取",
+      "upgradeToClainDesc": "成員可在待處理期間升級以立即領取",
+      "expiredReallocation": "過期重分配",
+      "expiredReallocationDesc": "系統自動將過期獎勵重新分配给合格的上級成員",
+      "pending72Hours": "72小時待處理期",
+      "pending72HoursDesc": "如果推薦者等級不足，獎勵進入72小時待處理狀態",
+      "phaseSummary": "阶段摘要",
+      "memberActivation": "成員激活",
+      "memberActivationDesc": "當新成員加入并激活其帳戶時",
+      "phaseJudgment": "阶段判断",
+      "phaseJudgmentDesc": "系統根據總激活成員數確定當前阶段",
+      "instantRelease": "即時釋放",
+      "instantReleaseDesc": "满足條件時立即釋放BCC",
+      "phaseProgression": "阶段進展",
+      "phaseProgressionDesc": "隨着会員增长自動推進阶段",
+      "matrixPreview": "矩阵結構預覽",
+      "matrixDescription": "此可視化展示矩阵結構的工作原理。當您層級中的成員升級等級時，將觸發相應的層級獎勵。",
+      "layerRewardsTitle": "層級獎勵系統",
+      "layerRewardsDescription": "了解當矩阵中的成員升級会員等級時，層級獎勵如何運作。每個層級都有特定的資格要求和獎勵金額。",
+      "viewDetails": "查看完整詳情",
+      "layerText": "第{{layer}}層",
+      "maxLayer": "最大",
+      "nftPrice": "NFT價格",
+      "bccRewardsTitle": "BCC釋放獎勵",
+      "bccRewardsDescription": "了解基于成員激活里程碑的四阶段BCC釋放系統。獎勵逐步遞減以確保长期可持續性。",
+      "layerRewardsDetailTitle": "層級獎勵 - 完整指南",
+      "layerRewardsDetailDescription": "19層獎勵系統的全面說明，包括資格規則和支付機製。",
+      "matrixVisualization": "矩阵結構可視化",
+      "liveAnimation": "實時動画",
+      "matrixStructureTitle": "矩阵結構",
+      "matrixStructureDesc": "每個級別代表矩阵中的一層。當您層級中的成員升級其会員等級時，將根據升級的等級觸發層級獎勵。",
+      "detailedRewardStructure": "詳細獎勵結構",
+      "layerRewardText": "第{{layer}}層獎勵",
+      "triggeredByLevel": "由您第{{layer}}層中的Level {{layer}}升級觸發",
+      "firstSecond": "第1和第2",
+      "thirdPlus": "第3+",
+      "ofLevelNftPrice": "Level {{level}} NFT價格的",
+      "instantPayout": "符合條件時即時支付",
+      "continuesToLayer19": "持續到第19層",
+      "layer19RewardMax": "第19層獎勵（最大）",
+      "max": "最大",
+      "finalLayerReward": "最终層級獎勵 - 最高收益潜力",
+      "ofLevel19NftPrice": "Level 19 NFT價格的",
+      "eligibilityRules": "資格規則與時間機製",
+      "instantRewards": "即時獎勵",
+      "firstSecondRewards": "每層第1和第2獎勵",
+      "levelMustEqualLayer": "您的等級必須等于層級等級才能即時領取",
+      "thirdPlusRewards": "每層第3+獎勵",
+      "levelMustBeGreater": "您的等級必須高于層級等級",
+      "pendingSystem": "待處理系統（72小時）",
+      "seventyTwoHourPending": "72小時待處理",
+      "levelRequirementsNotMet": "如果不满足等級要求，獎勵進入待處理狀態",
+      "upgradeToClaim": "升級領取",
+      "activateRequiredLevel": "激活所需等級以立即領取",
+      "expiryRedistribution": "過期重新分配",
+      "expiredRewardsRedistribute": "過期獎勵分配给上級符合條件的成員",
+      "bccRewardsDetailTitle": "BCC鎖倉獎勵 - 釋放時間表",
+      "bccRewardsDetailDescription": "基于總激活成員數的四阶段BCC釋放系統，獎勵遞減。"
+    },
+    "messages": {
+      "claim_successful": "獎勵領取成功"
+    },
+    "countdown": {
+      "hours_72_from_activation": "激活后72小時"
+    },
+    "active": "Active",
+    "available_bcc": "Available BCC",
+    "available_usdt": "Available USDT",
+    "bccLocked": "Locked BCC: Tier-based release",
+    "bccMultipliers": "Tier multipliers: 1.0x, 0.5x, 0.25x, 0.125x",
+    "bccRewards": {
+      "bccLocked": "BCC Locked",
+      "bccMultipliers": "BCC Multipliers",
+      "bccTransferable": "BCC Transferable",
+      "bccUpgrades": "BCC Upgrades"
+    },
+    "bccTokenRewardsTitle": "BCC Token Rewards",
+    "bccTransferable": "Transferable BCC: Immediate use",
+    "bccUpgrades": "Level upgrades unlock more BCC",
+    "claim": "Claim",
+    "claimAvailable": "Claim ${amount} Available",
+    "claimSuccessDescription": "Successfully claimed ${amount} USDT in rewards",
+    "claimed": "Claimed",
+    "expired": "Expired",
+    "expiresAt": "Expires At",
+    "fetchError": "Failed to load pending rewards",
+    "from": "From",
+    "historyItems": "Items",
+    "historySubtitle": "Complete transaction history and reward tracking",
+    "howItWorks": "How It Works",
+    "layerRewardSystem": {
+      "eligibilityRules": {
+        "firstSecond": "1st & 2nd rewards: Your level must equal the layer level",
+        "firstSecondTitle": "1st & 2nd Rewards",
+        "thirdOnward": "3rd+ rewards: Your level must be higher than the layer level",
+        "thirdOnwardTitle": "3rd+ Rewards",
+        "title": "Eligibility Rules",
+        "importantTitle": "Important",
+        "verification": "Level verification is required before reward distribution",
+        "layer1Special": {
+          "title": "Layer 1 Special Rules",
+          "firstSecond": "1st & 2nd rewards: Must be Level 1 to receive",
+          "thirdOnward": "3rd+ rewards: Must be Level 2+ or enter 72h pending",
+          "pending": "Pending rewards become claimable upon upgrade within 72h",
+          "rollup": "Expired rewards roll up to qualified higher-level members"
+        },
+        "layer2to19Standard": {
+          "title": "Layer 2-19 Standard Rules",
+          "firstSecond": "1st & 2nd rewards: Level must equal or exceed layer level",
+          "thirdOnward": "3rd+ rewards: Level must exceed layer level"
+        }
+      },
+      "explanation": "Learn how layer rewards are triggered when members upgrade their membership levels",
+      "howItWorks": {
+        "description": "Layer rewards are triggered when members in your downline upgrade their membership levels. Layer 1 has special logic: rewards are based on direct referrals but displayed through your matrix hierarchy with recursive tree view.",
+        "title": "How It Works"
+      },
+      "layer1Special": {
+        "title": "Layer 1 Special Logic",
+        "description": "Layer 1 rewards are based on direct referrals (not matrix placement), but the distribution and display follow your matrix hierarchy structure with recursive 19-layer member tree view from matrix_referrals_tree_view.",
+        "directReferral": "Direct Referral Based",
+        "matrixDisplay": "Matrix Hierarchy Display",
+        "recursiveView": "19-Layer Recursive Tree View"
+      },
+      "learnMore": "Learn More",
+      "matrixVisualization": {
+        "description": "Your downline is organized in a 3×3 matrix with 19 layers",
+        "positions": "Each layer has Left, Middle, and Right positions",
+        "rewards": "Rewards are triggered when members in these positions upgrade",
+        "title": "3×3 Matrix Structure",
+        "level": "Level",
+        "animationTitle": "Live Animation Features",
+        "animationActive": "Golden nodes show active members with current upgrades",
+        "animationPending": "Gray nodes represent pending or future matrix positions",
+        "animationRewards": "Pulsing rings indicate members with available rewards",
+        "animationConnections": "Golden lines show active connection paths in the matrix",
+        "interactiveHint": "Watch the animation cycle to see how rewards flow through matrix levels!",
+        "legend": {
+          "member": "Member",
+          "members": "Members",
+          "activeMember": "Active Member",
+          "pendingMember": "Pending Member",
+          "hasRewards": "Has Rewards",
+          "you": "You"
+        }
+      },
+      "pendingSystem": {
+        "expiry": "After 72 hours, unclaimed rewards roll up to eligible upline members",
+        "immediate": "Upgrade immediately to claim pending rewards instantly",
+        "immediateTitle": "Immediate Claim",
+        "notEligible": "If you don't meet level requirements, rewards enter pending status",
+        "notEligibleTitle": "Not Eligible",
+        "rollupTitle": "Roll-up System",
+        "title": "72-Hour Pending System",
+        "upgradeWindow": "You have 72 hours to upgrade and claim the reward",
+        "windowTitle": "72-Hour Window"
+      },
+      "rewardAmounts": {
+        "continuation": "Pattern continues to Level 19",
+        "level1": "Level 1: $100 (100% of NFT price)",
+        "level2": "Level 2: $150 (100% of NFT price)",
+        "level3": "Level 3: $200 (100% of NFT price)",
+        "title": "Reward Amounts"
+      },
+      "rewardStructure": {
+        "layer1": "Layer 1 Reward: Based on direct referrals, but displayed through your matrix hierarchy with recursive 19-layer member tree view",
+        "layer2": "Layer 2 Reward: Triggered when your Layer 2 members upgrade to Level 2",
+        "layer3": "Layer 3 Reward: Triggered when your Layer 3 members upgrade to Level 3",
+        "pattern": "This pattern continues through all 19 layers",
+        "title": "Reward Structure"
+      },
+      "subtitle": "Understanding How Matrix Layer Rewards Work",
+      "title": "Layer Reward System"
+    },
+    "learnMore": "Learn More",
+    "loading_overview": "Loading rewards overview...",
+    "matrixRewardsTitle": "Matrix Rewards",
+    "new": "NEW",
+    "noHistory": "No reward history yet",
+    "noHistoryDescription": "Your reward transactions will appear here once you start earning through the matrix system",
+    "noPendingDescription": "Complete tasks and invite referrals to start earning pending rewards with countdown timers",
+    "noPendingRewards": "No pending rewards",
+    "no_claimable_rewards": "No claimable rewards available",
+    "no_data": "No rewards data available",
+    "overviewSubtitle": "Click to expand and view detailed statistics",
+    "pending": "Pending",
+    "pendingRewardDetails": "Pending Reward Details",
+    "pendingRewards": "Pending Rewards",
+    "pendingRewardsCount": "{count} Pending Rewards",
+    "qualificationWait": "Qualification Wait",
+    "quickActions": "Quick Actions",
+    "receipt": "Receipt",
+    "recentRewards": "Recent Rewards",
+    "refresh": "Refresh",
+    "refreshCountdown": "Refresh Countdown",
+    "rewardSystemInfo": "Reward System Information",
+    "rewardSystemSubtitle": "Understanding the complete reward ecosystem",
+    "rewards": {
+      "claimWindow": "72-hour claim window",
+      "level1Direct": "Level 1 Direct: $30 USDC per referral",
+      "level2Matrix": "Level 2 Matrix: $10 USDC per position",
+      "spilloverBonuses": "Spillover Bonuses: Additional rewards"
+    },
+    "sections": {
+      "description": "Choose a section below to view and manage your rewards",
+      "title": "Select Rewards Section"
+    },
+    "startEarning": "Start Earning Rewards",
+    "start_earning": "Start earning rewards by participating in the platform!",
+    "status": {
+      "completed": "Completed",
+      "failed": "Failed",
+      "pending": "Pending"
+    },
+    "superRootUpgrade": "Super Root Upgrade",
+    "swipeToExplore": "← Swipe to explore more →",
+    "systemActive": "Reward system active and processing",
+    "thisMonth": "This Month",
+    "timeFormat": {
+      "days": "{days}d {hours}h {minutes}m",
+      "hours": "{hours}h {minutes}m",
+      "minutes": "{minutes}m {seconds}s",
+      "seconds": "{seconds}s"
+    },
+    "timeRemaining": "Time Remaining",
+    "top_up_bcc": "Top Up BCC",
+    "totalEarned": "Total Earned",
+    "totalPendingValue": "Total Pending Value",
+    "totalWithdrawn": "Total Withdrawn",
+    "total_earned": "Total Earned",
+    "total_rewards": "Total Rewards",
+    "viewAll": "View All",
+    "viewAnalytics": "View Analytics",
+    "viewDetails": "View Details",
+    "withdraw": "Withdraw",
+    "withdrawAvailable": "Withdraw Available: ${amount}",
+    "withdrawDescription": "Withdraw your claimable rewards to any supported blockchain",
+    "withdrawRewards": "Withdraw Rewards",
+    "withdrawal": "Withdrawal",
+    "bcc": {
+      "subtitle": "Four-phase release system based on activation count",
+      "autoDistribution": "Auto Distribution",
+      "currentPhase": "Current Phase",
+      "active": "Active",
+      "activationProgress": "Activation Progress",
+      "phaseRewardPool": "Phase 1 Reward Pool",
+      "remaining": "remaining",
+      "currentReleaseStandard": "Current Release Standard (per activation)",
+      "upToL19": "... up to L19 ({{amount}} BCC)",
+      "fourPhaseSystemOverview": "Four-Phase System Overview",
+      "current": "Current",
+      "releaseMechanism": "Release Mechanism",
+      "phase1InProgress": "Phase 1 In Progress",
+      "activateToGetMaxRewards": "Activate membership levels to get maximum BCC rewards",
+      "phases": {
+        "phase1": {
+          "description": "Phase 1: Early Adopters",
+          "members": "1st - 9,999th"
+        },
+        "phase2": {
+          "description": "Phase 2: Growth Stage (Halved)",
+          "members": "10,000th - 29,999th"
+        },
+        "phase3": {
+          "description": "Phase 3: Expansion Stage (Halved Again)",
+          "members": "30,000th - 99,999th"
+        },
+        "phase4": {
+          "description": "Phase 4: Final Stage (Halved Again)",
+          "members": "100,000th - 186,000th"
+        }
+      },
+      "mechanisms": {
+        "activationTrigger": "Activation Trigger",
+        "activationTriggerDesc": "When members activate new levels, corresponding BCC amounts are automatically released to balance",
+        "decreasingRewards": "Decreasing Rewards",
+        "decreasingRewardsDesc": "Each phase halves rewards, ensuring long-term system sustainability",
+        "realtimeDistribution": "Real-time Distribution",
+        "realtimeDistributionDesc": "Phase transitions based on total activated members in real-time, no manual intervention required"
+      },
+      "benefits": {
+        "autoRelease": "Auto Release",
+        "autoReleaseDesc": "Released upon activation, no additional operations required",
+        "earlyAdvantage": "Early Advantage",
+        "earlyAdvantageDesc": "The earlier you participate, the more BCC rewards you earn"
+      }
+    }
   },
   "selectors": {
     "category": "Category",
@@ -1780,13 +2683,105 @@
       },
       "title": "Bumblebees Membership NFTs",
       "upgradeNow": "Upgrade Now",
-      "usdt": "USDT"
+      "usdt": "USDT",
+      "rewardStructure": {
+        "title": "獎勵結構",
+        "layer1": "層級1獎勵：基于直推獎勵，但按照自身matrix層級会員树顯示并遞歸19層会員視圖",
+        "layer2": "層級2獎勵：當您的層級2成員升級到級別2時觸發",
+        "layer3": "層級3獎勵：當您的層級3成員升級到級別3時觸發",
+        "pattern": "这個模式持續到所有19層"
+      },
+      "rewardAmounts": {
+        "title": "獎勵金額",
+        "level1": "級別1：$100（NFT價格的100%）",
+        "level2": "級別2：$150（NFT價格的100%）",
+        "level3": "級別3：$200（NFT價格的100%）",
+        "continuation": "模式持續到級別19"
+      },
+      "eligibilityRules": {
+        "title": "資格規則",
+        "firstSecond": "第1和第2獎勵：您的級別必須等于層級級別",
+        "thirdOnward": "第3及以上獎勵：您的級別必須高于層級級別",
+        "verification": "獎勵分配前需要進行級別驗證",
+        "firstSecondTitle": "第1和第2獎勵",
+        "thirdOnwardTitle": "第3及以上獎勵",
+        "importantTitle": "重要提示",
+        "layer1Special": {
+          "title": "層級1特殊規則",
+          "firstSecond": "第1和第2獎勵：必須是Level 1才能接收",
+          "thirdOnward": "第3+獎勵：必須是Level 2+或進入72小時待處理",
+          "pending": "待處理獎勵在72小時內升級后變為可領取",
+          "rollup": "過期獎勵上滚给符合等級的上層成員"
+        },
+        "layer2to19Standard": {
+          "title": "層級2-19標準規則",
+          "firstSecond": "第1和第2獎勵：級別必須等于或高于層級級別",
+          "thirdOnward": "第3+獎勵：級別必須高于層級級別"
+        }
+      },
+      "pendingSystem": {
+        "title": "72小時待處理系統",
+        "notEligible": "如果不满足級別要求，獎勵進入待處理狀態",
+        "upgradeWindow": "您有72小時時間升級并領取獎勵",
+        "immediate": "立即升級以立即領取待處理獎勵",
+        "expiry": "72小時后，未領取的獎勵会上滚给符合條件的上級成員"
+      }
     },
     "pageTitle": "Tasks",
     "restrictedBCC": "Restricted Beehive Crypto Coin",
     "restrictedFirst": "Restricted BCC will be used first",
     "title": "Tasks & Marketplace",
-    "transferableBCC": "Transferable Beehive Crypto Coin"
+    "transferableBCC": "Transferable Beehive Crypto Coin",
+    "subtitle": "跟踪和管理您的BEEHIVE獎勵",
+    "total_rewards": "總獎勵",
+    "bcc": {
+      "subtitle": "基于激活人數的四阶段釋放系統",
+      "autoDistribution": "自動分發",
+      "currentPhase": "當前阶段",
+      "active": "活跃中",
+      "activationProgress": "激活進度",
+      "phaseRewardPool": "阶段一獎勵池",
+      "remaining": "剩餘",
+      "currentReleaseStandard": "當前釋放標準 (每激活一次)",
+      "upToL19": "... 到 L19 ({{amount}} BCC)",
+      "fourPhaseSystemOverview": "四阶段系統概覽",
+      "current": "當前",
+      "releaseMechanism": "釋放機製",
+      "phase1InProgress": "阶段一進行中",
+      "activateToGetMaxRewards": "激活会員級別即可獲得最高BCC獎勵",
+      "phases": {
+        "phase1": {
+          "description": "阶段一：早期采用者",
+          "members": "第1 - 9,999位"
+        },
+        "phase2": {
+          "description": "阶段二：成长阶段（減半）",
+          "members": "第10,000 - 29,999位"
+        },
+        "phase3": {
+          "description": "阶段三：擴张阶段（再減半）",
+          "members": "第30,000 - 99,999位"
+        },
+        "phase4": {
+          "description": "阶段四：最终阶段（再減半）",
+          "members": "第100,000 - 186,000位"
+        }
+      },
+      "mechanisms": {
+        "activationTrigger": "激活觸發",
+        "activationTriggerDesc": "當会員激活新級別時，自動釋放對應數量的BCC到餘額",
+        "decreasingRewards": "遞減獎勵",
+        "decreasingRewardsDesc": "每個阶段獎勵減半，確保系統长期可持續發展",
+        "realtimeDistribution": "實時分發",
+        "realtimeDistributionDesc": "基于總激活会員數實時切換阶段，无需人工干預"
+      },
+      "benefits": {
+        "autoRelease": "自動釋放",
+        "autoReleaseDesc": "激活即釋放，无需額外操作",
+        "earlyAdvantage": "早期優势",
+        "earlyAdvantageDesc": "越早參與，獲得越多BCC獎勵"
+      }
+    }
   },
   "tokenPurchase": {
     "balances": {
@@ -1870,9 +2865,15 @@
     "username": "Username"
   },
   "wallet": {
-    "connect": "Connect Wallet",
-    "connected": "Connected",
-    "disconnect": "Disconnect"
+    "connect": "เชื่อมต่อกระเป๋าเงิน",
+    "connected": "เชื่อมต่อแล้ว",
+    "disconnect": "ตัดการเชื่อมต่อ",
+    "networkSwitched": "สลับเครือข่ายแล้ว",
+    "networkSwitchedDesc": "สลับไปยัง Arbitrum One สำเร็จ",
+    "networkSwitchFailed": "การสลับเครือข่ายล้มเหลว",
+    "networkSwitchFailedDesc": "ไม่สามารถสลับไปยัง Arbitrum One ได้ กรุณาสลับด้วยตนเองในกระเป๋าเงินของคุณ",
+    "switchingNetwork": "กำลังสลับเครือข่าย",
+    "switchingToArbitrum": "กำลังสลับไปยัง Arbitrum One..."
   },
   "welcome": {
     "benefits": {
@@ -1957,17 +2958,456 @@
     "you_receive": "คุณจะได้รับ",
     "crossChainProcessing": "กำลังดำเนินการถอนแบบข้ามเชน 🌉",
     "processing": "กำลังดำเนินการถอน ⏳",
-    "estimatedArrival": "{amount} {chain} คาดว่าจะถึงใน {minutes} นาที"
+    "estimatedArrival": "{amount} {chain} คาดว่าจะถึงใน {minutes} นาที",
+    "view_transaction_history": "查看交易歷史",
+    "transaction_history": "交易歷史",
+    "track_withdrawal_status": "實時跟踪您的提現交易狀態",
+    "no_transactions": "暂无提現交易",
+    "created_at": "創建時間",
+    "completed_at": "完成時間",
+    "rewardBalance": "獎勵餘額",
+    "totalWithdrawn": "已提現總額",
+    "max": "最大",
+    "readyToClaim": "準備領取",
+    "claiming": "領取中...",
+    "availableIn": "可用時間",
+    "rewardsWillAppear": "當團隊成員升級会員資格時，獎勵將在此處顯示"
   },
-  "wallet": {
-    "connect": "เชื่อมต่อกระเป๋าเงิน",
-    "connected": "เชื่อมต่อแล้ว",
-    "disconnect": "ตัดการเชื่อมต่อ",
-    "networkSwitched": "สลับเครือข่ายแล้ว",
-    "networkSwitchedDesc": "สลับไปยัง Arbitrum One สำเร็จ",
-    "networkSwitchFailed": "การสลับเครือข่ายล้มเหลว",
-    "networkSwitchFailedDesc": "ไม่สามารถสลับไปยัง Arbitrum One ได้ กรุณาสลับด้วยตนเองในกระเป๋าเงินของคุณ",
-    "switchingNetwork": "กำลังสลับเครือข่าย",
-    "switchingToArbitrum": "กำลังสลับไปยัง Arbitrum One..."
+  "countdown": {
+    "timer": "倒計時器",
+    "expired": "已過期",
+    "loading": "加載中...",
+    "timerExpired": "計時器已過期",
+    "timerExpiredDesc": "您的倒計時器已過期。",
+    "countdownEnded": "倒計時已結束",
+    "loadingTimer": "加載計時器...",
+    "timeRemaining": "剩餘時間",
+    "rewardAtStake": "獎勵金額",
+    "upgradeToClaimReward": "在過期前升級領取此獎勵",
+    "urgentUpgradeWarning": "⚠️ 紧急升級，否則此獎勵將会上滚给您的上級",
+    "upgradeToClaim": "升級領取",
+    "urgentUpgradeNow": "紧急：立即升級",
+    "upgradeNowPreventLoss": "立即升級防止未來損失",
+    "criticalExpiring": "⚠️ 严重：獎勵將在 {time} 后過期！",
+    "status": {
+      "safe": "安全",
+      "caution": "小心",
+      "warning": "警告",
+      "critical": "严重"
+    },
+    "units": {
+      "days": "天",
+      "hours": "小時",
+      "minutes": "分钟",
+      "seconds": "秒",
+      "daysHoursMinutes": "天、小時、分钟",
+      "hoursMinutesSeconds": "小時、分钟、秒",
+      "minutesSeconds": "分钟、秒",
+      "min": "分",
+      "sec": "秒",
+      "d": "天",
+      "h": "時",
+      "m": "分",
+      "s": "秒"
+    },
+    "complete": "完成！準備領取",
+    "ready": "準備好！"
+  },
+  "claimableRewards": {
+    "rewardClaimedSuccess": "獎勵領取成功！ 🎉",
+    "rewardClaimedDescription": "{amount} {currency} 已添加到您的餘額。{message}",
+    "viewDetails": "查看詳情",
+    "claimFailed": "領取失敗",
+    "claimFailedDescription": "領取獎勵失敗。請再試一次。",
+    "walletNotConnected": "錢包未連接",
+    "connectWalletToClaim": "請連接您的錢包以領取獎勵。",
+    "layerBasedRewards": "層級獎勵",
+    "readyToClaim": "可領取",
+    "pending": "待處理",
+    "pendingValue": "待處理價值",
+    "claimingRewards": "領取獎勵中...",
+    "claimAllRewards": "領取所有獎勵 ({amount} USDT)",
+    "claimableLayerRewards": "可領取層級獎勵",
+    "triggerLabel": "L{level} 觸發",
+    "claiming": "領取中...",
+    "claim": "領取 ${amount}",
+    "pendingRewardsLevelUp": "待處理獎勵（需要升級）",
+    "requiresLevel": "需要 L{level}",
+    "currentlyLevel": "（當前 L{level}）",
+    "expires": "過期時間：{date}",
+    "noRewardsAvailable": "无可用層級獎勵",
+    "noRewardsDescription": "當您的下線成員升級他們的等級時，您的層級矩阵獎勵將会出現在这里。",
+    "howRewardsWork": "層級獎勵如何工作：",
+    "rewardRules": {
+      "layerRewards": "來自矩阵下線升級的第1-19層獎勵",
+      "timer": "72小時待處理獎勵計時器",
+      "rollup": "自動上滚到下一個合格的上線",
+      "protection": "等級要求保護獎勵分配"
+    },
+    "connectWallet": "連接您的錢包以查看可領取獎勵",
+    "loadingRewards": "加載層級獎勵中...",
+    "root": "根",
+    "layer": "第 {number} 層",
+    "expired": "已過期",
+    "rollupInProgress": "⏰ 已過期 - 上滚進行中",
+    "timeRemaining": "⏰ 剩餘 {time}",
+    "from": "來源：{address}",
+    "created": "創建：{date}"
+  },
+  "rewardsPage": {
+    "overview": {
+      "claimable": "可領取",
+      "pending": "待處理",
+      "totalEarned": "總收益",
+      "totalWithdrawn": "總提現"
+    },
+    "overviewSubtitle": "點击展開并查看詳細統計信息",
+    "subtitle": "跟踪您的獎勵、領取收益并查看交易歷史",
+    "loading": "加載中...",
+    "error": "錯誤",
+    "availableToClaim": "Available",
+    "claimAll": "Claim All Available Rewards",
+    "claimFailedDescription": "Failed to claim rewards. Please try again.",
+    "claimSuccess": "Rewards Claimed!",
+    "claimSuccessDescription": "Successfully claimed ${amount} USDT",
+    "errors": {
+      "claimFailed": "Failed to claim rewards",
+      "loadFailed": "Failed to load rewards data"
+    },
+    "management": "Rewards Management",
+    "pendingCountdowns": "Pending Reward Countdowns",
+    "pendingDescription": "Monitor your pending rewards and claim them before they expire",
+    "rewardReady": "Reward Ready!",
+    "rewardReadyDescription": "A pending reward has become claimable",
+    "rollup": {
+      "autoDistribution": "Auto Distribution",
+      "automatic": "Automatic",
+      "based": "Based",
+      "distribution": "Distribution",
+      "networkBased": "Network",
+      "realTime": "Real-time",
+      "subtitle": "Automatic distribution of unclaimed rewards to eligible upline members",
+      "system": "System",
+      "title": "Rollup Rewards System",
+      "tracking": "Tracking",
+      "transparent": "Transparent"
+    },
+    "selectCategory": "Select a category below to view and manage your rewards",
+    "tabs": {
+      "history": "Reward History",
+      "pending": "Pending Rewards",
+      "rollup": "Rollup System",
+      "withdrawal": "Withdrawal"
+    }
+  },
+  "nfts": {
+    "advertisement": {
+      "title": "廣告NFT",
+      "subtitle": "發現并購買廣告機会",
+      "purchase": "購買NFT",
+      "category": "分類",
+      "impressions": "展示次數",
+      "available": "可用",
+      "soldOut": "已售完",
+      "insufficient": "BCC不足",
+      "views": "Views"
+    },
+    "merchant": {
+      "title": "商戶NFT",
+      "subtitle": "探索獨特的商戶產品",
+      "supply": "供應量",
+      "available": "可用",
+      "creator": "創作者"
+    },
+    "common": {
+      "purchase": "使用BCC購買",
+      "purchasing": "處理中...",
+      "price": "價格",
+      "description": "描述",
+      "metadata": "詳情",
+      "viewDetails": "查看詳情"
+    },
+    "title": "NFT Marketplace",
+    "subtitle": "Discover and collect unique digital assets",
+    "stats": {
+      "advertisement": "Advertisement NFTs",
+      "merchant": "Merchant NFTs"
+    },
+    "myCollection": {
+      "title": "My Collection",
+      "subtitle": "NFTs you own",
+      "empty": "You don't own any NFTs yet"
+    },
+    "purchase": {
+      "button": "Purchase",
+      "purchasing": "Purchasing..."
+    }
+  },
+  "auth": {
+    "authenticationSuccessful": "Authentication Successful!",
+    "backToLogin": "Back to Login",
+    "completingAuthentication": "Completing authentication...",
+    "redirectingToDashboard": "Redirecting to your dashboard..."
+  },
+  "bccBalance": {
+    "activationBonus": "Activation Bonus",
+    "activationBonusDesc": "Level 1 membership unlock",
+    "activations": "activations",
+    "balanceBreakdown": "Balance Breakdown",
+    "claimRewards": "Claim Rewards",
+    "claiming": "Claiming...",
+    "currentPhase": "Current Phase",
+    "description": "Beehive Credit Coin balance breakdown and availability",
+    "infoTitle": "Balance Information",
+    "levelUnlock": "Level Unlock",
+    "levelUnlockDesc": "NFT Level {{level}} reward",
+    "locked": "Locked",
+    "lockedInfo": "BCC that will unlock when specific conditions are met.",
+    "nextPhaseAt": "Next Phase At",
+    "pending": "Pending",
+    "rewardClaims": "Reward Claims",
+    "rewardClaimsDesc": "From layer rewards",
+    "tierInfo": "Tier Information",
+    "tierInfoDesc": "BCC unlock amounts are determined by your tier phase and halve with each new phase.",
+    "tierMultiplier": "Tier Multiplier",
+    "title": "BCC Balance",
+    "totalBalance": "Total Balance (All Types)",
+    "totalLockedPhase": "Total Locked (Phase)",
+    "transferBcc": "Transfer BCC",
+    "transferable": "Transferable",
+    "transferableDesc": "Available for spending",
+    "transferableInfo": "Can be used immediately for purchases and transfers.",
+    "transferring": "Transferring..."
+  },
+  "bccDisplay": {
+    "availableBcc": "Available BCC",
+    "bccReleased": "+{{amount}} BCC Released",
+    "every72Hours": "Every 72 hours",
+    "latestRelease": "Latest Release",
+    "lockedBcc": "Locked BCC",
+    "nextRelease": "Next BCC Release",
+    "noLockedBcc": "No locked BCC. Upgrade your membership level to unlock more BCC!",
+    "progressTarget": "Progress towards full BCC unlock (10,000 BCC target)",
+    "releaseReason": "Reason: {{reason}}",
+    "scheduledRelease": "Scheduled 72-hour release",
+    "totalUnlockedProgress": "Total Unlocked Progress",
+    "totalUsed": "Total Used",
+    "unableToLoad": "Unable to load BCC balance",
+    "willBeReleased": "{{amount}} BCC will be released"
+  },
+  "bccPurchase": {
+    "addedToBalance": "Added to your balance",
+    "afterSending": "After sending the payment, click the confirmation button below. Your BCC tokens will be credited within {{time}}.",
+    "amountToPay": "Amount to Pay:",
+    "availableForSpending": "Available for spending on NFTs and courses",
+    "backToConfig": "Back to Configuration",
+    "browseNfts": "Browse NFTs & Courses",
+    "buyMoreBcc": "Buy More BCC",
+    "chainId": "Chain ID: {{id}}",
+    "companyWallet": "Company Wallet:",
+    "completePayment": "Complete your payment to receive BCC tokens",
+    "confirmPaymentSent": "Confirm Payment Sent",
+    "confirmingPayment": "We're confirming your payment and crediting your BCC tokens...",
+    "connectWallet": "Connect your wallet to purchase BCC tokens",
+    "createOrder": "Create Purchase Order",
+    "creatingOrder": "Creating Order...",
+    "currentBalance": "Current BCC Balance",
+    "directTransfer": "Direct Transfer",
+    "enterAmount": "Enter USDC amount",
+    "estimatedTime": "Estimated processing time: {{time}}",
+    "exchangeRate": "Exchange Rate: 1 USDC = {{rate}} BCC",
+    "loadingOptions": "Loading purchase options...",
+    "maxAmount": "Max: ${{amount}} USDC",
+    "minAmount": "Min: ${{amount}} USDC",
+    "network": "Network:",
+    "no": "No",
+    "orderCreated": "Purchase Order Created",
+    "orderId": "Order ID:",
+    "payWithUsdc": "Pay with USDC to receive BCC tokens for platform purchases",
+    "paymentMethod": "Payment Method",
+    "paymentNetwork": "Payment Network",
+    "processingPayment": "Processing Payment",
+    "purchaseAmount": "Purchase Amount (USDC)",
+    "purchaseCompleted": "Purchase Completed! 🎉",
+    "purchaseMethod": "Purchase Method",
+    "purchaseTokens": "Purchase BCC Tokens",
+    "sendExactly": "Send exactly {{amount}} USDC to the company wallet address above on {{network}}.",
+    "shuffleSupport": "Shuffle Support: {{support}}",
+    "thirdwebShuffle": "Thirdweb Shuffle (Recommended)",
+    "tokensCredited": "Your BCC tokens have been successfully credited to your account",
+    "traditional": "Traditional",
+    "traditionalDesc": "Manual USDC transfer with order confirmation",
+    "usdcContract": "USDC Contract: {{contract}}",
+    "web3Buy": {
+      "autoCredited": "Auto-Credited",
+      "connectWalletAndAmount": "Please connect wallet and set purchase amount",
+      "description": "Direct crypto-to-crypto conversion",
+      "howItWorks": "How Web3 Shuffle Works:",
+      "instantProcessing": "Instant Processing",
+      "invalidConfig": "Invalid Configuration",
+      "launchPurchase": "Launch Web3 Shuffle Purchase ({{usdcAmount}} USDC → {{bccAmount}} BCC)",
+      "noManualTransfer": "No Manual Transfer",
+      "purchaseFailed": "Purchase Failed",
+      "purchaseFailedDesc": "Failed to complete Web3 purchase. Please try again.",
+      "purchaseSuccess": "Successfully purchased {{amount}} BCC tokens via Web3 bridge",
+      "purchaseSuccessful": "🎉 Purchase Successful!",
+      "step1": "1. Connect your wallet with any supported token",
+      "step2": "2. Select the amount and token you want to spend",
+      "step3": "3. Shuffle automatically converts to USDC and credits BCC",
+      "step4": "4. Tokens appear in your balance instantly",
+      "supportedNetworks": "Supported Networks",
+      "title": "ThirdWeb Shuffle Purchase",
+      "useTraditional": "Use Traditional Method Instead"
+    },
+    "web3Shuffle": "Web3 Shuffle",
+    "web3ShuffleDesc": "Direct crypto-to-crypto purchase via thirdweb bridge",
+    "yes": "Yes",
+    "youPay": "You pay:",
+    "youReceive": "You receive:",
+    "youllReceive": "You'll Receive:"
+  },
+  "fees": {
+    "calculator": {
+      "autoCalculate": "Auto-calculate on changes",
+      "calculateFees": "Calculate Fees",
+      "calculating": "Calculating...",
+      "chainInfo": {
+        "bridgeSupport": "Shuffle Support: {{support}}",
+        "chainId": "Chain ID: {{id}}",
+        "no": "No",
+        "usdcContract": "USDC Contract: {{contract}}",
+        "yes": "Yes"
+      },
+      "description": "Get accurate fee estimates with real-time network data",
+      "enterAmount": "Enter USDC amount",
+      "error": "Unknown error occurred",
+      "includeApproval": "Include token approval fee",
+      "priorities": {
+        "fast": "⚡ Fast",
+        "slow": "🐢 Slow",
+        "standard": "⚖️ Standard"
+      },
+      "processing": "Calculating fees with real-time network data...",
+      "results": {
+        "breakdown": "Fee Breakdown",
+        "bridgeFee": "Bridge Fee",
+        "confirmations": "Confirmations: {{blocks}} blocks",
+        "estimatedTime": "Estimated Processing Time",
+        "failed": "Calculation Failed",
+        "networkFee": "Network Fee",
+        "percentage": "% of transaction amount",
+        "platformFee": "Platform Fee (0.5%)",
+        "recommendations": "Recommendations",
+        "timeMinutes": "Time: ~{{minutes}} minutes",
+        "title": "Fee Calculation Results",
+        "tokenApproval": "Token Approval",
+        "totalCost": "Total Cost"
+      },
+      "selectTargetChain": "Select target chain",
+      "sourceChain": "Source Chain",
+      "subtitle": "Transaction Fee Estimator",
+      "targetChain": "Target Chain",
+      "title": "Real-Time Fee Calculator",
+      "transactionAmount": "Transaction Amount (USD)",
+      "transactionDetails": "Transaction Details",
+      "transactionPriority": "Transaction Priority",
+      "transactionType": "Transaction Type",
+      "types": {
+        "bridge": "🌉 Bridge",
+        "swap": "🔄 Swap",
+        "transfer": "💰 Transfer",
+        "withdrawal": "💸 Withdrawal"
+      },
+      "urgency": {
+        "high": "High",
+        "low": "Low",
+        "medium": "Medium"
+      }
+    }
+  },
+  "guard": {
+    "accessError": "Access Error",
+    "checkingAccess": "Checking Access",
+    "connectWalletToContinue": "Please connect your wallet to continue",
+    "currentLevel": "Current Level",
+    "goToHome": "Go to Home",
+    "levelRequiredMessage": "This page requires Level",
+    "redirecting": "Redirecting",
+    "redirectingToActivation": "Redirecting to membership activation...",
+    "requiredLevel": "Required Level",
+    "tryAgain": "Try Again",
+    "upgradeMembership": "Upgrade Membership",
+    "upgradeRequired": "Upgrade Required",
+    "verifyingMembership": "Verifying membership status...",
+    "walletRequired": "Wallet Required"
+  },
+  "guards": {
+    "admin": {
+      "insufficientPermissions": "Insufficient permissions",
+      "notAuthenticated": "Not authenticated",
+      "permissionRequired": "Required permission: {{permission}}",
+      "roleRequired": "Required role: {{role}}",
+      "unauthorized": "Unauthorized access",
+      "verifyingAccess": "Verifying admin access..."
+    },
+    "route": {
+      "accessDenied": "Access Denied",
+      "accessError": "Access Error",
+      "checkingAccess": "Checking Access",
+      "connectWalletMessage": "Please connect your wallet to access this feature",
+      "goToHome": "Go to Home",
+      "loadingUserData": "Loading user data...",
+      "redirecting": "Redirecting...",
+      "tryAgain": "Try Again",
+      "verifyingMembership": "Verifying membership...",
+      "walletRequired": "Wallet Required"
+    }
+  },
+  "matrixExplanation": {
+    "bccRewards": {
+      "activationBonus": "500 BCC activation bonus",
+      "levelProgression": "Level 1: 100 BCC → Level 19: 1000 BCC",
+      "tier1": "Tier 1 (1-9,999): 10,450 BCC total",
+      "title": "BCC Token Rewards"
+    },
+    "matrixStructure": "Matrix Structure",
+    "membershipLevels": {
+      "level1": {
+        "description": "100 USDC NFT + 30 USDC activation",
+        "price": "130 USDC",
+        "title": "Level 1"
+      },
+      "level19": {
+        "description": "Maximum level",
+        "price": "1000 USDC",
+        "title": "Level 19"
+      },
+      "level2to19": {
+        "description": "Sequential upgrade required",
+        "price": "+50 USDC each",
+        "title": "Level 2-19"
+      },
+      "title": "Membership Levels"
+    },
+    "placementRules": {
+      "rule1": "L → M → R priority placement",
+      "rule2": "Find first incomplete downline layer",
+      "rule3": "Each member maintains 19-layer matrix",
+      "title": "Placement Rules"
+    },
+    "rewardSystem": {
+      "rule1": "Layer Rewards = NFT price of that level",
+      "rule2": "Root must hold ≥ that level to claim",
+      "rule3": "72-hour upgrade window for pending rewards",
+      "title": "Reward System"
+    },
+    "specialRules": {
+      "level2Requirement": "Level 2: Requires 3 direct referrals",
+      "pendingWindow": "72-hour pending reward window",
+      "sequentialPurchases": "Sequential NFT purchases required",
+      "title": "Special Rules"
+    },
+    "subtitle": "Understanding the Beehive 19-Layer Referral System",
+    "title": "3×3 Matrix System"
   }
 }

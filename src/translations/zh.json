@@ -32,7 +32,10 @@
     "enterEmail": "请输入邮箱（可选）",
     "createAccount": "创建账户",
     "processing": "处理中...",
-    "error": "注册失败",
+    "error": {
+      "description": "請重試，如果問題持續存在，請聯繫支援。",
+      "title": "註冊失敗"
+    },
     "referrer": "推荐人",
     "required": "需要注册",
     "requiredDesc": "请完成注册以领取您的 Level 1 NFT。",
@@ -1409,7 +1412,12 @@
     "created": "创建：{date}"
   },
   "rewardsPage": {
-    "overview": "奖励概览",
+    "overview": {
+      "claimable": "可領取",
+      "pending": "待處理",
+      "totalEarned": "總收益",
+      "totalWithdrawn": "總提現"
+    },
     "overviewSubtitle": "点击展开并查看详细统计信息",
     "subtitle": "跟踪您的奖励、领取收益并查看交易历史",
     "loading": "加载中...",
