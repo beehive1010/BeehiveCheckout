@@ -92,26 +92,30 @@ export default function Welcome() {
       try {
         console.log('🔍 Welcome page: Checking membership status for:', account.address);
         const membershipResult = await authService.isActivatedMember(account.address);
-        console.log('📊 Welcome page: Membership result:', membershipResult);
-        console.log('📊 Welcome page: isActivated =', membershipResult.isActivated);
-        console.log('📊 Welcome page: memberData =', membershipResult.memberData);
-        console.log('📊 Welcome page: current_level =', membershipResult.memberData?.current_level);
+        console.log('📊 Welcome page: Membership result:', JSON.stringify(membershipResult, null, 2));
 
-        // STRICT CHECK: Only redirect if user has actually claimed Level 1 NFT
-        // Don't trust isActivated alone - must verify current_level >= 1
-        const currentLevel = membershipResult.memberData?.current_level || 0;
-        const hasClaimedNFT = currentLevel >= 1;
+        // ULTRA-STRICT CHECK: Only redirect if ALL conditions are met
+        const memberData = membershipResult.memberData;
+        const currentLevel = memberData?.current_level || 0;
+        const activationSequence = memberData?.activation_sequence || 0;
+        const activationTime = memberData?.activation_time;
 
-        // Additional safety: Check if user has activation_sequence (confirms they went through claim process)
-        const hasActivationSequence = !!membershipResult.memberData?.activation_sequence;
+        // User MUST have:
+        // 1. current_level >= 1 (has NFT)
+        // 2. activation_sequence > 0 (went through activation process)
+        // 3. activation_time exists (timestamp of activation)
+        const hasValidLevel = currentLevel >= 1;
+        const hasValidSequence = activationSequence > 0;
+        const hasActivationTime = !!activationTime;
 
-        // Only redirect if user has BOTH claimed NFT AND has activation sequence
-        const shouldRedirect = hasClaimedNFT && hasActivationSequence;
+        // ALL three conditions must be true to redirect
+        const shouldRedirect = hasValidLevel && hasValidSequence && hasActivationTime;
 
-        console.log('📊 Welcome page: Strict activation check:');
-        console.log('  - currentLevel:', currentLevel);
-        console.log('  - hasClaimedNFT:', hasClaimedNFT);
-        console.log('  - hasActivationSequence:', hasActivationSequence);
+        console.log('📊 Welcome page: Ultra-strict activation check:');
+        console.log('  - memberData:', memberData);
+        console.log('  - currentLevel:', currentLevel, '→', hasValidLevel ? '✅' : '❌');
+        console.log('  - activationSequence:', activationSequence, '→', hasValidSequence ? '✅' : '❌');
+        console.log('  - activationTime:', activationTime, '→', hasActivationTime ? '✅' : '❌');
         console.log('  - shouldRedirect:', shouldRedirect);
 
         if (shouldRedirect) {
@@ -120,7 +124,7 @@ export default function Welcome() {
           return;
         }
 
-        console.log('🎯 Welcome page: User has NOT claimed NFT yet (Level:', currentLevel, ') - showing claim interface');
+        console.log('🎯 Welcome page: User has NOT claimed NFT yet - showing claim interface');
       } catch (error) {
         console.warn('⚠️ Welcome page: Failed to check membership status:', error);
         // Continue showing welcome page on error - let user try to claim
