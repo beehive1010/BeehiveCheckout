@@ -10,6 +10,7 @@ import {useIsMobile} from '../hooks/use-mobile';
 import {Card, CardContent, CardHeader, CardTitle} from '../components/ui/card';
 import {Button} from '../components/ui/button';
 import {Badge} from '../components/ui/badge';
+import {Accordion, AccordionContent, AccordionItem, AccordionTrigger} from '../components/ui/accordion';
 import {DashboardBackground} from '../components/shared/HoneycombBackground';
 import BackgroundErrorBoundary from '../components/shared/SafeBackground';
 import '../components/dashboard/dashboard.css';

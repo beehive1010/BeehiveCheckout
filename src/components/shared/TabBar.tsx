@@ -55,7 +55,7 @@ export default function TabBar() {
                   data-testid={`tab-${item.key}`}
                 >
                   <button
-                    className="w-full h-full flex flex-col items-center justify-center transition-all duration-300 relative mt-[-12px] mb-[-12px]"
+                    className="w-full h-full flex flex-col items-center justify-center transition-all duration-300 relative mt-[-12px] mb-[-12px] min-h-[44px]"
                   >
                     {isHomeTab ? (
                       // Special elevated home tab

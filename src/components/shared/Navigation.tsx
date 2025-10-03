@@ -12,10 +12,10 @@ interface NavItem {
 }
 
 const navItems: NavItem[] = [
-  { key: 'tasks', path: '/tasks', icon: 'fas fa-layer-group', labelKey: 'nav.tasks' },
+  { key: 'nfts', path: '/nfts', icon: 'fas fa-gem', labelKey: 'nav.nfts' },
   { key: 'education', path: '/education', icon: 'fas fa-graduation-cap', labelKey: 'nav.education' },
-  { key: 'dashboard', path: '/dashboard', icon: 'fas fa-home', labelKey: 'nav.dashboard' },
-  { key: 'referrals', path: '/referrals', icon: 'fas fa-users', labelKey: 'nav.referrals' },
+  { key: 'dashboard', path: '/dashboard', icon: 'fas fa-home', labelKey: 'nav.home' },
+  { key: 'discover', path: '/discover', icon: 'fas fa-compass', labelKey: 'nav.discover' },
   { key: 'hiveworld', path: '/hiveworld', icon: 'fas fa-globe', labelKey: 'nav.hiveworld' },
 ];
 
