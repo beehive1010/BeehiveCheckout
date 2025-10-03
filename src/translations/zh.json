@@ -2998,40 +2998,40 @@
     },
     "features": {
       "education": {
-        "description": "Access premium courses and workshops while earning tokens",
-        "title": "Learn & Earn"
+        "description": "访问高级课程和研讨会，同时赚取代币",
+        "title": "学习并赚取"
       },
       "marketplace": {
-        "description": "领取 exclusive merchant NFTs with your BCC tokens",
-        "title": "NFT Marketplace"
+        "description": "使用您的 BCC 代币领取独家商家 NFT",
+        "title": "NFT 市场"
       },
       "matrixRewards": {
-        "description": "Exponential wealth growth system",
-        "title": "Matrix Rewards"
+        "description": "指数级财富增长系统",
+        "title": "矩阵奖励"
       },
       "membership": {
-        "description": "Secure on-chain membership credentials with 19 levels",
-        "title": "Web3 Membership"
+        "description": "安全的链上会员凭证，拥有 19 个等级",
+        "title": "Web3 会员"
       },
       "nftMarketplace": {
-        "description": "Trade exclusive Beehive NFTs",
-        "title": "NFT Marketplace"
+        "description": "交易独家 Beehive NFT",
+        "title": "NFT 市场"
       },
       "referral": {
-        "description": "Earn rewards through our forced matrix referral program",
-        "title": "3×3 Matrix System"
+        "description": "通过我们的强制矩阵推荐计划赚取奖励",
+        "title": "3×3 矩阵系统"
       },
       "rewards": {
-        "description": "48-hour upgrade countdown with roll-up mechanisms",
-        "title": "Smart Rewards"
+        "description": "48小时升级倒计时，带滚动机制",
+        "title": "智能奖励"
       },
       "smartContracts": {
-        "description": "100% automated blockchain execution",
-        "title": "Smart Contracts"
+        "description": "100% 自动化区块链执行",
+        "title": "智能合约"
       },
       "tokens": {
-        "description": "Dual token system with transferable and restricted buckets",
-        "title": "BCC Rewards"
+        "description": "双代币系统，可转让和受限制桶",
+        "title": "BCC 奖励"
       }
     },
     "getStarted": "开始",
@@ -3041,24 +3041,24 @@
     },
     "howItWorks": {
       "step1": {
-        "description": "连接 your Web3 wallet to get started",
+        "description": "连接您的 Web3 钱包以开始使用",
         "title": "连接钱包"
       },
       "step2": {
-        "description": "Complete registration and activate 等级 1 membership",
-        "title": "Register & Activate"
+        "description": "完成注册并激活等级 1 会员",
+        "title": "注册并激活"
       },
       "step3": {
-        "description": "Access platform features and start earning rewards",
-        "title": "Learn & Earn"
+        "description": "访问平台功能并开始赚取奖励",
+        "title": "学习并赚取"
       },
-      "subtitle": "Get started in just three simple steps and unlock the power of Web3 membership",
-      "title": "How It Works"
+      "subtitle": "只需三个简单步骤即可开始，解锁 Web3 会员的力量",
+      "title": "运作方式"
     },
     "matrix": {
-      "explainButton": "Matrix Explained",
-      "explainDescription": "Discover how our matrix system works and how you can earn rewards",
-      "explainTitle": "Learn the 3×3 Matrix"
+      "explainButton": "矩阵说明",
+      "explainDescription": "了解我们的矩阵系统如何运作以及您如何赚取奖励",
+      "explainTitle": "学习 3×3 矩阵"
     },
     "platformFeatures": {
       "autoPlacement": "Auto-placement System",
@@ -3071,9 +3071,9 @@
       "title": "Platform Features"
     },
     "stats": {
-      "matrixSystem": "3×3 Matrix System",
-      "membershipLevels": "19 Membership 等级s",
-      "nftMarketplace": "NFT Marketplace"
+      "matrixSystem": "3×3 矩阵系统",
+      "membershipLevels": "19 个会员等级",
+      "nftMarketplace": "NFT 市场"
     }
   },
   "loading": {
