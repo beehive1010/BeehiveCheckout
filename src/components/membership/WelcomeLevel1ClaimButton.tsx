@@ -1,19 +1,19 @@
-import {useEffect, useState, useCallback} from 'react';
+import {useEffect, useState, useCallback, useRef} from 'react';
 import {useActiveAccount, useActiveWalletChain, useSwitchActiveWalletChain, PayEmbed} from 'thirdweb/react';
-import {getContract} from 'thirdweb';
+import {getContract, sendAndConfirmTransaction, prepareEvent, getContractEvents} from 'thirdweb';
 import {arbitrum} from 'thirdweb/chains';
 import {balanceOf, claimTo} from 'thirdweb/extensions/erc1155';
+import {getApprovalForTransaction} from 'thirdweb/extensions/erc20';
 import {Button} from '../ui/button';
 import {Card, CardContent, CardHeader, CardTitle} from '../ui/card';
 import {Badge} from '../ui/badge';
 import {useToast} from '../../hooks/use-toast';
 import {Coins, Crown, Gift, Loader2, Zap, X} from 'lucide-react';
-import {supabase} from '../../lib/supabaseClient';
 import {authService} from '../../lib/supabase';
 import {useI18n} from '../../contexts/I18nContext';
 import RegistrationModal from '../modals/RegistrationModal';
 import ErrorBoundary from '../ui/error-boundary';
-import {client} from '../../lib/thirdwebClient';
+import {useMembershipNFT} from '../../hooks/useMembershipNFT';
 
 interface WelcomeLevel1ClaimButtonProps {
   onSuccess?: () => void;
@@ -21,12 +21,16 @@ interface WelcomeLevel1ClaimButtonProps {
   className?: string;
 }
 
+type ApprovalStep = 'idle' | 'approving' | 'approved';
+
 export function WelcomeLevel1ClaimButton({ onSuccess, referrerWallet, className = '' }: WelcomeLevel1ClaimButtonProps): JSX.Element {
   const account = useActiveAccount();
   const activeChain = useActiveWalletChain();
   const switchChain = useSwitchActiveWalletChain();
   const { toast } = useToast();
   const { t } = useI18n();
+  const { nftContract, client } = useMembershipNFT();
+
   const [isProcessing, setIsProcessing] = useState(false);
   const [currentStep, setCurrentStep] = useState<string>('');
   const [showRegistrationModal, setShowRegistrationModal] = useState(false);
@@ -35,14 +39,14 @@ export function WelcomeLevel1ClaimButton({ onSuccess, referrerWallet, className 
   const [isEligible, setIsEligible] = useState(false);
   const [hasNFT, setHasNFT] = useState(false);
   const [showPayEmbed, setShowPayEmbed] = useState(false);
+  const [approvalStep, setApprovalStep] = useState<ApprovalStep>('idle');
+  const [isApproving, setIsApproving] = useState(false);
+  const [countdown, setCountdown] = useState<number | undefined>();
+  const payEmbedRef = useRef<HTMLDivElement | null>(null);
 
   // Fixed Level 1 pricing and info
   const LEVEL_1_PRICE_USDC = 130;
-  const LEVEL_1_PRICE_WEI = BigInt(LEVEL_1_PRICE_USDC) * BigInt('1000000'); // 130 * 10^6 (USDC has 6 decimals)
-
   const API_BASE = import.meta.env.VITE_API_BASE_URL || 'https://cvqibjcbfrwsgkvthccp.supabase.co/functions/v1';
-  const PAYMENT_TOKEN_CONTRACT = '0xaf88d065e77c8cC2239327C5EDb3A432268e5831'; // Arbitrum USDC (native)
-  const NFT_CONTRACT = import.meta.env.VITE_MEMBERSHIP_NFT_CONTRACT; // Use env variable
 
   // Check network status
   useEffect(() => {
@@ -59,6 +63,38 @@ export function WelcomeLevel1ClaimButton({ onSuccess, referrerWallet, className 
       checkEligibility();
     }
   }, [account?.address, referrerWallet]);
+
+  // Approval countdown
+  useEffect(() => {
+    let timer: any;
+    if (approvalStep === "approving") {
+      setCountdown(180); // 3 minutes
+      timer = setInterval(() => {
+        setCountdown(c => {
+          if (!c || c <= 1) return 0;
+          return c - 1;
+        });
+      }, 1000);
+    } else {
+      setCountdown(undefined);
+    }
+    return () => timer && clearInterval(timer);
+  }, [approvalStep]);
+
+  // Auto-close PayEmbed after successful claim
+  useEffect(() => {
+    if (hasNFT && showPayEmbed) {
+      setShowPayEmbed(false);
+      setApprovalStep("idle");
+      toast({
+        title: '🎉 Level 1 NFT Claimed!',
+        description: 'Your membership is now active.',
+        variant: "default",
+        duration: 5000,
+      });
+      onSuccess?.();
+    }
+  }, [hasNFT, showPayEmbed, toast, onSuccess]);
 
   const handleSwitchNetwork = async () => {
     if (!switchChain) return;
@@ -88,14 +124,12 @@ export function WelcomeLevel1ClaimButton({ onSuccess, referrerWallet, className 
     setShowRegistrationModal(false);
     setIsStabilizing(true);
 
-    // Add stabilization delay to prevent ThirdWeb DOM errors
     setTimeout(() => {
       setIsStabilizing(false);
       checkEligibility();
     }, 1000);
   }, []);
 
-  // Add stabilization effect for ThirdWeb DOM errors
   useEffect(() => {
     if (showRegistrationModal) {
       setIsStabilizing(true);
@@ -115,7 +149,6 @@ export function WelcomeLevel1ClaimButton({ onSuccess, referrerWallet, className 
       return;
     }
 
-    // Validate referrer requirements
     if (!referrerWallet) {
       toast({
         title: t('claim.referrerRequired'),
@@ -126,7 +159,6 @@ export function WelcomeLevel1ClaimButton({ onSuccess, referrerWallet, className 
       return;
     }
 
-    // Prevent self-referral
     if (referrerWallet.toLowerCase() === account.address.toLowerCase()) {
       toast({
         title: t('claim.selfReferralNotAllowed'),
@@ -138,7 +170,7 @@ export function WelcomeLevel1ClaimButton({ onSuccess, referrerWallet, className 
     }
 
     try {
-      // 1. Check if user is registered
+      // Check if user is registered
       console.log('🔍 Checking user registration status...');
 
       try {
@@ -149,7 +181,6 @@ export function WelcomeLevel1ClaimButton({ onSuccess, referrerWallet, className 
             walletAddress: account.address
           });
 
-          // Show user-friendly message
           toast({
             title: t('registration.required'),
             description: t('registration.requiredDesc'),
@@ -158,7 +189,6 @@ export function WelcomeLevel1ClaimButton({ onSuccess, referrerWallet, className 
 
           setIsEligible(false);
 
-          // Add stabilization delay before showing modal
           setIsStabilizing(true);
           setTimeout(() => {
             setIsStabilizing(false);
@@ -177,7 +207,6 @@ export function WelcomeLevel1ClaimButton({ onSuccess, referrerWallet, className 
       } catch (registrationError) {
         console.error('❌ Failed to check user registration:', registrationError);
 
-        // Treat as unregistered and show registration modal
         toast({
           title: "Registration Check Failed",
           description: "Please complete your registration to proceed.",
@@ -192,14 +221,13 @@ export function WelcomeLevel1ClaimButton({ onSuccess, referrerWallet, className 
         return;
       }
 
-      // 2. Validate referrer with fallback logic
+      // Validate referrer
       console.log('🔍 Validating referrer...');
 
       let referrerData = null;
       let isValidReferrer = false;
 
       try {
-        // First try to get referrer as activated member
         const membershipResult = await authService.isActivatedMember(referrerWallet);
 
         if (membershipResult.isActivated && membershipResult.memberData) {
@@ -210,7 +238,6 @@ export function WelcomeLevel1ClaimButton({ onSuccess, referrerWallet, className 
             username: membershipResult.memberData.username
           });
         } else {
-          // Fallback: try to get referrer as registered user
           const { data: userReferrer } = await authService.getUser(referrerWallet);
 
           if (userReferrer) {
@@ -244,13 +271,7 @@ export function WelcomeLevel1ClaimButton({ onSuccess, referrerWallet, className 
         referrerUsername: referrerData.username
       });
 
-      // 3. Check if already owns NFT
-      const nftContract = getContract({
-        client,
-        address: NFT_CONTRACT,
-        chain: arbitrum
-      });
-
+      // Check if already owns NFT
       const balance = await balanceOf({
         contract: nftContract,
         owner: account.address,
@@ -264,7 +285,6 @@ export function WelcomeLevel1ClaimButton({ onSuccess, referrerWallet, className 
         return;
       }
 
-      // All checks passed
       console.log('✅ All eligibility checks passed');
       setIsEligible(true);
       setHasNFT(false);
@@ -274,15 +294,7 @@ export function WelcomeLevel1ClaimButton({ onSuccess, referrerWallet, className 
     }
   };
 
-  // Get NFT contract
-  const nftContract = getContract({
-    client,
-    address: NFT_CONTRACT,
-    chain: arbitrum
-  });
-
-  // Open PayEmbed modal (with registration check)
-  const handleOpenPayEmbed = async () => {
+  const handleApproveAndClaim = async () => {
     if (!account?.address) {
       toast({
         title: t('wallet.connectRequired'),
@@ -310,7 +322,7 @@ export function WelcomeLevel1ClaimButton({ onSuccess, referrerWallet, className 
       return;
     }
 
-    // Check if user is registered before opening PayEmbed
+    // Check registration before proceeding
     try {
       console.log('🔍 Checking registration status for:', account.address);
       const userResult = await authService.getUser(account.address);
@@ -339,28 +351,95 @@ export function WelcomeLevel1ClaimButton({ onSuccess, referrerWallet, className 
 
       console.log('✅ User is registered:', userData);
 
-      // User is registered and eligible, open PayEmbed
-      if (isEligible) {
-        console.log('✅ Opening PayEmbed');
-        setShowPayEmbed(true);
-      } else {
+      if (!isEligible) {
         console.log('⚠️ Re-checking eligibility...');
-        // Re-check eligibility
         await checkEligibility();
-        if (isEligible) {
-          setShowPayEmbed(true);
-        } else {
+        if (!isEligible) {
           toast({
             title: t('claim.notEligible') || 'Not Eligible',
             description: t('claim.checkRequirements') || 'Please check requirements',
             variant: "destructive",
           });
+          return;
         }
       }
+
+      // Start approval process
+      if (isApproving) return;
+
+      try {
+        setIsApproving(true);
+        setApprovalStep('approving');
+
+        // Step 1: Show wallet signing prompt
+        toast({
+          title: '🔐 Wallet Signature Required',
+          description: 'Please sign the transaction in your wallet to approve USDC spending',
+          duration: 0,
+        });
+
+        const claimTx = claimTo({
+          contract: nftContract,
+          to: account.address as `0x${string}`,
+          quantity: BigInt(1),
+        });
+
+        const approveTx = await getApprovalForTransaction({
+          transaction: claimTx,
+          account,
+        });
+
+        // Step 2: Transaction signed, waiting for blockchain confirmation
+        toast({
+          title: '⏳ Blockchain Confirmation',
+          description: `Waiting for blockchain confirmation... This may take 2-3 minutes.\nTime remaining: 3:00`,
+          duration: 0,
+        });
+
+        if (approveTx) {
+          await sendAndConfirmTransaction({ transaction: approveTx, account });
+          setApprovalStep('approved');
+
+          toast({
+            title: '✅ Approval Successful',
+            description: 'USDC spending approved! Opening payment interface...',
+            variant: "default",
+            duration: 4000,
+          });
+
+          // Open PayEmbed after approval
+          setTimeout(() => {
+            setShowPayEmbed(true);
+          }, 500);
+        } else {
+          // Already approved or not required
+          setApprovalStep('approved');
+          setShowPayEmbed(true);
+        }
+
+      } catch (error: any) {
+        setApprovalStep('idle');
+        console.error('❌ Approval error:', error);
+
+        let errorMessage = 'Approval failed. Please try again.';
+        if (error.message?.includes('insufficient funds')) {
+          errorMessage = 'Insufficient funds for gas fees';
+        } else if (error.code === 4001) {
+          errorMessage = 'Transaction rejected by user';
+        }
+
+        toast({
+          title: '❌ Approval Failed',
+          description: errorMessage,
+          variant: "destructive",
+        });
+      } finally {
+        setIsApproving(false);
+      }
+
     } catch (error) {
       console.error('❌ Error checking registration:', error);
 
-      // If error occurs, assume user is not registered and show registration modal
       console.log('⚠️ Treating error as not registered - showing registration modal');
       toast({
         title: t('registration.required') || 'Registration Required',
@@ -379,9 +458,90 @@ export function WelcomeLevel1ClaimButton({ onSuccess, referrerWallet, className 
     }
   };
 
-  // Close PayEmbed modal
-  const handleClosePayEmbed = () => {
+  const handleClosePayEmbed = async () => {
     setShowPayEmbed(false);
+    setApprovalStep('idle');
+
+    // Re-check if NFT was claimed
+    if (account?.address) {
+      try {
+        const balance = await balanceOf({
+          contract: nftContract,
+          owner: account.address,
+          tokenId: BigInt(1)
+        });
+
+        if (Number(balance) > 0) {
+          setHasNFT(true);
+          toast({
+            title: '🎉 Level 1 NFT Claimed!',
+            description: 'Processing membership activation...',
+            duration: 5000
+          });
+
+          // Trigger activation
+          handlePaymentSuccess('manual_check');
+        }
+      } catch (error) {
+        console.error('Error checking NFT balance:', error);
+      }
+    }
+  };
+
+  const handlePaymentSuccess = async (transactionHash: string) => {
+    console.log('🎉 Payment successful:', transactionHash);
+    setShowPayEmbed(false);
+
+    toast({
+      title: '🎉 Level 1 NFT Claimed!',
+      description: 'Processing membership activation...',
+      duration: 5000
+    });
+
+    setIsProcessing(true);
+    setCurrentStep('Activating membership...');
+
+    try {
+      const activateResponse = await fetch(`${API_BASE}/activate-membership`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${import.meta.env.VITE_SUPABASE_ANON_KEY}`,
+          'apikey': import.meta.env.VITE_SUPABASE_ANON_KEY,
+          'x-wallet-address': account?.address || ''
+        },
+        body: JSON.stringify({
+          transactionHash: transactionHash,
+          level: 1,
+          paymentMethod: 'multi_chain',
+          paymentAmount: LEVEL_1_PRICE_USDC,
+          referrerWallet: referrerWallet
+        })
+      });
+
+      if (activateResponse.ok) {
+        toast({
+          title: '🎉 Welcome to BEEHIVE!',
+          description: 'Your Level 1 membership is now active.',
+          variant: "default",
+          duration: 6000,
+        });
+        if (onSuccess) {
+          onSuccess();
+        }
+      }
+    } catch (error) {
+      console.error('❌ Activation error:', error);
+      toast({
+        title: '⚠️ Activation Pending',
+        description: 'NFT claimed, please refresh to complete activation.',
+        duration: 8000
+      });
+    } finally {
+      setIsProcessing(false);
+      setCurrentStep('');
+      checkEligibility();
+    }
   };
 
   return (
@@ -432,9 +592,9 @@ export function WelcomeLevel1ClaimButton({ onSuccess, referrerWallet, className 
             <div className="flex items-start gap-2">
               <Zap className="h-4 w-4 text-blue-400 mt-0.5" />
               <div>
-                <p className="text-sm font-medium text-blue-400">Multi-Chain Payment Enabled</p>
+                <p className="text-sm font-medium text-blue-400">Arbitrum One - USDC Payment</p>
                 <p className="text-xs text-muted-foreground mt-1">
-                  Pay with USDC from any supported chain. Thirdweb will handle the bridging automatically.
+                  Pay with USDC on Arbitrum One. Make sure you're on the correct network.
                 </p>
               </div>
             </div>
@@ -442,7 +602,6 @@ export function WelcomeLevel1ClaimButton({ onSuccess, referrerWallet, className 
 
           {/* Claim Button */}
           <div className="space-y-4">
-            {/* Show network switch button if on wrong network */}
             {isWrongNetwork && account?.address && (
               <div className="p-3 bg-yellow-50 border border-yellow-200 rounded-lg">
                 <div className="flex items-center gap-2 mb-2">
@@ -478,8 +637,8 @@ export function WelcomeLevel1ClaimButton({ onSuccess, referrerWallet, className 
               </div>
             ) : (
               <Button
-                onClick={handleOpenPayEmbed}
-                disabled={!account?.address || isWrongNetwork || isStabilizing || isProcessing}
+                onClick={handleApproveAndClaim}
+                disabled={!account?.address || isWrongNetwork || isStabilizing || isProcessing || isApproving}
                 className="w-full h-12 bg-gradient-to-r from-honey to-orange-500 hover:from-honey/90 hover:to-orange-500/90 text-white font-semibold text-lg shadow-lg transition-all disabled:opacity-50"
               >
                 {!account?.address ? (
@@ -497,6 +656,17 @@ export function WelcomeLevel1ClaimButton({ onSuccess, referrerWallet, className 
                     <Loader2 className="mr-2 h-5 w-5 animate-spin" />
                     Stabilizing...
                   </>
+                ) : isApproving ? (
+                  <>
+                    <Loader2 className="mr-2 h-5 w-5 animate-spin" />
+                    {approvalStep === "approving" ? (
+                      countdown ? `Confirming... ${Math.floor(countdown / 60)}:${(countdown % 60).toString().padStart(2, '0')}` : "Confirming..."
+                    ) : (
+                      "Approving..."
+                    )}
+                  </>
+                ) : approvalStep === "approved" ? (
+                  "Approved - Opening Payment"
                 ) : (
                   <div className="flex items-center justify-center gap-2">
                     <Crown className="h-5 w-5" />
@@ -522,10 +692,10 @@ export function WelcomeLevel1ClaimButton({ onSuccess, referrerWallet, className 
 
           {/* Additional Information */}
           <div className="text-center text-xs text-muted-foreground pt-2 space-y-1">
-            <p>💳 Multi-chain payment supported</p>
-            <p>🌉 Automatic cross-chain bridging</p>
+            <p>💳 USDC payment on Arbitrum One</p>
             <p>⚡ Instant membership activation</p>
-            <p>✅ One-click NFT minting</p>
+            <p>✅ Secure ERC20 approval process</p>
+            <p>🎯 One-click NFT minting</p>
           </div>
         </CardContent>
       </Card>
@@ -544,6 +714,7 @@ export function WelcomeLevel1ClaimButton({ onSuccess, referrerWallet, className 
         <div className="fixed inset-0 z-[9999] flex items-center justify-center">
           <div className="absolute inset-0 bg-black/80 backdrop-blur-sm" onClick={handleClosePayEmbed} />
           <div
+            ref={payEmbedRef}
             className="relative p-4 max-h-[min(90vh,800px)] overflow-y-auto bg-black rounded-2xl w-full max-w-[500px]"
             onClick={e => e.stopPropagation()}
           >
@@ -575,60 +746,7 @@ export function WelcomeLevel1ClaimButton({ onSuccess, referrerWallet, className 
               theme="dark"
               showConnectButton={false}
               onPaymentSuccess={async (result) => {
-                console.log('🎉 Payment successful:', result);
-                setShowPayEmbed(false);
-
-                toast({
-                  title: '🎉 Level 1 NFT Claimed!',
-                  description: 'Processing membership activation...',
-                  duration: 5000
-                });
-
-                setIsProcessing(true);
-                setCurrentStep('Activating membership...');
-
-                try {
-                  // Activate membership
-                  const activateResponse = await fetch(`${API_BASE}/activate-membership`, {
-                    method: 'POST',
-                    headers: {
-                      'Content-Type': 'application/json',
-                      'Authorization': `Bearer ${import.meta.env.VITE_SUPABASE_ANON_KEY}`,
-                      'apikey': import.meta.env.VITE_SUPABASE_ANON_KEY,
-                      'x-wallet-address': account.address
-                    },
-                    body: JSON.stringify({
-                      transactionHash: result.transactionHash,
-                      level: 1,
-                      paymentMethod: 'multi_chain',
-                      paymentAmount: LEVEL_1_PRICE_USDC,
-                      referrerWallet: referrerWallet
-                    })
-                  });
-
-                  if (activateResponse.ok) {
-                    toast({
-                      title: '🎉 Welcome to BEEHIVE!',
-                      description: 'Your Level 1 membership is now active.',
-                      variant: "default",
-                      duration: 6000,
-                    });
-                    if (onSuccess) {
-                      onSuccess();
-                    }
-                  }
-                } catch (error) {
-                  console.error('❌ Activation error:', error);
-                  toast({
-                    title: '⚠️ Activation Pending',
-                    description: 'NFT claimed, please refresh to complete activation.',
-                    duration: 8000
-                  });
-                } finally {
-                  setIsProcessing(false);
-                  setCurrentStep('');
-                  checkEligibility();
-                }
+                await handlePaymentSuccess(result.transactionHash);
               }}
             />
           </div>
