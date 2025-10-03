@@ -710,14 +710,16 @@ export function WelcomeLevel1ClaimButton({ onSuccess, referrerWallet, className 
         </CardContent>
       </Card>
 
-      {/* Registration Modal */}
-      <RegistrationModal
-        isOpen={showRegistrationModal}
-        onClose={() => setShowRegistrationModal(false)}
-        walletAddress={account?.address || ''}
-        referrerWallet={referrerWallet}
-        onRegistrationComplete={handleRegistrationComplete}
-      />
+      {/* Registration Modal - only show if wallet is connected */}
+      {account?.address && (
+        <RegistrationModal
+          isOpen={showRegistrationModal}
+          onClose={() => setShowRegistrationModal(false)}
+          walletAddress={account.address}
+          referrerWallet={referrerWallet}
+          onRegistrationComplete={handleRegistrationComplete}
+        />
+      )}
 
       {/* PayEmbed Modal */}
       {showPayEmbed && account?.address && (
