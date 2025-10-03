@@ -91,7 +91,7 @@ serve(async (req) => {
         const contract = getContract({
           client,
           chain: arbitrum,
-          address: '0x36a1aC6D8F0204827Fad16CA5e222F1Aeae4Adc8'
+          address: '0x15742D22f64985bC124676e206FCE3fFEb175719'
         });
 
         // Check balance using ERC-1155 balanceOf function

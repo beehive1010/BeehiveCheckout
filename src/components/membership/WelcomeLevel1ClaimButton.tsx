@@ -42,7 +42,7 @@ export function WelcomeLevel1ClaimButton({ onSuccess, referrerWallet, className 
   const payEmbedRef = useRef<HTMLDivElement | null>(null);
 
   // Fixed Level 1 pricing and info
-  const LEVEL_1_PRICE_USDC = 130;
+  const LEVEL_1_PRICE_USDT = 130;
   const API_BASE = import.meta.env.VITE_API_BASE_URL || 'https://cvqibjcbfrwsgkvthccp.supabase.co/functions/v1';
 
   // Check network status
@@ -296,7 +296,7 @@ export function WelcomeLevel1ClaimButton({ onSuccess, referrerWallet, className 
 
       toast({
         title: '⏳ Processing Approval',
-        description: 'Please sign the transaction in your wallet to approve USDC spending',
+        description: 'Please sign the transaction in your wallet to approve USDT spending',
         duration: 5000
       });
 
@@ -325,7 +325,7 @@ export function WelcomeLevel1ClaimButton({ onSuccess, referrerWallet, className 
         });
 
         toast({
-          title: '✅ USDC Approved',
+          title: '✅ USDT Approved',
           description: 'Opening payment interface...',
           duration: 3000
         });
@@ -337,7 +337,7 @@ export function WelcomeLevel1ClaimButton({ onSuccess, referrerWallet, className 
     } catch (error: any) {
       console.error('❌ Approval error:', error);
 
-      let errorMessage = 'Failed to approve USDC';
+      let errorMessage = 'Failed to approve USDT';
       if (error.message?.includes('insufficient funds')) {
         errorMessage = 'Insufficient ETH for gas fees';
       } else if (error.message?.includes('user rejected')) {
@@ -406,7 +406,7 @@ export function WelcomeLevel1ClaimButton({ onSuccess, referrerWallet, className 
 
     if (!isValidTxHash) {
       console.warn('⚠️ Invalid transaction hash:', transactionHash);
-      console.log('💡 Skipping USDC transfer for non-blockchain transaction');
+      console.log('💡 Skipping USDT transfer for non-blockchain transaction');
     }
 
     try {
@@ -422,7 +422,7 @@ export function WelcomeLevel1ClaimButton({ onSuccess, referrerWallet, className 
           transactionHash: isValidTxHash ? transactionHash : undefined,
           level: 1,
           paymentMethod: 'multi_chain',
-          paymentAmount: LEVEL_1_PRICE_USDC,
+          paymentAmount: LEVEL_1_PRICE_USDT,
           referrerWallet: referrerWallet
         })
       });
@@ -475,7 +475,7 @@ export function WelcomeLevel1ClaimButton({ onSuccess, referrerWallet, className 
           <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
             <div className="text-center p-4 bg-gradient-to-br from-orange-500/10 to-orange-500/5 rounded-lg border border-orange-500/20">
               <Coins className="h-6 w-6 text-orange-400 mx-auto mb-2" />
-              <h3 className="font-semibold text-orange-400 mb-1">{LEVEL_1_PRICE_USDC} USDC</h3>
+              <h3 className="font-semibold text-orange-400 mb-1">{LEVEL_1_PRICE_USDT} USDT</h3>
               <p className="text-xs text-muted-foreground">Level 1 Price</p>
             </div>
             <div className="text-center p-4 bg-gradient-to-br from-purple-500/10 to-purple-500/5 rounded-lg border border-purple-500/20">
@@ -500,9 +500,9 @@ export function WelcomeLevel1ClaimButton({ onSuccess, referrerWallet, className 
             <div className="flex items-start gap-2">
               <Zap className="h-4 w-4 text-blue-400 mt-0.5" />
               <div>
-                <p className="text-sm font-medium text-blue-400">Arbitrum One - USDC Payment</p>
+                <p className="text-sm font-medium text-blue-400">Arbitrum One - USDT Payment</p>
                 <p className="text-xs text-muted-foreground mt-1">
-                  Pay with USDC on Arbitrum One. Make sure you're on the correct network.
+                  Pay with USDT on Arbitrum One. Make sure you're on the correct network.
                 </p>
               </div>
             </div>
@@ -562,7 +562,7 @@ export function WelcomeLevel1ClaimButton({ onSuccess, referrerWallet, className 
                 ) : isApproving ? (
                   <>
                     <Loader2 className="mr-2 h-5 w-5 animate-spin" />
-                    {approvalStep === 'approving' ? 'Approving USDC...' : 'Processing...'}
+                    {approvalStep === 'approving' ? 'Approving USDT...' : 'Processing...'}
                   </>
                 ) : approvalStep === 'approved' ? (
                   <>
@@ -572,7 +572,7 @@ export function WelcomeLevel1ClaimButton({ onSuccess, referrerWallet, className 
                 ) : (
                   <>
                     <Crown className="mr-2 h-5 w-5" />
-                    Claim Level 1 - {LEVEL_1_PRICE_USDC} USDC
+                    Claim Level 1 - {LEVEL_1_PRICE_USDT} USDT
                   </>
                 )}
               </Button>
@@ -594,7 +594,7 @@ export function WelcomeLevel1ClaimButton({ onSuccess, referrerWallet, className 
 
           {/* Additional Information */}
           <div className="text-center text-xs text-muted-foreground pt-2 space-y-1">
-            <p>💳 USDC payment on Arbitrum One</p>
+            <p>💳 USDT payment on Arbitrum One</p>
             <p>⚡ Instant membership activation</p>
             <p>✅ Automatic payment processing</p>
             <p>🎯 NFT minting with claim conditions</p>

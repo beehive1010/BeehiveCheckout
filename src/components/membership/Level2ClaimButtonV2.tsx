@@ -1,13 +1,14 @@
 import {useEffect, useState} from 'react';
-import {useActiveAccount, useActiveWalletChain, useSwitchActiveWalletChain, PayEmbed} from 'thirdweb/react';
-import {getContract} from 'thirdweb';
+import {useActiveAccount, useActiveWalletChain, useSwitchActiveWalletChain} from 'thirdweb/react';
+import {getContract, prepareContractCall, sendAndConfirmTransaction} from 'thirdweb';
 import {arbitrum} from 'thirdweb/chains';
 import {balanceOf, claimTo} from 'thirdweb/extensions/erc1155';
+import {getApprovalForTransaction} from 'thirdweb/extensions/erc20';
 import {Button} from '../ui/button';
 import {Card, CardContent, CardHeader, CardTitle} from '../ui/card';
 import {Badge} from '../ui/badge';
 import {useToast} from '../../hooks/use-toast';
-import {Clock, Coins, Crown, Loader2, Star, TrendingUp, X} from 'lucide-react';
+import {Clock, Coins, Crown, Loader2, Star, TrendingUp} from 'lucide-react';
 import {supabase} from '../../lib/supabase';
 import {useI18n} from '../../contexts/I18nContext';
 import {client} from '../../lib/thirdwebClient';
@@ -30,14 +31,14 @@ export function Level2ClaimButtonV2({ onSuccess, className = '' }: Level2ClaimBu
   const [isWrongNetwork, setIsWrongNetwork] = useState(false);
   const [directReferralsCount, setDirectReferralsCount] = useState(0);
   const [alreadyOwnsLevel2, setAlreadyOwnsLevel2] = useState(false);
-  const [showPayEmbed, setShowPayEmbed] = useState(false);
+  const [approvalStep, setApprovalStep] = useState<'idle' | 'approving' | 'approved' | 'error'>('idle');
 
-  const LEVEL_2_PRICE_USDC = 150;
-  const LEVEL_2_PRICE_WEI = BigInt(LEVEL_2_PRICE_USDC) * BigInt('1000000');
+  const LEVEL_2_PRICE_USDT = 150;
+  const LEVEL_2_PRICE_WEI = BigInt(LEVEL_2_PRICE_USDT) * BigInt('1000000');
 
   const API_BASE = 'https://cvqibjcbfrwsgkvthccp.supabase.co/functions/v1';
-  const PAYMENT_TOKEN_CONTRACT = "0xaf88d065e77c8cC2239327C5EDb3A432268e5831";
-  const NFT_CONTRACT = "0x36a1aC6D8F0204827Fad16CA5e222F1Aeae4Adc8";
+  const PAYMENT_TOKEN_CONTRACT = "0xFd086bC7CD5C481DCC9C85ebE478A1C0b69FCbb9"; // Arbitrum USDT
+  const NFT_CONTRACT = "0x15742D22f64985bC124676e206FCE3fFEb175719"; // New NFT contract
 
   // Check network status
   useEffect(() => {
@@ -174,17 +175,175 @@ export function Level2ClaimButtonV2({ onSuccess, className = '' }: Level2ClaimBu
     chain: arbitrum
   });
 
-  // Open PayEmbed modal
-  const handleOpenPayEmbed = () => {
-    if (!canClaimLevel2 || alreadyOwnsLevel2 || isWrongNetwork || !account?.address) {
+  // Get USDT token contract
+  const usdtContract = getContract({
+    client,
+    address: PAYMENT_TOKEN_CONTRACT,
+    chain: arbitrum
+  });
+
+  // Handle Level 2 claim with approval
+  const handleClaimLevel2 = async () => {
+    if (!account?.address || !canClaimLevel2 || alreadyOwnsLevel2 || isWrongNetwork) {
       return;
     }
-    setShowPayEmbed(true);
-  };
 
-  // Close PayEmbed modal
-  const handleClosePayEmbed = () => {
-    setShowPayEmbed(false);
+    setIsProcessing(true);
+    setApprovalStep('idle');
+
+    try {
+      // Step 1: Prepare claim transaction
+      setCurrentStep('Preparing claim transaction...');
+      const claimTransaction = claimTo({
+        contract: nftContract,
+        to: account.address,
+        tokenId: BigInt(2),
+        quantity: BigInt(1),
+      });
+
+      // Step 2: Get approval transaction if needed
+      setCurrentStep('Checking USDT approval...');
+      setApprovalStep('approving');
+
+      toast({
+        title: '🔄 USDT Approval Required',
+        description: 'Please sign the transaction in your wallet to approve USDT spending',
+        duration: 5000,
+      });
+
+      const approvalTransaction = await getApprovalForTransaction({
+        transaction: claimTransaction,
+        account: account,
+        erc20: usdtContract,
+      });
+
+      // Step 3: Send approval transaction if needed
+      if (approvalTransaction) {
+        setCurrentStep('Approving USDT...');
+        console.log('📝 Sending USDT approval transaction...');
+
+        try {
+          const approvalResult = await sendAndConfirmTransaction({
+            transaction: approvalTransaction,
+            account: account,
+          });
+
+          console.log('✅ USDT approved:', approvalResult.transactionHash);
+          setApprovalStep('approved');
+          toast({
+            title: '✅ USDT Approved',
+            description: 'USDT spending approved. Proceeding with Level 2 claim...',
+            duration: 3000,
+          });
+        } catch (approvalError: any) {
+          console.error('❌ USDT approval failed:', approvalError);
+          setApprovalStep('error');
+          let errorMessage = 'Failed to approve USDT';
+          if (approvalError.message) {
+            if (approvalError.message.includes('user rejected')) {
+              errorMessage = 'You rejected the USDT approval. Please try again.';
+            } else {
+              errorMessage = approvalError.message;
+            }
+          }
+          toast({
+            title: '❌ USDT Approval Failed',
+            description: errorMessage,
+            variant: "destructive",
+            duration: 5000,
+          });
+          return;
+        }
+      } else {
+        console.log('✅ USDT already approved or not needed');
+        setApprovalStep('approved');
+      }
+
+      // Step 4: Send claim transaction
+      setCurrentStep('Claiming Level 2 NFT...');
+
+      toast({
+        title: '🎨 Claiming Level 2 NFT',
+        description: 'Please confirm the transaction in your wallet...',
+        duration: 5000,
+      });
+
+      const claimResult = await sendAndConfirmTransaction({
+        transaction: claimTransaction,
+        account: account,
+      });
+
+      console.log('✅ Level 2 NFT claim transaction confirmed:', claimResult.transactionHash);
+
+      toast({
+        title: '🎉 Level 2 NFT Claimed!',
+        description: 'Processing Level 2 upgrade...',
+        duration: 5000
+      });
+
+      // Step 5: Call backend to process level upgrade
+      setCurrentStep('Processing Level 2 upgrade...');
+
+      await new Promise(resolve => setTimeout(resolve, 3000));
+
+      const upgradeResponse = await fetch(`${API_BASE}/level-upgrade`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${import.meta.env.VITE_SUPABASE_ANON_KEY}`,
+          'x-wallet-address': account.address,
+        },
+        body: JSON.stringify({
+          action: 'upgrade_level',
+          walletAddress: account.address,
+          targetLevel: 2,
+          transactionHash: claimResult.transactionHash,
+          network: 'mainnet'
+        })
+      });
+
+      const upgradeResult = await upgradeResponse.json();
+
+      if (upgradeResult.success) {
+        console.log('✅ Level 2 upgrade processed successfully:', upgradeResult);
+        toast({
+          title: '🎉 Level 2 Upgrade Complete!',
+          description: 'Your Level 2 membership is now active. Layer 2 rewards have been processed.',
+          variant: "default",
+          duration: 6000,
+        });
+
+        if (onSuccess) {
+          onSuccess();
+        }
+      } else {
+        throw new Error(`Level 2 upgrade failed: ${upgradeResult.error || upgradeResult.message}`);
+      }
+
+    } catch (error: any) {
+      console.error('❌ Level 2 claim error:', error);
+
+      let errorMessage = 'An unexpected error occurred';
+      if (error.message) {
+        if (error.message.includes('user rejected') || error.message.includes('User rejected')) {
+          errorMessage = 'You rejected the transaction. Please try again.';
+        } else {
+          errorMessage = error.message;
+        }
+      }
+
+      toast({
+        title: '❌ Level 2 Claim Failed',
+        description: errorMessage,
+        variant: "destructive",
+        duration: 6000,
+      });
+    } finally {
+      setIsProcessing(false);
+      setCurrentStep('');
+      setApprovalStep('idle');
+      await checkLevel2Eligibility();
+    }
   };
 
   return (
@@ -210,7 +369,7 @@ export function Level2ClaimButtonV2({ onSuccess, className = '' }: Level2ClaimBu
           <div className="text-center p-4 bg-gradient-to-br from-orange-500/10 to-orange-500/5 rounded-lg border border-orange-500/20">
             <Coins className="h-6 w-6 text-orange-400 mx-auto mb-2" />
             <h3 className="font-semibold text-orange-400 mb-1">
-              {LEVEL_2_PRICE_USDC} USDC
+              {LEVEL_2_PRICE_USDT} USDT
             </h3>
             <p className="text-xs text-muted-foreground">Level 2 Price</p>
           </div>
@@ -290,7 +449,7 @@ export function Level2ClaimButtonV2({ onSuccess, className = '' }: Level2ClaimBu
             </div>
           ) : (
             <Button
-              onClick={handleOpenPayEmbed}
+              onClick={handleClaimLevel2}
               disabled={!account?.address || isWrongNetwork || !canClaimLevel2 || isCheckingEligibility || isProcessing}
               className="w-full h-12 bg-gradient-to-r from-blue-400 to-blue-600 hover:from-blue-400/90 hover:to-blue-600/90 text-white font-semibold text-lg shadow-lg transition-all disabled:opacity-50"
             >
@@ -314,10 +473,20 @@ export function Level2ClaimButtonV2({ onSuccess, className = '' }: Level2ClaimBu
                   <Crown className="mr-2 h-5 w-5" />
                   Requirements Not Met
                 </>
+              ) : approvalStep === 'approving' ? (
+                <div className="flex items-center justify-center gap-2">
+                  <Loader2 className="h-5 w-5 animate-spin" />
+                  <span>Approving USDT...</span>
+                </div>
+              ) : isProcessing ? (
+                <div className="flex items-center justify-center gap-2">
+                  <Loader2 className="h-5 w-5 animate-spin" />
+                  <span>Processing...</span>
+                </div>
               ) : (
                 <div className="flex items-center justify-center gap-2">
                   <TrendingUp className="h-5 w-5" />
-                  <span>Upgrade to Level 2 - {LEVEL_2_PRICE_USDC} USDC</span>
+                  <span>Upgrade to Level 2 - {LEVEL_2_PRICE_USDT} USDT</span>
                 </div>
               )}
             </Button>
@@ -340,114 +509,11 @@ export function Level2ClaimButtonV2({ onSuccess, className = '' }: Level2ClaimBu
         {/* Additional Information */}
         <div className="text-center text-xs text-muted-foreground pt-2 space-y-1">
           <p>📈 Level 1 → Level 2 upgrade</p>
-          <p>💳 Multi-chain payment supported</p>
-          <p>🌉 Automatic cross-chain bridging</p>
+          <p>💳 USDT payment on Arbitrum One</p>
           <p>⚡ Instant level activation</p>
-          <p>💰 Layer 2 rewards ({LEVEL_2_PRICE_USDC} USDC) processed</p>
+          <p>💰 Layer 2 rewards ({LEVEL_2_PRICE_USDT} USDT) processed</p>
         </div>
       </CardContent>
-
-      {/* PayEmbed Modal */}
-      {showPayEmbed && account?.address && (
-        <div className="fixed inset-0 z-[9999] flex items-center justify-center">
-          <div className="absolute inset-0 bg-black/80 backdrop-blur-sm" onClick={handleClosePayEmbed} />
-          <div
-            className="relative p-4 max-h-[min(90vh,800px)] overflow-y-auto bg-black rounded-2xl w-full max-w-[500px]"
-            onClick={e => e.stopPropagation()}
-          >
-            <button
-              onClick={handleClosePayEmbed}
-              className="absolute top-4 right-4 z-10 text-gray-400 hover:text-white p-2 rounded-full bg-gray-800/50 hover:bg-gray-700/50 transition-colors"
-              title="Close"
-            >
-              <X size={24} />
-            </button>
-            <PayEmbed
-              client={client}
-              payOptions={{
-                mode: "transaction",
-                transaction: claimTo({
-                  contract: nftContract,
-                  to: account.address,
-                  tokenId: BigInt(2),
-                  quantity: BigInt(1),
-                }),
-                metadata: {
-                  name: "BEEHIVE Level 2 Membership NFT",
-                  image: "https://your-nft-image-url.com/level2.png",
-                },
-                buyWithCrypto: {
-                  testMode: false,
-                },
-              }}
-              theme="dark"
-              onPaymentSuccess={async (result) => {
-                console.log('🎉 Level 2 Payment successful:', result);
-                setShowPayEmbed(false);
-
-                toast({
-                  title: '🎉 Level 2 NFT Claimed!',
-                  description: 'Processing Level 2 upgrade...',
-                  duration: 5000
-                });
-
-                setIsProcessing(true);
-                setCurrentStep('Processing Level 2 upgrade...');
-
-                try {
-                  await new Promise(resolve => setTimeout(resolve, 3000));
-
-                  const upgradeResponse = await fetch(`${API_BASE}/level-upgrade`, {
-                    method: 'POST',
-                    headers: {
-                      'Content-Type': 'application/json',
-                      'Authorization': `Bearer ${import.meta.env.VITE_SUPABASE_ANON_KEY}`,
-                      'x-wallet-address': account.address,
-                    },
-                    body: JSON.stringify({
-                      action: 'upgrade_level',
-                      walletAddress: account.address,
-                      targetLevel: 2,
-                      transactionHash: result.transactionHash,
-                      network: 'mainnet'
-                    })
-                  });
-
-                  const upgradeResult = await upgradeResponse.json();
-
-                  if (upgradeResult.success) {
-                    console.log('✅ Level 2 upgrade processed successfully:', upgradeResult);
-                    toast({
-                      title: '🎉 Level 2 Upgrade Complete!',
-                      description: 'Your Level 2 membership is now active. Layer 2 rewards have been processed.',
-                      variant: "default",
-                      duration: 6000,
-                    });
-
-                    if (onSuccess) {
-                      onSuccess();
-                    }
-                  } else {
-                    throw new Error(`Level 2 upgrade failed: ${upgradeResult.error || upgradeResult.message}`);
-                  }
-                } catch (error: any) {
-                  console.error('❌ Level 2 backend processing error:', error);
-                  toast({
-                    title: '✅ Level 2 NFT Claimed!',
-                    description: 'NFT minted successfully. Backend activation is processing.',
-                    variant: "default",
-                    duration: 8000,
-                  });
-                } finally {
-                  setIsProcessing(false);
-                  setCurrentStep('');
-                  await checkLevel2Eligibility();
-                }
-              }}
-            />
-          </div>
-        </div>
-      )}
     </Card>
   );
 }

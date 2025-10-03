@@ -79,6 +79,8 @@ import AdminHome from "@/pages/admin/AdminHome";
 import AdminUsers from "@/pages/admin/AdminUsers";
 import AdminWithdrawals from "@/pages/admin/AdminWithdrawals";
 import AdminRewards from "@/pages/admin/AdminRewards";
+import AdminMatrix from "@/pages/admin/AdminMatrix";
+import AdminSettings from "@/pages/admin/AdminSettings";
 const AdminUserManagement = () => {
   const { t } = useI18n();
   return <div>{t('common.comingSoon')} - Admin User Management</div>;
@@ -127,7 +129,8 @@ const DiscoverPartners = () => {
   const { t } = useI18n();
   return <div>{t('common.comingSoon')} - Discover Partners</div>;
 };
-const AdminLayout = ({ children }: { children: React.ReactNode }) => <div>{children}</div>;
+// Import AdminLayout from components
+import { AdminLayout } from "@/components/admin/AdminLayout";
 
 // Layout components (temporary)
 // Navigation component imported from components/shared/Navigation
@@ -285,6 +288,27 @@ function Router() {
           <AdminRouteGuard requiredPermission="rewards.read">
             <AdminLayout>
               <AdminRewards />
+            </AdminLayout>
+          </AdminRouteGuard>
+        )} />
+        <Route path="/admin/matrix" component={() => (
+          <AdminRouteGuard requiredPermission="matrix.read">
+            <AdminLayout>
+              <AdminMatrix />
+            </AdminLayout>
+          </AdminRouteGuard>
+        )} />
+        <Route path="/admin/settings" component={() => (
+          <AdminRouteGuard requiredPermission="settings.read">
+            <AdminLayout>
+              <AdminSettings />
+            </AdminLayout>
+          </AdminRouteGuard>
+        )} />
+        <Route path="/admin/user-management" component={() => (
+          <AdminRouteGuard requiredPermission="users.read">
+            <AdminLayout>
+              <AdminUserManagement />
             </AdminLayout>
           </AdminRouteGuard>
         )} />
