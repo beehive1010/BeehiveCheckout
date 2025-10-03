@@ -534,113 +534,38 @@ export function WelcomeLevel1ClaimButton({ onSuccess, referrerWallet, className 
                 <p className="text-xs text-green-700 mt-1">Your membership is active</p>
               </div>
             ) : (
-              <div className="space-y-3">
-                {/* Step 1: Approve USDC */}
-                {!hasApproval && account?.address && !isWrongNetwork && (
-                  <div className="space-y-2">
-                    <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                      <div className="w-6 h-6 rounded-full bg-blue-500/20 flex items-center justify-center text-blue-400 font-semibold">1</div>
-                      <span>Approve USDC spending</span>
-                    </div>
-
-                    {/* Important note about the approval amount display */}
-                    <div className="p-2 bg-blue-500/10 border border-blue-500/20 rounded-lg">
-                      <p className="text-xs text-blue-400">
-                        💡 You're approving <strong>130 USDC</strong> (not millions!). The large number you see is the wei value.
-                      </p>
-                    </div>
-
-                    <TransactionButton
-                      transaction={() => {
-                        const usdcContract = getContract({
-                          client,
-                          address: USDC_CONTRACT_ADDRESS,
-                          chain: arbitrum,
-                        });
-                        return approve({
-                          contract: usdcContract,
-                          spender: nftContract.address,
-                          amount: BigInt(LEVEL_1_PRICE_USDC * 1_000_000),
-                        });
-                      }}
-                      onTransactionSent={() => {
-                        toast({
-                          title: '⏳ Approval Pending',
-                          description: 'Waiting for blockchain confirmation...',
-                          duration: 3000
-                        });
-                      }}
-                      onTransactionConfirmed={async () => {
-                        toast({
-                          title: '✅ USDC Approved',
-                          description: 'You can now claim your Level 1 NFT',
-                          duration: 3000
-                        });
-                        await checkUSDCApproval();
-                      }}
-                      onError={(error) => {
-                        console.error('Approval error:', error);
-                        const errorMsg = error.message || 'Failed to approve USDC';
-                        toast({
-                          title: '❌ Approval Failed',
-                          description: errorMsg.includes('insufficient funds') ? 'Insufficient ETH for gas fees' : errorMsg,
-                          variant: 'destructive',
-                          duration: 5000
-                        });
-                      }}
-                      className="w-full h-12 bg-blue-600 hover:bg-blue-700 text-white font-semibold text-lg shadow-lg transition-all"
-                    >
-                      Approve {LEVEL_1_PRICE_USDC} USDC
-                    </TransactionButton>
-                  </div>
+              <Button
+                onClick={handleApproveAndClaim}
+                disabled={!account?.address || isWrongNetwork || isStabilizing || isApproving}
+                className="w-full h-12 bg-gradient-to-r from-honey to-orange-500 hover:from-honey/90 hover:to-orange-500/90 text-white font-semibold text-lg shadow-lg transition-all disabled:opacity-50"
+              >
+                {!account?.address ? (
+                  <>
+                    <Crown className="mr-2 h-5 w-5" />
+                    {t('claim.connectWalletToClaimNFT')}
+                  </>
+                ) : isWrongNetwork ? (
+                  <>
+                    <Crown className="mr-2 h-5 w-5" />
+                    Switch Network First
+                  </>
+                ) : isApproving ? (
+                  <>
+                    <Loader2 className="mr-2 h-5 w-5 animate-spin" />
+                    {approvalStep === 'approving' ? 'Approving USDC...' : 'Processing...'}
+                  </>
+                ) : approvalStep === 'approved' ? (
+                  <>
+                    <Crown className="mr-2 h-5 w-5" />
+                    Approved - Ready to Claim
+                  </>
+                ) : (
+                  <>
+                    <Crown className="mr-2 h-5 w-5" />
+                    Claim Level 1 - {LEVEL_1_PRICE_USDC} USDC
+                  </>
                 )}
-
-                {/* Step 2: Claim NFT */}
-                {hasApproval && (
-                  <div className="space-y-2">
-                    <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                      <div className="w-6 h-6 rounded-full bg-honey/20 flex items-center justify-center text-honey font-semibold">2</div>
-                      <span>Claim your Level 1 NFT</span>
-                    </div>
-                    <Button
-                      onClick={handleApproveAndClaim}
-                      disabled={!account?.address || isWrongNetwork || isStabilizing || isProcessing}
-                      className="w-full h-12 bg-gradient-to-r from-honey to-orange-500 hover:from-honey/90 hover:to-orange-500/90 text-white font-semibold text-lg shadow-lg transition-all disabled:opacity-50"
-                    >
-                      {!account?.address ? (
-                        <>
-                          <Crown className="mr-2 h-5 w-5" />
-                          {t('claim.connectWalletToClaimNFT')}
-                        </>
-                      ) : isWrongNetwork ? (
-                        <>
-                          <Crown className="mr-2 h-5 w-5" />
-                          Switch Network First
-                        </>
-                      ) : isStabilizing ? (
-                        <>
-                          <Loader2 className="mr-2 h-5 w-5 animate-spin" />
-                          Stabilizing...
-                        </>
-                      ) : (
-                        <div className="flex items-center justify-center gap-2">
-                          <Crown className="h-5 w-5" />
-                          <span>Claim Level 1 NFT</span>
-                        </div>
-                      )}
-                    </Button>
-                  </div>
-                )}
-
-                {/* Show message if no approval yet */}
-                {!hasApproval && account?.address && !isWrongNetwork && (
-                  <div className="p-3 bg-muted/50 rounded-lg border border-border/50">
-                    <p className="text-sm text-muted-foreground text-center">
-                      ✅ Complete Step 1 to unlock Step 2
-                    </p>
-                  </div>
-                )}
-              </div>
+              </Button>
             )}
 
             {/* Progress indicator */}
@@ -684,7 +609,7 @@ export function WelcomeLevel1ClaimButton({ onSuccess, referrerWallet, className 
           <div className="absolute inset-0 bg-black/80 backdrop-blur-sm" onClick={handleClosePayEmbed} />
           <div
             ref={payEmbedRef}
-            className="relative p-4 max-h-[min(90vh,800px)] overflow-y-auto bg-black rounded-2xl w-full max-w-[500px]"
+            className="relative p-4 max-h-[min(90vh,800px)] overflow-y-auto bg-black rounded-2xl w-full max-w-[500px] min-h-[600px]"
             onClick={e => e.stopPropagation()}
           >
             <button
@@ -694,29 +619,22 @@ export function WelcomeLevel1ClaimButton({ onSuccess, referrerWallet, className 
             >
               <X size={24} />
             </button>
-            <TransactionButton
-              transaction={() => claimTo({
-                contract: nftContract,
-                to: account.address,
-                tokenId: BigInt(1),
-                quantity: BigInt(1),
-              })}
-              onTransactionConfirmed={async (receipt) => {
-                await handlePaymentSuccess(receipt.transactionHash);
+            <PayEmbed
+              client={client}
+              payOptions={{
+                mode: "transaction",
+                transaction: claimTo({
+                  contract: nftContract,
+                  to: account.address as `0x${string}`,
+                  tokenId: BigInt(1),
+                  quantity: BigInt(1),
+                }),
               }}
-              onError={(error) => {
-                console.error('Claim error:', error);
-                toast({
-                  title: '❌ Claim Failed',
-                  description: error.message || 'Failed to claim NFT',
-                  variant: 'destructive',
-                  duration: 5000
-                });
+              theme="dark"
+              onPaymentSuccess={async (result) => {
+                await handlePaymentSuccess(result.transactionHash);
               }}
-              className="w-full h-14 bg-gradient-to-r from-honey to-orange-500 hover:from-honey/90 hover:to-orange-500/90 text-white font-bold text-xl"
-            >
-              Claim Level 1 NFT - {LEVEL_1_PRICE_USDC} USDC
-            </TransactionButton>
+            />
           </div>
         </div>
       )}
