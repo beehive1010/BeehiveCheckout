@@ -399,6 +399,16 @@ export function WelcomeLevel1ClaimButton({ onSuccess, referrerWallet, className 
     setIsProcessing(true);
     setCurrentStep('Activating membership...');
 
+    // Validate transaction hash format (must be a real blockchain transaction hash)
+    const isValidTxHash = transactionHash &&
+                          transactionHash.startsWith('0x') &&
+                          transactionHash.length === 66;
+
+    if (!isValidTxHash) {
+      console.warn('⚠️ Invalid transaction hash:', transactionHash);
+      console.log('💡 Skipping USDC transfer for non-blockchain transaction');
+    }
+
     try {
       const activateResponse = await fetch(`${API_BASE}/activate-membership`, {
         method: 'POST',
@@ -409,7 +419,7 @@ export function WelcomeLevel1ClaimButton({ onSuccess, referrerWallet, className 
           'x-wallet-address': account?.address || ''
         },
         body: JSON.stringify({
-          transactionHash: transactionHash,
+          transactionHash: isValidTxHash ? transactionHash : undefined,
           level: 1,
           paymentMethod: 'multi_chain',
           paymentAmount: LEVEL_1_PRICE_USDC,
