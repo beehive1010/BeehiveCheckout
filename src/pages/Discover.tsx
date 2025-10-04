@@ -6,6 +6,8 @@ import { Input } from '../components/ui/input';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '../components/ui/tabs';
 import UserProfileCard from '../components/shared/UserProfileCard';
 import { useDiscoverPartners, type DiscoverPartner } from '../hooks/useLevelConfig';
+import { useIsMobile } from '../hooks/use-mobile';
+import { useIsDesktop } from '../hooks/use-desktop';
 import {
   Search,
   ExternalLink,
@@ -31,6 +33,8 @@ export default function Discover() {
   const { t } = useI18n();
   const { data: partners = [], isLoading, error } = useDiscoverPartners();
   const [dappUrl, setDappUrl] = useState('');
+  const isMobile = useIsMobile();
+  const isDesktop = useIsDesktop();
 
   const getPartnerTypeIcon = (type: string) => {
     switch (type.toLowerCase()) {
@@ -69,10 +73,10 @@ export default function Discover() {
       {/* Header with UserProfile */}
       <div className="flex flex-col lg:flex-row items-start lg:items-center justify-between gap-6 mb-8">
         <div className="flex-1">
-          <h1 className="text-3xl lg:text-4xl font-bold text-honey mb-2">
+          <h1 className={`${isMobile ? 'text-3xl' : isDesktop ? 'text-5xl' : 'text-4xl'} font-bold text-honey mb-2`}>
             {t('discover.title') || 'Discover Partners'}
           </h1>
-          <p className="text-lg text-muted-foreground">
+          <p className={`${isMobile ? 'text-sm' : isDesktop ? 'text-lg' : 'text-base'} text-muted-foreground`}>
             {t('discover.subtitle') || 'Explore our ecosystem of trusted partners and integrated platforms'}
           </p>
         </div>
@@ -82,19 +86,21 @@ export default function Discover() {
       {/* DApp Browser */}
       <Card className="relative overflow-hidden bg-gradient-to-br from-slate-900/95 via-gray-900/90 to-slate-900/95 dark:from-black/95 dark:via-slate-950/90 dark:to-black/95 border-2 border-slate-700 dark:border-slate-800 shadow-2xl max-w-3xl mx-auto mb-8">
         <div className="absolute inset-0 bg-gradient-to-br from-purple-500/20 via-fuchsia-400/15 to-purple-600/20 opacity-60"></div>
-        <CardContent className="relative p-6">
+        <CardContent className={`relative ${isMobile ? 'p-4' : isDesktop ? 'p-8' : 'p-6'}`}>
           <div className="flex items-center gap-2 mb-3">
-            <Globe className="w-5 h-5 text-purple-400" />
-            <h3 className="text-lg font-bold text-purple-400">DApp浏览器</h3>
+            <Globe className={`${isMobile ? 'w-4 h-4' : isDesktop ? 'w-6 h-6' : 'w-5 h-5'} text-purple-400`} />
+            <h3 className={`${isMobile ? 'text-base' : isDesktop ? 'text-xl' : 'text-lg'} font-bold text-purple-400`}>
+              {t('discover.dappBrowser.title')}
+            </h3>
           </div>
-          <div className="flex gap-2">
+          <div className={`flex ${isMobile ? 'flex-col' : 'flex-row'} gap-2`}>
             <div className="relative flex-1">
-              <Globe className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground w-4 h-4" />
+              <Globe className={`absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground ${isMobile ? 'w-3 h-3' : 'w-4 h-4'}`} />
               <Input
                 value={dappUrl}
                 onChange={(e) => setDappUrl(e.target.value)}
-                placeholder="输入DApp URL (例如: https://uniswap.org)"
-                className="pl-10 bg-gradient-to-br from-gray-800 via-gray-700 to-gray-800 border-purple-500/30 text-white placeholder:text-gray-400"
+                placeholder={t('discover.dappBrowser.placeholder')}
+                className={`${isMobile ? 'pl-9 h-9 text-sm' : isDesktop ? 'pl-10 h-12 text-base' : 'pl-10 h-10 text-sm'} bg-gradient-to-br from-gray-800 via-gray-700 to-gray-800 border-purple-500/30 text-white placeholder:text-gray-400`}
                 onKeyDown={(e) => {
                   if (e.key === 'Enter' && dappUrl) {
                     window.open(dappUrl.startsWith('http') ? dappUrl : `https://${dappUrl}`, '_blank');
@@ -109,13 +115,15 @@ export default function Discover() {
                 }
               }}
               disabled={!dappUrl}
-              className="bg-gradient-to-r from-purple-500 to-fuchsia-500 hover:from-purple-600 hover:to-fuchsia-600 text-white font-bold shadow-lg hover:shadow-xl transition-all duration-300"
+              className={`${isMobile ? 'h-9 text-sm w-full' : isDesktop ? 'h-12 text-base' : 'h-10 text-sm'} bg-gradient-to-r from-purple-500 to-fuchsia-500 hover:from-purple-600 hover:to-fuchsia-600 text-white font-bold shadow-lg hover:shadow-xl transition-all duration-300`}
             >
-              <Play className="w-4 h-4 mr-2" />
-              启动
+              <Play className={`${isMobile ? 'w-3 h-3' : isDesktop ? 'w-5 h-5' : 'w-4 h-4'} mr-2`} />
+              {t('discover.dappBrowser.launch')}
             </Button>
           </div>
-          <p className="text-xs text-muted-foreground mt-2">直接访问任何Web3 DApp应用</p>
+          <p className={`${isMobile ? 'text-xs' : isDesktop ? 'text-sm' : 'text-xs'} text-muted-foreground mt-2`}>
+            {t('discover.dappBrowser.description')}
+          </p>
         </CardContent>
       </Card>
 
@@ -132,7 +140,9 @@ export default function Discover() {
         <TabsContent value="all" className="space-y-6">
           {/* Featured Partners */}
           <div className="mb-8">
-            <h2 className="text-2xl font-bold text-honey mb-6">Featured Partners</h2>
+            <h2 className={`${isMobile ? 'text-xl' : isDesktop ? 'text-3xl' : 'text-2xl'} font-bold text-honey mb-6`}>
+              {t('discover.partners.featured')}
+            </h2>
             {isLoading ? (
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                 {[1, 2, 3].map((i) => (
@@ -188,7 +198,7 @@ export default function Discover() {
                       <div className="flex items-center justify-between text-sm">
                         <div className="flex items-center space-x-1">
                           <Globe className="w-4 h-4 text-muted-foreground" />
-                          <span>Active Partner</span>
+                          <span>{t('discover.partners.activePartner')}</span>
                         </div>
                         {partner.chains.length > 0 && (
                           <div className="flex items-center space-x-1">
@@ -199,11 +209,11 @@ export default function Discover() {
                       </div>
                       
                       <Button
-                        className="w-full bg-honey text-secondary hover:bg-honey/90 group"
+                        className={`w-full bg-honey text-secondary hover:bg-honey/90 group ${isMobile ? 'h-9 text-sm' : isDesktop ? 'h-12 text-base' : 'h-10 text-sm'}`}
                         onClick={() => window.open(partner.websiteUrl, '_blank')}
                       >
-                        Visit Platform
-                        <ArrowUpRight className="w-4 h-4 ml-2 group-hover:translate-x-1 group-hover:-translate-y-1 transition-transform" />
+                        {t('discover.partners.visitPlatform')}
+                        <ArrowUpRight className={`${isMobile ? 'w-3 h-3' : isDesktop ? 'w-5 h-5' : 'w-4 h-4'} ml-2 group-hover:translate-x-1 group-hover:-translate-y-1 transition-transform`} />
                       </Button>
                     </CardContent>
                   </Card>
@@ -214,7 +224,9 @@ export default function Discover() {
 
           {/* All Partners */}
           <div>
-            <h2 className="text-2xl font-bold text-honey mb-6">All Partners</h2>
+            <h2 className={`${isMobile ? 'text-xl' : isDesktop ? 'text-3xl' : 'text-2xl'} font-bold text-honey mb-6`}>
+              {t('discover.partners.all')}
+            </h2>
             {isLoading ? (
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                 {[1, 2, 3, 4, 5, 6].map((i) => (
@@ -263,7 +275,7 @@ export default function Discover() {
                     
                     <div className="flex items-center justify-between text-xs">
                       <span className="text-muted-foreground">
-                        Active Partner
+                        {t('discover.partners.activePartner')}
                       </span>
                       {partner.tags.length > 0 && (
                         <span className="text-muted-foreground">
@@ -274,11 +286,11 @@ export default function Discover() {
                     
                     <Button
                       variant="outline"
-                      className="w-full border-honey text-honey hover:bg-honey hover:text-secondary"
+                      className={`w-full border-honey text-honey hover:bg-honey hover:text-secondary ${isMobile ? 'h-9 text-sm' : isDesktop ? 'h-12 text-base' : 'h-10 text-sm'}`}
                       onClick={() => window.open(partner.websiteUrl, '_blank')}
                     >
-                      <ExternalLink className="w-4 h-4 mr-2" />
-                      Visit
+                      <ExternalLink className={`${isMobile ? 'w-3 h-3' : isDesktop ? 'w-5 h-5' : 'w-4 h-4'} mr-2`} />
+                      {t('discover.partners.visit')}
                     </Button>
                   </CardContent>
                 </Card>
