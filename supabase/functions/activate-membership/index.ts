@@ -191,7 +191,70 @@ serve(async (req) => {
       });
     }
 
-    // Step 3: Record new membership claim
+    // Step 3: VERIFY ON-CHAIN NFT OWNERSHIP BEFORE CREATING MEMBERSHIP
+    console.log(`🔐 Verifying on-chain NFT ownership for Level ${level}...`);
+
+    try {
+      const thirdwebClientId = Deno.env.get('THIRDWEB_CLIENT_ID');
+      const thirdwebSecretKey = Deno.env.get('THIRDWEB_SECRET_KEY');
+
+      if (!thirdwebClientId) {
+        throw new Error('THIRDWEB_CLIENT_ID environment variable is required');
+      }
+
+      const client = createThirdwebClient({
+        clientId: thirdwebClientId,
+        secretKey: thirdwebSecretKey
+      });
+
+      // Get NFT contract
+      const contract = getContract({
+        client,
+        chain: arbitrum,
+        address: '0x15742D22f64985bC124676e206FCE3fFEb175719'
+      });
+
+      // Verify user owns the NFT on-chain
+      const balance = await readContract({
+        contract,
+        method: "function balanceOf(address account, uint256 id) view returns (uint256)",
+        params: [walletAddress, BigInt(level)]
+      });
+
+      const hasNFT = Number(balance) > 0;
+
+      if (!hasNFT) {
+        console.error(`❌ NFT ownership verification failed: User does not own Level ${level} NFT on-chain`);
+        return new Response(JSON.stringify({
+          success: false,
+          error: 'NFT_OWNERSHIP_REQUIRED',
+          message: `You must own a Level ${level} membership NFT on-chain before activation`,
+          hasNFT: false,
+          balance: balance.toString(),
+          level,
+          walletAddress
+        }), {
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+          status: 403
+        });
+      }
+
+      console.log(`✅ NFT ownership verified: Level ${level} balance = ${balance.toString()}`);
+
+    } catch (error) {
+      console.error('❌ NFT ownership verification error:', error);
+      return new Response(JSON.stringify({
+        success: false,
+        error: 'NFT_VERIFICATION_FAILED',
+        message: `Failed to verify NFT ownership: ${(error as Error).message}`,
+        details: (error as Error).message
+      }), {
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        status: 500
+      });
+    }
+
+    // Step 4: Record new membership claim (only after NFT ownership is verified)
     // membership table has: id, wallet_address, nft_level, claim_price, claimed_at, is_member, unlock_membership_level
     const membershipData = {
       wallet_address: walletAddress, // 保持原始大小写

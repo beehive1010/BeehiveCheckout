@@ -46,7 +46,6 @@ export default function USDTWithdrawal() {
   
   const [amount, setAmount] = useState('');
   const [targetChain, setTargetChain] = useState(currentChainId.toString());
-  const [selectedToken, setSelectedToken] = useState('USDT'); // 默认使用 USDT
   const [isProcessing, setIsProcessing] = useState(false);
 
   // Get reward balance
@@ -123,7 +122,7 @@ export default function USDTWithdrawal() {
           amount: data.amount,
           recipientAddress: memberWalletAddress,
           targetChainId: data.chainId,
-          targetTokenSymbol: selectedToken || 'USDT', // 从UI获取目标代币
+          targetTokenSymbol: 'USDT', // Only USDT is supported
           memberWallet: memberWalletAddress,
           sourceChainId: 42161, // Arbitrum One (where our USDT is held)
         }),
@@ -309,59 +308,24 @@ export default function USDTWithdrawal() {
           </Select>
         </div>
 
-        {/* Token Selection - 根据选择的链动态显示可用代币 */}
-        <div className="space-y-2">
-          <Label htmlFor="target-token" className="text-sm font-medium">
-            {t('withdrawal.target_token')}
-          </Label>
-          <Select value={selectedToken} onValueChange={setSelectedToken}>
-            <SelectTrigger data-testid="select-token">
-              <SelectValue placeholder={t('withdrawal.select_target_token')} />
-            </SelectTrigger>
-            <SelectContent>
-              {/* 始终支持 USDT */}
-              <SelectItem value="USDT">
-                <div className="flex items-center gap-2">
-                  <span>💰</span>
-                  <span>USDT</span>
-                  <Badge variant="outline">Stablecoin</Badge>
-                </div>
-              </SelectItem>
-              
-              {/* 根据选择的链显示原生代币 */}
-              {targetChainInfo?.native && (
-                <SelectItem value={targetChainInfo.symbol}>
-                  <div className="flex items-center gap-2">
-                    <span>{targetChainInfo.icon}</span>
-                    <span>{targetChainInfo.symbol}</span>
-                    <Badge className="bg-honey text-black">Native Token</Badge>
-                    {parseInt(targetChain) !== 42161 && (
-                      <Badge variant="outline" className="text-xs">Cross-chain</Badge>
-                    )}
-                  </div>
-                </SelectItem>
-              )}
-
-              {/* USDT 支持 */}
-              {[1, 137, 42161, 10, 8453].includes(parseInt(targetChain)) && (
-                <SelectItem value="USDT">
-                  <div className="flex items-center gap-2">
-                    <span>🔵</span>
-                    <span>USDT</span>
-                    <Badge variant="outline">Stablecoin</Badge>
-                  </div>
-                </SelectItem>
-              )}
-            </SelectContent>
-          </Select>
-          
-          {/* 代币切换提示 */}
-          {selectedToken !== 'USDT' && (
-            <div className="text-xs text-amber-600 dark:text-amber-400 bg-amber-50 dark:bg-amber-950/20 p-2 rounded-lg">
-              <Zap className="h-3 w-3 inline mr-1" />
-              Cross-chain conversion: USDT → {selectedToken} on {targetChainInfo?.name}
+        {/* Withdrawal Token Info */}
+        <div className="bg-gradient-to-r from-blue-50 to-cyan-50 dark:from-blue-950/20 dark:to-cyan-950/20 p-4 rounded-xl border border-blue-200 dark:border-blue-800">
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-cyan-500 rounded-full flex items-center justify-center">
+              <span className="text-xl">💰</span>
             </div>
-          )}
+            <div>
+              <p className="text-sm font-semibold text-gray-700 dark:text-gray-300">
+                {t('withdrawal.withdrawal_currency')}
+              </p>
+              <p className="text-lg font-bold text-blue-600 dark:text-blue-400">
+                USDT (Tether)
+              </p>
+              <p className="text-xs text-gray-500 dark:text-gray-400">
+                Stablecoin on {targetChainInfo?.name || 'Selected Network'}
+              </p>
+            </div>
+          </div>
         </div>
 
         {/* Amount Input */}
@@ -393,7 +357,7 @@ export default function USDTWithdrawal() {
               <div className="flex justify-between font-semibold border-t pt-1">
                 <span>{t('withdrawal.you_receive')}:</span>
                 <span className={netAmount > 0 ? 'text-green-600' : 'text-red-500'}>
-                  {Math.max(0, netAmount).toFixed(2)} {selectedToken}
+                  {Math.max(0, netAmount).toFixed(2)} USDT
                 </span>
               </div>
             </div>
