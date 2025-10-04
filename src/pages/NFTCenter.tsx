@@ -1,6 +1,8 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { useI18n } from '../contexts/I18nContext';
 import { useWallet } from '../hooks/useWallet';
+import { useIsMobile } from '../hooks/use-mobile';
+import { useIsDesktop } from '../hooks/use-desktop';
 import { Card, CardContent, CardHeader, CardTitle } from '../components/ui/card';
 import { Button } from '../components/ui/button';
 import { Badge } from '../components/ui/badge';
@@ -49,7 +51,9 @@ export default function NFTCenter() {
   const { t } = useI18n();
   const { walletAddress } = useWallet();
   const { toast } = useToast();
-  
+  const isMobile = useIsMobile();
+  const isDesktop = useIsDesktop();
+
   // State management
   const [loading, setLoading] = useState(false);
   const [nftsWithServices, setNftsWithServices] = useState<NFTWithService[]>([]);
@@ -258,9 +262,11 @@ export default function NFTCenter() {
   if (!walletAddress) {
     return (
       <div className="container mx-auto px-4 py-12 max-w-4xl text-center">
-        <div className="bg-orange-500/10 border border-orange-500/20 rounded-lg p-8">
-          <h1 className="text-2xl font-bold text-orange-400 mb-4">Wallet Required</h1>
-          <p className="text-muted-foreground">
+        <div className={`bg-orange-500/10 border border-orange-500/20 rounded-lg ${isMobile ? 'p-4' : isDesktop ? 'p-8' : 'p-6'}`}>
+          <h1 className={`${isMobile ? 'text-xl' : isDesktop ? 'text-3xl' : 'text-2xl'} font-bold text-orange-400 mb-4`}>
+            Wallet Required
+          </h1>
+          <p className={`${isMobile ? 'text-sm' : isDesktop ? 'text-base' : 'text-sm'} text-muted-foreground`}>
             Please connect your wallet to view your NFT collection.
           </p>
         </div>
@@ -271,11 +277,11 @@ export default function NFTCenter() {
   return (
     <div className="container mx-auto px-4 py-6 max-w-7xl">
       {/* Header */}
-      <div className="mb-8">
-        <h1 className="text-3xl lg:text-4xl font-bold text-honey mb-3">
+      <div className={`${isMobile ? 'mb-6' : 'mb-8'}`}>
+        <h1 className={`${isMobile ? 'text-3xl' : isDesktop ? 'text-5xl' : 'text-4xl'} font-bold text-honey mb-3`}>
           NFT Center
         </h1>
-        <p className="text-muted-foreground">
+        <p className={`${isMobile ? 'text-sm' : isDesktop ? 'text-lg' : 'text-base'} text-muted-foreground`}>
           Manage your owned NFTs and activate services
         </p>
       </div>
@@ -283,8 +289,10 @@ export default function NFTCenter() {
       {/* Loading State */}
       {loading && (
         <div className="flex items-center justify-center py-12">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-honey" />
-          <span className="ml-2 text-muted-foreground">Loading your NFTs...</span>
+          <div className={`animate-spin rounded-full ${isMobile ? 'h-6 w-6' : 'h-8 w-8'} border-b-2 border-honey`} />
+          <span className={`ml-2 ${isMobile ? 'text-sm' : isDesktop ? 'text-base' : 'text-sm'} text-muted-foreground`}>
+            Loading your NFTs...
+          </span>
         </div>
       )}
 
@@ -335,19 +343,23 @@ export default function NFTCenter() {
                     )}
                   </div>
                   
-                  <CardTitle className="text-lg text-foreground">{nft?.title}</CardTitle>
+                  <CardTitle className={`${isMobile ? 'text-base' : isDesktop ? 'text-xl' : 'text-lg'} text-foreground`}>
+                    {nft?.title}
+                  </CardTitle>
                 </CardHeader>
-                
-                <CardContent className="space-y-4">
-                  <p className="text-sm text-muted-foreground line-clamp-2">{nft?.description}</p>
+
+                <CardContent className={`${isMobile ? 'space-y-3' : 'space-y-4'}`}>
+                  <p className={`${isMobile ? 'text-sm' : isDesktop ? 'text-base' : 'text-sm'} text-muted-foreground line-clamp-2`}>
+                    {nft?.description}
+                  </p>
                   
                   {/* Purchase Info */}
-                  <div className="bg-muted/50 rounded-lg p-3 space-y-1">
-                    <div className="text-xs text-muted-foreground space-y-1">
+                  <div className={`bg-muted/50 rounded-lg ${isMobile ? 'p-2' : 'p-3'} space-y-1`}>
+                    <div className={`${isMobile ? 'text-xs' : 'text-xs'} text-muted-foreground space-y-1`}>
                       <div>Purchased: {new Date(purchase.created_at).toLocaleDateString()}</div>
                       <div>Paid: {purchase.price_bcc} BCC</div>
                       {isDestroyed && (
-                        <div className="text-red-400 font-medium">
+                        <div className={`${isMobile ? 'text-xs' : 'text-sm'} text-red-400 font-medium`}>
                           🔥 NFT and {purchase.price_bcc} BCC destroyed
                         </div>
                       )}
@@ -356,9 +368,11 @@ export default function NFTCenter() {
 
                   {/* Service Code */}
                   {service && !isDestroyed && (
-                    <div className="bg-honey/10 rounded-lg p-3">
-                      <div className="text-sm font-medium text-honey mb-1">Service Code</div>
-                      <div className="text-xs font-mono bg-background px-2 py-1 rounded border">
+                    <div className={`bg-honey/10 rounded-lg ${isMobile ? 'p-2' : 'p-3'}`}>
+                      <div className={`${isMobile ? 'text-sm' : 'text-sm'} font-medium text-honey mb-1`}>
+                        Service Code
+                      </div>
+                      <div className={`${isMobile ? 'text-xs' : 'text-xs'} font-mono bg-background px-2 py-1 rounded border`}>
                         {service.service_code}
                       </div>
                     </div>
@@ -371,11 +385,11 @@ export default function NFTCenter() {
                         {service.status === 'pending' && (
                           <Dialog open={showActivationDialog} onOpenChange={setShowActivationDialog}>
                             <DialogTrigger asChild>
-                              <Button 
-                                className="w-full bg-green-500 hover:bg-green-600 text-white"
+                              <Button
+                                className={`w-full bg-green-500 hover:bg-green-600 text-white ${isMobile ? 'h-9 text-sm' : isDesktop ? 'h-12 text-base' : 'h-10 text-sm'}`}
                                 onClick={() => setSelectedService(service)}
                               >
-                                <Play className="mr-2 h-4 w-4" />
+                                <Play className={`mr-2 ${isMobile ? 'h-4 w-4' : isDesktop ? 'h-5 w-5' : 'h-4 w-4'}`} />
                                 Activate Service
                               </Button>
                             </DialogTrigger>
@@ -441,10 +455,10 @@ export default function NFTCenter() {
                                   />
                                 </div>
                                 
-                                <Button 
+                                <Button
                                   onClick={() => selectedService && activateService(selectedService.id)}
                                   disabled={!activationForm.projectDescription || !activationForm.contactInfo}
-                                  className="w-full bg-green-500 hover:bg-green-600 text-white"
+                                  className={`w-full bg-green-500 hover:bg-green-600 text-white ${isMobile ? 'h-9 text-sm' : isDesktop ? 'h-12 text-base' : 'h-10 text-sm'}`}
                                 >
                                   Submit Service Request
                                 </Button>
@@ -454,25 +468,25 @@ export default function NFTCenter() {
                         )}
                         
                         {service.status === 'completed' && (
-                          <Button 
+                          <Button
                             onClick={() => completeAndDestroyService(nftWithService)}
-                            className="w-full bg-red-500 hover:bg-red-600 text-white"
+                            className={`w-full bg-red-500 hover:bg-red-600 text-white ${isMobile ? 'h-9 text-sm' : isDesktop ? 'h-12 text-base' : 'h-10 text-sm'}`}
                           >
-                            <CheckCircle className="mr-2 h-4 w-4" />
+                            <CheckCircle className={`mr-2 ${isMobile ? 'h-4 w-4' : isDesktop ? 'h-5 w-5' : 'h-4 w-4'}`} />
                             Complete & Destroy NFT
                           </Button>
                         )}
-                        
+
                         {(service.status === 'active' || service.status === 'in_progress') && (
-                          <Button 
+                          <Button
                             variant="outline"
                             onClick={() => {
                               setSelectedService(service);
                               fetchServiceProgress(service.id);
                             }}
-                            className="w-full"
+                            className={`w-full ${isMobile ? 'h-9 text-sm' : isDesktop ? 'h-12 text-base' : 'h-10 text-sm'}`}
                           >
-                            <MessageSquare className="mr-2 h-4 w-4" />
+                            <MessageSquare className={`mr-2 ${isMobile ? 'h-4 w-4' : isDesktop ? 'h-5 w-5' : 'h-4 w-4'}`} />
                             View Progress
                           </Button>
                         )}
@@ -480,11 +494,11 @@ export default function NFTCenter() {
                     )}
                     
                     {isDestroyed && (
-                      <div className="text-center py-4">
-                        <div className="text-red-400 text-sm font-medium">
+                      <div className={`text-center ${isMobile ? 'py-3' : 'py-4'}`}>
+                        <div className={`text-red-400 ${isMobile ? 'text-sm' : 'text-sm'} font-medium`}>
                           ⚰️ Service Completed
                         </div>
-                        <div className="text-xs text-muted-foreground">
+                        <div className={`${isMobile ? 'text-xs' : 'text-xs'} text-muted-foreground`}>
                           NFT and BCC have been destroyed
                         </div>
                       </div>
@@ -500,14 +514,16 @@ export default function NFTCenter() {
       {/* Empty State */}
       {!loading && nftsWithServices.length === 0 && (
         <div className="text-center py-12">
-          <div className="w-20 h-20 rounded-full border-2 border-dashed border-honey/30 mx-auto mb-4 flex items-center justify-center">
-            <Package className="w-8 h-8 text-honey/30" />
+          <div className={`${isMobile ? 'w-16 h-16' : 'w-20 h-20'} rounded-full border-2 border-dashed border-honey/30 mx-auto mb-4 flex items-center justify-center`}>
+            <Package className={`${isMobile ? 'w-6 h-6' : 'w-8 h-8'} text-honey/30`} />
           </div>
-          <p className="text-muted-foreground mb-4">No NFTs in your collection yet</p>
+          <p className={`${isMobile ? 'text-sm' : isDesktop ? 'text-base' : 'text-sm'} text-muted-foreground mb-4`}>
+            No NFTs in your collection yet
+          </p>
           <Button
             variant="outline"
             onClick={() => window.location.href = '/nfts'}
-            className="border-honey/30 text-honey hover:bg-honey/10"
+            className={`border-honey/30 text-honey hover:bg-honey/10 ${isMobile ? 'h-9 text-sm' : isDesktop ? 'h-12 text-base' : 'h-10 text-sm'}`}
           >
             Browse NFT Marketplace
           </Button>

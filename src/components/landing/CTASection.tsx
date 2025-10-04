@@ -81,16 +81,16 @@ export function CTASection() {
           }}></div>
         </div>
         
-        <CardContent className="relative p-16">
+        <CardContent className={`relative ${isMobile ? 'p-8' : isDesktop ? 'p-16' : 'p-12'}`}>
           {/* Enhanced Header Section */}
           <div className="text-center mb-16">
             <div className="relative mb-8">
-              <h2 className="text-3xl md:text-4xl lg:text-5xl font-black bg-gradient-to-r from-honey via-yellow-300 to-amber-400 bg-clip-text text-transparent mb-6 leading-tight">
+              <h2 className={`${isMobile ? 'text-3xl' : isDesktop ? 'text-5xl' : 'text-4xl'} font-black bg-gradient-to-r from-honey via-yellow-300 to-amber-400 bg-clip-text text-transparent mb-6 leading-tight`}>
                 {t('landing.cta.title')}
               </h2>
               <div className="absolute -bottom-4 left-1/2 transform -translate-x-1/2 w-40 h-1 bg-gradient-to-r from-transparent via-honey to-transparent rounded-full animate-pulse"></div>
             </div>
-            <p className="text-lg md:text-xl text-gray-300 max-w-4xl mx-auto leading-relaxed font-light">
+            <p className={`${isMobile ? 'text-base' : isDesktop ? 'text-xl' : 'text-lg'} text-gray-300 max-w-4xl mx-auto leading-relaxed font-light`}>
               {t('landing.cta.description')}
             </p>
           </div>
@@ -105,20 +105,20 @@ export function CTASection() {
               <div key={index} className="text-center group">
                 {/* Stat Background Glow */}
                 <div className={`absolute -inset-4 bg-gradient-to-r ${stat.gradient} rounded-3xl blur-2xl opacity-0 group-hover:opacity-20 transition-all duration-500`}></div>
-                
-                <div className="relative bg-gradient-to-br from-white/5 to-white/10 backdrop-blur-xl rounded-2xl p-8 border border-white/10 transform group-hover:scale-105 transition-all duration-500">
+
+                <div className={`relative bg-gradient-to-br from-white/5 to-white/10 backdrop-blur-xl rounded-2xl ${isMobile ? 'p-6' : 'p-8'} border border-white/10 transform group-hover:scale-105 transition-all duration-500`}>
                   {/* Stat Icon */}
-                  <div className="text-4xl mb-4 transform group-hover:scale-110 group-hover:rotate-12 transition-all duration-500">
+                  <div className={`${isMobile ? 'text-3xl' : 'text-4xl'} mb-4 transform group-hover:scale-110 group-hover:rotate-12 transition-all duration-500`}>
                     {stat.icon}
                   </div>
-                  
+
                   {/* Animated Stat Value */}
-                  <div className={`text-3xl md:text-4xl font-black bg-gradient-to-r ${stat.gradient} bg-clip-text text-transparent mb-3 transform group-hover:scale-110 transition-all duration-300`}>
+                  <div className={`${isMobile ? 'text-2xl' : isDesktop ? 'text-4xl' : 'text-3xl'} font-black bg-gradient-to-r ${stat.gradient} bg-clip-text text-transparent mb-3 transform group-hover:scale-110 transition-all duration-300`}>
                     {index === 1 ? '3×3' : index === 2 && stat.value === 100 ? '∞' : stat.value}{stat.suffix}
                   </div>
-                  
+
                   {/* Stat Label */}
-                  <div className="text-gray-400 font-medium group-hover:text-gray-300 transition-colors duration-300">
+                  <div className={`text-gray-400 ${isMobile ? 'text-sm' : 'text-base'} font-medium group-hover:text-gray-300 transition-colors duration-300`}>
                     {stat.label}
                   </div>
                   
@@ -155,32 +155,28 @@ export function CTASection() {
                 }}
                 connectButton={{
                   label: `⚡ ${t('landing.cta.button')}`,
-                  className: `relative bg-gradient-to-r from-honey via-yellow-400 to-amber-400 text-black 
-                           text-lg sm:text-xl md:text-2xl lg:text-3xl 
-                           px-12 py-6 sm:px-16 sm:py-7 md:px-20 md:py-8 
-                           font-black rounded-full 
-                           transform hover:scale-110 active:scale-95 
+                  className: `relative bg-gradient-to-r from-honey via-yellow-400 to-amber-400 text-black
+                           ${isMobile ? 'text-sm h-9 px-8' : isDesktop ? 'text-base h-12 px-16' : 'text-sm h-10 px-12'}
+                           font-black rounded-full
+                           transform hover:scale-110 active:scale-95
                            transition-all duration-500 ease-out
                            shadow-2xl hover:shadow-honey/50 active:shadow-honey/70
-                           border-2 border-yellow-300/50 backdrop-blur-sm 
+                           border-2 border-yellow-300/50 backdrop-blur-sm
                            group overflow-hidden
-                           min-h-[64px] sm:min-h-[72px] md:min-h-[80px] lg:min-h-[88px]
                            touch-manipulation select-none
-                           w-full max-w-sm sm:max-w-md md:max-w-lg mx-auto`
+                           w-full max-w-sm mx-auto`
                 }}
                 detailsButton={{
-                  className: `relative bg-gradient-to-r from-honey via-yellow-400 to-amber-400 text-black 
-                           text-lg sm:text-xl md:text-2xl lg:text-3xl 
-                           px-12 py-6 sm:px-16 sm:py-7 md:px-20 md:py-8 
-                           font-black rounded-full 
-                           transform hover:scale-110 active:scale-95 
+                  className: `relative bg-gradient-to-r from-honey via-yellow-400 to-amber-400 text-black
+                           ${isMobile ? 'text-sm h-9 px-8' : isDesktop ? 'text-base h-12 px-16' : 'text-sm h-10 px-12'}
+                           font-black rounded-full
+                           transform hover:scale-110 active:scale-95
                            transition-all duration-500 ease-out
                            shadow-2xl hover:shadow-honey/50 active:shadow-honey/70
-                           border-2 border-yellow-300/50 backdrop-blur-sm 
+                           border-2 border-yellow-300/50 backdrop-blur-sm
                            group overflow-hidden
-                           min-h-[64px] sm:min-h-[72px] md:min-h-[80px] lg:min-h-[88px]
                            touch-manipulation select-none
-                           w-full max-w-sm sm:max-w-md md:max-w-lg mx-auto`
+                           w-full max-w-sm mx-auto`
                 }}
                 data-testid="button-cta-start"
               />
@@ -193,7 +189,7 @@ export function CTASection() {
             </div>
             
             {/* Subtitle */}
-            <p className="text-gray-400 mt-8 text-lg font-light">
+            <p className={`text-gray-400 mt-8 ${isMobile ? 'text-base' : 'text-lg'} font-light`}>
               🎆 {t('landing.cta.subtitle')}
             </p>
           </div>

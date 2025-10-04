@@ -1,7 +1,11 @@
 import { useI18n } from '../../contexts/I18nContext';
+import { useIsMobile } from '../../hooks/use-mobile';
+import { useIsDesktop } from '../../hooks/use-desktop';
 
 export function LandingFooter() {
   const { t } = useI18n();
+  const isMobile = useIsMobile();
+  const isDesktop = useIsDesktop();
   const currentYear = new Date().getFullYear();
 
   return (
@@ -27,14 +31,14 @@ export function LandingFooter() {
         ))}
       </div>
 
-      <div className="relative z-10 max-w-7xl mx-auto px-4 py-8 md:py-16">
+      <div className={`relative z-10 max-w-7xl mx-auto px-4 ${isMobile ? 'py-8' : isDesktop ? 'py-16' : 'py-12'}`}>
         {/* Newsletter Section */}
-        <div className="bg-gradient-to-r from-white/5 to-white/10 backdrop-blur-xl rounded-3xl border border-white/10 p-6 md:p-8 mb-8 md:mb-16">
+        <div className={`bg-gradient-to-r from-white/5 to-white/10 backdrop-blur-xl rounded-3xl border border-white/10 ${isMobile ? 'p-6 mb-8' : isDesktop ? 'p-8 mb-16' : 'p-7 mb-12'}`}>
           <div className="text-center max-w-2xl mx-auto">
-            <h3 className="text-3xl font-bold bg-gradient-to-r from-honey via-yellow-300 to-amber-400 bg-clip-text text-transparent mb-4">
+            <h3 className={`${isMobile ? 'text-2xl' : isDesktop ? 'text-3xl' : 'text-2xl'} font-bold bg-gradient-to-r from-honey via-yellow-300 to-amber-400 bg-clip-text text-transparent mb-4`}>
               {t('footer.newsletter.title')}
             </h3>
-            <p className="text-gray-300 mb-6 leading-relaxed">
+            <p className={`text-gray-300 mb-6 leading-relaxed ${isMobile ? 'text-sm' : 'text-base'}`}>
               {t('footer.newsletter.description')}
             </p>
             
@@ -43,18 +47,18 @@ export function LandingFooter() {
               <input
                 type="email"
                 placeholder={t('footer.newsletter.placeholder')}
-                className="flex-1 px-6 py-4 bg-black/50 border border-white/20 rounded-full text-white placeholder-gray-400 focus:outline-none focus:border-honey/50 focus:ring-2 focus:ring-honey/20 transition-all duration-300"
+                className={`flex-1 ${isMobile ? 'px-4 py-3 text-sm' : 'px-6 py-4 text-base'} bg-black/50 border border-white/20 rounded-full text-white placeholder-gray-400 focus:outline-none focus:border-honey/50 focus:ring-2 focus:ring-honey/20 transition-all duration-300`}
                 data-testid="newsletter-email-input"
               />
               <button
-                className="px-8 py-4 bg-gradient-to-r from-honey to-yellow-400 text-black font-bold rounded-full hover:scale-105 transition-all duration-300 shadow-lg hover:shadow-honey/25"
+                className={`${isMobile ? 'px-6 py-3 text-sm' : 'px-8 py-4 text-base'} bg-gradient-to-r from-honey to-yellow-400 text-black font-bold rounded-full hover:scale-105 transition-all duration-300 shadow-lg hover:shadow-honey/25`}
                 data-testid="newsletter-subscribe-button"
               >
                 {t('footer.newsletter.button')}
               </button>
             </div>
-            
-            <p className="text-sm text-gray-500 mt-4">
+
+            <p className={`${isMobile ? 'text-xs' : 'text-sm'} text-gray-500 mt-4`}>
               {t('footer.newsletter.disclaimer')}
             </p>
           </div>
@@ -67,24 +71,24 @@ export function LandingFooter() {
             <div className="flex items-center gap-4">
               <div className="relative">
                 <div className="absolute inset-0 bg-honey/20 rounded-full blur-xl"></div>
-                <img 
-                  src="/image/BCC.png" 
-                  alt="Beehive Logo" 
-                  className="relative w-12 h-12 object-contain filter brightness-110"
+                <img
+                  src="/image/BCC.png"
+                  alt="Beehive Logo"
+                  className={`relative ${isMobile ? 'w-10 h-10' : 'w-12 h-12'} object-contain filter brightness-110`}
                 />
               </div>
               <div>
-                <h4 className="text-xl font-bold bg-gradient-to-r from-honey to-yellow-400 bg-clip-text text-transparent">
+                <h4 className={`${isMobile ? 'text-lg' : 'text-xl'} font-bold bg-gradient-to-r from-honey to-yellow-400 bg-clip-text text-transparent`}>
                   Beehive
                 </h4>
-                <p className="text-sm text-gray-400">
+                <p className={`${isMobile ? 'text-xs' : 'text-sm'} text-gray-400`}>
                   {t('footer.brand.tagline')}
                 </p>
               </div>
             </div>
             
             {/* Social Media Links */}
-            <div className="flex items-center gap-6">
+            <div className={`flex items-center ${isMobile ? 'gap-4' : 'gap-6'}`}>
               {[
                 { icon: '🐦', name: 'Twitter', href: '#' },
                 { icon: '💬', name: 'Discord', href: '#' },
@@ -94,10 +98,10 @@ export function LandingFooter() {
                 <a
                   key={index}
                   href={social.href}
-                  className="group relative w-12 h-12 bg-gradient-to-br from-white/10 to-white/5 backdrop-blur-sm rounded-full flex items-center justify-center border border-white/10 hover:border-honey/50 transition-all duration-300 hover:scale-110"
+                  className={`group relative ${isMobile ? 'w-10 h-10' : 'w-12 h-12'} bg-gradient-to-br from-white/10 to-white/5 backdrop-blur-sm rounded-full flex items-center justify-center border border-white/10 hover:border-honey/50 transition-all duration-300 hover:scale-110`}
                   data-testid={`social-link-${social.name.toLowerCase()}`}
                 >
-                  <span className="text-xl group-hover:scale-110 transition-transform duration-300">
+                  <span className={`${isMobile ? 'text-lg' : 'text-xl'} group-hover:scale-110 transition-transform duration-300`}>
                     {social.icon}
                   </span>
                   <div className="absolute inset-0 bg-gradient-to-r from-honey/0 to-honey/20 rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
@@ -107,10 +111,10 @@ export function LandingFooter() {
             
             {/* Copyright */}
             <div className="text-center md:text-right">
-              <p className="text-gray-400 text-sm">
+              <p className={`text-gray-400 ${isMobile ? 'text-xs' : 'text-sm'}`}>
                 © {currentYear} Beehive. {t('footer.copyright.rights')}
               </p>
-              <p className="text-gray-500 text-xs mt-1">
+              <p className={`text-gray-500 ${isMobile ? 'text-[10px]' : 'text-xs'} mt-1`}>
                 {t('footer.copyright.blockchain')}
               </p>
             </div>
@@ -118,16 +122,16 @@ export function LandingFooter() {
         </div>
 
         {/* Back to Top Button */}
-        <div className="text-center mt-4 md:mt-8">
+        <div className={`text-center ${isMobile ? 'mt-4' : 'mt-8'}`}>
           <button
             onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
-            className="group relative inline-flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-honey/20 to-yellow-400/20 backdrop-blur-sm rounded-full border border-honey/30 hover:border-honey/50 transition-all duration-300 hover:scale-105"
+            className={`group relative inline-flex items-center gap-2 ${isMobile ? 'px-4 py-2' : 'px-6 py-3'} bg-gradient-to-r from-honey/20 to-yellow-400/20 backdrop-blur-sm rounded-full border border-honey/30 hover:border-honey/50 transition-all duration-300 hover:scale-105`}
             data-testid="back-to-top-button"
           >
-            <span className="text-sm font-medium text-honey group-hover:text-yellow-300 transition-colors duration-300">
+            <span className={`${isMobile ? 'text-xs' : 'text-sm'} font-medium text-honey group-hover:text-yellow-300 transition-colors duration-300`}>
               {t('footer.backToTop')}
             </span>
-            <span className="text-lg transform group-hover:-translate-y-1 transition-transform duration-300">
+            <span className={`${isMobile ? 'text-base' : 'text-lg'} transform group-hover:-translate-y-1 transition-transform duration-300`}>
               ⬆️
             </span>
           </button>
