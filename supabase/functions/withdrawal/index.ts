@@ -129,17 +129,22 @@ serve(async (req) => {
       throw new Error('Failed to check user balance')
     }
 
-    if (!userBalance || (userBalance.reward_balance || 0) < withdrawalAmount) {
-      console.error(`❌ Insufficient balance: ${userBalance?.reward_balance || 0} < ${withdrawalAmount}`)
+    // Use available_balance first, fallback to reward_balance for backward compatibility
+    const currentBalance = userBalance.available_balance || userBalance.reward_balance || 0
+
+    if (!userBalance || currentBalance < withdrawalAmount) {
+      console.error(`❌ Insufficient balance: ${currentBalance} < ${withdrawalAmount}`)
       await logger.logWarning('insufficient-balance', 'wallet_operations', 'Insufficient balance for withdrawal', {
         memberWallet,
         requestedAmount: withdrawalAmount,
-        availableBalance: userBalance?.reward_balance || 0
+        availableBalance: currentBalance,
+        available_balance: userBalance?.available_balance,
+        reward_balance: userBalance?.reward_balance
       })
       throw new Error('Insufficient balance')
     }
-    
-    console.log(`✅ Balance sufficient: ${userBalance.reward_balance} >= ${withdrawalAmount}`)
+
+    console.log(`✅ Balance sufficient: ${currentBalance} >= ${withdrawalAmount}`)
     await logger.logInfo('balance-verified', 'wallet_operations', {
       memberWallet,
       rewardBalance: userBalance.reward_balance,
@@ -455,14 +460,14 @@ serve(async (req) => {
       user_wallet: recipientAddress,
       amount: withdrawalAmount.toString(),
       target_chain_id: targetChainId,
-      token_address: targetTokenAddress,
+      token_address: targetTokenAddress || 'native', // Cannot be null, use 'native' for native tokens
       user_signature: result.bridged ? 'thirdweb_swap_and_send' : 'thirdweb_direct_send',
       status: 'processing', // ThirdWeb operations are async
-      user_transaction_hash: result.transactionHash,
-      fee_transaction_hash: result.feeTransactionHash,
+      transaction_hash: result.transactionHash, // Fixed field name
       created_at: new Date().toISOString(),
       completed_at: null, // Will be updated when transaction confirms
       metadata: {
+        fee_transaction_hash: result.feeTransactionHash, // Move to metadata
         source: 'rewards_withdrawal',
         member_wallet: memberWallet,
         withdrawal_fee: fee,
@@ -497,39 +502,41 @@ serve(async (req) => {
 
     // Update user balance
     console.log(`💰 Updating user balance for: ${memberWallet}`)
-    const currentRewardBalance = userBalance.reward_balance || 0
+    const currentAvailableBalance = userBalance.available_balance || userBalance.reward_balance || 0
     const { data: currentBalanceData, error: balanceQueryError } = await supabase
       .from('user_balances')
-      .select('total_withdrawn')
+      .select('total_withdrawn, available_balance, reward_balance')
       .ilike('wallet_address', memberWallet)
       .single()
-    
+
     if (balanceQueryError) {
       console.error('❌ Balance query error:', balanceQueryError)
       await logger.logDatabaseError('balance-query-error', balanceQueryError, { memberWallet })
     }
-    
+
     const currentWithdrawn = currentBalanceData?.total_withdrawn || 0
-    const newRewardBalance = Math.max(0, currentRewardBalance - withdrawalAmount)
+    const newAvailableBalance = Math.max(0, currentAvailableBalance - withdrawalAmount)
     const newTotalWithdrawn = currentWithdrawn + withdrawalAmount
-    
-    console.log(`💰 Balance update: reward ${currentRewardBalance} -> ${newRewardBalance}, withdrawn ${currentWithdrawn} -> ${newTotalWithdrawn}`)
-    
+
+    console.log(`💰 Balance update: available ${currentAvailableBalance} -> ${newAvailableBalance}, withdrawn ${currentWithdrawn} -> ${newTotalWithdrawn}`)
+
+    // Update both available_balance and reward_balance for backward compatibility
     const { error: balanceUpdateError } = await supabase
       .from('user_balances')
       .update({
-        reward_balance: newRewardBalance,
+        available_balance: newAvailableBalance,
+        reward_balance: newAvailableBalance, // Keep in sync
         total_withdrawn: newTotalWithdrawn,
-        updated_at: new Date().toISOString(),
+        last_updated: new Date().toISOString(),
       })
       .ilike('wallet_address', memberWallet)
       
     if (balanceUpdateError) {
       console.error('❌ Balance update error:', balanceUpdateError)
-      await logger.logDatabaseError('balance-update-failed', balanceUpdateError, { 
-        memberWallet, 
-        newRewardBalance, 
-        newTotalWithdrawn 
+      await logger.logDatabaseError('balance-update-failed', balanceUpdateError, {
+        memberWallet,
+        newAvailableBalance,
+        newTotalWithdrawn
       })
       throw new Error('Failed to update user balance')
     }
@@ -537,8 +544,8 @@ serve(async (req) => {
     console.log(`✅ Balance updated successfully`)
     await logger.logInfo('balance-updated', 'wallet_operations', {
       memberWallet,
-      previousRewardBalance: currentRewardBalance,
-      newRewardBalance,
+      previousAvailableBalance: currentAvailableBalance,
+      newAvailableBalance,
       withdrawalAmount,
       newTotalWithdrawn
     })

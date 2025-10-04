@@ -287,6 +287,13 @@ export const edgeFunctions = {
       timeout: 60000, // 60s for batch sync operations
       retries: 1,
       ...options
+    }),
+
+  checkServerWalletBalance: (options?: EdgeFunctionOptions) =>
+    callEdgeFunction('check-server-wallet-balance', {}, undefined, {
+      timeout: 30000,
+      retries: 1,
+      ...options
     })
 };
 

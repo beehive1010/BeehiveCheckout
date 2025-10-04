@@ -151,6 +151,7 @@ async function handleGetBalance(supabase: any, walletAddress: string) {
       total_earned: 0,
       reward_balance: 0,
       reward_claimed: 0,
+      available_balance: 0,
       created_at: new Date().toISOString(),
       last_updated: new Date().toISOString()
     };
@@ -160,7 +161,9 @@ async function handleGetBalance(supabase: any, walletAddress: string) {
         ...balance,
         bcc_transferable: balance.bcc_balance || 0, // Map to expected frontend field
         total_bcc: (balance.bcc_balance || 0) + (balance.bcc_locked || 0),
-        pending_rewards_usdt: pendingRewardAmount
+        pending_rewards_usdt: pendingRewardAmount,
+        // Use available_balance for withdrawal, fallback to reward_balance for backward compatibility
+        reward_balance: (balance.available_balance || balance.reward_balance || 0)
       },
       recentActivity: {
         pendingRewardCount: pendingRewards?.length || 0,

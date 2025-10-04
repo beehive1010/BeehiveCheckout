@@ -430,13 +430,23 @@ export function WelcomeLevel1ClaimButton({ onSuccess, referrerWallet, className 
       if (activateResponse.ok) {
         toast({
           title: '🎉 Welcome to BEEHIVE!',
-          description: 'Your Level 1 membership is now active.',
+          description: 'Redirecting to dashboard...',
           variant: "default",
-          duration: 6000,
+          duration: 3000,
         });
+
+        // Close PayEmbed if still open
+        setShowPayEmbed(false);
+
+        // Call onSuccess callback
         if (onSuccess) {
           onSuccess();
         }
+
+        // Auto-redirect to dashboard after 1.5 seconds
+        setTimeout(() => {
+          window.location.href = '/dashboard';
+        }, 1500);
       }
     } catch (error) {
       console.error('❌ Activation error:', error);
