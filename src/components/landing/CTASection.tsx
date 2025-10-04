@@ -3,10 +3,14 @@ import { ConnectButton } from 'thirdweb/react';
 import { Card, CardContent } from '../ui/card';
 import { client, supportedChains, wallets } from '../../lib/web3';
 import { useI18n } from '../../contexts/I18nContext';
+import { useIsMobile } from '../../hooks/use-mobile';
+import { useIsDesktop } from '../../hooks/use-desktop';
 import styles from '../../styles/landing/landing.module.css';
 
 export function CTASection() {
   const { t } = useI18n();
+  const isMobile = useIsMobile();
+  const isDesktop = useIsDesktop();
   const [isVisible, setIsVisible] = useState(false);
   const [animatedStats, setAnimatedStats] = useState([0, 0, 0]);
 
