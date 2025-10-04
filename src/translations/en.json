@@ -2180,7 +2180,20 @@
     },
     "subtitle": "Explore Web3 DApps and Services",
     "title": "Discover",
-    "trending": "Trending"
+    "trending": "Trending",
+    "dappBrowser": {
+      "title": "DApp Browser",
+      "placeholder": "Enter DApp URL (e.g., https://uniswap.org)",
+      "launch": "Launch",
+      "description": "Direct access to any Web3 DApp"
+    },
+    "partners": {
+      "featured": "Featured Partners",
+      "all": "All Partners",
+      "activePartner": "Active Partner",
+      "visitPlatform": "Visit Platform",
+      "visit": "Visit"
+    }
   },
   "error": {
     "generic": "An error occurred",
