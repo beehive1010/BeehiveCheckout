@@ -2,6 +2,8 @@ import { useWallet } from '../hooks/useWallet';
 import { useI18n } from '../contexts/I18nContext';
 import { useLocation } from 'wouter';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { useIsMobile } from '../hooks/use-mobile';
+import { useIsDesktop } from '../hooks/use-desktop';
 import { Card, CardContent, CardHeader, CardTitle } from '../components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '../components/ui/tabs';
 import { Button } from '../components/ui/button';
@@ -51,6 +53,8 @@ export default function Education() {
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const [, setLocation] = useLocation();
+  const isMobile = useIsMobile();
+  const isDesktop = useIsDesktop();
   const [searchTerm, setSearchTerm] = useState('');
   const [filterLevel, setFilterLevel] = useState<string>('all');
   const [selectedCourseId, setSelectedCourseId] = useState<string | null>(null);
@@ -144,12 +148,12 @@ export default function Education() {
   return (
     <div className={`${styles.educationContainer} container mx-auto px-4 py-8`}>
       {/* Header with UserProfile */}
-      <div className="flex flex-col lg:flex-row items-start lg:items-center justify-between gap-6 mb-8">
+      <div className={`flex flex-col lg:flex-row items-start lg:items-center justify-between ${isMobile ? 'gap-4 mb-6' : 'gap-6 mb-8'}`}>
         <div className="flex-1">
-          <h1 className="text-3xl lg:text-4xl font-bold text-honey mb-2">
+          <h1 className={`${isMobile ? 'text-3xl' : isDesktop ? 'text-5xl' : 'text-4xl'} font-bold text-honey mb-2`}>
             {t('education.title')}
           </h1>
-          <p className="text-lg text-muted-foreground">
+          <p className={`${isMobile ? 'text-base' : isDesktop ? 'text-xl' : 'text-lg'} text-muted-foreground`}>
             {t('education.subtitle')}
           </p>
         </div>
@@ -158,13 +162,13 @@ export default function Education() {
 
       <Tabs defaultValue="all-courses" className="space-y-6">
         <TabsList className="grid w-full grid-cols-2 bg-secondary">
-          <TabsTrigger value="all-courses" className="flex items-center gap-2">
-            <BookOpen className="w-4 h-4" />
-            All Courses
+          <TabsTrigger value="all-courses" className={`flex items-center gap-2 ${isMobile ? 'text-sm' : isDesktop ? 'text-base' : 'text-sm'}`}>
+            <BookOpen className={`${isMobile ? 'w-4 h-4' : isDesktop ? 'w-5 h-5' : 'w-4 h-4'}`} />
+            {isMobile ? 'All' : 'All Courses'}
           </TabsTrigger>
-          <TabsTrigger value="my-courses" className="flex items-center gap-2">
-            <Award className="w-4 h-4" />
-            My Courses
+          <TabsTrigger value="my-courses" className={`flex items-center gap-2 ${isMobile ? 'text-sm' : isDesktop ? 'text-base' : 'text-sm'}`}>
+            <Award className={`${isMobile ? 'w-4 h-4' : isDesktop ? 'w-5 h-5' : 'w-4 h-4'}`} />
+            {isMobile ? 'My Courses' : 'My Courses'}
           </TabsTrigger>
         </TabsList>
 
@@ -172,30 +176,46 @@ export default function Education() {
           {/* Course Statistics */}
           <Card className="relative overflow-hidden bg-gradient-to-br from-slate-900/95 via-gray-900/90 to-slate-900/95 dark:from-black/95 dark:via-slate-950/90 dark:to-black/95 border-2 border-slate-700 dark:border-slate-800 shadow-2xl">
             <div className="absolute inset-0 bg-gradient-to-br from-honey/10 via-amber-300/5 to-yellow-400/10 opacity-70"></div>
-            <CardContent className="relative p-6">
+            <CardContent className={`relative ${isMobile ? 'p-4' : isDesktop ? 'p-8' : 'p-6'}`}>
               <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                 <div className="text-center">
-                  <div className="text-2xl font-bold text-honey">{availableCourses.length}</div>
-                  <p className="text-sm text-muted-foreground">Available Courses</p>
+                  <div className={`${isMobile ? 'text-xl' : isDesktop ? 'text-3xl' : 'text-2xl'} font-bold text-honey`}>
+                    {availableCourses.length}
+                  </div>
+                  <p className={`${isMobile ? 'text-xs' : 'text-sm'} text-muted-foreground`}>
+                    {isMobile ? 'Available' : 'Available Courses'}
+                  </p>
                 </div>
                 <div className="text-center">
-                  <div className="text-2xl font-bold text-green-500">{availableCourses.filter(c => c.isFree).length}</div>
-                  <p className="text-sm text-muted-foreground">Free Courses</p>
+                  <div className={`${isMobile ? 'text-xl' : isDesktop ? 'text-3xl' : 'text-2xl'} font-bold text-green-500`}>
+                    {availableCourses.filter(c => c.isFree).length}
+                  </div>
+                  <p className={`${isMobile ? 'text-xs' : 'text-sm'} text-muted-foreground`}>
+                    {isMobile ? 'Free' : 'Free Courses'}
+                  </p>
                 </div>
                 <div className="text-center">
-                  <div className="text-2xl font-bold text-blue-500">{availableCourses.filter(c => !c.isFree).length}</div>
-                  <p className="text-sm text-muted-foreground">Premium Courses</p>
+                  <div className={`${isMobile ? 'text-xl' : isDesktop ? 'text-3xl' : 'text-2xl'} font-bold text-blue-500`}>
+                    {availableCourses.filter(c => !c.isFree).length}
+                  </div>
+                  <p className={`${isMobile ? 'text-xs' : 'text-sm'} text-muted-foreground`}>
+                    {isMobile ? 'Premium' : 'Premium Courses'}
+                  </p>
                 </div>
                 <div className="text-center">
-                  <div className="text-2xl font-bold text-red-500">{lockedCourses.length}</div>
-                  <p className="text-sm text-muted-foreground">Level Locked</p>
+                  <div className={`${isMobile ? 'text-xl' : isDesktop ? 'text-3xl' : 'text-2xl'} font-bold text-red-500`}>
+                    {lockedCourses.length}
+                  </div>
+                  <p className={`${isMobile ? 'text-xs' : 'text-sm'} text-muted-foreground`}>
+                    {isMobile ? 'Locked' : 'Level Locked'}
+                  </p>
                 </div>
               </div>
               {lockedCourses.length > 0 && (
-                <div className="mt-4 p-3 bg-amber-50 border border-amber-200 rounded-lg">
-                  <p className="text-sm text-amber-800">
-                    🔒 You have <strong>{lockedCourses.length} courses</strong> locked due to level requirements. 
-                    Upgrade your membership to unlock advanced courses!
+                <div className={`mt-4 ${isMobile ? 'p-2' : 'p-3'} bg-amber-50 border border-amber-200 rounded-lg`}>
+                  <p className={`${isMobile ? 'text-xs' : 'text-sm'} text-amber-800`}>
+                    🔒 You have <strong>{lockedCourses.length} courses</strong> locked due to level requirements.
+                    {!isMobile && ' Upgrade your membership to unlock advanced courses!'}
                   </p>
                 </div>
               )}
@@ -229,10 +249,10 @@ export default function Education() {
           {/* All Courses Grid */}
           {isLoadingCourses ? (
             <div className="text-center py-12">
-              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-honey mx-auto"></div>
+              <div className={`animate-spin rounded-full ${isMobile ? 'h-6 w-6' : 'h-8 w-8'} border-b-2 border-honey mx-auto`}></div>
             </div>
           ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            <div className={`grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 ${isMobile ? 'gap-4' : 'gap-6'}`}>
               {filteredCourses.map((course: any) => {
                 const hasUserAccess = hasAccess(course.id);
                 const progress = getProgress(course.id);
@@ -252,80 +272,80 @@ export default function Education() {
                         <div className="absolute inset-0 rounded-xl border-2 border-honey/40 opacity-0 group-hover:opacity-100 transition-all duration-300 animate-pulse"></div>
                       </>
                     )}
-                    <CardHeader className="relative pb-3">
+                    <CardHeader className={`relative ${isMobile ? 'pb-2' : 'pb-3'}`}>
                       <div className="flex items-start justify-between">
                         <div className="flex-1">
                           <div className="flex items-center gap-2 mb-1">
-                            <h3 className={`font-semibold mb-1 ${
+                            <h3 className={`${isMobile ? 'text-sm' : isDesktop ? 'text-lg' : 'text-base'} font-semibold mb-1 ${
                               isLevelLocked ? 'text-muted-foreground' : 'text-honey'
                             }`}>{course.title}</h3>
-                            {isLevelLocked && <Badge variant="secondary">🔒 Locked</Badge>}
-                            {course.isFree && <Badge variant="outline" className="text-green-500 border-green-500">FREE</Badge>}
+                            {isLevelLocked && <Badge variant="secondary" className={`${isMobile ? 'text-xs' : 'text-sm'}`}>🔒 Locked</Badge>}
+                            {course.isFree && <Badge variant="outline" className={`text-green-500 border-green-500 ${isMobile ? 'text-xs' : 'text-sm'}`}>FREE</Badge>}
                           </div>
-                          <p className="text-sm text-muted-foreground line-clamp-2">
+                          <p className={`${isMobile ? 'text-xs' : 'text-sm'} text-muted-foreground line-clamp-2`}>
                             {course.description}
                           </p>
                         </div>
-                        <HexagonIcon className={`w-8 h-8 flex-shrink-0 ml-2 ${
+                        <HexagonIcon className={`${isMobile ? 'w-6 h-6' : isDesktop ? 'w-10 h-10' : 'w-8 h-8'} flex-shrink-0 ml-2 ${
                           isLevelLocked ? 'text-muted-foreground' : 'text-honey/70'
                         }`}>
-                          <Book className="w-4 h-4" />
+                          <Book className={`${isMobile ? 'w-3 h-3' : isDesktop ? 'w-5 h-5' : 'w-4 h-4'}`} />
                         </HexagonIcon>
                       </div>
                     </CardHeader>
-                    <CardContent className="relative space-y-3">
-                      <div className="flex items-center justify-between text-sm">
+                    <CardContent className={`relative ${isMobile ? 'space-y-2' : 'space-y-3'}`}>
+                      <div className={`flex items-center justify-between ${isMobile ? 'text-xs' : 'text-sm'}`}>
                         <span className="text-muted-foreground">{t('education.duration')}</span>
                         <span>{course.duration}h</span>
                       </div>
-                      
-                      <div className="flex items-center justify-between text-sm">
+
+                      <div className={`flex items-center justify-between ${isMobile ? 'text-xs' : 'text-sm'}`}>
                         <span className="text-muted-foreground">Type</span>
-                        <Badge variant="outline" className="capitalize">
+                        <Badge variant="outline" className={`capitalize ${isMobile ? 'text-xs' : 'text-sm'}`}>
                           {course.courseType === 'online' ? '🎥 Live' : '📚 Video'}
                         </Badge>
                       </div>
                       
                       <div className="flex items-center justify-between">
-                        <Badge variant={canAccess ? 'default' : 'destructive'}>
+                        <Badge variant={canAccess ? 'default' : 'destructive'} className={`${isMobile ? 'text-xs' : 'text-sm'}`}>
                           Level {course.requiredLevel}+
                         </Badge>
                         {!course.isFree && (
-                          <Badge variant="outline" className="text-honey border-honey">
+                          <Badge variant="outline" className={`text-honey border-honey ${isMobile ? 'text-xs' : 'text-sm'}`}>
                             {course.priceBCC} BCC
                           </Badge>
                         )}
                       </div>
 
                       {hasUserAccess && (
-                        <div className="space-y-2">
-                          <div className="flex justify-between text-sm">
+                        <div className={`${isMobile ? 'space-y-1' : 'space-y-2'}`}>
+                          <div className={`flex justify-between ${isMobile ? 'text-xs' : 'text-sm'}`}>
                             <span>{t('education.progress')}</span>
                             <span>{progress}%</span>
                           </div>
-                          <Progress value={progress} className="h-2" />
+                          <Progress value={progress} className={`${isMobile ? 'h-1.5' : 'h-2'}`} />
                         </div>
                       )}
 
-                      <div className="pt-2">
+                      <div className={`${isMobile ? 'pt-1' : 'pt-2'}`}>
                         {isLevelLocked ? (
-                          <Button 
-                            className="w-full" 
+                          <Button
+                            className={`w-full ${isMobile ? 'h-9 text-xs' : isDesktop ? 'h-12 text-base' : 'h-10 text-sm'}`}
                             variant="outline"
                             disabled
                           >
                             🔒 Requires Level {course.requiredLevel}
                           </Button>
                         ) : hasUserAccess ? (
-                          <Button 
-                            className="w-full bg-honey text-secondary hover:bg-honey/90"
+                          <Button
+                            className={`w-full bg-honey text-secondary hover:bg-honey/90 ${isMobile ? 'h-9 text-xs' : isDesktop ? 'h-12 text-base' : 'h-10 text-sm'}`}
                             onClick={() => setSelectedCourseId(course.id)}
                           >
                             {progress === 100 ? t('education.review') : t('education.continue')}
                           </Button>
                         ) : (
-                          <Button 
-                            className="w-full bg-honey text-secondary hover:bg-honey/90"
+                          <Button
+                            className={`w-full bg-honey text-secondary hover:bg-honey/90 ${isMobile ? 'h-9 text-xs' : isDesktop ? 'h-12 text-base' : 'h-10 text-sm'}`}
                             onClick={() => handlePurchaseCourse(course)}
                             disabled={!course.isFree && (bccBalance?.transferable || 0) < course.priceBCC}
                           >
@@ -350,15 +370,17 @@ export default function Education() {
         <TabsContent value="my-courses" className="space-y-6">
           {isLoadingAccess ? (
             <div className="text-center py-12">
-              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-honey mx-auto"></div>
+              <div className={`animate-spin rounded-full ${isMobile ? 'h-6 w-6' : 'h-8 w-8'} border-b-2 border-honey mx-auto`}></div>
             </div>
           ) : myCourses.length === 0 ? (
             <div className="text-center py-12">
-              <div className="w-16 h-16 bg-honey/10 rounded-full flex items-center justify-center mx-auto mb-4">
-                <BookOpen className="w-8 h-8 text-honey" />
+              <div className={`${isMobile ? 'w-12 h-12' : 'w-16 h-16'} bg-honey/10 rounded-full flex items-center justify-center mx-auto mb-4`}>
+                <BookOpen className={`${isMobile ? 'w-6 h-6' : 'w-8 h-8'} text-honey`} />
               </div>
-              <h3 className="text-lg font-semibold text-honey mb-2">No Courses Yet</h3>
-              <p className="text-muted-foreground mb-4">
+              <h3 className={`${isMobile ? 'text-base' : isDesktop ? 'text-xl' : 'text-lg'} font-semibold text-honey mb-2`}>
+                No Courses Yet
+              </h3>
+              <p className={`${isMobile ? 'text-sm' : 'text-base'} text-muted-foreground mb-4`}>
                 You haven't enrolled in any courses yet. Browse available courses and start learning!
               </p>
               <Button
@@ -366,7 +388,7 @@ export default function Education() {
                   const tabButton = document.querySelector('[data-state="inactive"][value="all-courses"]') as HTMLElement;
                   tabButton?.click();
                 }}
-                className="bg-honey text-secondary hover:bg-honey/90"
+                className={`bg-honey text-secondary hover:bg-honey/90 ${isMobile ? 'h-9 text-sm' : isDesktop ? 'h-12 text-base' : 'h-10 text-sm'}`}
               >
                 Browse Courses
               </Button>
@@ -377,73 +399,83 @@ export default function Education() {
               <Card className="relative overflow-hidden bg-gradient-to-br from-slate-900/95 via-gray-900/90 to-slate-900/95 dark:from-black/95 dark:via-slate-950/90 dark:to-black/95 border-2 border-slate-700 dark:border-slate-800 shadow-2xl">
                 <div className="absolute inset-0 bg-gradient-to-br from-green-500/20 via-emerald-400/15 to-green-600/20 opacity-60"></div>
                 <CardHeader className="relative">
-                  <CardTitle className="text-honey">Learning Progress</CardTitle>
+                  <CardTitle className={`text-honey ${isMobile ? 'text-lg' : isDesktop ? 'text-2xl' : 'text-xl'}`}>
+                    Learning Progress
+                  </CardTitle>
                 </CardHeader>
-                <CardContent className="relative">
+                <CardContent className={`relative ${isMobile ? 'p-4' : isDesktop ? 'p-6' : 'p-5'}`}>
                   <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                     <div className="text-center">
-                      <div className="text-2xl font-bold text-honey">{myCourses.length}</div>
-                      <p className="text-sm text-muted-foreground">Total Courses</p>
+                      <div className={`${isMobile ? 'text-xl' : isDesktop ? 'text-3xl' : 'text-2xl'} font-bold text-honey`}>
+                        {myCourses.length}
+                      </div>
+                      <p className={`${isMobile ? 'text-xs' : 'text-sm'} text-muted-foreground`}>Total Courses</p>
                     </div>
                     <div className="text-center">
-                      <div className="text-2xl font-bold text-honey">{inProgressCourses.length}</div>
-                      <p className="text-sm text-muted-foreground">In Progress</p>
+                      <div className={`${isMobile ? 'text-xl' : isDesktop ? 'text-3xl' : 'text-2xl'} font-bold text-honey`}>
+                        {inProgressCourses.length}
+                      </div>
+                      <p className={`${isMobile ? 'text-xs' : 'text-sm'} text-muted-foreground`}>In Progress</p>
                     </div>
                     <div className="text-center">
-                      <div className="text-2xl font-bold text-honey">{completedCourses.length}</div>
-                      <p className="text-sm text-muted-foreground">Completed</p>
+                      <div className={`${isMobile ? 'text-xl' : isDesktop ? 'text-3xl' : 'text-2xl'} font-bold text-honey`}>
+                        {completedCourses.length}
+                      </div>
+                      <p className={`${isMobile ? 'text-xs' : 'text-sm'} text-muted-foreground`}>Completed</p>
                     </div>
                   </div>
                 </CardContent>
               </Card>
 
               {/* My Courses List */}
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              <div className={`grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 ${isMobile ? 'gap-4' : 'gap-6'}`}>
                 {myCourses.map((course: Course) => {
                   const progress = getProgress(course.id);
                   const isCompleted = progress === 100;
 
                   return (
                     <Card key={course.id} className="bg-secondary border-border hover:border-honey/50 transition-colors">
-                      <CardHeader className="pb-3">
+                      <CardHeader className={`${isMobile ? 'pb-2' : 'pb-3'}`}>
                         <div className="flex items-start justify-between">
                           <div className="flex-1">
                             <div className="flex items-center gap-2 mb-1">
-                              <h3 className="font-semibold text-honey">{course.title}</h3>
-                              {isCompleted && <Award className="w-4 h-4 text-honey" />}
+                              <h3 className={`${isMobile ? 'text-sm' : isDesktop ? 'text-lg' : 'text-base'} font-semibold text-honey`}>
+                                {course.title}
+                              </h3>
+                              {isCompleted && <Award className={`${isMobile ? 'w-3 h-3' : 'w-4 h-4'} text-honey`} />}
                             </div>
-                            <p className="text-sm text-muted-foreground line-clamp-2">
+                            <p className={`${isMobile ? 'text-xs' : 'text-sm'} text-muted-foreground line-clamp-2`}>
                               {course.description}
                             </p>
                           </div>
-                          <HexagonIcon className="w-8 h-8 text-honey/70 flex-shrink-0 ml-2">
-                            <Book className="w-4 h-4" />
+                          <HexagonIcon className={`${isMobile ? 'w-6 h-6' : isDesktop ? 'w-10 h-10' : 'w-8 h-8'} text-honey/70 flex-shrink-0 ml-2`}>
+                            <Book className={`${isMobile ? 'w-3 h-3' : isDesktop ? 'w-5 h-5' : 'w-4 h-4'}`} />
                           </HexagonIcon>
                         </div>
                       </CardHeader>
-                      <CardContent className="relative space-y-3">
-                        <div className="space-y-2">
-                          <div className="flex justify-between text-sm">
+                      <CardContent className={`relative ${isMobile ? 'space-y-2' : 'space-y-3'}`}>
+                        <div className={`${isMobile ? 'space-y-1' : 'space-y-2'}`}>
+                          <div className={`flex justify-between ${isMobile ? 'text-xs' : 'text-sm'}`}>
                             <span>Progress</span>
                             <span className="font-medium text-honey">{progress}%</span>
                           </div>
-                          <Progress value={progress} className="h-2" />
+                          <Progress value={progress} className={`${isMobile ? 'h-1.5' : 'h-2'}`} />
                         </div>
 
-                        <div className="flex items-center justify-between text-sm">
+                        <div className={`flex items-center justify-between ${isMobile ? 'text-xs' : 'text-sm'}`}>
                           <span className="text-muted-foreground">Duration</span>
                           <span>{course.duration}</span>
                         </div>
 
                         <Badge
                           variant={isCompleted ? 'default' : progress > 0 ? 'secondary' : 'outline'}
-                          className={isCompleted ? 'bg-honey text-secondary' : ''}
+                          className={`${isCompleted ? 'bg-honey text-secondary' : ''} ${isMobile ? 'text-xs' : 'text-sm'}`}
                         >
                           {isCompleted ? t('education.status.completed') : progress > 0 ? t('education.status.inProgress') : t('education.status.notStarted')}
                         </Badge>
 
-                        <Button 
-                          className="w-full bg-honey text-secondary hover:bg-honey/90"
+                        <Button
+                          className={`w-full bg-honey text-secondary hover:bg-honey/90 ${isMobile ? 'h-9 text-xs' : isDesktop ? 'h-12 text-base' : 'h-10 text-sm'}`}
                           onClick={() => setSelectedCourseId(course.id)}
                         >
                           {isCompleted ? t('education.actions.reviewCourse') : progress > 0 ? t('education.actions.continueLearning') : t('education.actions.startCourse')}
