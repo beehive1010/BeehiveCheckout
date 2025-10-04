@@ -285,7 +285,7 @@ async function scheduleRollUpTimer(distribution: LayerRewardDistribution): Promi
       .insert({
         wallet_address: distribution.rootWallet,
         notification_type: 'rollup_timer',
-        message: `奖励将在72小时后自动上卷: ${distribution.rewardAmountUsdc} USDC`,
+        message: `奖励将在72小时后自动上卷: ${distribution.rewardAmountUsdc} USDT`,
         countdown_hours: 72,
         metadata: {
           triggering_member: distribution.triggeringMemberWallet,

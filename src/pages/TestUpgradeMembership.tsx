@@ -216,7 +216,7 @@ export default function TestUpgradeMembership() {
 
                 <CardContent className="text-center space-y-4">
                   <div className="text-2xl font-bold text-orange-500">
-                    {levelState.price.toLocaleString()} USDC
+                    {levelState.price.toLocaleString()} USDT
                   </div>
 
                   {levelState.status === 'owned' ? (

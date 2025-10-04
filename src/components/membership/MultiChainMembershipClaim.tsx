@@ -12,7 +12,7 @@ import { transfer } from 'thirdweb/extensions/erc20';
 import { 
   client, 
   contractAddresses, 
-  getUSDCContract,
+  getUSDTContract,
   paymentChains,
   alphaCentauri,
   arbitrumSepolia
@@ -108,13 +108,13 @@ export default function MultiChainMembershipClaim({
         throw new Error(`Bridge wallet not configured for chain ${selectedChainId}`);
       }
 
-      // Get USDC contract for selected chain
-      const usdtContract = getUSDCContract(selectedChainId);
-      const priceInWei = toWei((membershipConfig.priceUSDC / 100).toString());
+      // Get USDT contract for selected chain
+      const usdtContract = getUSDTContract(selectedChainId);
+      const priceInWei = toWei((membershipConfig.priceUSDT / 100).toString());
 
       setClaimState('transferring');
       
-      // Prepare USDC transfer to bridge wallet
+      // Prepare USDT transfer to bridge wallet
       const transaction = transfer({
         contract: usdtContract,
         to: bridgeWallet,
@@ -159,7 +159,7 @@ export default function MultiChainMembershipClaim({
           level,
           transactionHash: txHash,
           chainId,
-          priceUSDC: membershipConfig!.priceUSDC,
+          priceUSDT: membershipConfig!.priceUSDT,
           userWallet: account!.address
         })
       });
@@ -213,10 +213,10 @@ export default function MultiChainMembershipClaim({
           <div className="space-y-4">
             <div className="flex items-center justify-between">
               <span className="text-2xl font-bold text-honey">
-                ${(membershipConfig.priceUSDC / 100).toFixed(2)}
+                ${(membershipConfig.priceUSDT / 100).toFixed(2)}
               </span>
               <Badge variant="outline" className="text-honey border-honey">
-                USDC
+                USDT
               </Badge>
             </div>
             
@@ -249,7 +249,7 @@ export default function MultiChainMembershipClaim({
           <div className="flex flex-col items-center space-y-4">
             <Loader2 className="w-8 h-8 animate-spin text-honey" />
             <p className="text-sm text-center text-muted-foreground">
-              {claimState === 'selecting' ? 'Preparing transaction...' : 'Transferring USDC...'}
+              {claimState === 'selecting' ? 'Preparing transaction...' : 'Transferring USDT...'}
             </p>
           </div>
         );
@@ -348,7 +348,7 @@ export default function MultiChainMembershipClaim({
               >
                 <div className="font-medium">{chain.name}</div>
                 <div className="text-sm text-muted-foreground">
-                  Pay with USDC on {chain.name}
+                  Pay with USDT on {chain.name}
                 </div>
               </button>
             ))}

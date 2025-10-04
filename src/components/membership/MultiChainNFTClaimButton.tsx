@@ -24,14 +24,14 @@ import {
 import {
   client,
   contractAddresses,
-  getUSDCContract,
+  getUSDTContract,
   paymentChains
 } from '../../lib/web3';
 import { arbitrum } from 'thirdweb/chains';
 
 interface MultiChainNFTClaimButtonProps {
   level: number;
-  priceUSDC: number;
+  priceUSDT: number;
   walletAddress: string;
   referrerWallet?: string;
   onSuccess?: () => void;
@@ -44,7 +44,7 @@ type ClaimState = 'idle' | 'checking' | 'selecting_chain' | 'approving' | 'claim
 
 export function MultiChainNFTClaimButton({
   level,
-  priceUSDC,
+  priceUSDT,
   walletAddress,
   referrerWallet,
   onSuccess,
@@ -70,7 +70,7 @@ export function MultiChainNFTClaimButton({
   const { mutate: sendTransaction, isPending: isSending } = useSendTransaction();
 
   const NFT_CONTRACT = import.meta.env.VITE_MEMBERSHIP_NFT_CONTRACT;
-  const priceWei = BigInt(priceUSDC) * BigInt('1000000'); // USDC has 6 decimals
+  const priceWei = BigInt(priceUSDT) * BigInt('1000000'); // USDT has 6 decimals
 
   // Get available payment chains
   const availableChains = [
@@ -145,7 +145,7 @@ export function MultiChainNFTClaimButton({
     if (!account?.address) return;
 
     try {
-      const usdcContract = getUSDCContract(selectedChainId);
+      const usdcContract = getUSDTContract(selectedChainId);
       const balance = await erc20BalanceOf({
         contract: usdcContract,
         address: account.address
@@ -177,11 +177,11 @@ export function MultiChainNFTClaimButton({
         throw new Error(`Bridge wallet not configured for ${getChainName(selectedChainId)}`);
       }
 
-      setCurrentStep(`Sending ${priceUSDC} USDC to bridge wallet...`);
+      setCurrentStep(`Sending ${priceUSDT} USDT to bridge wallet...`);
 
-      const usdcContract = getUSDCContract(selectedChainId);
+      const usdcContract = getUSDTContract(selectedChainId);
 
-      // Transfer USDC to bridge wallet
+      // Transfer USDT to bridge wallet
       const transaction = transfer({
         contract: usdcContract,
         to: bridgeWallet,
@@ -243,7 +243,7 @@ export function MultiChainNFTClaimButton({
     setErrorMessage('');
 
     try {
-      const usdcContract = getUSDCContract(42161); // Arbitrum
+      const usdcContract = getUSDTContract(42161); // Arbitrum
       const nftContract = getContract({
         client,
         address: NFT_CONTRACT,
@@ -251,18 +251,18 @@ export function MultiChainNFTClaimButton({
       });
 
       // Check balance
-      setCurrentStep('Checking USDC balance...');
+      setCurrentStep('Checking USDT balance...');
       const balance = await erc20BalanceOf({
         contract: usdcContract,
         address: account.address
       });
 
       if (balance < priceWei) {
-        throw new Error(`Insufficient USDC. Need ${priceUSDC} USDC, have ${(Number(balance) / 1e6).toFixed(2)} USDC`);
+        throw new Error(`Insufficient USDT. Need ${priceUSDT} USDT, have ${(Number(balance) / 1e6).toFixed(2)} USDT`);
       }
 
       // Check and approve if needed
-      setCurrentStep('Checking USDC approval...');
+      setCurrentStep('Checking USDT approval...');
       const currentAllowance = await allowance({
         contract: usdcContract,
         owner: account.address,
@@ -271,7 +271,7 @@ export function MultiChainNFTClaimButton({
 
       if (currentAllowance < priceWei) {
         setClaimState('approving');
-        setCurrentStep('Approving USDC...');
+        setCurrentStep('Approving USDT...');
 
         const approveTransaction = approve({
           contract: usdcContract,
@@ -343,7 +343,7 @@ export function MultiChainNFTClaimButton({
             chainId,
             walletAddress: account?.address,
             level,
-            amount: priceUSDC,
+            amount: priceUSDT,
             referrerWallet,
             paymentPurpose: 'membership_activation'
           })
@@ -415,7 +415,7 @@ export function MultiChainNFTClaimButton({
               <CardTitle className="text-xl">Level {level} NFT</CardTitle>
             </div>
             <Badge className="bg-honey/20 text-honey border-honey/50">
-              {priceUSDC} USDC
+              {priceUSDT} USDT
             </Badge>
           </div>
         </CardHeader>
@@ -449,7 +449,7 @@ export function MultiChainNFTClaimButton({
 
             {userBalance > 0 && (
               <p className="text-xs text-muted-foreground">
-                Balance: {userBalance.toFixed(2)} USDC on {getChainName(selectedChainId)}
+                Balance: {userBalance.toFixed(2)} USDT on {getChainName(selectedChainId)}
               </p>
             )}
           </div>
@@ -497,7 +497,7 @@ export function MultiChainNFTClaimButton({
               ) : (
                 <>
                   <Coins className="mr-2 h-4 w-4" />
-                  {buttonText || `Claim Level ${level} - ${priceUSDC} USDC`}
+                  {buttonText || `Claim Level ${level} - ${priceUSDT} USDT`}
                 </>
               )}
             </Button>

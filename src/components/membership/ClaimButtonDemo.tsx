@@ -100,7 +100,7 @@ export function ClaimButtonDemo() {
             <h4 className="text-lg font-semibold text-purple-800 mb-2">🌐 Network Config</h4>
             <div className="space-y-1 text-sm text-purple-700">
               <p><strong>Network:</strong> Arbitrum One</p>
-              <p><strong>Payment:</strong> 130 USDC</p>
+              <p><strong>Payment:</strong> 130 USDT</p>
               <p><strong>Gas:</strong> Sponsored ✨</p>
               <p><strong>Wallet:</strong> ThirdWeb InApp</p>
             </div>

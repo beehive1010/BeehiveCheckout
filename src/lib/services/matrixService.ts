@@ -260,7 +260,7 @@ export const matrixService = {
     success: boolean;
     reward?: {
       amount: number;
-      currency: 'USDC' | 'BCC';
+      currency: 'USDT' | 'BCC';
       rootWallet: string;
       layer: number;
     };

@@ -33,8 +33,8 @@ const client = createThirdwebClient({
   clientId: import.meta.env.VITE_THIRDWEB_CLIENT_ID || "YOUR_CLIENT_ID",
 });
 
-// USDC token address on Arbitrum
-const USDC_TOKEN_ADDRESS = "0xA0b86a33E6417c4c80C6fD23D4c3bd8F8a5cDECB";
+// USDT token address on Arbitrum
+const USDT_TOKEN_ADDRESS = "0xA0b86a33E6417c4c80C6fD23D4c3bd8F8a5cDECB";
 
 export default function TokenPurchase() {
   const { t } = useI18n();
@@ -106,8 +106,8 @@ export default function TokenPurchase() {
         method: "function paidMint(address to, uint256 tokenId, uint256 amount)",
         args: [account?.address!, BigInt(item.tokenId || "1"), BigInt(1)],
         erc20Value: {
-          token: USDC_TOKEN_ADDRESS,
-          amount: toUnits(item.priceUSDT.toString(), 6), // USDC has 6 decimals
+          token: USDT_TOKEN_ADDRESS,
+          amount: toUnits(item.priceUSDT.toString(), 6), // USDT has 6 decimals
         },
       });
     } else if (item.itemType === 'course') {
@@ -117,7 +117,7 @@ export default function TokenPurchase() {
         method: "function purchaseCourse(address student, uint256 courseId)",
         args: [account?.address!, BigInt(item.id)],
         erc20Value: {
-          token: USDC_TOKEN_ADDRESS,
+          token: USDT_TOKEN_ADDRESS,
           amount: toUnits(item.priceUSDT.toString(), 6),
         },
       });
@@ -194,7 +194,7 @@ export default function TokenPurchase() {
                   onClick={() => handlePurchaseItem(item)}
                 >
                   <ShoppingBag className="mr-2 h-4 w-4" />
-                  {balance && balance.balance.totalSpendable >= item.priceBCC ? 'Purchase with USDC' : 'Insufficient BCC'}
+                  {balance && balance.balance.totalSpendable >= item.priceBCC ? 'Purchase with USDT' : 'Insufficient BCC'}
                 </Button>
               </CardContent>
             </Card>
@@ -230,7 +230,7 @@ export default function TokenPurchase() {
               BCC Token Center
             </h1>
             <p className="text-muted-foreground max-w-2xl">
-              Purchase BCC tokens with USDC via Thirdweb bridge and spend them on premium NFTs, courses, and services
+              Purchase BCC tokens with USDT via Thirdweb bridge and spend them on premium NFTs, courses, and services
             </p>
           </div>
           
@@ -387,7 +387,7 @@ export default function TokenPurchase() {
               </div>
               <div className="flex justify-between">
                 <span>Price:</span>
-                <span className="font-medium">${selectedItem.priceUSDT} USDC</span>
+                <span className="font-medium">${selectedItem.priceUSDT} USDT</span>
               </div>
               <div className="flex justify-between">
                 <span>BCC Value:</span>

@@ -1,5 +1,5 @@
 // Multi-Chain Payment Processor for Beehive Platform
-// Handles cross-chain USDC payments with Thirdweb integration
+// Handles cross-chain USDT payments with Thirdweb integration
 
 import { getContract, prepareTransaction, sendAndConfirmTransaction } from 'thirdweb';
 import { transfer, approve, balanceOf } from 'thirdweb/extensions/erc20';
@@ -15,7 +15,7 @@ import {
 import { updatedApiClient } from '../apiClientUpdated';
 
 export interface PaymentRequest {
-  amount: number; // USDC amount
+  amount: number; // USDT amount
   sourceChainId: number;
   targetChainId?: number; // Optional for bridge payments
   payerAddress: string;
@@ -46,7 +46,7 @@ export interface PaymentResult {
 export class MultiChainPaymentProcessor {
   
   /**
-   * Process a multi-chain USDC payment
+   * Process a multi-chain USDT payment
    */
   async processPayment(
     request: PaymentRequest, 
@@ -70,8 +70,8 @@ export class MultiChainPaymentProcessor {
       const sourceConfig = getChainConfig(request.sourceChainId)!;
       const fees = calculateTransactionFee(request.sourceChainId, request.amount);
 
-      // Check if user has sufficient USDC balance
-      const hasBalance = await this.checkUSDCBalance(
+      // Check if user has sufficient USDT balance
+      const hasBalance = await this.checkUSDTBalance(
         request.payerAddress, 
         sourceConfig,
         request.amount
@@ -80,7 +80,7 @@ export class MultiChainPaymentProcessor {
       if (!hasBalance.sufficient) {
         return {
           success: false,
-          error: `Insufficient USDC balance. Required: $${request.amount}, Available: $${hasBalance.balance}`,
+          error: `Insufficient USDT balance. Required: $${request.amount}, Available: $${hasBalance.balance}`,
           chainId: request.sourceChainId,
           amount: request.amount,
           fees,
@@ -110,7 +110,7 @@ export class MultiChainPaymentProcessor {
   }
 
   /**
-   * Process direct USDC payment on same chain
+   * Process direct USDT payment on same chain
    */
   private async processDirectPayment(
     request: PaymentRequest,
@@ -119,7 +119,7 @@ export class MultiChainPaymentProcessor {
     fees: ReturnType<typeof calculateTransactionFee>
   ): Promise<PaymentResult> {
     try {
-      // Get USDC contract on source chain
+      // Get USDT contract on source chain
       const usdcContract = getContract({
         client,
         address: sourceConfig.usdcAddress,
@@ -129,11 +129,11 @@ export class MultiChainPaymentProcessor {
       // Recipient is bridge wallet for this chain
       const recipientAddress = request.recipientAddress || sourceConfig.bridgeWalletAddress;
 
-      // Prepare USDC transfer transaction
+      // Prepare USDT transfer transaction
       const transferTransaction = transfer({
         contract: usdcContract,
         to: recipientAddress,
-        amount: request.amount.toString() // Amount in USDC (with proper decimals)
+        amount: request.amount.toString() // Amount in USDT (with proper decimals)
       });
 
       // Send transaction
@@ -181,7 +181,7 @@ export class MultiChainPaymentProcessor {
     try {
       // For now, implement as direct payment to bridge wallet
       // The server wallet will handle the actual bridging
-      const bridgeFee = 2; // $2 USDC bridge fee
+      const bridgeFee = 2; // $2 USDT bridge fee
       const totalAmount = request.amount + bridgeFee;
 
       // Update fees to include bridge fee
@@ -191,7 +191,7 @@ export class MultiChainPaymentProcessor {
         totalFee: fees.totalFee + bridgeFee
       };
 
-      // Send USDC to bridge wallet with bridge metadata
+      // Send USDT to bridge wallet with bridge metadata
       const result = await this.processDirectPayment(
         {
           ...request,
@@ -230,9 +230,9 @@ export class MultiChainPaymentProcessor {
   }
 
   /**
-   * Check USDC balance for user
+   * Check USDT balance for user
    */
-  private async checkUSDCBalance(
+  private async checkUSDTBalance(
     userAddress: string, 
     chainConfig: ChainConfig,
     requiredAmount: number
@@ -249,12 +249,12 @@ export class MultiChainPaymentProcessor {
         address: userAddress
       });
 
-      // Convert balance from wei to USDC (6 decimals for USDC)
-      const balanceInUSDC = Number(balance) / 1e6;
+      // Convert balance from wei to USDT (6 decimals for USDT)
+      const balanceInUSDT = Number(balance) / 1e6;
       
       return {
-        sufficient: balanceInUSDC >= requiredAmount,
-        balance: balanceInUSDC
+        sufficient: balanceInUSDT >= requiredAmount,
+        balance: balanceInUSDT
       };
 
     } catch (error) {
@@ -402,7 +402,7 @@ export class MultiChainPaymentProcessor {
 export const multiChainPaymentProcessor = new MultiChainPaymentProcessor();
 
 // Export utility functions for UI components
-export async function getUSDCBalance(
+export async function getUSDTBalance(
   userAddress: string, 
   chainId: number
 ): Promise<{ balance: number; error?: string }> {
@@ -413,7 +413,7 @@ export async function getUSDCBalance(
     }
 
     const processor = new MultiChainPaymentProcessor();
-    const result = await processor['checkUSDCBalance'](userAddress, config, 0);
+    const result = await processor['checkUSDTBalance'](userAddress, config, 0);
     
     return { balance: result.balance };
   } catch (error) {

@@ -121,21 +121,21 @@ export const ACTIVATION_BUTTONS = {
     label: 'Mainnet (Arbitrum One)',
     chain: NETWORK_CONFIG.MAINNET.chain,
     network: NETWORK_CONFIG.MAINNET,
-    cost: '130 USDC', // Per MarketingPlan.md: 100 USDC NFT + 30 USDC activation fee
+    cost: '130 USDT', // Per MarketingPlan.md: 100 USDT NFT + 30 USDT activation fee
     description: 'Activate on Arbitrum One mainnet'
   },
   TESTNET: {
     label: 'Testnet (Arbitrum Sepolia)', 
     chain: NETWORK_CONFIG.TESTNET.chain,
     network: NETWORK_CONFIG.TESTNET,
-    cost: '130 USDC', // Same cost structure for testing
+    cost: '130 USDT', // Same cost structure for testing
     description: 'Activate on Arbitrum Sepolia testnet'
   },
   SIMULATION: {
     label: 'Simulation button',
     chain: NETWORK_CONFIG.TESTNET.chain, // Use testnet for simulation
     network: NETWORK_CONFIG.TESTNET,
-    cost: '0 USDC', // Free for testing
+    cost: '0 USDT', // Free for testing
     description: 'Simulate activation for testing'
   }
 } as const;

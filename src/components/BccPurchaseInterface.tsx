@@ -28,8 +28,8 @@ import {
 
 interface BccPurchaseConfig {
   exchangeRate: number;
-  minimumPurchaseUSDC: number;
-  maximumPurchaseUSDC: number;
+  minimumPurchaseUSDT: number;
+  maximumPurchaseUSDT: number;
   companyServerWallet: string;
   supportedNetworks: Record<string, NetworkConfig>;
   paymentMethods: string[];
@@ -164,7 +164,7 @@ export function BccPurchaseInterface({
       setPurchaseStep('confirm');
       toast({
         title: "Purchase Order Created",
-        description: `Send ${result.amountUSDC} USDC to receive ${result.amountBCC} BCC tokens`,
+        description: `Send ${result.amountUSDT} USDT to receive ${result.amountBCC} BCC tokens`,
         duration: 6000
       });
     },
@@ -227,7 +227,7 @@ export function BccPurchaseInterface({
     if (!config?.config) return;
 
     const purchaseData = {
-      amountUSDC: purchaseAmount,
+      amountUSDT: purchaseAmount,
       network: selectedNetwork,
       paymentMethod,
       bridgeUsed: paymentMethod === 'thirdweb_bridge'
@@ -242,7 +242,7 @@ export function BccPurchaseInterface({
     const confirmData = {
       orderId: currentOrder.orderId,
       transactionHash: `manual_confirm_${Date.now()}`, // In real implementation, get from user input
-      actualAmountReceived: currentOrder.amountUSDC
+      actualAmountReceived: currentOrder.amountUSDT
     };
 
     setPurchaseStep('processing');
@@ -386,7 +386,7 @@ export function BccPurchaseInterface({
           </CardTitle>
           <div className="flex items-center gap-2 text-sm text-muted-foreground">
             <Info className="w-4 h-4" />
-            <span>Pay with USDC to receive BCC tokens for platform purchases</span>
+            <span>Pay with USDT to receive BCC tokens for platform purchases</span>
           </div>
         </CardHeader>
 
@@ -416,7 +416,7 @@ export function BccPurchaseInterface({
                 </div>
                 <p className="text-xs text-muted-foreground">
                   {buyMode === 'traditional' 
-                    ? "Manual USDC transfer with order confirmation"
+                    ? "Manual USDT transfer with order confirmation"
                     : "Direct crypto-to-crypto purchase via thirdweb bridge"
                   }
                 </p>
@@ -424,20 +424,20 @@ export function BccPurchaseInterface({
 
               {/* Purchase Amount */}
               <div className="space-y-3">
-                <label className="text-sm font-medium">Purchase Amount (USDC)</label>
+                <label className="text-sm font-medium">Purchase Amount (USDT)</label>
                 <div className="space-y-2">
                   <Input
                     type="number"
                     value={purchaseAmount}
                     onChange={(e) => setPurchaseAmount(Number(e.target.value))}
-                    min={config?.config.minimumPurchaseUSDC || 10}
-                    max={config?.config.maximumPurchaseUSDC || 10000}
-                    placeholder="Enter USDC amount"
+                    min={config?.config.minimumPurchaseUSDT || 10}
+                    max={config?.config.maximumPurchaseUSDT || 10000}
+                    placeholder="Enter USDT amount"
                     className="text-lg"
                   />
                   <div className="flex items-center justify-between text-sm text-muted-foreground">
-                    <span>Min: ${config?.config.minimumPurchaseUSDC} USDC</span>
-                    <span>Max: ${config?.config.maximumPurchaseUSDC} USDC</span>
+                    <span>Min: ${config?.config.minimumPurchaseUSDT} USDT</span>
+                    <span>Max: ${config?.config.maximumPurchaseUSDT} USDT</span>
                   </div>
                 </div>
               </div>
@@ -446,7 +446,7 @@ export function BccPurchaseInterface({
               <div className="bg-muted/30 rounded-lg p-4 space-y-2">
                 <div className="flex items-center justify-between">
                   <span className="text-muted-foreground">You pay:</span>
-                  <span className="font-bold">{purchaseAmount} USDC</span>
+                  <span className="font-bold">{purchaseAmount} USDT</span>
                 </div>
                 <div className="flex items-center justify-center">
                   <ArrowRight className="w-4 h-4 text-honey" />
@@ -456,7 +456,7 @@ export function BccPurchaseInterface({
                   <span className="font-bold text-green-400">{bccAmount} BCC</span>
                 </div>
                 <div className="text-center text-xs text-muted-foreground">
-                  Exchange Rate: 1 USDC = {config?.config.exchangeRate || 1} BCC
+                  Exchange Rate: 1 USDT = {config?.config.exchangeRate || 1} BCC
                 </div>
               </div>
 
@@ -517,7 +517,7 @@ export function BccPurchaseInterface({
                     </div>
                     <div className="text-sm text-muted-foreground space-y-1">
                       <div>Chain ID: {selectedNetworkConfig.chainId}</div>
-                      <div>USDC Contract: {selectedNetworkConfig.usdcContract.slice(0, 10)}...{selectedNetworkConfig.usdcContract.slice(-8)}</div>
+                      <div>USDT Contract: {selectedNetworkConfig.usdcContract.slice(0, 10)}...{selectedNetworkConfig.usdcContract.slice(-8)}</div>
                       <div>Shuffle Support: {selectedNetworkConfig.bridgeSupported ? 'Yes' : 'No'}</div>
                     </div>
                   </div>
@@ -610,7 +610,7 @@ export function BccPurchaseInterface({
                     <ul className="text-sm text-muted-foreground space-y-1">
                       <li>1. Connect your wallet with any supported token</li>
                       <li>2. Select the amount and token you want to spend</li>
-                      <li>3. Shuffle automatically converts to USDC and credits BCC</li>
+                      <li>3. Shuffle automatically converts to USDT and credits BCC</li>
                       <li>4. Tokens appear in your balance instantly</li>
                     </ul>
                   </div>
@@ -627,7 +627,7 @@ export function BccPurchaseInterface({
                       size="lg"
                     >
                       <Shuffle className="mr-2 h-4 w-4" />
-                      Launch Web3 Shuffle Purchase ({purchaseAmount} USDC → {bccAmount} BCC)
+                      Launch Web3 Shuffle Purchase ({purchaseAmount} USDT → {bccAmount} BCC)
                     </Button>
                     
                     {/* Web3 Buy Widget Placeholder */}
@@ -669,7 +669,7 @@ export function BccPurchaseInterface({
                   </div>
                   <div>
                     <span className="text-muted-foreground">Amount to Pay:</span>
-                    <div className="font-bold text-lg">{currentOrder.amountUSDC} USDC</div>
+                    <div className="font-bold text-lg">{currentOrder.amountUSDT} USDT</div>
                   </div>
                   <div>
                     <span className="text-muted-foreground">You'll Receive:</span>
@@ -694,7 +694,7 @@ export function BccPurchaseInterface({
 
               <div className="space-y-3">
                 <p className="text-sm text-muted-foreground">
-                  Send exactly <strong>{currentOrder.amountUSDC} USDC</strong> to the company wallet address above on <strong>{currentOrder.networkInfo.name}</strong>.
+                  Send exactly <strong>{currentOrder.amountUSDT} USDT</strong> to the company wallet address above on <strong>{currentOrder.networkInfo.name}</strong>.
                 </p>
                 <p className="text-xs text-muted-foreground">
                   After sending the payment, click the confirmation button below. Your BCC tokens will be credited within {config?.config.processingTimeEstimate}.

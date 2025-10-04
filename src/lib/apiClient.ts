@@ -244,7 +244,7 @@ class TypedApiClient {
 
   async createBccPurchase(
     walletAddress: string,
-    amountUSDC: number,
+    amountUSDT: number,
     network: string,
     paymentMethod: string,
     transactionHash?: string,
@@ -254,7 +254,7 @@ class TypedApiClient {
       method: 'POST',
       body: JSON.stringify({
         action: 'create-purchase',
-        amountUSDC,
+        amountUSDT,
         network,
         paymentMethod,
         transactionHash,

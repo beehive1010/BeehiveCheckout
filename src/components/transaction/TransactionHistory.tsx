@@ -32,7 +32,7 @@ interface Transaction {
   type: 'nft_purchase' | 'reward_claim' | 'bcc_transfer' | 'usdt_withdrawal' | 'referral_bonus' | 'level_unlock';
   category: 'debit' | 'credit';
   amount: number;
-  currency: 'BCC' | 'USDT' | 'USDC' | 'ETH';
+  currency: 'BCC' | 'USDT' | 'USDT' | 'ETH';
   status: 'pending' | 'completed' | 'failed' | 'cancelled';
   title: string;
   description: string;

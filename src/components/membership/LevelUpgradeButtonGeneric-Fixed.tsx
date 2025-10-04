@@ -58,7 +58,7 @@
               .insert({
                 wallet_address: account.address,
                 nft_level: targetLevel,
-                claim_price: LEVEL_PRICE_USDC,
+                claim_price: LEVEL_PRICE_USDT,
                 claimed_at: new Date().toISOString(),
                 is_member: true,
                 unlock_membership_level: targetLevel + 1

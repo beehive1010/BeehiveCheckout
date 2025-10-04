@@ -141,7 +141,7 @@ export default function Welcome() {
     
     // WelcomeLevel1ClaimButton already handles:
     // ✅ User registration check/modal
-    // ✅ USDC approval and payment
+    // ✅ USDT approval and payment
     // ✅ NFT minting on blockchain
     // ✅ Database activation via multiple fallbacks
     // ✅ Matrix placement and member setup

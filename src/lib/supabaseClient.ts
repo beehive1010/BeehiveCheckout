@@ -749,7 +749,7 @@ export const matrixService = {
   },
 
   // Calculate NFT price according to MarketingPlan
-  // Level 1: 100 USDC, Level 2: 150 USDC, ..., Level 19: 1000 USDC
+  // Level 1: 100 USDT, Level 2: 150 USDT, ..., Level 19: 1000 USDT
   // Formula: 50 + (level * 50)
   calculateNFTPrice(level: number): number {
     if (level < 1 || level > 19) return 0;
@@ -1442,7 +1442,7 @@ export const transactionService = {
             type: 'nft_purchase' as const,
             category: 'debit' as const,
             amount: order.total_amount,
-            currency: order.currency as 'USDT' | 'USDC',
+            currency: order.currency as 'USDT' | 'USDT',
             status: order.status as 'pending' | 'completed' | 'failed' | 'cancelled',
             title: `NFT Level ${order.metadata?.level || 'Unknown'} Purchase`,
             description: `Purchased membership NFT Level ${order.metadata?.level || 'Unknown'}`,
@@ -1491,7 +1491,7 @@ export const transactionService = {
             type: 'reward_claim' as const,
             category: 'credit' as const,
             amount: reward.amount,
-            currency: reward.currency as 'USDT' | 'USDC' | 'BCC',
+            currency: reward.currency as 'USDT' | 'USDT' | 'BCC',
             status: reward.status as 'pending' | 'completed' | 'failed' | 'cancelled',
             title: `Layer ${reward.matrix_layer} Reward ${reward.status === 'completed' ? 'Claimed' : 'Pending'}`,
             description: `${reward.reward_type || 'Matrix'} reward from layer ${reward.matrix_layer}`,

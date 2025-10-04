@@ -252,7 +252,7 @@ export const WithdrawRewards: React.FC<WithdrawRewardsProps> = ({ walletAddress 
               <div key={reward.id} className="flex items-center justify-between p-4 bg-green-50 rounded-lg border border-green-200">
                 <div>
                   <div className="font-semibold text-green-800">
-                    ${reward.reward_amount.toFixed(2)} USDC
+                    ${reward.reward_amount.toFixed(2)} USDT
                   </div>
                   <div className="text-sm text-green-600">
                     Layer {reward.matrix_layer} • Position {reward.layer_position}
@@ -289,7 +289,7 @@ export const WithdrawRewards: React.FC<WithdrawRewardsProps> = ({ walletAddress 
               <div key={reward.id} className="flex items-center justify-between p-4 bg-orange-50 rounded-lg border border-orange-200">
                 <div>
                   <div className="font-semibold text-orange-800">
-                    ${reward.reward_amount.toFixed(2)} USDC
+                    ${reward.reward_amount.toFixed(2)} USDT
                   </div>
                   <div className="text-sm text-orange-600">
                     Layer {reward.matrix_layer} • Position {reward.layer_position}

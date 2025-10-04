@@ -454,16 +454,16 @@ export function WelcomePage() {
                         <div className="space-y-2">
                             <div className="flex justify-between">
                                 <span>Price:</span>
-                                <span className="font-semibold">100 USDC</span>
+                                <span className="font-semibold">100 USDT</span>
                             </div>
                             <div className="flex justify-between">
                                 <span>Platform Fee:</span>
-                                <span className="font-semibold">30 USDC</span>
+                                <span className="font-semibold">30 USDT</span>
                             </div>
                             <hr className="border-honey/20"/>
                             <div className="flex justify-between text-lg font-bold">
                                 <span>Total:</span>
-                                <span className="text-honey">130 USDC</span>
+                                <span className="text-honey">130 USDT</span>
                             </div>
                         </div>
                     </CardContent>

@@ -159,7 +159,7 @@ export function getUSDTDecimals(chainId: number): number {
     [arbitrum.id]: 6, // Arbitrum USDT
     [optimism.id]: 6, // Optimism USDT
     [bsc.id]: 18, // BSC USDT 
-    [base.id]: 6, // Base USDC
+    [base.id]: 6, // Base USDT
     [arbitrumSepolia.id]: 6, // Arbitrum Sepolia test USDT
     [alphaCentauri.id]: 18, // Alpha Centauri USDT
   };

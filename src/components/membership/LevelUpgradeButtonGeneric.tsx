@@ -21,7 +21,7 @@ interface LevelUpgradeButtonGenericProps {
   className?: string;
 }
 
-// Dynamic pricing based on level (Layer 2-19: 150-1000 USDC)
+// Dynamic pricing based on level (Layer 2-19: 150-1000 USDT)
 const getLevelPrice = (level: number): number => {
   const prices: Record<number, number> = {
     1: 130,   // Level 1 activation

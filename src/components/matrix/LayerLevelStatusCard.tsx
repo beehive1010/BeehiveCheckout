@@ -157,7 +157,7 @@ const LayerLevelStatusCard: React.FC<LayerLevelStatusCardProps> = ({ walletAddre
                 <Coins className="w-5 h-5 text-blue-400" />
               </div>
               <div className="text-2xl font-bold text-blue-400">{summary.claimable_rewards?.toFixed(0)}</div>
-              <div className="text-xs text-muted-foreground">Claimable USDC</div>
+              <div className="text-xs text-muted-foreground">Claimable USDT</div>
             </div>
 
             <div className="bg-gradient-to-br from-purple-500/5 to-purple-500/10 rounded-lg p-4 border border-purple-500/20">
@@ -216,7 +216,7 @@ const LayerLevelStatusCard: React.FC<LayerLevelStatusCardProps> = ({ walletAddre
                     </div>
                     <div className="text-right">
                       <div className="text-lg font-bold text-honey">
-                        {status.potential_reward} USDC
+                        {status.potential_reward} USDT
                       </div>
                       <div className="text-xs text-muted-foreground">
                         Root Level {status.root_level}
@@ -264,7 +264,7 @@ const LayerLevelStatusCard: React.FC<LayerLevelStatusCardProps> = ({ walletAddre
             BUT only if the root wallet has Level ≥ N
           </p>
           <p className="text-xs mt-1">
-            📈 <strong>Example:</strong> Layer 3 member buys Level 3 NFT → Root needs Level 3+ to earn 200 USDC
+            📈 <strong>Example:</strong> Layer 3 member buys Level 3 NFT → Root needs Level 3+ to earn 200 USDT
           </p>
         </div>
       </CardContent>

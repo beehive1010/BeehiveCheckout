@@ -318,7 +318,7 @@ class ServerWalletAPI {
   }): string {
     const nonce = withdrawalData.nonce || Date.now();
     
-    return `Withdraw ${withdrawalData.amount} USDC to chain ${withdrawalData.target_chain_id}\n` +
+    return `Withdraw ${withdrawalData.amount} USDT to chain ${withdrawalData.target_chain_id}\n` +
            `Token: ${withdrawalData.token_address}\n` +
            `Wallet: ${withdrawalData.user_wallet}\n` +
            `Nonce: ${nonce}\n` +
@@ -350,11 +350,11 @@ class ServerWalletAPI {
     }
     
     if (numAmount < 1) {
-      return { isValid: false, error: 'Minimum withdrawal is 1 USDC' };
+      return { isValid: false, error: 'Minimum withdrawal is 1 USDT' };
     }
     
     if (numAmount > 10000) {
-      return { isValid: false, error: 'Maximum withdrawal is 10,000 USDC' };
+      return { isValid: false, error: 'Maximum withdrawal is 10,000 USDT' };
     }
     
     return { isValid: true };

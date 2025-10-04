@@ -2,33 +2,33 @@ import { useState, useEffect } from 'react';
 import { useActiveAccount } from 'thirdweb/react';
 import { supabase } from '../lib/supabase';
 
-// Level pricing structure (in USDC) - Updated to match database nft_membership_levels table
+// Level pricing structure (in USDT) - Updated to match database nft_membership_levels table
 export const LEVEL_PRICING = {
-  1: 130,   // Level 1: 130 USDC (includes 30 USDC platform fee)
-  2: 150,   // Level 2: 150 USDC (corrected from 260 to match DB)
-  3: 200,   // Level 3: 200 USDC (corrected from 520 to match DB)
-  4: 250,   // Level 4: 250 USDC (corrected from 1040 to match DB)
-  5: 300,   // Level 5: 300 USDC (corrected from 2080 to match DB)
-  6: 350,   // Level 6: 350 USDC (corrected from 4160 to match DB)
-  7: 400,   // Level 7: 400 USDC (corrected from 8320 to match DB)
-  8: 450,   // Level 8: 450 USDC (corrected from 16640 to match DB)
-  9: 500,   // Level 9: 500 USDC (corrected from 33280 to match DB)
-  10: 550,  // Level 10: 550 USDC (corrected from 66560 to match DB)
-  11: 600,  // Level 11: 600 USDC (corrected from 133120 to match DB)
-  12: 650,  // Level 12: 650 USDC (corrected from 266240 to match DB)
-  13: 700,  // Level 13: 700 USDC (corrected from 532480 to match DB)
-  14: 750,  // Level 14: 750 USDC (corrected from 1064960 to match DB)
-  15: 800,  // Level 15: 800 USDC (corrected from 2129920 to match DB)
-  16: 850,  // Level 16: 850 USDC (corrected from 4259840 to match DB)
-  17: 900,  // Level 17: 900 USDC (corrected from 8519680 to match DB)
-  18: 950,  // Level 18: 950 USDC (corrected from 17039360 to match DB)
-  19: 1000, // Level 19: 1000 USDC (corrected from 34078720 to match DB)
+  1: 130,   // Level 1: 130 USDT (includes 30 USDT platform fee)
+  2: 150,   // Level 2: 150 USDT (corrected from 260 to match DB)
+  3: 200,   // Level 3: 200 USDT (corrected from 520 to match DB)
+  4: 250,   // Level 4: 250 USDT (corrected from 1040 to match DB)
+  5: 300,   // Level 5: 300 USDT (corrected from 2080 to match DB)
+  6: 350,   // Level 6: 350 USDT (corrected from 4160 to match DB)
+  7: 400,   // Level 7: 400 USDT (corrected from 8320 to match DB)
+  8: 450,   // Level 8: 450 USDT (corrected from 16640 to match DB)
+  9: 500,   // Level 9: 500 USDT (corrected from 33280 to match DB)
+  10: 550,  // Level 10: 550 USDT (corrected from 66560 to match DB)
+  11: 600,  // Level 11: 600 USDT (corrected from 133120 to match DB)
+  12: 650,  // Level 12: 650 USDT (corrected from 266240 to match DB)
+  13: 700,  // Level 13: 700 USDT (corrected from 532480 to match DB)
+  14: 750,  // Level 14: 750 USDT (corrected from 1064960 to match DB)
+  15: 800,  // Level 15: 800 USDT (corrected from 2129920 to match DB)
+  16: 850,  // Level 16: 850 USDT (corrected from 4259840 to match DB)
+  17: 900,  // Level 17: 900 USDT (corrected from 8519680 to match DB)
+  18: 950,  // Level 18: 950 USDT (corrected from 17039360 to match DB)
+  19: 1000, // Level 19: 1000 USDT (corrected from 34078720 to match DB)
 };
 
 export interface NFTLevelInfo {
   currentLevel: number;
   nextClaimableLevel: number;
-  priceInUSDC: number;
+  priceInUSDT: number;
   priceInWei: bigint;
   tokenId: number;
   canClaim: boolean;
@@ -45,7 +45,7 @@ export function useNFTLevelClaim(targetLevel?: number) {
     return {
       currentLevel: 0,
       nextClaimableLevel: initialLevel,
-      priceInUSDC: initialPrice,
+      priceInUSDT: initialPrice,
       priceInWei: BigInt(initialPrice) * BigInt("1000000000000000000"), // Convert to wei
       tokenId: initialLevel,
       canClaim: true, // New users can always claim their target level
@@ -55,7 +55,7 @@ export function useNFTLevelClaim(targetLevel?: number) {
 
   const [levelInfo, setLevelInfo] = useState<NFTLevelInfo>(initializeState());
 
-  // Helper function to convert USDC to wei (18 decimals)
+  // Helper function to convert USDT to wei (18 decimals)
   const usdcToWei = (usdcAmount: number): bigint => {
     return BigInt(usdcAmount) * BigInt("1000000000000000000"); // * 10^18
   };
@@ -66,7 +66,7 @@ export function useNFTLevelClaim(targetLevel?: number) {
       setLevelInfo({
         currentLevel: 0,
         nextClaimableLevel: 1,
-        priceInUSDC: 130,
+        priceInUSDT: 130,
         priceInWei: BigInt("130000000000000000000"),
         tokenId: 1,
         canClaim: true,
@@ -107,8 +107,8 @@ export function useNFTLevelClaim(targetLevel?: number) {
       nextLevel = Math.max(1, Math.min(19, nextLevel));
 
       // Get pricing for the level
-      const priceInUSDC = LEVEL_PRICING[nextLevel as keyof typeof LEVEL_PRICING] || 130;
-      const priceInWei = usdcToWei(priceInUSDC);
+      const priceInUSDT = LEVEL_PRICING[nextLevel as keyof typeof LEVEL_PRICING] || 130;
+      const priceInWei = usdcToWei(priceInUSDT);
 
       // Check if user can claim this level
       let canClaim: boolean;
@@ -133,7 +133,7 @@ export function useNFTLevelClaim(targetLevel?: number) {
       setLevelInfo({
         currentLevel,
         nextClaimableLevel: nextLevel,
-        priceInUSDC,
+        priceInUSDT,
         priceInWei,
         tokenId: nextLevel, // Token ID matches the level
         canClaim,
@@ -143,7 +143,7 @@ export function useNFTLevelClaim(targetLevel?: number) {
       console.log('🎯 NFT Level Info Updated (Enhanced):', {
         currentLevel,
         nextClaimableLevel: nextLevel,
-        priceInUSDC,
+        priceInUSDT,
         priceInWei: priceInWei.toString(),
         tokenId: nextLevel,
         canClaim,
@@ -171,7 +171,7 @@ export function useNFTLevelClaim(targetLevel?: number) {
       setLevelInfo({
         currentLevel: 0,
         nextClaimableLevel: fallbackLevel,
-        priceInUSDC: fallbackPrice,
+        priceInUSDT: fallbackPrice,
         priceInWei: usdcToWei(fallbackPrice),
         tokenId: fallbackLevel,
         canClaim: true, // Always allow claiming on error (for new users)

@@ -26,7 +26,7 @@ export const WITHDRAWAL_TYPES = {
 
 export interface WithdrawalSignatureRequest {
   userWallet: string;
-  amount: string; // in USDC (human readable)
+  amount: string; // in USDT (human readable)
   targetChainId: number;
   tokenAddress: string;
   nonce?: number;
@@ -72,7 +72,7 @@ class WithdrawalSignatureManager {
       throw new Error(`Unsupported target chain: ${request.targetChainId}`);
     }
 
-    // Convert amount to wei (assuming 6 decimals for USDC)
+    // Convert amount to wei (assuming 6 decimals for USDT)
     const amountWei = (parseFloat(request.amount) * 1000000).toString();
     
     // Generate nonce if not provided
@@ -219,7 +219,7 @@ class WithdrawalSignatureManager {
 
     return `🔐 WITHDRAWAL AUTHORIZATION REQUEST
 
-📤 Withdraw: ${request.amount} USDC
+📤 Withdraw: ${request.amount} USDT
 🌐 To Chain: ${chainName} (${request.targetChainId})
 💰 Token: ${request.tokenAddress}
 👤 From Wallet: ${request.userWallet}
@@ -316,11 +316,11 @@ class WithdrawalSignatureManager {
     }
 
     if (amount < 1) {
-      return { isValid: false, error: 'Minimum withdrawal is 1 USDC' };
+      return { isValid: false, error: 'Minimum withdrawal is 1 USDT' };
     }
 
     if (amount > 10000) {
-      return { isValid: false, error: 'Maximum withdrawal is 10,000 USDC per transaction' };
+      return { isValid: false, error: 'Maximum withdrawal is 10,000 USDT per transaction' };
     }
 
     // Validate chain

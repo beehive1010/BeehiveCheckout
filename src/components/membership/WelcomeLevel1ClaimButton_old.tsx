@@ -34,11 +34,11 @@ export function WelcomeLevel1ClaimButton({ onSuccess, referrerWallet, className 
   const [isStabilizing, setIsStabilizing] = useState(false);
   
   // Fixed Level 1 pricing and info
-  const LEVEL_1_PRICE_USDC = 130;
-  const LEVEL_1_PRICE_WEI = BigInt(LEVEL_1_PRICE_USDC) * BigInt('1000000'); // 130 * 10^6 (USDC has 6 decimals)
+  const LEVEL_1_PRICE_USDT = 130;
+  const LEVEL_1_PRICE_WEI = BigInt(LEVEL_1_PRICE_USDT) * BigInt('1000000'); // 130 * 10^6 (USDT has 6 decimals)
 
   const API_BASE = 'https://cvqibjcbfrwsgkvthccp.supabase.co/functions/v1';
-  const PAYMENT_TOKEN_CONTRACT = '0xaf88d065e77c8cC2239327C5EDb3A432268e5831'; // Arbitrum USDC (native)
+  const PAYMENT_TOKEN_CONTRACT = '0xaf88d065e77c8cC2239327C5EDb3A432268e5831'; // Arbitrum USDT (native)
   const NFT_CONTRACT = import.meta.env.VITE_MEMBERSHIP_NFT_CONTRACT; // Use env variable
 
   // Handle transaction success from TransactionButton
@@ -55,9 +55,9 @@ export function WelcomeLevel1ClaimButton({ onSuccess, referrerWallet, className 
     setCurrentStep('Activating membership...');
 
     try {
-      // Step: Trigger USDC transfer for Token #1 claim
+      // Step: Trigger USDT transfer for Token #1 claim
       try {
-        console.log('💰 Triggering USDC transfer for NFT Token #1 claim...');
+        console.log('💰 Triggering USDT transfer for NFT Token #1 claim...');
         const usdcTransferResponse = await supabase.functions.invoke('nft-claim-usdc-transfer', {
           body: {
             token_id: '1',
@@ -68,12 +68,12 @@ export function WelcomeLevel1ClaimButton({ onSuccess, referrerWallet, className 
         });
 
         if (usdcTransferResponse.error) {
-          console.error('⚠️ USDC transfer failed:', usdcTransferResponse.error);
+          console.error('⚠️ USDT transfer failed:', usdcTransferResponse.error);
         } else {
-          console.log('✅ USDC transfer initiated:', usdcTransferResponse.data);
+          console.log('✅ USDT transfer initiated:', usdcTransferResponse.data);
         }
       } catch (usdcTransferError) {
-        console.error('⚠️ USDC transfer error:', usdcTransferError);
+        console.error('⚠️ USDT transfer error:', usdcTransferError);
       }
 
       // Step: Activate Level 1 membership
@@ -99,7 +99,7 @@ export function WelcomeLevel1ClaimButton({ onSuccess, referrerWallet, className 
               transactionHash: result.transactionHash,
               level: 1,
               paymentMethod: 'multi_chain',
-              paymentAmount: LEVEL_1_PRICE_USDC,
+              paymentAmount: LEVEL_1_PRICE_USDT,
               referrerWallet: referrerWallet
             })
           });
@@ -518,13 +518,13 @@ export function WelcomeLevel1ClaimButton({ onSuccess, referrerWallet, className 
         });
         
         if (tokenBalance < LEVEL_1_PRICE_WEI) {
-          throw new Error(`Insufficient USDC balance. You have ${(Number(tokenBalance) / 1e6).toFixed(2)} USDC but need ${LEVEL_1_PRICE_USDC} USDC for Level 1`);
+          throw new Error(`Insufficient USDT balance. You have ${(Number(tokenBalance) / 1e6).toFixed(2)} USDT but need ${LEVEL_1_PRICE_USDT} USDT for Level 1`);
         }
       } catch (balanceError: any) {
-        if (balanceError.message.includes('Insufficient USDC')) {
+        if (balanceError.message.includes('Insufficient USDT')) {
           throw balanceError;
         }
-        console.warn('⚠️ Could not check USDC balance:', balanceError);
+        console.warn('⚠️ Could not check USDT balance:', balanceError);
       }
 
       // Check and request approval
@@ -536,10 +536,10 @@ export function WelcomeLevel1ClaimButton({ onSuccess, referrerWallet, className 
         spender: NFT_CONTRACT
       });
       
-      console.log(`💰 Current allowance: ${Number(currentAllowance) / 1e6} USDC, Required: ${LEVEL_1_PRICE_USDC} USDC`);
+      console.log(`💰 Current allowance: ${Number(currentAllowance) / 1e6} USDT, Required: ${LEVEL_1_PRICE_USDT} USDT`);
 
       if (currentAllowance < LEVEL_1_PRICE_WEI) {
-        console.log('💰 Requesting USDC approval...');
+        console.log('💰 Requesting USDT approval...');
         
         const approveTransaction = approve({
           contract: usdcContract,
@@ -552,7 +552,7 @@ export function WelcomeLevel1ClaimButton({ onSuccess, referrerWallet, className 
         const approveTxResult = await sendTransactionWithRetry(
           approveTransaction, 
           account, 
-          'USDC approval transaction',
+          'USDT approval transaction',
           false // Use regular gas for ERC20 approval
         );
 
@@ -562,7 +562,7 @@ export function WelcomeLevel1ClaimButton({ onSuccess, referrerWallet, className 
           transactionHash: approveTxResult?.transactionHash,
         });
         
-        console.log('✅ USDC approval confirmed');
+        console.log('✅ USDT approval confirmed');
         
         // Verify the approval was successful
         const newAllowance = await allowance({
@@ -571,10 +571,10 @@ export function WelcomeLevel1ClaimButton({ onSuccess, referrerWallet, className 
           spender: NFT_CONTRACT
         });
         
-        console.log(`✅ New allowance after approval: ${Number(newAllowance) / 1e6} USDC`);
+        console.log(`✅ New allowance after approval: ${Number(newAllowance) / 1e6} USDT`);
 
         if (newAllowance < LEVEL_1_PRICE_WEI) {
-          throw new Error(`Approval failed. Current allowance: ${Number(newAllowance) / 1e6} USDC, Required: ${LEVEL_1_PRICE_USDC} USDC`);
+          throw new Error(`Approval failed. Current allowance: ${Number(newAllowance) / 1e6} USDT, Required: ${LEVEL_1_PRICE_USDT} USDT`);
         }
       } else {
         console.log('✅ Sufficient allowance already exists');
@@ -589,7 +589,7 @@ export function WelcomeLevel1ClaimButton({ onSuccess, referrerWallet, className 
         nftContractAddress: NFT_CONTRACT,
         paymentTokenAddress: PAYMENT_TOKEN_CONTRACT,
         priceWei: LEVEL_1_PRICE_WEI.toString(),
-        priceUSDC: LEVEL_1_PRICE_USDC,
+        priceUSDT: LEVEL_1_PRICE_USDT,
         walletAddress: account.address
       });
       
@@ -652,7 +652,7 @@ export function WelcomeLevel1ClaimButton({ onSuccess, referrerWallet, className 
                 account.address,        // to
                 BigInt(1),             // tokenId (Level 1)
                 BigInt(1),             // quantity
-                PAYMENT_TOKEN_CONTRACT, // currency (USDC)
+                PAYMENT_TOKEN_CONTRACT, // currency (USDT)
                 LEVEL_1_PRICE_WEI,     // pricePerToken
               ]
             });
@@ -685,9 +685,9 @@ export function WelcomeLevel1ClaimButton({ onSuccess, referrerWallet, className 
       console.log('📋 事件 logs:', receipt.logs);
       console.log('✅ Receipt status:', receipt.status);
 
-      // Step 8.5: Trigger USDC transfer for Token #1 claim
+      // Step 8.5: Trigger USDT transfer for Token #1 claim
       try {
-        console.log('💰 Triggering USDC transfer for NFT Token #1 claim...');
+        console.log('💰 Triggering USDT transfer for NFT Token #1 claim...');
         const usdcTransferResponse = await supabase.functions.invoke('nft-claim-usdc-transfer', {
           body: {
             token_id: '1',
@@ -698,13 +698,13 @@ export function WelcomeLevel1ClaimButton({ onSuccess, referrerWallet, className 
         });
 
         if (usdcTransferResponse.error) {
-          console.error('⚠️ USDC transfer failed:', usdcTransferResponse.error);
+          console.error('⚠️ USDT transfer failed:', usdcTransferResponse.error);
           // Don't block the main flow - log error but continue
         } else {
-          console.log('✅ USDC transfer initiated:', usdcTransferResponse.data);
+          console.log('✅ USDT transfer initiated:', usdcTransferResponse.data);
         }
       } catch (usdcTransferError) {
-        console.error('⚠️ USDC transfer error:', usdcTransferError);
+        console.error('⚠️ USDT transfer error:', usdcTransferError);
         // Don't block the main flow - continue with membership activation
       }
 
@@ -738,7 +738,7 @@ export function WelcomeLevel1ClaimButton({ onSuccess, referrerWallet, className 
                 transactionHash: claimTxResult.transactionHash,
                 level: 1,
                 paymentMethod: 'token_payment',
-                paymentAmount: LEVEL_1_PRICE_USDC,
+                paymentAmount: LEVEL_1_PRICE_USDT,
                 referrerWallet: referrerWallet
               })
             });
@@ -850,7 +850,7 @@ export function WelcomeLevel1ClaimButton({ onSuccess, referrerWallet, className 
                   contractAddress: NFT_CONTRACT,
                   tokenId: '1',
                   amount: '1',
-                  currency: 'USDC',
+                  currency: 'USDT',
                   timestamp: new Date().toISOString(),
                   metadata: {
                     source: 'manual_claim',
@@ -908,9 +908,9 @@ export function WelcomeLevel1ClaimButton({ onSuccess, referrerWallet, className 
           description: errorMessage,
           variant: "destructive",
         });
-      } else if (errorMessage.includes('Insufficient USDC')) {
+      } else if (errorMessage.includes('Insufficient USDT')) {
         toast({
-          title: 'Insufficient USDC',
+          title: 'Insufficient USDT',
           description: errorMessage,
           variant: "destructive",
         });
@@ -955,7 +955,7 @@ export function WelcomeLevel1ClaimButton({ onSuccess, referrerWallet, className 
           <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
             <div className="text-center p-4 bg-gradient-to-br from-orange-500/10 to-orange-500/5 rounded-lg border border-orange-500/20">
               <Coins className="h-6 w-6 text-orange-400 mx-auto mb-2" />
-              <h3 className="font-semibold text-orange-400 mb-1">{LEVEL_1_PRICE_USDC} USDC</h3>
+              <h3 className="font-semibold text-orange-400 mb-1">{LEVEL_1_PRICE_USDT} USDT</h3>
               <p className="text-xs text-muted-foreground">Level 1 Price</p>
             </div>
             <div className="text-center p-4 bg-gradient-to-br from-purple-500/10 to-purple-500/5 rounded-lg border border-purple-500/20">
@@ -1034,7 +1034,7 @@ export function WelcomeLevel1ClaimButton({ onSuccess, referrerWallet, className 
               ) : (
                 <>
                   <Crown className="mr-2 h-5 w-5" />
-                  Claim Level 1 - {LEVEL_1_PRICE_USDC} USDC
+                  Claim Level 1 - {LEVEL_1_PRICE_USDT} USDT
                 </>
               )}
             </Button>
@@ -1059,7 +1059,7 @@ export function WelcomeLevel1ClaimButton({ onSuccess, referrerWallet, className 
 
           {/* Additional Information */}
           <div className="text-center text-xs text-muted-foreground pt-2 space-y-1">
-            <p>💳 USDC payment required</p>
+            <p>💳 USDT payment required</p>
             <p>⚡ Instant membership activation</p>
             <p>🎭 NFT minted to your wallet</p>
             <p>🔄 Two transactions: Approve + Claim</p>

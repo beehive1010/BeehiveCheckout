@@ -20,7 +20,7 @@ export interface ServerWalletConfig {
 export interface TransactionRequest {
   chainId: number;
   to: string;
-  amount: string; // in USDC (human readable)
+  amount: string; // in USDT (human readable)
   contractAddress: string;
   gasLimit?: number;
   priority?: 'low' | 'medium' | 'high';
@@ -169,14 +169,14 @@ class ServerWalletManager {
       return {
         balance: '0',
         decimals: 6,
-        symbol: 'USDC',
+        symbol: 'USDT',
         error: error instanceof Error ? error.message : 'Unknown error'
       };
     }
   }
 
   /**
-   * Execute USDC transfer from server wallet
+   * Execute USDT transfer from server wallet
    */
   async executeTransfer(request: TransactionRequest): Promise<TransactionResult> {
     try {
@@ -187,7 +187,7 @@ class ServerWalletManager {
 
       const wallet = this.getWallet(request.chainId);
       
-      // Convert amount to wei (assuming 6 decimals for USDC)
+      // Convert amount to wei (assuming 6 decimals for USDT)
       const amountWei = BigInt(Math.floor(parseFloat(request.amount) * 1000000));
 
       // Get contract instance
@@ -305,15 +305,15 @@ class ServerWalletManager {
       }
 
       // Amount limits (configurable)
-      const maxWithdrawal = 10000; // $10,000 USDC max
-      const minWithdrawal = 1;     // $1 USDC min
+      const maxWithdrawal = 10000; // $10,000 USDT max
+      const minWithdrawal = 1;     // $1 USDT min
 
       if (parseFloat(request.amount) > maxWithdrawal) {
-        return { isValid: false, error: `Amount exceeds maximum withdrawal limit of ${maxWithdrawal} USDC` };
+        return { isValid: false, error: `Amount exceeds maximum withdrawal limit of ${maxWithdrawal} USDT` };
       }
 
       if (parseFloat(request.amount) < minWithdrawal) {
-        return { isValid: false, error: `Amount below minimum withdrawal limit of ${minWithdrawal} USDC` };
+        return { isValid: false, error: `Amount below minimum withdrawal limit of ${minWithdrawal} USDT` };
       }
 
       // TODO: Implement signature validation
@@ -361,7 +361,7 @@ class ServerWalletManager {
         throw new Error(`Unsupported chain: ${request.targetChainId}`);
       }
 
-      // For USDC transfers, gas is typically around 65,000
+      // For USDT transfers, gas is typically around 65,000
       const estimatedGas = '65000';
       
       // Use average gas fee from chain config (in USD)

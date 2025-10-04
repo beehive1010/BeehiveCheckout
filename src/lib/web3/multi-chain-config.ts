@@ -1,5 +1,5 @@
 // Multi-Chain Payment Configuration for Beehive Platform
-// Supports cross-chain USDC payments via Thirdweb on multiple networks
+// Supports cross-chain USDT payments via Thirdweb on multiple networks
 // User requirement: ETH, BSC, OP, ARB, POL, BASE
 
 import { 
@@ -223,18 +223,18 @@ export interface PaymentMethod {
   name: string;
   description: string;
   chains: ChainConfig[];
-  minAmount: number; // in USDC
-  maxAmount: number; // in USDC
+  minAmount: number; // in USDT
+  maxAmount: number; // in USDT
   processingTime: string;
   supportsBridge: boolean;
 }
 
-// Available payment methods for multi-chain USDC
+// Available payment methods for multi-chain USDT
 export const PAYMENT_METHODS: PaymentMethod[] = [
   {
     id: 'direct_usdc',
-    name: 'Direct USDC Payment',
-    description: 'Pay directly with USDC on any supported chain',
+    name: 'Direct USDT Payment',
+    description: 'Pay directly with USDT on any supported chain',
     chains: getSupportedPaymentChains(),
     minAmount: 1,
     maxAmount: 10000,
@@ -244,7 +244,7 @@ export const PAYMENT_METHODS: PaymentMethod[] = [
   {
     id: 'bridge_usdc', 
     name: 'Cross-Chain Bridge Payment',
-    description: 'Bridge USDC from any chain to our primary network',
+    description: 'Bridge USDT from any chain to our primary network',
     chains: getMainnetPaymentChains(),
     minAmount: 10,
     maxAmount: 50000,
@@ -257,7 +257,7 @@ export const PAYMENT_METHODS: PaymentMethod[] = [
 export interface BridgeConfig {
   sourceChain: ChainConfig;
   targetChain: ChainConfig;
-  bridgeFee: number; // in USDC
+  bridgeFee: number; // in USDT
   estimatedTime: number; // in minutes
   minAmount: number;
   maxAmount: number;
@@ -290,7 +290,7 @@ export function generateBridgeConfigs(): BridgeConfig[] {
 // Calculate bridge fee based on source chain
 function calculateBridgeFee(source: ChainConfig, target: ChainConfig): number {
   // Base bridge fee + source chain gas cost estimate
-  const baseFee = 1; // 1 USDC base fee
+  const baseFee = 1; // 1 USDT base fee
   const gasMultiplier = source.averageGasFee / 10; // Scale gas fee
   return Math.max(baseFee, baseFee + gasMultiplier);
 }
@@ -344,11 +344,11 @@ export function validatePaymentAmount(amount: number, chainId: number): {
   }
   
   if (amount < 1) {
-    return { isValid: false, error: 'Minimum amount is $1 USDC' };
+    return { isValid: false, error: 'Minimum amount is $1 USDT' };
   }
   
   if (amount > 10000) {
-    return { isValid: false, error: 'Maximum amount is $10,000 USDC per transaction' };
+    return { isValid: false, error: 'Maximum amount is $10,000 USDT per transaction' };
   }
   
   return { isValid: true };
@@ -366,8 +366,8 @@ export function formatTransactionUrl(chainId: number, txHash: string): string {
   return `${config.explorerUrl}/tx/${txHash}`;
 }
 
-// Format USDC amount for display
-export function formatUSDCAmount(amount: number): string {
+// Format USDT amount for display
+export function formatUSDTAmount(amount: number): string {
   return new Intl.NumberFormat('en-US', {
     style: 'currency',
     currency: 'USD',

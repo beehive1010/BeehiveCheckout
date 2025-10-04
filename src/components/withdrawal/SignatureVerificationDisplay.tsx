@@ -212,7 +212,7 @@ export function SignatureVerificationDisplay({
             <div>
               <Label className="text-sm text-muted-foreground">Amount</Label>
               <div className="text-lg font-semibold text-honey">
-                {parseFloat(signedRequest.amount).toLocaleString()} USDC
+                {parseFloat(signedRequest.amount).toLocaleString()} USDT
               </div>
             </div>
             <div>

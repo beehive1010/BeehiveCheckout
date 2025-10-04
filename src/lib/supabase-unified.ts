@@ -390,7 +390,7 @@ export const dbFunctions = {
     });
   },
 
-  async updateUserUSDCBalance(walletAddress: string, amount: number) {
+  async updateUserUSDTBalance(walletAddress: string, amount: number) {
     return await supabase.rpc('update_user_usdc_balance', {
       p_wallet_address: walletAddress,
       p_amount: amount

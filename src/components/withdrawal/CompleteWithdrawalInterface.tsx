@@ -528,7 +528,7 @@ export function CompleteWithdrawalInterface({ className = "" }: CompleteWithdraw
                           'bg-red-400'
                         }`} />
                         <div>
-                          <div className="font-medium">{formatAmount(withdrawal.amount)} USDC</div>
+                          <div className="font-medium">{formatAmount(withdrawal.amount)} USDT</div>
                           <div className="text-sm text-muted-foreground">
                             {new Date(withdrawal.created_at).toLocaleDateString()}
                           </div>

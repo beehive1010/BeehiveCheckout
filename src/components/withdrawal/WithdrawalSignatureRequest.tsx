@@ -65,14 +65,14 @@ export function WithdrawalSignatureRequest({
       setWithdrawalData(prev => ({
         ...prev,
         userWallet: account.address,
-        tokenAddress: prev.tokenAddress || getUSDCAddressForChain(prev.targetChainId)
+        tokenAddress: prev.tokenAddress || getUSDTAddressForChain(prev.targetChainId)
       }));
     }
   }, [account?.address]);
 
   // Update token address when chain changes
   useEffect(() => {
-    const tokenAddress = getUSDCAddressForChain(withdrawalData.targetChainId);
+    const tokenAddress = getUSDTAddressForChain(withdrawalData.targetChainId);
     if (tokenAddress) {
       setWithdrawalData(prev => ({
         ...prev,
@@ -88,7 +88,7 @@ export function WithdrawalSignatureRequest({
     }
   }, [withdrawalData.amount, withdrawalData.targetChainId]);
 
-  const getUSDCAddressForChain = (chainId: number): string => {
+  const getUSDTAddressForChain = (chainId: number): string => {
     const chainConfig = supportedChains.find(c => c.chainId === chainId);
     return chainConfig?.usdcAddress || '';
   };
@@ -270,7 +270,7 @@ export function WithdrawalSignatureRequest({
         <CardContent className="space-y-6">
           {/* Amount Input */}
           <div className="space-y-2">
-            <Label htmlFor="amount">Withdrawal Amount (USDC)</Label>
+            <Label htmlFor="amount">Withdrawal Amount (USDT)</Label>
             <div className="relative">
               <DollarSign className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
               <Input
@@ -286,7 +286,7 @@ export function WithdrawalSignatureRequest({
               />
             </div>
             <p className="text-xs text-muted-foreground">
-              Minimum: $1 USDC • Maximum: $10,000 USDC per transaction
+              Minimum: $1 USDT • Maximum: $10,000 USDT per transaction
             </p>
           </div>
 
@@ -361,7 +361,7 @@ export function WithdrawalSignatureRequest({
 
           {/* Token Address (Auto-filled) */}
           <div className="space-y-2">
-            <Label>USDC Token Contract</Label>
+            <Label>USDT Token Contract</Label>
             <div className="flex gap-2">
               <Input
                 value={withdrawalData.tokenAddress}

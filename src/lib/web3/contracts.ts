@@ -67,7 +67,7 @@ export const contractAddresses = {
     arbitrumSepolia: '0x4470734620414168Aa1673A30849DB25E5886E2A', // Test USDT
     optimism: '0x94b008aA00579c1307B0EF2c499aD98a8ce58e58',
     bsc: '0x55d398326f99059fF775485246999027B3197955', // BSC USDT
-    base: '0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913', // Base USDC (native stablecoin)
+    base: '0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913', // Base USDT (native stablecoin)
     alphaCentauri: '0x1234567890123456789012345678901234567893',
   },
 
@@ -201,5 +201,4 @@ export function getUSDTContract(chainId: number) {
   });
 }
 
-// Alias for USDC (same as USDT for our purposes)
-export const getUSDCContract = getUSDTContract;
+// getUSDTContract is the main function above

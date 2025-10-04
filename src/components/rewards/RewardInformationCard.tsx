@@ -36,7 +36,7 @@ interface RewardInformationCardProps {
 const LAYER_REWARDS = Array.from({ length: 19 }, (_, i) => ({
   layer: i + 1,
   levelPrice: 100 + (i * 50), // Level 1: $100, Level 2: $150, etc.
-  activationFee: i === 0 ? 30 : 0, // Level 1 has 30 USDC activation fee
+  activationFee: i === 0 ? 30 : 0, // Level 1 has 30 USDT activation fee
   percentage: 100, // 100% of NFT price goes to referrer (minus activation fee for Level 1)
   description: i === 0 
     ? `Level 1: $${100 + (i * 50)} NFT (100% to referrer) + $30 activation fee`

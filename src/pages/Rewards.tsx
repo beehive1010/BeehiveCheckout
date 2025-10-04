@@ -146,7 +146,7 @@ export default function Rewards() {
           id: reward.id,
           type: reward.status || 'layer_reward',
           amount: reward.reward_amount || 0,
-          currency: 'USDC',
+          currency: 'USDT',
           date: reward.claimed_at || reward.created_at || t('common.unknown'),
           status: reward.status === 'claimed' ? 'completed' : reward.status as 'pending' | 'completed' | 'failed',
           description: `Layer ${reward.triggering_nft_level} reward`,

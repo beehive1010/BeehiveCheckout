@@ -16,8 +16,8 @@ import {
 } from '../../lib/web3/multi-chain-config';
 import { 
   multiChainPaymentProcessor,
-  getUSDCBalance,
-  formatUSDCAmount,
+  getUSDTBalance,
+  formatUSDTAmount,
   type PaymentRequest,
   type PaymentResult
 } from '../../lib/web3/multi-chain-payment';
@@ -94,7 +94,7 @@ export function MultiChainPaymentSelector({
     
     setBalanceLoading(true);
     try {
-      const balance = await getUSDCBalance(account.address, selectedChainId);
+      const balance = await getUSDTBalance(account.address, selectedChainId);
       if (balance.error) {
         console.warn('Balance check failed:', balance.error);
         setUserBalance(0);
@@ -128,7 +128,7 @@ export function MultiChainPaymentSelector({
 
     // Check sufficient balance
     if (userBalance < paymentAmount) {
-      onPaymentError(`Insufficient USDC balance. Required: ${formatUSDCAmount(paymentAmount)}, Available: ${formatUSDCAmount(userBalance)}`);
+      onPaymentError(`Insufficient USDT balance. Required: ${formatUSDTAmount(paymentAmount)}, Available: ${formatUSDTAmount(userBalance)}`);
       return;
     }
 
@@ -184,7 +184,7 @@ export function MultiChainPaymentSelector({
       <div className="text-center">
         <h3 className="text-xl font-bold text-honey mb-2">Multi-Chain Payment</h3>
         <p className="text-muted-foreground">
-          Pay with USDC on any supported blockchain network
+          Pay with USDT on any supported blockchain network
         </p>
       </div>
 
@@ -198,7 +198,7 @@ export function MultiChainPaymentSelector({
         <CardContent className="space-y-6">
           {/* Amount Input */}
           <div className="space-y-2">
-            <Label htmlFor="amount">Payment Amount (USDC)</Label>
+            <Label htmlFor="amount">Payment Amount (USDT)</Label>
             <div className="relative">
               <DollarSign className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
               <Input
@@ -214,7 +214,7 @@ export function MultiChainPaymentSelector({
               />
             </div>
             <p className="text-xs text-muted-foreground">
-              Minimum: $1 USDC • Maximum: $10,000 USDC per transaction
+              Minimum: $1 USDT • Maximum: $10,000 USDT per transaction
             </p>
           </div>
 
@@ -272,14 +272,14 @@ export function MultiChainPaymentSelector({
                 {/* Balance Display */}
                 <div className="mt-3 pt-3 border-t border-muted">
                   <div className="flex items-center justify-between">
-                    <span className="text-sm text-muted-foreground">Your USDC Balance:</span>
+                    <span className="text-sm text-muted-foreground">Your USDT Balance:</span>
                     <div className="flex items-center gap-2">
                       {balanceLoading ? (
                         <Loader2 className="h-4 w-4 animate-spin" />
                       ) : (
                         <>
                           <span className={`font-medium ${hasInsufficientBalance ? 'text-destructive' : 'text-green-400'}`}>
-                            {formatUSDCAmount(userBalance)}
+                            {formatUSDTAmount(userBalance)}
                           </span>
                           <Button
                             variant="ghost"
@@ -307,30 +307,30 @@ export function MultiChainPaymentSelector({
               <div className="bg-muted/30 rounded-lg p-4 space-y-2">
                 <div className="flex justify-between text-sm">
                   <span>Payment Amount:</span>
-                  <span>{formatUSDCAmount(paymentAmount)}</span>
+                  <span>{formatUSDTAmount(paymentAmount)}</span>
                 </div>
                 <div className="flex justify-between text-sm text-muted-foreground">
                   <span>Network Fee ({selectedChain?.name}):</span>
-                  <span>{formatUSDCAmount(feeCalculation.networkFee)}</span>
+                  <span>{formatUSDTAmount(feeCalculation.networkFee)}</span>
                 </div>
                 <div className="flex justify-between text-sm text-muted-foreground">
                   <span>Platform Fee (0.5%):</span>
-                  <span>{formatUSDCAmount(feeCalculation.platformFee)}</span>
+                  <span>{formatUSDTAmount(feeCalculation.platformFee)}</span>
                 </div>
                 {bridgeMode && (
                   <div className="flex justify-between text-sm text-muted-foreground">
                     <span>Bridge Fee:</span>
-                    <span>$2.00 USDC</span>
+                    <span>$2.00 USDT</span>
                   </div>
                 )}
                 <Separator />
                 <div className="flex justify-between font-medium">
                   <span>Total Cost:</span>
-                  <span>{formatUSDCAmount(paymentAmount + feeCalculation.totalFee + (bridgeMode ? 2 : 0))}</span>
+                  <span>{formatUSDTAmount(paymentAmount + feeCalculation.totalFee + (bridgeMode ? 2 : 0))}</span>
                 </div>
                 <div className="flex justify-between text-sm text-green-400">
                   <span>Net Amount:</span>
-                  <span>{formatUSDCAmount(feeCalculation.netAmount)}</span>
+                  <span>{formatUSDTAmount(feeCalculation.netAmount)}</span>
                 </div>
               </div>
             </div>
@@ -382,7 +382,7 @@ export function MultiChainPaymentSelector({
                 <span className="font-medium">Insufficient Balance</span>
               </div>
               <p className="text-sm text-muted-foreground mt-1">
-                You need {formatUSDCAmount(paymentAmount - userBalance)} more USDC to complete this transaction.
+                You need {formatUSDTAmount(paymentAmount - userBalance)} more USDT to complete this transaction.
               </p>
             </div>
           )}
@@ -402,7 +402,7 @@ export function MultiChainPaymentSelector({
             ) : (
               <>
                 <Wallet className="mr-2 h-4 w-4" />
-                Pay {formatUSDCAmount(paymentAmount)} USDC
+                Pay {formatUSDTAmount(paymentAmount)} USDT
               </>
             )}
           </Button>

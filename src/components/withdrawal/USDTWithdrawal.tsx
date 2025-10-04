@@ -14,7 +14,7 @@ import {Badge} from '@/components/ui/badge';
 import {Alert, AlertDescription} from '@/components/ui/alert';
 import {useI18n} from '@/contexts/I18nContext';
 
-interface USDCBalance {
+interface USDTBalance {
   balance: number;
   balanceUSD: string;
   lastUpdated: string;
@@ -46,11 +46,11 @@ export default function USDTWithdrawal() {
   
   const [amount, setAmount] = useState('');
   const [targetChain, setTargetChain] = useState(currentChainId.toString());
-  const [selectedToken, setSelectedToken] = useState('USDC'); // 默认使用 USDC
+  const [selectedToken, setSelectedToken] = useState('USDT'); // 默认使用 USDT
   const [isProcessing, setIsProcessing] = useState(false);
 
   // Get reward balance
-  const { data: balance, isLoading: balanceLoading, refetch } = useQuery<USDCBalance>({
+  const { data: balance, isLoading: balanceLoading, refetch } = useQuery<USDTBalance>({
     queryKey: ['user-balance', memberWalletAddress],
     enabled: !!memberWalletAddress,
     queryFn: async () => {
@@ -93,7 +93,7 @@ export default function USDTWithdrawal() {
       const netAmount = data.amount - fee;
       
       if (netAmount <= 0) {
-        throw new Error(`Amount too small. Minimum: ${(fee + 0.01).toFixed(2)} USDC (includes ${fee} USDC fee)`);
+        throw new Error(`Amount too small. Minimum: ${(fee + 0.01).toFixed(2)} USDT (includes ${fee} USDT fee)`);
       }
 
       if (!memberWalletAddress) {
@@ -107,7 +107,7 @@ export default function USDTWithdrawal() {
         throw new Error('Missing Supabase configuration');
       }
 
-      console.log(`🚀 Starting withdrawal: ${netAmount} USDC to ${targetChainInfo.name} (fee: ${fee} USDC)`);
+      console.log(`🚀 Starting withdrawal: ${netAmount} USDT to ${targetChainInfo.name} (fee: ${fee} USDT)`);
 
       // Call withdrawal API endpoint (backend handles thirdweb credentials securely)
       const response = await fetch(`${supabaseUrl}/functions/v1/withdrawal`, {
@@ -123,9 +123,9 @@ export default function USDTWithdrawal() {
           amount: data.amount,
           recipientAddress: memberWalletAddress,
           targetChainId: data.chainId,
-          targetTokenSymbol: selectedToken || 'USDC', // 从UI获取目标代币
+          targetTokenSymbol: selectedToken || 'USDT', // 从UI获取目标代币
           memberWallet: memberWalletAddress,
-          sourceChainId: 42161, // Arbitrum One (where our USDC is held)
+          sourceChainId: 42161, // Arbitrum One (where our USDT is held)
         }),
       });
 
@@ -248,7 +248,7 @@ export default function USDTWithdrawal() {
               <span className="text-2xl font-bold text-honey">
                 ${balanceLoading ? '---' : balance?.balanceUSD || '0.00'}
               </span>
-              <span className="text-sm text-slate-500">USDC</span>
+              <span className="text-sm text-slate-500">USDT</span>
               <Button
                 variant="ghost"
                 size="sm"
@@ -297,7 +297,7 @@ export default function USDTWithdrawal() {
                     <span>{info.icon}</span>
                     <span>{info.name}</span>
                     <Badge variant="outline" className="ml-auto">
-                      {info.fee} USDC fee
+                      {info.fee} USDT fee
                     </Badge>
                     {info.native && (
                       <Badge className="bg-honey text-black">Native</Badge>
@@ -342,12 +342,12 @@ export default function USDTWithdrawal() {
                 </SelectItem>
               )}
 
-              {/* USDC 支持 */}
+              {/* USDT 支持 */}
               {[1, 137, 42161, 10, 8453].includes(parseInt(targetChain)) && (
-                <SelectItem value="USDC">
+                <SelectItem value="USDT">
                   <div className="flex items-center gap-2">
                     <span>🔵</span>
-                    <span>USDC</span>
+                    <span>USDT</span>
                     <Badge variant="outline">Stablecoin</Badge>
                   </div>
                 </SelectItem>
@@ -356,10 +356,10 @@ export default function USDTWithdrawal() {
           </Select>
           
           {/* 代币切换提示 */}
-          {selectedToken !== 'USDC' && (
+          {selectedToken !== 'USDT' && (
             <div className="text-xs text-amber-600 dark:text-amber-400 bg-amber-50 dark:bg-amber-950/20 p-2 rounded-lg">
               <Zap className="h-3 w-3 inline mr-1" />
-              Cross-chain conversion: USDC → {selectedToken} on {targetChainInfo?.name}
+              Cross-chain conversion: USDT → {selectedToken} on {targetChainInfo?.name}
             </div>
           )}
         </div>
@@ -367,7 +367,7 @@ export default function USDTWithdrawal() {
         {/* Amount Input */}
         <div className="space-y-2">
           <Label htmlFor="amount" className="text-sm font-medium">
-            {t('withdrawal.withdrawal_amount')} (USDC)
+            {t('withdrawal.withdrawal_amount')} (USDT)
           </Label>
           <Input
             id="amount"
@@ -384,11 +384,11 @@ export default function USDTWithdrawal() {
             <div className="text-sm text-slate-600 dark:text-slate-400 space-y-1">
               <div className="flex justify-between">
                 <span>{t('withdrawal.amount')}:</span>
-                <span>{parseFloat(amount).toFixed(2)} USDC</span>
+                <span>{parseFloat(amount).toFixed(2)} USDT</span>
               </div>
               <div className="flex justify-between">
                 <span>{t('withdrawal.network_fee')}:</span>
-                <span>-{fee.toFixed(2)} USDC</span>
+                <span>-{fee.toFixed(2)} USDT</span>
               </div>
               <div className="flex justify-between font-semibold border-t pt-1">
                 <span>{t('withdrawal.you_receive')}:</span>

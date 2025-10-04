@@ -20,7 +20,7 @@ interface LevelUpgradeButtonGenericProps {
   className?: string;
 }
 
-// Dynamic pricing based on level (Layer 2-19: 150-1000 USDC)
+// Dynamic pricing based on level (Layer 2-19: 150-1000 USDT)
 const getLevelPrice = (level: number): number => {
   const prices = {
     1: 130,   // Level 1 activation
@@ -72,12 +72,12 @@ export function LevelUpgradeButtonGeneric({
   const [isWrongNetwork, setIsWrongNetwork] = useState(false);
   
   // Dynamic pricing and requirements
-  const LEVEL_PRICE_USDC = getLevelPrice(targetLevel);
-  const LEVEL_PRICE_WEI = BigInt(LEVEL_PRICE_USDC) * BigInt('1000000000000000000');
+  const LEVEL_PRICE_USDT = getLevelPrice(targetLevel);
+  const LEVEL_PRICE_WEI = BigInt(LEVEL_PRICE_USDT) * BigInt('1000000000000000000');
   const LEVEL_REQUIREMENTS = getLevelRequirements(targetLevel);
   
   const API_BASE = 'https://cvqibjcbfrwsgkvthccp.supabase.co/functions/v1';
-  const PAYMENT_TOKEN_CONTRACT = "0xaf88d065e77c8cC2239327C5EDb3A432268e5831"; // Arbitrum USDC (native)
+  const PAYMENT_TOKEN_CONTRACT = "0xaf88d065e77c8cC2239327C5EDb3A432268e5831"; // Arbitrum USDT (native)
   const NFT_CONTRACT = "0x36a1aC6D8F0204827Fad16CA5e222F1Aeae4Adc8"; // ARB ONE Membership Contract
   const THIRDWEB_CLIENT_ID = import.meta.env.VITE_THIRDWEB_CLIENT_ID;
 
@@ -307,9 +307,9 @@ export function LevelUpgradeButtonGeneric({
         console.warn('⚠️ Could not check NFT balance:', balanceCheckError);
       }
 
-      // Step 5: Check USDC balance and approval
-      console.log('💰 Checking USDC balance and approval...');
-      setCurrentStep('Checking USDC balance...');
+      // Step 5: Check USDT balance and approval
+      console.log('💰 Checking USDT balance and approval...');
+      setCurrentStep('Checking USDT balance...');
       
       try {
         const tokenBalance = await erc20BalanceOf({
@@ -318,19 +318,19 @@ export function LevelUpgradeButtonGeneric({
         });
         
         if (tokenBalance < LEVEL_PRICE_WEI) {
-          throw new Error(`Insufficient USDC balance. You have ${(Number(tokenBalance) / 1e18).toFixed(2)} USDC but need ${LEVEL_PRICE_USDC} USDC for Level ${targetLevel}`);
+          throw new Error(`Insufficient USDT balance. You have ${(Number(tokenBalance) / 1e18).toFixed(2)} USDT but need ${LEVEL_PRICE_USDT} USDT for Level ${targetLevel}`);
         }
         
-        console.log('✅ Sufficient USDC balance confirmed');
+        console.log('✅ Sufficient USDT balance confirmed');
       } catch (balanceError: any) {
-        if (balanceError.message.includes('Insufficient USDC')) {
+        if (balanceError.message.includes('Insufficient USDT')) {
           throw balanceError;
         }
-        console.warn('⚠️ Could not check USDC balance:', balanceError);
+        console.warn('⚠️ Could not check USDT balance:', balanceError);
       }
 
       // Check and request approval
-      setCurrentStep('Checking USDC approval...');
+      setCurrentStep('Checking USDT approval...');
       
       const currentAllowance = await allowance({
         contract: usdcContract,
@@ -338,10 +338,10 @@ export function LevelUpgradeButtonGeneric({
         spender: NFT_CONTRACT
       });
       
-      console.log(`💰 Current allowance: ${Number(currentAllowance) / 1e18} USDC, Required: ${LEVEL_PRICE_USDC} USDC`);
+      console.log(`💰 Current allowance: ${Number(currentAllowance) / 1e18} USDT, Required: ${LEVEL_PRICE_USDT} USDT`);
       
       if (currentAllowance < LEVEL_PRICE_WEI) {
-        console.log('💰 Requesting USDC approval...');
+        console.log('💰 Requesting USDT approval...');
         
         const approveTransaction = approve({
           contract: usdcContract,
@@ -354,7 +354,7 @@ export function LevelUpgradeButtonGeneric({
         const approveTxResult = await sendTransactionWithRetry(
           approveTransaction, 
           account, 
-          'USDC approval transaction',
+          'USDT approval transaction',
           false // Use regular gas for ERC20 approval
         );
 
@@ -364,7 +364,7 @@ export function LevelUpgradeButtonGeneric({
           transactionHash: approveTxResult?.transactionHash,
         });
         
-        console.log('✅ USDC approval confirmed');
+        console.log('✅ USDT approval confirmed');
         
         // Verify the approval was successful
         const newAllowance = await allowance({
@@ -373,10 +373,10 @@ export function LevelUpgradeButtonGeneric({
           spender: NFT_CONTRACT
         });
         
-        console.log(`✅ New allowance after approval: ${Number(newAllowance) / 1e18} USDC`);
+        console.log(`✅ New allowance after approval: ${Number(newAllowance) / 1e18} USDT`);
         
         if (newAllowance < LEVEL_PRICE_WEI) {
-          throw new Error(`Approval failed. Current allowance: ${Number(newAllowance) / 1e18} USDC, Required: ${LEVEL_PRICE_USDC} USDC`);
+          throw new Error(`Approval failed. Current allowance: ${Number(newAllowance) / 1e18} USDT, Required: ${LEVEL_PRICE_USDT} USDT`);
         }
       } else {
         console.log('✅ Sufficient allowance already exists');
@@ -518,9 +518,9 @@ export function LevelUpgradeButtonGeneric({
           description: 'You cancelled the transaction.',
           variant: "destructive",
         });
-      } else if (errorMessage.includes('Insufficient USDC')) {
+      } else if (errorMessage.includes('Insufficient USDT')) {
         toast({
-          title: 'Insufficient USDC',
+          title: 'Insufficient USDT',
           description: errorMessage,
           variant: "destructive",
         });
@@ -581,7 +581,7 @@ export function LevelUpgradeButtonGeneric({
           <div className="text-center p-4 bg-gradient-to-br from-orange-500/10 to-orange-500/5 rounded-lg border border-orange-500/20">
             <Coins className="h-6 w-6 text-orange-400 mx-auto mb-2" />
             <h3 className="font-semibold text-orange-400 mb-1">
-              {LEVEL_PRICE_USDC} USDC
+              {LEVEL_PRICE_USDT} USDT
             </h3>
             <p className="text-xs text-muted-foreground">Level {targetLevel} Price</p>
           </div>
@@ -675,7 +675,7 @@ export function LevelUpgradeButtonGeneric({
             ) : (
               <>
                 <Icon className="mr-2 h-5 w-5" />
-                Upgrade to Level {targetLevel} - {LEVEL_PRICE_USDC} USDC
+                Upgrade to Level {targetLevel} - {LEVEL_PRICE_USDT} USDT
               </>
             )}
           </Button>
@@ -697,10 +697,10 @@ export function LevelUpgradeButtonGeneric({
         {/* Additional Information */}
         <div className="text-center text-xs text-muted-foreground pt-2 space-y-1">
           <p>📈 Level {currentLevel} → Level {targetLevel} upgrade</p>
-          <p>💳 USDC payment required</p>
+          <p>💳 USDT payment required</p>
           <p>⚡ Instant level activation</p>
           <p>🎭 NFT minted to your wallet</p>
-          <p>💰 Layer {targetLevel} rewards ({LEVEL_PRICE_USDC} USDC) processed</p>
+          <p>💰 Layer {targetLevel} rewards ({LEVEL_PRICE_USDT} USDT) processed</p>
         </div>
       </CardContent>
     </Card>

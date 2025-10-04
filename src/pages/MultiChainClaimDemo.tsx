@@ -85,7 +85,7 @@ export default function MultiChainClaimDemo() {
             </div>
             <h3 className="font-semibold mb-2 text-blue-400">Multi-Chain Support</h3>
             <p className="text-sm text-muted-foreground">
-              Pay with USDC from 6+ blockchains
+              Pay with USDT from 6+ blockchains
             </p>
           </CardContent>
         </Card>
@@ -145,7 +145,7 @@ export default function MultiChainClaimDemo() {
                 </CardHeader>
                 <CardContent className="space-y-4">
                   <div className="flex items-center justify-between">
-                    <span className="text-2xl font-bold">{level.price} USDC</span>
+                    <span className="text-2xl font-bold">{level.price} USDT</span>
                     <Badge className={`bg-gradient-to-r ${level.color} text-white border-0`}>
                       One-time Payment
                     </Badge>
@@ -176,7 +176,7 @@ export default function MultiChainClaimDemo() {
               <div className="space-y-4">
                 <MultiChainNFTClaimButton
                   level={level.level}
-                  priceUSDC={level.price}
+                  priceUSDT={level.price}
                   walletAddress={walletAddress || ''}
                   onSuccess={handleClaimSuccess}
                   onError={handleClaimError}
@@ -189,7 +189,7 @@ export default function MultiChainClaimDemo() {
                     <h4 className="font-semibold text-yellow-400 mb-2 text-sm">💡 How it works</h4>
                     <ol className="text-xs text-muted-foreground space-y-1 list-decimal list-inside">
                       <li>Select your preferred payment network</li>
-                      <li>Ensure you have {level.price} USDC in your wallet</li>
+                      <li>Ensure you have {level.price} USDT in your wallet</li>
                       <li>Click claim and approve the transaction</li>
                       <li>NFT will be minted to Arbitrum automatically</li>
                     </ol>

@@ -34,28 +34,28 @@ const supportedChains = [
     name: 'Ethereum', 
     symbol: 'ETH', 
     color: 'text-blue-400',
-    tokens: ['ETH', 'USDC', 'USDT', 'DAI']
+    tokens: ['ETH', 'USDT', 'USDT', 'DAI']
   },
   { 
     chain: polygon, 
     name: 'Polygon', 
     symbol: 'MATIC', 
     color: 'text-purple-400',
-    tokens: ['MATIC', 'USDC', 'USDT', 'DAI']
+    tokens: ['MATIC', 'USDT', 'USDT', 'DAI']
   },
   { 
     chain: arbitrum, 
     name: 'Arbitrum', 
     symbol: 'ARB', 
     color: 'text-blue-300',
-    tokens: ['ETH', 'ARB', 'USDC', 'USDT']
+    tokens: ['ETH', 'ARB', 'USDT', 'USDT']
   },
   { 
     chain: base, 
     name: 'Base', 
     symbol: 'ETH', 
     color: 'text-blue-500',
-    tokens: ['ETH', 'USDC', 'USDT', 'DAI']
+    tokens: ['ETH', 'USDT', 'USDT', 'DAI']
   }
 ];
 
@@ -106,7 +106,7 @@ export function Web3BuyModal({
         chainId: selectedChain.chain.id,
         amount: purchaseAmount,
         fromToken: 'ETH',
-        toToken: 'USDC',
+        toToken: 'USDT',
         bccTokens: expectedBCC,
         timestamp: new Date().toISOString()
       };
@@ -155,7 +155,7 @@ export function Web3BuyModal({
             <div className="grid grid-cols-3 gap-4 text-center">
               <div>
                 <div className="text-2xl font-bold text-blue-400">${purchaseAmount}</div>
-                <div className="text-sm text-muted-foreground">USDC Value</div>
+                <div className="text-sm text-muted-foreground">USDT Value</div>
               </div>
               <div className="flex items-center justify-center">
                 <ArrowRight className="w-6 h-6 text-honey" />

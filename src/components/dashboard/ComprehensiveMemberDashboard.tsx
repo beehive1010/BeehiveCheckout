@@ -275,7 +275,7 @@ const ComprehensiveMemberDashboard: React.FC = () => {
       const result = await callEdgeFunction('withdrawal', {
         action: 'check_limits',
         walletAddress: walletAddress!,
-        currency: 'USDC'
+        currency: 'USDT'
       }, walletAddress!);
 
       if (result.success && result.limits) {
@@ -305,7 +305,7 @@ const ComprehensiveMemberDashboard: React.FC = () => {
       }
 
       if (data?.success) {
-        toast.success(`Successfully claimed ${data.amount} USDC!`);
+        toast.success(`Successfully claimed ${data.amount} USDT!`);
         await loadDashboardData();
       } else {
         toast.error(data?.error || 'Failed to claim reward');
@@ -348,7 +348,7 @@ const ComprehensiveMemberDashboard: React.FC = () => {
     }
   };
 
-  const requestWithdrawal = async (amount: number, currency: 'USDC' | 'BCC') => {
+  const requestWithdrawal = async (amount: number, currency: 'USDT' | 'BCC') => {
     if (!walletAddress) return;
 
     try {
@@ -477,7 +477,7 @@ const ComprehensiveMemberDashboard: React.FC = () => {
                   <>
                     <div className="grid grid-cols-2 gap-4">
                       <div className="text-center p-3 bg-green-50 dark:bg-green-900/20 rounded-lg">
-                        <p className="text-sm text-muted-foreground">USDC Balance</p>
+                        <p className="text-sm text-muted-foreground">USDT Balance</p>
                         <p className="text-lg font-bold text-green-600">${balanceInfo.usdc.toLocaleString()}</p>
                       </div>
                       <div className="text-center p-3 bg-blue-50 dark:bg-blue-900/20 rounded-lg">
@@ -522,11 +522,11 @@ const ComprehensiveMemberDashboard: React.FC = () => {
                 {balanceInfo && balanceInfo.usdc > 0 && (
                   <Button 
                     variant="outline" 
-                    onClick={() => requestWithdrawal(Math.min(100, balanceInfo.usdc), 'USDC')}
+                    onClick={() => requestWithdrawal(Math.min(100, balanceInfo.usdc), 'USDT')}
                     className="w-full"
                   >
                     <DollarSign className="h-4 w-4 mr-2" />
-                    Quick Withdraw $100 USDC
+                    Quick Withdraw $100 USDT
                   </Button>
                 )}
                 
@@ -589,7 +589,7 @@ const ComprehensiveMemberDashboard: React.FC = () => {
                   {pendingRewards.map((reward) => (
                     <div key={reward.id} className="flex items-center justify-between p-4 border rounded-lg">
                       <div>
-                        <div className="font-semibold">${reward.amount} USDC</div>
+                        <div className="font-semibold">${reward.amount} USDT</div>
                         <div className="text-sm text-muted-foreground">
                           Level {reward.level} Reward • {reward.hoursLeft}h remaining
                         </div>
@@ -635,7 +635,7 @@ const ComprehensiveMemberDashboard: React.FC = () => {
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div className="p-4 border rounded-lg">
                       <h3 className="font-semibold">Upgrade Cost</h3>
-                      <p className="text-2xl font-bold text-honey">${upgradeInfo.cost} USDC</p>
+                      <p className="text-2xl font-bold text-honey">${upgradeInfo.cost} USDT</p>
                     </div>
                     <div className="p-4 border rounded-lg">
                       <h3 className="font-semibold">BCC Unlock</h3>

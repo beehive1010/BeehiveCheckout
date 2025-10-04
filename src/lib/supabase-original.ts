@@ -542,7 +542,7 @@ export class SupabaseApiClient {
 
   async createBccPurchase(
     walletAddress: string, 
-    amountUSDC: number, 
+    amountUSDT: number, 
     network: string, 
     paymentMethod: string,
     transactionHash?: string,
@@ -550,7 +550,7 @@ export class SupabaseApiClient {
   ) {
     return this.callFunction('bcc-purchase', {
       action: 'create-purchase',
-      amountUSDC,
+      amountUSDT,
       network,
       paymentMethod,
       transactionHash,
