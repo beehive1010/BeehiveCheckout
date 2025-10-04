@@ -2,10 +2,14 @@ import { useState } from 'react';
 import { Card, CardContent } from '../ui/card';
 import HexagonIcon from '../shared/HexagonIcon';
 import { useI18n } from '../../contexts/I18nContext';
+import { useIsMobile } from '../../hooks/use-mobile';
+import { useIsDesktop } from '../../hooks/use-desktop';
 import styles from '../../styles/landing/landing.module.css';
 
 export function FeaturesGrid() {
   const { t } = useI18n();
+  const isMobile = useIsMobile();
+  const isDesktop = useIsDesktop();
   const [hoveredCard, setHoveredCard] = useState<number | null>(null);
 
   const features = [
@@ -74,12 +78,12 @@ export function FeaturesGrid() {
         {/* Enhanced Section Header */}
         <div className="text-center mb-20">
           <div className="relative inline-block mb-8">
-            <h2 className="text-3xl md:text-4xl lg:text-5xl font-black bg-gradient-to-r from-honey via-yellow-300 to-amber-400 bg-clip-text text-transparent mb-6">
+            <h2 className={`${isMobile ? 'text-3xl' : isDesktop ? 'text-5xl' : 'text-4xl'} font-black bg-gradient-to-r from-honey via-yellow-300 to-amber-400 bg-clip-text text-transparent mb-6`}>
               {t('landing.platformFeatures.title')}
             </h2>
             <div className="absolute -bottom-2 left-1/2 transform -translate-x-1/2 w-32 h-1 bg-gradient-to-r from-transparent via-honey to-transparent rounded-full animate-pulse"></div>
           </div>
-          <p className="text-lg md:text-xl text-gray-300 max-w-3xl mx-auto leading-relaxed font-light">
+          <p className={`${isMobile ? 'text-base' : isDesktop ? 'text-xl' : 'text-lg'} text-gray-300 max-w-3xl mx-auto leading-relaxed font-light`}>
             {t('landing.platformFeatures.subtitle')}
           </p>
         </div>
@@ -111,40 +115,40 @@ export function FeaturesGrid() {
                 <div className={`absolute inset-0 bg-gradient-to-r ${feature.gradient} opacity-0 group-hover:opacity-20 transition-opacity duration-500 rounded-3xl`}></div>
                 <div className="absolute inset-[1px] bg-gradient-to-br from-slate-900/90 to-black/90 rounded-3xl"></div>
                 
-                <CardContent className="relative p-8 h-full flex flex-col">
+                <CardContent className={`relative ${isMobile ? 'p-6' : 'p-8'} h-full flex flex-col`}>
                   {/* Enhanced Icon Section */}
                   <div className="relative mb-8 flex justify-center">
                     {/* Icon Glow Effects */}
                     <div className={`absolute inset-0 bg-gradient-to-r ${feature.gradient} rounded-full blur-2xl opacity-20 group-hover:opacity-40 transition-opacity duration-500 scale-150`}></div>
                     <div className={`absolute inset-0 bg-gradient-to-r ${feature.gradient} rounded-full blur-xl opacity-10 animate-pulse scale-125`}></div>
-                    
+
                     {/* Rotating Ring */}
                     <div className="absolute inset-0 flex items-center justify-center">
                       <div className={`w-20 h-20 border-2 border-transparent bg-gradient-to-r ${feature.gradient} rounded-full opacity-30 animate-spin`} style={{ animationDuration: `${10 + index * 2}s` }}></div>
                     </div>
-                    
+
                     {/* Icon Container */}
                     <div className="relative">
-                      <div className={`w-16 h-16 bg-gradient-to-br ${feature.bgGradient} rounded-2xl flex items-center justify-center transform group-hover:scale-110 group-hover:rotate-12 transition-all duration-500 border border-white/10`}>
-                        <span className="text-4xl filter drop-shadow-lg transform group-hover:scale-110 transition-transform duration-300">
+                      <div className={`${isMobile ? 'w-14 h-14' : 'w-16 h-16'} bg-gradient-to-br ${feature.bgGradient} rounded-2xl flex items-center justify-center transform group-hover:scale-110 group-hover:rotate-12 transition-all duration-500 border border-white/10`}>
+                        <span className={`${isMobile ? 'text-3xl' : 'text-4xl'} filter drop-shadow-lg transform group-hover:scale-110 transition-transform duration-300`}>
                           {feature.icon}
                         </span>
                       </div>
                     </div>
                   </div>
-                  
+
                   {/* Content Section */}
                   <div className="flex-1 text-center">
-                    <h3 className={`text-xl font-bold mb-4 bg-gradient-to-r ${feature.gradient} bg-clip-text text-transparent group-hover:scale-105 transition-transform duration-300`}>
+                    <h3 className={`${isMobile ? 'text-lg' : 'text-xl'} font-bold mb-4 bg-gradient-to-r ${feature.gradient} bg-clip-text text-transparent group-hover:scale-105 transition-transform duration-300`}>
                       {feature.title}
                     </h3>
-                    <p className="text-gray-300 leading-relaxed mb-6 group-hover:text-gray-200 transition-colors duration-300">
+                    <p className={`text-gray-300 ${isMobile ? 'text-sm' : 'text-base'} leading-relaxed mb-6 group-hover:text-gray-200 transition-colors duration-300`}>
                       {feature.description}
                     </p>
-                    
+
                     {/* Feature Badge */}
-                    <div className={`inline-block px-4 py-2 bg-gradient-to-r ${feature.bgGradient} rounded-full border border-white/10 transition-all duration-300 group-hover:scale-105`}>
-                      <span className="text-sm font-medium text-white/80 group-hover:text-white transition-colors duration-300">
+                    <div className={`inline-block ${isMobile ? 'px-3 py-1.5' : 'px-4 py-2'} bg-gradient-to-r ${feature.bgGradient} rounded-full border border-white/10 transition-all duration-300 group-hover:scale-105`}>
+                      <span className={`${isMobile ? 'text-xs' : 'text-sm'} font-medium text-white/80 group-hover:text-white transition-colors duration-300`}>
                         {feature.extra}
                       </span>
                     </div>

@@ -162,8 +162,7 @@ serve(async (req) => {
       42161: {
         'ETH': { address: null, symbol: 'ETH', decimals: 18, isNative: true },
         'ARB': { address: '0x912CE59144191C1204E64559FE8253a0e49E6548', symbol: 'ARB', decimals: 18, isNative: false },
-        'USDT': { address: '0xFd086bC7CD5C481DCC9C85ebE478A1C0b69FCbb9', symbol: 'USDT', decimals: 6, isNative: false },
-        'USDC': { address: '0xaf88d065e77c8cC2239327C5EDb3A432268e5831', symbol: 'USDC', decimals: 6, isNative: false }
+        'USDT': { address: '0xFd086bC7CD5C481DCC9C85ebE478A1C0b69FCbb9', symbol: 'USDT', decimals: 6, isNative: false }
       },
       10: { 
         'ETH': { address: null, symbol: 'ETH', decimals: 18, isNative: true },
@@ -186,17 +185,17 @@ serve(async (req) => {
 
     const getTokenInfo = (chainId: number, tokenSymbol: string = 'USDT') => {
       const chainTokens = SUPPORTED_TOKENS[chainId]
-      
+
       if (chainTokens && chainTokens[tokenSymbol]) {
         return chainTokens[tokenSymbol]
       }
-      
-      // Fallback to USDC on ARB if token not found
-      return SUPPORTED_TOKENS[42161]['USDC']
+
+      // Fallback to USDT on ARB if token not found
+      return SUPPORTED_TOKENS[42161]['USDT']
     }
 
-    // Get source token (we settle in ARB USDC - native USDC on Arbitrum)
-    const sourceTokenSymbol = 'USDC'
+    // Get source token (we settle in ARB USDT - USDT on Arbitrum)
+    const sourceTokenSymbol = 'USDT'
     const sourceToken = getTokenInfo(sourceChainId || 42161, sourceTokenSymbol)
 
     const calculateAmountWithDecimals = (amount: number, decimals: number): string => {
@@ -205,11 +204,11 @@ serve(async (req) => {
     }
 
     // Get target token info based on user's choice
-    const requestedTokenSymbol = targetTokenSymbol || selectedToken || 'USDC'
+    const requestedTokenSymbol = targetTokenSymbol || selectedToken || 'USDT'
     const targetTokenInfo = getTokenInfo(targetChainId, requestedTokenSymbol)
 
-    // Source: We settle in ARB USDC (native USDC on Arbitrum)
-    const sourceTokenAddress = sourceToken.address // ARB USDC: 0xaf88d065e77c8cC2239327C5EDb3A432268e5831
+    // Source: We settle in ARB USDT (USDT on Arbitrum)
+    const sourceTokenAddress = sourceToken.address // ARB USDT: 0xFd086bC7CD5C481DCC9C85ebE478A1C0b69FCbb9
     const targetTokenAddress = targetTokenInfo.address // Could be null for native tokens
 
     let result: any = {}

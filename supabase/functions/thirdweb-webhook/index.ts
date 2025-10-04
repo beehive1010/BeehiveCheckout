@@ -416,9 +416,9 @@ async function handleTokenTransfer(supabase: any, data: any) {
     // Configuration
     const SERVER_WALLET = Deno.env.get('SERVER_WALLET_ADDRESS')?.toLowerCase()
     const PLATFORM_RECIPIENT = Deno.env.get('PLATFORM_FEE_RECIPIENT')?.toLowerCase() || '0x0bA198F73DF3A1374a49Acb2c293ccA20e150Fe0'.toLowerCase()
-    const USDC_ADDRESS_ARB = '0xaf88d065e77c8cC2239327C5EDb3A432268e5831'.toLowerCase()
-    const MIN_AMOUNT_USDC = 130 // Minimum 130 USDC to trigger auto transfer
-    const PLATFORM_FEE_USDC = 30 // Transfer 30 USDC to platform
+    const USDT_ADDRESS_ARB = '0xFd086bC7CD5C481DCC9C85ebE478A1C0b69FCbb9'.toLowerCase()
+    const MIN_AMOUNT_USDT = 130 // Minimum 130 USDT to trigger auto transfer
+    const PLATFORM_FEE_USDT = 30 // Transfer 30 USDT to platform
 
     // Check if this is a transfer to our server wallet
     if (to?.toLowerCase() !== SERVER_WALLET) {
@@ -432,23 +432,23 @@ async function handleTokenTransfer(supabase: any, data: any) {
       return
     }
 
-    if (contractAddress?.toLowerCase() !== USDC_ADDRESS_ARB) {
-      console.log(`⚠️ Not USDC token, ignoring`)
+    if (contractAddress?.toLowerCase() !== USDT_ADDRESS_ARB) {
+      console.log(`⚠️ Not USDT token, ignoring`)
       return
     }
 
-    // Convert value to USDC (6 decimals)
-    const amountUSDC = parseInt(value) / 1_000_000
+    // Convert value to USDT (6 decimals)
+    const amountUSDT = parseInt(value) / 1_000_000
 
-    console.log(`💵 Received ${amountUSDC} USDC from ${from}`)
+    console.log(`💵 Received ${amountUSDT} USDT from ${from}`)
 
-    // Check if amount >= 130 USDC
-    if (amountUSDC < MIN_AMOUNT_USDC) {
-      console.log(`⚠️ Amount ${amountUSDC} USDC < ${MIN_AMOUNT_USDC} USDC, no auto transfer`)
+    // Check if amount >= 130 USDT
+    if (amountUSDT < MIN_AMOUNT_USDT) {
+      console.log(`⚠️ Amount ${amountUSDT} USDT < ${MIN_AMOUNT_USDT} USDT, no auto transfer`)
       return
     }
 
-    console.log(`✅ Triggering auto platform fee transfer: ${PLATFORM_FEE_USDC} USDC → ${PLATFORM_RECIPIENT}`)
+    console.log(`✅ Triggering auto platform fee transfer: ${PLATFORM_FEE_USDT} USDT → ${PLATFORM_RECIPIENT}`)
 
     // Call nft-claim-usdc-transfer function to execute the transfer
     const supabaseUrl = Deno.env.get('SUPABASE_URL')
@@ -466,7 +466,7 @@ async function handleTokenTransfer(supabase: any, data: any) {
           token_id: '1',
           claimer_address: from,
           transaction_hash: transactionHash,
-          usdc_received: value
+          usdt_received: value
         }),
       }
     )

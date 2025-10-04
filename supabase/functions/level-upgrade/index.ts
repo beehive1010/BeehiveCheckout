@@ -782,7 +782,7 @@ async function verifyUpgradeTransaction(
       : 'https://sepolia-rollup.arbitrum.io/rpc'
     
     const NFT_CONTRACT = '0x36a1aC6D8F0204827Fad16CA5e222F1Aeae4Adc8' // ARB ONE Membership Contract
-    const PAYMENT_TOKEN_CONTRACT = '0xaf88d065e77c8cC2239327C5EDb3A432268e5831' // Arbitrum USDC (native)
+    const PAYMENT_TOKEN_CONTRACT = '0xFd086bC7CD5C481DCC9C85ebE478A1C0b69FCbb9' // Arbitrum USDT
     const EXPECTED_TOKEN_ID = targetLevel
 
     // Get transaction receipt

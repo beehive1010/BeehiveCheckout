@@ -1,10 +1,14 @@
 import { useState, useEffect } from 'react';
 import { Link } from 'wouter';
 import { useI18n } from '../../contexts/I18nContext';
+import { useIsMobile } from '../../hooks/use-mobile';
+import { useIsDesktop } from '../../hooks/use-desktop';
 import styles from '../../styles/landing/landing.module.css';
 
 export function HowItWorks() {
   const { t } = useI18n();
+  const isMobile = useIsMobile();
+  const isDesktop = useIsDesktop();
   const [activeStep, setActiveStep] = useState(0);
   const [isVisible, setIsVisible] = useState(false);
 
@@ -56,12 +60,12 @@ export function HowItWorks() {
         {/* Enhanced Section Header */}
         <div className="mb-20">
           <div className="relative inline-block mb-8">
-            <h2 className="text-3xl md:text-4xl lg:text-5xl font-black bg-gradient-to-r from-honey via-yellow-300 to-amber-400 bg-clip-text text-transparent mb-6">
+            <h2 className={`${isMobile ? 'text-3xl' : isDesktop ? 'text-5xl' : 'text-4xl'} font-black bg-gradient-to-r from-honey via-yellow-300 to-amber-400 bg-clip-text text-transparent mb-6`}>
               {t('landing.howItWorks.title')}
             </h2>
             <div className="absolute -bottom-2 left-1/2 transform -translate-x-1/2 w-32 h-1 bg-gradient-to-r from-transparent via-honey to-transparent rounded-full animate-pulse"></div>
           </div>
-          <p className="text-lg md:text-xl text-gray-300 max-w-3xl mx-auto leading-relaxed font-light">
+          <p className={`${isMobile ? 'text-base' : isDesktop ? 'text-xl' : 'text-lg'} text-gray-300 max-w-3xl mx-auto leading-relaxed font-light`}>
             {t('landing.howItWorks.subtitle')}
           </p>
         </div>
@@ -94,38 +98,38 @@ export function HowItWorks() {
                 <div className={`absolute -inset-4 bg-gradient-to-r ${step.gradient} rounded-3xl blur-2xl opacity-0 group-hover:opacity-20 transition-all duration-700 ${activeStep === index ? 'opacity-30' : ''}`}></div>
                 
                 {/* Step Container */}
-                <div className="relative bg-gradient-to-br from-slate-900/80 via-black/60 to-slate-900/80 backdrop-blur-xl rounded-3xl border border-white/10 p-8 h-full transform transition-all duration-500 group-hover:border-white/20">
+                <div className={`relative bg-gradient-to-br from-slate-900/80 via-black/60 to-slate-900/80 backdrop-blur-xl rounded-3xl border border-white/10 ${isMobile ? 'p-6' : 'p-8'} h-full transform transition-all duration-500 group-hover:border-white/20`}>
                   {/* Step Number Section */}
                   <div className="relative mb-8 flex flex-col items-center">
                     {/* Multi-layer Number Glow */}
                     <div className={`absolute inset-0 bg-gradient-to-r ${step.gradient} rounded-full blur-3xl opacity-20 group-hover:opacity-40 transition-opacity duration-500 scale-150 ${activeStep === index ? 'opacity-50 animate-pulse' : ''}`}></div>
                     <div className={`absolute inset-0 bg-gradient-to-r ${step.gradient} rounded-full blur-xl opacity-10 animate-pulse scale-125`}></div>
-                    
+
                     {/* Rotating Rings */}
                     <div className="absolute inset-0 flex items-center justify-center">
                       <div className={`w-24 h-24 border-2 border-transparent bg-gradient-to-r ${step.gradient} rounded-full opacity-30 ${activeStep === index ? 'animate-spin' : ''}`} style={{ animationDuration: '8s' }}></div>
                       <div className={`absolute w-20 h-20 border border-white/20 rounded-full ${activeStep === index ? 'animate-spin' : ''}`} style={{ animationDuration: '6s', animationDirection: 'reverse' }}></div>
                     </div>
-                    
+
                     {/* Step Number Circle */}
-                    <div className={`relative w-16 h-16 bg-gradient-to-br ${step.bgGradient} rounded-2xl flex items-center justify-center border border-white/20 transform group-hover:scale-110 transition-all duration-500 ${activeStep === index ? 'scale-110 shadow-2xl' : ''}`}>
-                      <span className="text-3xl font-black text-white drop-shadow-lg">
+                    <div className={`relative ${isMobile ? 'w-14 h-14' : 'w-16 h-16'} bg-gradient-to-br ${step.bgGradient} rounded-2xl flex items-center justify-center border border-white/20 transform group-hover:scale-110 transition-all duration-500 ${activeStep === index ? 'scale-110 shadow-2xl' : ''}`}>
+                      <span className={`${isMobile ? 'text-2xl' : 'text-3xl'} font-black text-white drop-shadow-lg`}>
                         {step.number}
                       </span>
                     </div>
-                    
+
                     {/* Step Icon */}
-                    <div className={`mt-4 text-4xl transform transition-all duration-500 ${activeStep === index ? 'scale-125 animate-bounce' : ''}`}>
+                    <div className={`mt-4 ${isMobile ? 'text-3xl' : 'text-4xl'} transform transition-all duration-500 ${activeStep === index ? 'scale-125 animate-bounce' : ''}`}>
                       {step.icon}
                     </div>
                   </div>
-                  
+
                   {/* Step Content */}
                   <div className="text-center">
-                    <h3 className={`text-2xl font-bold mb-4 bg-gradient-to-r ${step.gradient} bg-clip-text text-transparent transition-all duration-300 ${activeStep === index ? 'scale-105' : ''}`}>
+                    <h3 className={`${isMobile ? 'text-xl' : 'text-2xl'} font-bold mb-4 bg-gradient-to-r ${step.gradient} bg-clip-text text-transparent transition-all duration-300 ${activeStep === index ? 'scale-105' : ''}`}>
                       {step.title}
                     </h3>
-                    <p className={`text-gray-300 leading-relaxed transition-all duration-300 ${activeStep === index ? 'text-gray-200' : ''}`}>
+                    <p className={`text-gray-300 ${isMobile ? 'text-sm' : 'text-base'} leading-relaxed transition-all duration-300 ${activeStep === index ? 'text-gray-200' : ''}`}>
                       {step.description}
                     </p>
                   </div>
@@ -153,19 +157,19 @@ export function HowItWorks() {
             <div className="relative max-w-md mx-auto">
               {/* Background Glow */}
               <div className="absolute -inset-4 bg-gradient-to-r from-honey/20 via-yellow-400/20 to-amber-400/20 rounded-3xl blur-2xl animate-pulse"></div>
-              
-              <div className="relative bg-gradient-to-br from-white/5 to-white/10 backdrop-blur-xl rounded-2xl border border-white/20 p-6">
+
+              <div className={`relative bg-gradient-to-br from-white/5 to-white/10 backdrop-blur-xl rounded-2xl border border-white/20 ${isMobile ? 'p-4' : 'p-6'}`}>
                 <div className="text-center">
-                  <div className="text-4xl mb-4">🕸️</div>
-                  <h3 className="text-lg font-bold bg-gradient-to-r from-honey via-yellow-300 to-amber-400 bg-clip-text text-transparent mb-3">
+                  <div className={`${isMobile ? 'text-3xl' : 'text-4xl'} mb-4`}>🕸️</div>
+                  <h3 className={`${isMobile ? 'text-base' : 'text-lg'} font-bold bg-gradient-to-r from-honey via-yellow-300 to-amber-400 bg-clip-text text-transparent mb-3`}>
                     {t('landing.matrix.explainTitle')}
                   </h3>
-                  <p className="text-gray-300 text-sm mb-6 leading-relaxed">
+                  <p className={`text-gray-300 ${isMobile ? 'text-xs' : 'text-sm'} mb-6 leading-relaxed`}>
                     {t('landing.matrix.explainDescription')}
                   </p>
-                  
+
                   <Link href="/matrix-explanation">
-                    <button className="w-full bg-gradient-to-r from-honey to-yellow-400 text-black font-bold py-3 px-6 rounded-full hover:scale-105 transition-all duration-300 shadow-lg hover:shadow-honey/25"
+                    <button className={`w-full bg-gradient-to-r from-honey to-yellow-400 text-black font-bold ${isMobile ? 'py-2.5 px-4 text-sm' : 'py-3 px-6 text-base'} rounded-full hover:scale-105 transition-all duration-300 shadow-lg hover:shadow-honey/25`}
                             data-testid="button-matrix-explanation">
                       {t('landing.matrix.explainButton')}
                     </button>
