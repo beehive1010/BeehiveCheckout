@@ -78,7 +78,7 @@ export default function Membership() {
         
         const nftContract = getContract({
           client,
-          address: '0x36a1aC6D8F0204827Fad16CA5e222F1Aeae4Adc8',
+          address: '0x15742D22f64985bC124676e206FCE3fFEb175719',
           chain: arbitrum
         });
         

@@ -629,6 +629,16 @@ export function WelcomeLevel1ClaimButton({ onSuccess, referrerWallet, className 
             >
               <X size={24} />
             </button>
+            {/* USDT Payment Notice */}
+            <div className="mb-4 p-3 bg-gradient-to-r from-green-500/20 to-emerald-500/20 border border-green-500/30 rounded-lg">
+              <div className="flex items-center gap-2 mb-1">
+                <div className="w-2 h-2 bg-green-400 rounded-full animate-pulse"></div>
+                <span className="text-sm font-bold text-green-400">Payment Currency: USDT</span>
+              </div>
+              <p className="text-xs text-gray-300">
+                Please use USDT (Tether) for payment. Price: {LEVEL_1_PRICE_USDT} USDT on Arbitrum One.
+              </p>
+            </div>
             <PayEmbed
               client={client}
               payOptions={{
@@ -639,6 +649,10 @@ export function WelcomeLevel1ClaimButton({ onSuccess, referrerWallet, className 
                   tokenId: BigInt(1),
                   quantity: BigInt(1),
                 }),
+                metadata: {
+                  name: "Level 1 NFT Claim",
+                  image: "https://cvqibjcbfrwsgkvthccp.supabase.co/storage/v1/object/public/nft-metadata/level1.png"
+                }
               }}
               theme="dark"
               onPaymentSuccess={async (result) => {

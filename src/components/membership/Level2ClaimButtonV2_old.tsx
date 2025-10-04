@@ -106,7 +106,7 @@ export function Level2ClaimButtonV2({ onSuccess, className = '' }: Level2ClaimBu
   
   const API_BASE = 'https://cvqibjcbfrwsgkvthccp.supabase.co/functions/v1';
   const PAYMENT_TOKEN_CONTRACT = "0xaf88d065e77c8cC2239327C5EDb3A432268e5831"; // Arbitrum USDT (native)
-  const NFT_CONTRACT = "0x36a1aC6D8F0204827Fad16CA5e222F1Aeae4Adc8"; // ARB ONE Membership Contract
+  const NFT_CONTRACT = "0x15742D22f64985bC124676e206FCE3fFEb175719"; // ARB ONE Membership Contract
   const THIRDWEB_CLIENT_ID = import.meta.env.VITE_THIRDWEB_CLIENT_ID;
 
   const client = createThirdwebClient({

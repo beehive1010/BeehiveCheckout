@@ -2,7 +2,7 @@ import { useActiveAccount, useActiveWalletChain } from "thirdweb/react";
 import { createThirdwebClient, getContract } from "thirdweb";
 import { arbitrum } from "thirdweb/chains";
 
-const NFT_CONTRACT_ADDRESS = "0x36a1aC6D8F0204827Fad16CA5e222F1Aeae4Adc8";
+const NFT_CONTRACT_ADDRESS = "0x15742D22f64985bC124676e206FCE3fFEb175719";
 
 const client = createThirdwebClient({
   clientId: import.meta.env.VITE_THIRDWEB_CLIENT_ID || "3123b1ac2ebdb966dd415c6e964dc335",

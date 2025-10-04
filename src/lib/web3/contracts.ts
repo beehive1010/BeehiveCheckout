@@ -31,7 +31,7 @@ export const contractAddresses = {
   // Membership contracts across chains
   BBC_MEMBERSHIP: {
     // Arbitrum mainnet - NEW CONTRACT ADDRESS
-    arbitrum: '0x36a1aC6D8F0204827Fad16CA5e222F1Aeae4Adc8',
+    arbitrum: '0x15742D22f64985bC124676e206FCE3fFEb175719',
     // Arbitrum Sepolia testnet  
     arbitrumSepolia: '0xAc8c8662726b72f8DB4F5D1d1a16aC5b06B7a90D',
     // Alpha Centauri L3 testnet
