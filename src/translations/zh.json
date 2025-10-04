@@ -92,9 +92,9 @@
     "nextSteps": "下一步",
     "nextStepsDescription": {
       "step1": "完成注册以创建您的账户",
-      "step2": "领取您的1级NFT，价格130 USDC（100 NFT + 30费用）",
+      "step2": "领取您的1级NFT，价格130 USDT（100 NFT + 30费用）",
       "step3": "加入3x3矩阵推荐系统",
-      "step4": "开始赚取BCC代币和USDC奖励"
+      "step4": "开始赚取BCC代币和USDT奖励"
     },
     "noReferrerInfo": {
       "description": "要加入Beehive，您需要现有成员的推荐链接。这会将您连接到我们3×3矩阵系统中的上线。",
@@ -307,7 +307,7 @@
     "upgradeInstruction": "Scrolled to Quick Upgrade section. Use the upgrade button above to claim 等级 {level}.",
     "upgradeSuccess": "Upgrade 成功ful!",
     "upgradeSuccessDescription": "Your membership has been upgraded successfully",
-    "usdcPayment": "USDC Payment"
+    "usdcPayment": "USDT Payment"
   },
   "nav": {
     "dashboard": "仪表板",
@@ -1144,8 +1144,8 @@
     "rewardSystemSubtitle": "Understanding the complete reward ecosystem",
     "rewards": {
       "claimWindow": "72-hour claim window",
-      "level1Direct": "等级 1 Direct: $30 USDC per referral",
-      "level2Matrix": "等级 2 Matrix: $10 USDC per position",
+      "level1Direct": "等级 1 Direct: $30 USDT per referral",
+      "level2Matrix": "等级 2 Matrix: $10 USDT per position",
       "spilloverBonuses": "Spillover Bonuses: Additional rewards"
     },
     "sections": {
@@ -1491,8 +1491,8 @@
     "matrixRewardsTitle": "矩阵奖励",
     "bccTokenRewardsTitle": "BCC代币奖励",
     "rewards": {
-      "level1Direct": "级别1直推：每次推荐$30 USDC",
-      "level2Matrix": "级别2矩阵：每个位置$10 USDC",
+      "level1Direct": "级别1直推：每次推荐$30 USDT",
+      "level2Matrix": "级别2矩阵：每个位置$10 USDT",
       "spilloverBonuses": "溢出奖励：额外奖励",
       "claimWindow": "72小时领取窗口"
     },
@@ -2202,15 +2202,15 @@
         "usernamePlaceholder": "Enter your username"
       },
       "payment": {
-        "activationFee": "• 30 USDC activation fee",
-        "cost": "Membership Cost: 130 USDC",
+        "activationFee": "• 30 USDT activation fee",
+        "cost": "Membership Cost: 130 USDT",
         "networkLabel": "Select Network",
         "networks": {
           "mainnet": "Mainnet",
           "simulation": "Simulation",
           "testnet": "Testnet"
         },
-        "nftCost": "• 100 USDC for 等级 1 NFT",
+        "nftCost": "• 100 USDT for 等级 1 NFT",
         "transactionHashHelper": "Complete the NFT purchase first, then paste the transaction hash",
         "transactionHashLabel": "Transaction Hash *",
         "transactionHashPlaceholder": "0x... (transaction hash of NFT purchase)"
@@ -2248,7 +2248,7 @@
         "claimRewards": "领取 {{count}} Rewards",
         "title": "Quick Actions",
         "upgrade": "Upgrade to 等级 {{level}}",
-        "withdraw": "Quick 提现 $100 USDC"
+        "withdraw": "Quick 提现 $100 USDT"
       },
       "rewardDescription": "等级 {{level}} Reward • {{hours}}h remaining",
       "status": {
@@ -2256,7 +2256,7 @@
         "pending": "待处理"
       },
       "success": {
-        "claimed": "成功fully claimed {{amount}} USDC!"
+        "claimed": "成功fully claimed {{amount}} USDT!"
       },
       "messages": {
         "claim_successful": "Reward claimed successfully"
@@ -2391,22 +2391,22 @@
   "claim": {
     "checkingOwnership": "检查NFT持有状态...",
     "alreadyHaveNFT": "You already have your 等级 1 membership NFT. 跳转到仪表板...",
-    "checkingApproval": "检查USDC授权中...",
-    "checkingBalance": "检查USDC余额中...",
+    "checkingApproval": "检查USDT授权中...",
+    "checkingBalance": "检查USDT余额中...",
     "checkingRegistration": "检查注册状态中...",
     "claimFailed": "领取 failed",
     "claimLevel1NFT": "领取 Your 等级 1 Membership NFT",
-    "claimLevel1NFT130USDC": "领取 等级 1 NFT (130 USDC)",
+    "claimLevel1NFT130USDT": "领取 等级 1 NFT (130 USDT)",
     "claimUniqueNFTDesc": "领取 your unique ERC-5115 NFT (Token ID 1) to activate 等级 1 membership",
     "connectWalletToClaimNFT": "Please connect your wallet to claim your NFT",
     "doNotClosePageWarning": "⚠️ Please do not close the page or disconnect your wallet",
-    "ensureApproval130USDC": "Please ensure you approve the contract to spend 130 USDC and try again.",
+    "ensureApproval130USDT": "Please ensure you approve the contract to spend 130 USDT and try again.",
     "instantActivation": "🎯 Instant membership activation upon successful claim",
     "insufficientBalance": "USDT余额不足",
     "insufficientGasFunds": "⛽ Insufficient Gas Funds",
     "invalidReferrer": "无效推荐人",
     "mintingNFT": "Minting NFT...",
-    "need130USDC": "You need 130 USDC to claim 等级 1 NFT. Please add USDC to your wallet and try again.",
+    "need130USDT": "You need 130 USDT to claim 等级 1 NFT. Please add USDT to your wallet and try again.",
     "needETHForGas": "You need ETH on Arbitrum Sepolia network to pay for transaction gas fees. Please add some ETH to your wallet first.",
     "networkError": "Network 错误",
     "nftClaimedActivatedWithBackendPending": "Your 等级 1 NFT has been claimed and membership activated! (返回end processing may need manual completion) 跳转到仪表板...",
@@ -2416,7 +2416,7 @@
     "nftClaimedSuccessfully": "Your 等级 1 NFT has been claimed successfully!",
     "nftClaimedTitle": "🎉 NFT 领取ed 成功fully!",
     "nftMintedToWallet": "🔗 NFT will be minted to your connected wallet address",
-    "paymentRequired": "🪙 130 USDC payment required (100 NFT + 30 platform activation fee)",
+    "paymentRequired": "🪙 130 USDT payment required (100 NFT + 30 platform activation fee)",
     "processing": "处理中...",
     "rateLimited": "Rate Limited",
     "referrerMustBeRegistered": "Referrer must be a registered user on the platform",
@@ -2432,8 +2432,8 @@
     "validationFailed": "Validation 失败",
     "validationFailedDesc": "Unable to verify registration or referrer status. Please refresh and try again.",
     "verifyingAndActivating": "Verifying transaction and activating membership",
-    "waitingApproval": "Waiting for USDC approval...",
-    "waitingApprovalConfirmation": "Waiting for USDC approval confirmation...",
+    "waitingApproval": "Waiting for USDT approval...",
+    "waitingApprovalConfirmation": "Waiting for USDT approval confirmation...",
     "waitingBlockchainConfirmation": "Waiting for blockchain confirmation...",
     "waitingNFTConfirmation": "Waiting for NFT minting confirmation...",
     "walletNotConnected": "钱包 not connected",
@@ -2581,31 +2581,31 @@
     "creatingOrder": "Creating Order...",
     "currentBalance": "Current BCC Balance",
     "directTransfer": "Direct Transfer",
-    "enterAmount": "Enter USDC amount",
+    "enterAmount": "Enter USDT amount",
     "estimatedTime": "Estimated processing time: {{time}}",
-    "exchangeRate": "Exchange Rate: 1 USDC = {{rate}} BCC",
+    "exchangeRate": "Exchange Rate: 1 USDT = {{rate}} BCC",
     "loadingOptions": "加载中 purchase options...",
-    "maxAmount": "Max: ${{amount}} USDC",
-    "minAmount": "Min: ${{amount}} USDC",
+    "maxAmount": "Max: ${{amount}} USDT",
+    "minAmount": "Min: ${{amount}} USDT",
     "network": "Network:",
     "no": "No",
     "orderCreated": "Purchase Order Created",
     "orderId": "Order ID:",
-    "payWithUsdc": "Pay with USDC to receive BCC tokens for platform purchases",
+    "payWithUsdc": "Pay with USDT to receive BCC tokens for platform purchases",
     "paymentMethod": "Payment Method",
     "paymentNetwork": "Payment Network",
     "processingPayment": "处理中 Payment",
-    "purchaseAmount": "Purchase Amount (USDC)",
+    "purchaseAmount": "Purchase Amount (USDT)",
     "purchaseCompleted": "Purchase Completed! 🎉",
     "purchaseMethod": "Purchase Method",
     "purchaseTokens": "Purchase BCC Tokens",
-    "sendExactly": "Send exactly {{amount}} USDC to the company wallet address above on {{network}}.",
+    "sendExactly": "Send exactly {{amount}} USDT to the company wallet address above on {{network}}.",
     "shuffleSupport": "Shuffle Support: {{support}}",
     "thirdwebShuffle": "Thirdweb Shuffle (Recommended)",
     "tokensCredited": "Your BCC tokens have been successfully credited to your account",
     "traditional": "Traditional",
-    "traditionalDesc": "Manual USDC transfer with order confirmation",
-    "usdcContract": "USDC Contract: {{contract}}",
+    "traditionalDesc": "Manual USDT transfer with order confirmation",
+    "usdcContract": "USDT Contract: {{contract}}",
     "web3Buy": {
       "autoCredited": "Auto-Credited",
       "connectWalletAndAmount": "Please connect wallet and set purchase amount",
@@ -2613,7 +2613,7 @@
       "howItWorks": "How Web3 Shuffle Works:",
       "instantProcessing": "Instant 处理中",
       "invalidConfig": "Invalid Configuration",
-      "launchPurchase": "Launch Web3 Shuffle Purchase ({{usdcAmount}} USDC → {{bccAmount}} BCC)",
+      "launchPurchase": "Launch Web3 Shuffle Purchase ({{usdcAmount}} USDT → {{bccAmount}} BCC)",
       "noManualTransfer": "No Manual Transfer",
       "purchaseFailed": "Purchase 失败",
       "purchaseFailedDesc": "失败 to complete Web3 purchase. Please try again.",
@@ -2621,7 +2621,7 @@
       "purchaseSuccessful": "🎉 Purchase 成功ful!",
       "step1": "1. 连接 your wallet with any supported token",
       "step2": "2. Select the amount and token you want to spend",
-      "step3": "3. Shuffle automatically converts to USDC and credits BCC",
+      "step3": "3. Shuffle automatically converts to USDT and credits BCC",
       "step4": "4. Tokens appear in your balance instantly",
       "supportedNetworks": "Supported Networks",
       "title": "ThirdWeb Shuffle Purchase",
@@ -2807,11 +2807,11 @@
         "bridgeSupport": "Shuffle Support: {{support}}",
         "chainId": "Chain ID: {{id}}",
         "no": "No",
-        "usdcContract": "USDC Contract: {{contract}}",
+        "usdcContract": "USDT Contract: {{contract}}",
         "yes": "Yes"
       },
       "description": "Get accurate fee estimates with real-time network data",
-      "enterAmount": "Enter USDC amount",
+      "enterAmount": "Enter USDT amount",
       "error": "Unknown error occurred",
       "includeApproval": "Include token approval fee",
       "priorities": {
@@ -3100,18 +3100,18 @@
     "matrixStructure": "Matrix Structure",
     "membershipLevels": {
       "level1": {
-        "description": "100 USDC NFT + 30 USDC activation",
-        "price": "130 USDC",
+        "description": "100 USDT NFT + 30 USDT activation",
+        "price": "130 USDT",
         "title": "等级 1"
       },
       "level19": {
         "description": "Maximum level",
-        "price": "1000 USDC",
+        "price": "1000 USDT",
         "title": "等级 19"
       },
       "level2to19": {
         "description": "Sequential upgrade required",
-        "price": "+50 USDC each",
+        "price": "+50 USDT each",
         "title": "等级 2-19"
       },
       "title": "Membership 等级s"
