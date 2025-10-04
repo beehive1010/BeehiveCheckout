@@ -141,31 +141,31 @@
     "creatingOrder": "Creating Order...",
     "currentBalance": "Current BCC Balance",
     "directTransfer": "Direct Transfer",
-    "enterAmount": "Enter USDC amount",
+    "enterAmount": "Enter USDT amount",
     "estimatedTime": "Estimated processing time: {{time}}",
-    "exchangeRate": "Exchange Rate: 1 USDC = {{rate}} BCC",
+    "exchangeRate": "Exchange Rate: 1 USDT = {{rate}} BCC",
     "loadingOptions": "Loading purchase options...",
-    "maxAmount": "Max: ${{amount}} USDC",
-    "minAmount": "Min: ${{amount}} USDC",
+    "maxAmount": "Max: ${{amount}} USDT",
+    "minAmount": "Min: ${{amount}} USDT",
     "network": "Network:",
     "no": "No",
     "orderCreated": "Purchase Order Created",
     "orderId": "Order ID:",
-    "payWithUsdc": "Pay with USDC to receive BCC tokens for platform purchases",
+    "payWithUsdc": "Pay with USDT to receive BCC tokens for platform purchases",
     "paymentMethod": "Payment Method",
     "paymentNetwork": "Payment Network",
     "processingPayment": "Processing Payment",
-    "purchaseAmount": "Purchase Amount (USDC)",
+    "purchaseAmount": "Purchase Amount (USDT)",
     "purchaseCompleted": "Purchase Completed! 🎉",
     "purchaseMethod": "Purchase Method",
     "purchaseTokens": "Purchase BCC Tokens",
-    "sendExactly": "Send exactly {{amount}} USDC to the company wallet address above on {{network}}.",
+    "sendExactly": "Send exactly {{amount}} USDT to the company wallet address above on {{network}}.",
     "shuffleSupport": "Shuffle Support: {{support}}",
     "thirdwebShuffle": "Thirdweb Shuffle (Recommended)",
     "tokensCredited": "Your BCC tokens have been successfully credited to your account",
     "traditional": "Traditional",
-    "traditionalDesc": "Manual USDC transfer with order confirmation",
-    "usdcContract": "USDC Contract: {{contract}}",
+    "traditionalDesc": "Manual USDT transfer with order confirmation",
+    "usdcContract": "USDT Contract: {{contract}}",
     "web3Buy": {
       "autoCredited": "Auto-Credited",
       "connectWalletAndAmount": "Please connect wallet and set purchase amount",
@@ -173,7 +173,7 @@
       "howItWorks": "How Web3 Shuffle Works:",
       "instantProcessing": "Instant Processing",
       "invalidConfig": "Invalid Configuration",
-      "launchPurchase": "Launch Web3 Shuffle Purchase ({{usdcAmount}} USDC → {{bccAmount}} BCC)",
+      "launchPurchase": "Launch Web3 Shuffle Purchase ({{usdcAmount}} USDT → {{bccAmount}} BCC)",
       "noManualTransfer": "No Manual Transfer",
       "purchaseFailed": "Purchase Failed",
       "purchaseFailedDesc": "Failed to complete Web3 purchase. Please try again.",
@@ -181,7 +181,7 @@
       "purchaseSuccessful": "🎉 Purchase Successful!",
       "step1": "1. Connect your wallet with any supported token",
       "step2": "2. Select the amount and token you want to spend",
-      "step3": "3. Shuffle automatically converts to USDC and credits BCC",
+      "step3": "3. Shuffle automatically converts to USDT and credits BCC",
       "step4": "4. Tokens appear in your balance instantly",
       "supportedNetworks": "Supported Networks",
       "title": "ThirdWeb Shuffle Purchase",
@@ -283,10 +283,10 @@
     "referrerMustBeRegistered": "Referrer must be a registered user on the platform",
     "validationFailed": "Validation Failed",
     "validationFailedDesc": "Unable to verify registration or referrer status. Please refresh and try again.",
-    "checkingBalance": "Checking USDC balance...",
-    "checkingApproval": "Checking USDC approval...",
-    "waitingApproval": "Waiting for USDC approval...",
-    "waitingApprovalConfirmation": "Waiting for USDC approval confirmation...",
+    "checkingBalance": "Checking USDT balance...",
+    "checkingApproval": "Checking USDT approval...",
+    "waitingApproval": "Waiting for USDT approval...",
+    "waitingApprovalConfirmation": "Waiting for USDT approval confirmation...",
     "mintingNFT": "Minting NFT...",
     "waitingNFTConfirmation": "Waiting for NFT minting confirmation...",
     "waitingBlockchainConfirmation": "Waiting for blockchain confirmation...",
@@ -300,10 +300,10 @@
     "rateLimited": "Rate Limited",
     "welcomeBack": "🎉 Welcome Back!",
     "alreadyHaveNFT": "You already have your Level 1 membership NFT. Redirecting to dashboard...",
-    "insufficientBalance": "Insufficient USDC Balance",
-    "need130USDC": "You need 130 USDC to claim Level 1 NFT. Please add USDC to your wallet and try again.",
+    "insufficientBalance": "Insufficient USDT Balance",
+    "need130USDT": "You need 130 USDT to claim Level 1 NFT. Please add USDT to your wallet and try again.",
     "tokenApprovalFailed": "Token Approval Failed",
-    "ensureApproval130USDC": "Please ensure you approve the contract to spend 130 USDC and try again.",
+    "ensureApproval130USDT": "Please ensure you approve the contract to spend 130 USDT and try again.",
     "networkError": "Network Error",
     "switchToArbitrumSepolia": "Please switch to Arbitrum Sepolia network and try again.",
     "claimFailed": "Claim failed",
@@ -312,9 +312,9 @@
     "claimLevel1NFT": "Claim Your Level 1 Membership NFT",
     "claimUniqueNFTDesc": "Claim your unique ERC-5115 NFT (Token ID 1) to activate Level 1 membership",
     "processing": "Processing...",
-    "claimLevel1NFT130USDC": "Claim Level 1 NFT (130 USDC)",
+    "claimLevel1NFT130USDT": "Claim Level 1 NFT (130 USDT)",
     "doNotClosePageWarning": "⚠️ Please do not close the page or disconnect your wallet",
-    "paymentRequired": "🪙 130 USDC payment required (100 NFT + 30 platform activation fee)",
+    "paymentRequired": "🪙 130 USDT payment required (100 NFT + 30 platform activation fee)",
     "instantActivation": "🎯 Instant membership activation upon successful claim",
     "nftMintedToWallet": "🔗 NFT will be minted to your connected wallet address",
     "twoTransactions": "⚡ Two transactions: Token approval + NFT minting",
@@ -418,9 +418,9 @@
     "nextSteps": "Next Steps",
     "nextStepsDescription": {
       "step1": "Complete registration to create your account",
-      "step2": "Claim your Level 1 NFT for 130 USDC (100 NFT + 30 fee)",
+      "step2": "Claim your Level 1 NFT for 130 USDT (100 NFT + 30 fee)",
       "step3": "Join the 3x3 matrix referral system",
-      "step4": "Start earning BCC tokens and USDC rewards"
+      "step4": "Start earning BCC tokens and USDT rewards"
     },
     "noReferrerInfo": {
       "description": "To join Beehive, you need a referral link from an existing member. This connects you to your upline in our 3×3 matrix system.",
@@ -1267,8 +1267,8 @@
     "rewardSystemInfo": "Reward System Information",
     "rewards": {
       "claimWindow": "72-hour claim window",
-      "level1Direct": "Level 1 Direct: $30 USDC per referral",
-      "level2Matrix": "Level 2 Matrix: $10 USDC per position",
+      "level1Direct": "Level 1 Direct: $30 USDT per referral",
+      "level2Matrix": "Level 2 Matrix: $10 USDT per position",
       "spilloverBonuses": "Spillover Bonuses: Additional rewards"
     },
     "share_link": "Share Referral Link",
@@ -1450,6 +1450,22 @@
       "layerGroupBasicBadge": "Basic Layers (1-5)",
       "layerGroupIntermediateBadge": "Intermediate Layers (6-10)",
       "layerGroupAdvancedBadge": "Advanced Layers (11-15)",
+      "perMemberTotalLockingPool": "Per-Member Total Locking Pool",
+      "completeReleaseSchedule": "Complete Release Schedule",
+      "levelBasic": "Basic Levels (1-5)",
+      "levelIntermediate": "Intermediate Levels (6-10)",
+      "levelAdvanced": "Advanced Levels (11-15)",
+      "levelTop": "Top Levels (16-19)",
+      "phaseSummary": "Phase Summary",
+      "bccReleaseOperationMechanism": "BCC Release Operation Mechanism",
+      "memberActivation": "Member Activation",
+      "memberActivationDesc": "When a member activates a new level, the corresponding BCC amount is automatically released to their balance",
+      "phaseJudgment": "Phase Judgment",
+      "phaseJudgmentDesc": "System automatically determines current phase based on total platform activation count",
+      "instantRelease": "Instant Release",
+      "instantReleaseDesc": "BCC rewards are released immediately upon level activation",
+      "phaseProgression": "Phase Progression",
+      "phaseProgressionDesc": "As total activations increase, system automatically progresses to next phase with reduced rewards",
       "layerGroupTopBadge": "Top Layers (16-19)",
       "layerRewards": "Layer Rewards",
       "referralRewardToUpline": "Referral reward to upline",
@@ -1582,8 +1598,8 @@
     "reward_history": "Reward History",
     "rewards": {
       "claimWindow": "72-hour claim window",
-      "level1Direct": "Level 1 Direct: $30 USDC per referral",
-      "level2Matrix": "Level 2 Matrix: $10 USDC per position",
+      "level1Direct": "Level 1 Direct: $30 USDT per referral",
+      "level2Matrix": "Level 2 Matrix: $10 USDT per position",
       "spilloverBonuses": "Spillover Bonuses: Additional rewards"
     },
     "rollup": {
@@ -1596,7 +1612,10 @@
       "subtitle": "Automatic reward redistribution system",
       "autoDistribution": "Auto Distribution",
       "automatic": "Automatic",
-      "distribution": "Distribution"
+      "distribution": "Distribution",
+      "title": "Rollup Rewards",
+      "noRollupRewards": "No Rollup Rewards",
+      "noRollupDescription": "You don't have any rollup rewards at this time. Rollup rewards are created when your downline members fail to claim their rewards within the 72-hour window."
     },
     "sections": {
       "description": "Choose a section below to view and manage your rewards",
@@ -1936,7 +1955,7 @@
     "upgradeInstruction": "Scrolled to Quick Upgrade section. Use the upgrade button above to claim Level {level}.",
     "upgradeSuccess": "Upgrade Successful!",
     "upgradeSuccessDescription": "Your membership has been upgraded successfully",
-    "usdcPayment": "USDC Payment"
+    "usdcPayment": "USDT Payment"
   },
   "education": {
     "allLevels": "All Levels",
@@ -2225,11 +2244,11 @@
         "bridgeSupport": "Shuffle Support: {{support}}",
         "chainId": "Chain ID: {{id}}",
         "no": "No",
-        "usdcContract": "USDC Contract: {{contract}}",
+        "usdcContract": "USDT Contract: {{contract}}",
         "yes": "Yes"
       },
       "description": "Get accurate fee estimates with real-time network data",
-      "enterAmount": "Enter USDC amount",
+      "enterAmount": "Enter USDT amount",
       "error": "Unknown error occurred",
       "includeApproval": "Include token approval fee",
       "priorities": {
@@ -2430,18 +2449,18 @@
     "matrixStructure": "Matrix Structure",
     "membershipLevels": {
       "level1": {
-        "description": "100 USDC NFT + 30 USDC activation",
-        "price": "130 USDC",
+        "description": "100 USDT NFT + 30 USDT activation",
+        "price": "130 USDT",
         "title": "Level 1"
       },
       "level19": {
         "description": "Maximum level",
-        "price": "1000 USDC",
+        "price": "1000 USDT",
         "title": "Level 19"
       },
       "level2to19": {
         "description": "Sequential upgrade required",
-        "price": "+50 USDC each",
+        "price": "+50 USDT each",
         "title": "Level 2-19"
       },
       "title": "Membership Levels"
@@ -2500,15 +2519,15 @@
         "usernamePlaceholder": "Enter your username"
       },
       "payment": {
-        "activationFee": "• 30 USDC activation fee",
-        "cost": "Membership Cost: 130 USDC",
+        "activationFee": "• 30 USDT activation fee",
+        "cost": "Membership Cost: 130 USDT",
         "networkLabel": "Select Network",
         "networks": {
           "mainnet": "Mainnet",
           "simulation": "Simulation",
           "testnet": "Testnet"
         },
-        "nftCost": "• 100 USDC for Level 1 NFT",
+        "nftCost": "• 100 USDT for Level 1 NFT",
         "transactionHashHelper": "Complete the NFT purchase first, then paste the transaction hash",
         "transactionHashLabel": "Transaction Hash *",
         "transactionHashPlaceholder": "0x... (transaction hash of NFT purchase)"
@@ -2696,7 +2715,7 @@
         "claimRewards": "Claim {{count}} Rewards",
         "title": "Quick Actions",
         "upgrade": "Upgrade to Level {{level}}",
-        "withdraw": "Quick Withdraw $100 USDC"
+        "withdraw": "Quick Withdraw $100 USDT"
       },
       "rewardDescription": "Level {{level}} Reward • {{hours}}h remaining",
       "status": {
@@ -2704,7 +2723,7 @@
         "pending": "Pending"
       },
       "success": {
-        "claimed": "Successfully claimed {{amount}} USDC!"
+        "claimed": "Successfully claimed {{amount}} USDT!"
       },
       "messages": {
         "claim_successful": "Reward claimed successfully"
