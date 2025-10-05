@@ -317,6 +317,13 @@ class HybridI18nService {
     const baseTranslations = localTranslations[languageCode] || {};
     console.log(`📁 Loaded ${Object.keys(baseTranslations).length} local translations for ${languageCode}`);
 
+    // 🔧 FIX: 立即用本地翻译预填充缓存，确保同步访问时有数据
+    this.cache[languageCode] = {
+      translations: baseTranslations,
+      lastUpdated: new Date(),
+      source: 'local'
+    };
+
     // 第二步：尝试从数据库获取更新
     let databaseTranslations: { [key: string]: string } = {};
     let databaseLoadSuccess = false;
