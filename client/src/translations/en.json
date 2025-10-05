@@ -1343,5 +1343,111 @@
         "description": "Unable to complete membership purchase. Please try again."
       }
     }
+  },
+  "rewardsPage": {
+    "overview": "Rewards Overview",
+    "overviewSubtitle": "View your complete rewards statistics and earnings breakdown",
+    "subtitle": "Track and manage your matrix rewards and withdrawals",
+    "loading": "Loading rewards data...",
+    "error": "Failed to load rewards"
+  },
+  "rewards": {
+    "overview": {
+      "totalEarned": "Total Earned",
+      "totalWithdrawn": "Total Withdrawn",
+      "pending": "Pending",
+      "claimable": "Claimable"
+    },
+    "status": {
+      "pending": "Pending",
+      "claimable": "Claimable",
+      "claimed": "Claimed",
+      "expired": "Expired",
+      "rolled_up": "Rolled Up",
+      "forfeited": "Forfeited"
+    },
+    "tabs": {
+      "pending": "Pending Rewards",
+      "rollup": "Rollup Distribution",
+      "withdrawal": "Withdrawal",
+      "history": "Reward History"
+    },
+    "management": "Reward Management",
+    "selectCategory": "Select a category to view and manage your rewards",
+    "pendingCountdowns": "Pending Countdown Timers",
+    "pendingDescription": "Monitor your pending rewards and upgrade before they expire",
+    "available_to_claim": "Available to Claim",
+    "rewardReady": "Reward is Ready",
+    "rewardReadyDescription": "A pending reward has become claimable",
+    "claimSuccess": "Rewards Claimed Successfully",
+    "claimSuccessDescription": "You have successfully claimed {amount} USDT in rewards",
+    "claimFailed": "Claim Failed",
+    "claimFailedDescription": "Unable to claim rewards at this time",
+    "errors": {
+      "loadFailed": "Failed to load rewards data",
+      "claimFailed": "Failed to claim rewards"
+    },
+    "rollup": {
+      "title": "Rollup Rewards Distribution",
+      "subtitle": "Automatic distribution of rolled-up rewards to your upline matrix",
+      "autoDistribution": "Auto Distribution",
+      "automatic": "Automatic",
+      "distribution": "Distribution",
+      "networkBased": "Network",
+      "based": "Based",
+      "realTime": "Real-time",
+      "tracking": "Tracking",
+      "transparent": "Transparent",
+      "system": "System"
+    },
+    "noHistory": "No Reward History",
+    "noHistoryDescription": "Your reward transactions will appear here once you start earning",
+    "learnMore": "Learn More",
+    "history": {
+      "title": "Reward History",
+      "subtitle": "Complete transaction history and reward tracking",
+      "transactions": "Transactions",
+      "filters": "Filters",
+      "searchPlaceholder": "Search by username, ID, or position...",
+      "allLayers": "All Layers",
+      "allStatus": "All Status",
+      "dateFrom": "From Date",
+      "dateTo": "To Date",
+      "clearFilters": "Clear Filters",
+      "showing": "Showing",
+      "of": "of",
+      "results": "results",
+      "noFilteredResults": "No transactions match your filters"
+    }
+  },
+  "withdrawal": {
+    "title": "Withdraw Rewards",
+    "subtitle": "Withdraw your earned USDT rewards to any supported chain",
+    "available_balance": "Available Balance",
+    "wallet": "Wallet",
+    "multi_chain_support": "Multi-Chain Support",
+    "multi_chain_description": "Withdraw to any supported blockchain network with automatic bridging",
+    "withdrawal_chain": "Withdrawal Chain",
+    "select_target_chain": "Select target chain",
+    "withdrawal_currency": "Withdrawal Currency",
+    "withdrawal_amount": "Withdrawal Amount",
+    "enter_amount": "Enter amount in USDT",
+    "amount": "Amount",
+    "network_fee": "Network Fee",
+    "you_receive": "You Receive",
+    "withdraw_to": "Withdraw to",
+    "selected_chain": "Selected Chain",
+    "processing": "Processing Withdrawal...",
+    "cross_chain_note": "Cross-chain withdrawal to {targetChain} will be processed via bridge",
+    "crossChainProcessing": "Cross-Chain Withdrawal Processing",
+    "estimatedArrival": "You will receive {amount} USDT on {chain} in approximately {minutes} minutes",
+    "withdrawal_failed": "Withdrawal Failed",
+    "invalid_amount": "Invalid Amount",
+    "enter_valid_amount": "Please enter a valid withdrawal amount",
+    "wallet_required": "Wallet Required",
+    "connect_wallet": "Please connect your wallet to withdraw",
+    "insufficient_balance": "Insufficient Balance",
+    "available_balance_is": "Available balance: ${amount} USDT",
+    "view_transaction_history": "View Transaction History"
   }
 }

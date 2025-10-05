@@ -447,27 +447,59 @@ async function processLevelUpgradeWithRewards(
 
   console.log('✅ Member level updated to', targetLevel);
 
-  // Step 3: Trigger layer rewards for Level 2-19
-  console.log(`💰 Triggering Layer ${targetLevel} rewards...`);
+  // Step 3: Trigger appropriate rewards based on level
+  let directRewardData = null;
+  let directRewardError = null;
+  let matrixRewardData = null;
+  let matrixRewardError = null;
 
-  const { data: rewardData, error: rewardError } = await supabase.rpc('trigger_layer_rewards_on_upgrade', {
-    p_upgrading_member_wallet: walletAddress,
-    p_new_level: targetLevel,
-    p_nft_price: nftPrice
-  });
+  if (targetLevel === 1) {
+    // Level 1: Only direct referral reward (100 USDT, not NFT price)
+    const level1RewardAmount = 100; // Fixed reward amount for Level 1
+    console.log(`💰 Triggering direct referral reward for Level 1 (${level1RewardAmount} USDT)...`);
 
-  if (rewardError) {
-    console.error(`⚠️ Layer ${targetLevel} reward trigger error:`, rewardError);
-    // Don't throw - continue even if rewards fail
-  } else {
-    console.log(`✅ Layer ${targetLevel} rewards triggered:`, rewardData);
+    const { data, error } = await supabase.rpc('trigger_layer_rewards_on_upgrade', {
+      p_upgrading_member_wallet: walletAddress,
+      p_new_level: targetLevel,
+      p_nft_price: level1RewardAmount
+    });
+
+    directRewardData = data;
+    directRewardError = error;
+
+    if (directRewardError) {
+      console.error(`⚠️ Direct referral reward error:`, directRewardError);
+    } else {
+      console.log(`✅ Direct referral reward triggered:`, directRewardData);
+    }
+
+  } else if (targetLevel >= 2 && targetLevel <= 19) {
+    // Level 2-19: Only matrix layer rewards (no direct referral rewards)
+    console.log(`💰 Triggering matrix layer rewards for Level ${targetLevel}...`);
+
+    const { data, error } = await supabase.rpc('trigger_matrix_layer_rewards', {
+      p_upgrading_member_wallet: walletAddress,
+      p_new_level: targetLevel,
+      p_nft_price: nftPrice
+    });
+
+    matrixRewardData = data;
+    matrixRewardError = error;
+
+    if (matrixRewardError) {
+      console.error(`⚠️ Matrix layer reward error:`, matrixRewardError);
+    } else {
+      console.log(`✅ Matrix layer rewards triggered:`, matrixRewardData);
+    }
   }
 
   return {
     membershipUpdated: true,
     levelUpdated: targetLevel,
-    layerRewardsTriggered: !rewardError,
-    rewardData: rewardData
+    directRewardTriggered: targetLevel === 1 && !directRewardError,
+    matrixRewardsTriggered: targetLevel >= 2 && !matrixRewardError,
+    directRewardData: directRewardData,
+    matrixRewardData: matrixRewardData
   };
 }
 

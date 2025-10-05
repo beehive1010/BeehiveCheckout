@@ -22,7 +22,6 @@ import {
     ChevronDown,
     Clock,
     DollarSign,
-    Gift,
     History,
     RefreshCw,
     Shield,
@@ -510,19 +509,7 @@ export default function Rewards() {
               </div>
               
               <div className="flex flex-col sm:flex-row gap-3 w-full lg:w-auto">
-                <Button 
-                  onClick={claimPendingRewards}
-                  disabled={!rewardsData?.claimable || rewardsData.claimable <= 0}
-                  className="group relative overflow-hidden bg-gradient-to-r from-honey to-amber-400 hover:from-honey/90 hover:to-amber-500 text-black font-bold shadow-xl hover:shadow-2xl transform hover:scale-105 transition-all duration-300 rounded-xl px-6 py-3 min-h-[48px] flex-1 sm:flex-none disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100"
-                  data-testid="button-claim-all"
-                >
-                  <div className="absolute inset-0 bg-white/20 transform scale-x-0 group-hover:scale-x-100 transition-transform duration-300 origin-left"></div>
-                  <div className="relative flex items-center justify-center gap-2">
-                    <Gift className="h-4 w-4 group-hover:animate-bounce" />
-                    <span>{t('rewards.claimAll')}</span>
-                  </div>
-                </Button>
-                <Button 
+                <Button
                   onClick={loadRewardsData}
                   variant="outline"
                   className="group relative overflow-hidden border-2 border-honey/30 hover:border-honey/50 hover:bg-honey/10 shadow-lg hover:shadow-xl transform hover:scale-105 transition-all duration-300 rounded-xl px-6 py-3 min-h-[48px] flex-1 sm:flex-none"
