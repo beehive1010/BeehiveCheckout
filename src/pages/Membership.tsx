@@ -529,7 +529,25 @@ export default function Membership() {
           </div>
           
           <div className="max-w-4xl mx-auto" data-testid="quick-upgrade-section">
-            
+
+            {/* Debug info */}
+            <div className="mb-4 p-4 bg-gray-800 rounded-lg text-xs font-mono">
+              <div className="text-yellow-400 mb-2">🔍 Debug Info:</div>
+              <div className="space-y-1 text-gray-300">
+                <div>currentLevel: <span className="text-blue-400">{currentLevel}</span></div>
+                <div>directReferralsCount: <span className="text-blue-400">{directReferralsCount}</span></div>
+                <div>hasLevel2NFT: <span className="text-blue-400">{hasLevel2NFT ? 'true' : 'false'}</span></div>
+                <div className="border-t border-gray-700 mt-2 pt-2">
+                  <div>currentLevel === 1: <span className="text-purple-400">{currentLevel === 1 ? '✓' : '✗'}</span></div>
+                  <div>directReferralsCount &gt;= 3: <span className="text-purple-400">{(directReferralsCount || 0) >= 3 ? '✓' : '✗'}</span></div>
+                  <div>!hasLevel2NFT: <span className="text-purple-400">{!hasLevel2NFT ? '✓' : '✗'}</span></div>
+                  <div className="font-bold text-green-400 mt-2">
+                    Should show Level 2 button: {currentLevel === 1 && (directReferralsCount || 0) >= 3 && !hasLevel2NFT ? '✓ YES' : '✗ NO'}
+                  </div>
+                </div>
+              </div>
+            </div>
+
             {/* Dynamic component selection for membership upgrades only */}
             {currentLevel === 0 ? (
               <div className="text-center p-8 text-muted-foreground">
