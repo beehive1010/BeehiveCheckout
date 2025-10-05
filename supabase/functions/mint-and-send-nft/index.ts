@@ -51,18 +51,16 @@ serve(async (req) => {
 
     console.log('✅ NFT minted:', mintResult);
 
-    // Activate membership in database
-    console.log('💾 Activating membership in database...');
-    const activationResult = await activateMembership(
-      supabase,
+    // Call activate-membership function to handle complete activation flow
+    console.log('💾 Calling activate-membership for complete activation...');
+    const activationResult = await callActivateMembership(
       recipientAddress,
       level,
-      paymentTransactionHash,
       mintResult.transactionHash,
       referrerWallet
     );
 
-    console.log('✅ Membership activated:', activationResult);
+    console.log('✅ Complete activation finished:', activationResult);
 
     return new Response(
       JSON.stringify({
@@ -208,70 +206,52 @@ async function mintNFTViaEngine(
   };
 }
 
-async function activateMembership(
-  supabase: any,
+async function callActivateMembership(
   walletAddress: string,
   level: number,
-  paymentTxHash: string,
   mintTxHash: string,
   referrerWallet?: string
 ): Promise<any> {
-  // Check if user exists
-  const { data: existingUser } = await supabase
-    .from('users')
-    .select('wallet_address')
-    .ilike('wallet_address', walletAddress)
-    .single();
+  const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
+  const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
 
-  if (!existingUser) {
-    throw new Error('User not registered');
+  console.log('📞 Calling activate-membership Edge Function:', {
+    walletAddress,
+    level,
+    mintTxHash,
+    referrerWallet
+  });
+
+  // Call activate-membership Edge Function
+  // This will handle:
+  // 1. Create membership record
+  // 2. Create members record with activation_sequence
+  // 3. Record referral via recursive_matrix_placement
+  // 4. Create referrals and matrix_referrals records
+  // 5. Trigger direct rewards (layer_rewards)
+  const response = await fetch(`${supabaseUrl}/functions/v1/activate-membership`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'Authorization': `Bearer ${supabaseServiceKey}`,
+      'apikey': supabaseServiceKey,
+      'x-wallet-address': walletAddress
+    },
+    body: JSON.stringify({
+      transactionHash: mintTxHash,
+      level: level,
+      referrerWallet: referrerWallet,
+      action: 'activate' // Explicit action for activation
+    })
+  });
+
+  if (!response.ok) {
+    const errorText = await response.text();
+    throw new Error(`Activation failed: ${response.status} - ${errorText}`);
   }
 
-  // Check if membership already exists
-  const { data: existingMembership } = await supabase
-    .from('memberships')
-    .select('id, nft_level')
-    .ilike('wallet_address', walletAddress)
-    .single();
+  const result = await response.json();
+  console.log('✅ Activation response:', result);
 
-  if (existingMembership && existingMembership.nft_level >= level) {
-    console.log('⚠️ User already has this level or higher');
-    return { alreadyActivated: true };
-  }
-
-  // Activate or upgrade membership
-  const membershipData = {
-    wallet_address: walletAddress,
-    nft_level: level,
-    membership_status: 'active',
-    activation_transaction_hash: mintTxHash,
-    payment_transaction_hash: paymentTxHash,
-    activated_at: new Date().toISOString(),
-    last_updated: new Date().toISOString()
-  };
-
-  if (existingMembership) {
-    // Upgrade existing membership
-    const { error } = await supabase
-      .from('memberships')
-      .update(membershipData)
-      .ilike('wallet_address', walletAddress);
-
-    if (error) throw error;
-  } else {
-    // Create new membership
-    const { error } = await supabase
-      .from('memberships')
-      .insert(membershipData);
-
-    if (error) throw error;
-  }
-
-  // Handle referral if provided
-  if (referrerWallet && level === 1) {
-    console.log('🔗 Processing referral:', referrerWallet);
-    // Referral processing will be handled by database triggers
-  }
-
-  return { activated: true, level };
+  return result;
 }
