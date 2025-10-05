@@ -171,9 +171,10 @@ serve(async (req) => {
       .select('*')
       .ilike('wallet_address', walletAddress)
       .eq('nft_level', level)
-      .single();
+      .maybeSingle(); // Use maybeSingle() instead of single() to avoid error when no rows found
 
-    if (existingMembership && !membershipCheckError) {
+    // If membership exists, return already activated
+    if (existingMembership) {
       console.log(`⚠️ Level ${level} membership already claimed for: ${walletAddress}`);
       return new Response(JSON.stringify({
         success: true,
@@ -189,6 +190,11 @@ serve(async (req) => {
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
         status: 200
       });
+    }
+
+    // Log if there was an error checking membership (but continue if just no rows found)
+    if (membershipCheckError) {
+      console.warn(`⚠️ Error checking existing membership:`, membershipCheckError);
     }
 
     // Step 3: VERIFY ON-CHAIN NFT OWNERSHIP BEFORE CREATING MEMBERSHIP
