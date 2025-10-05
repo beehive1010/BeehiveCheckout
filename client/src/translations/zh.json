@@ -978,5 +978,111 @@
         "description": "无法完成会员购买。请重试。"
       }
     }
+  },
+  "rewardsPage": {
+    "overview": "奖励概览",
+    "overviewSubtitle": "查看您的完整奖励统计和收益明细",
+    "subtitle": "跟踪和管理您的矩阵奖励和提现",
+    "loading": "正在加载奖励数据...",
+    "error": "加载奖励失败"
+  },
+  "rewards": {
+    "overview": {
+      "totalEarned": "总收益",
+      "totalWithdrawn": "已提现",
+      "pending": "待处理",
+      "claimable": "可领取"
+    },
+    "status": {
+      "pending": "待处理",
+      "claimable": "可领取",
+      "claimed": "已领取",
+      "expired": "已过期",
+      "rolled_up": "已汇总",
+      "forfeited": "已放弃"
+    },
+    "tabs": {
+      "pending": "待处理奖励",
+      "rollup": "汇总分配",
+      "withdrawal": "提现",
+      "history": "奖励历史"
+    },
+    "management": "奖励管理",
+    "selectCategory": "选择一个类别来查看和管理您的奖励",
+    "pendingCountdowns": "待处理倒计时",
+    "pendingDescription": "监控您的待处理奖励，在过期前升级",
+    "available_to_claim": "可领取",
+    "rewardReady": "奖励已就绪",
+    "rewardReadyDescription": "待处理奖励已变为可领取",
+    "claimSuccess": "奖励领取成功",
+    "claimSuccessDescription": "您已成功领取 {amount} USDT 奖励",
+    "claimFailed": "领取失败",
+    "claimFailedDescription": "目前无法领取奖励",
+    "errors": {
+      "loadFailed": "加载奖励数据失败",
+      "claimFailed": "领取奖励失败"
+    },
+    "rollup": {
+      "title": "汇总奖励分配",
+      "subtitle": "自动将汇总奖励分配给您的上级矩阵",
+      "autoDistribution": "自动分配",
+      "automatic": "自动",
+      "distribution": "分配",
+      "networkBased": "网络",
+      "based": "基础",
+      "realTime": "实时",
+      "tracking": "跟踪",
+      "transparent": "透明",
+      "system": "系统"
+    },
+    "noHistory": "暂无奖励历史",
+    "noHistoryDescription": "一旦您开始赚取，您的奖励交易将显示在这里",
+    "learnMore": "了解更多",
+    "history": {
+      "title": "奖励历史",
+      "subtitle": "完整的交易历史和奖励跟踪",
+      "transactions": "交易",
+      "filters": "筛选",
+      "searchPlaceholder": "按用户名、ID或位置搜索...",
+      "allLayers": "所有层级",
+      "allStatus": "所有状态",
+      "dateFrom": "开始日期",
+      "dateTo": "结束日期",
+      "clearFilters": "清除筛选",
+      "showing": "显示",
+      "of": "共",
+      "results": "条结果",
+      "noFilteredResults": "没有符合筛选条件的交易"
+    }
+  },
+  "withdrawal": {
+    "title": "提现奖励",
+    "subtitle": "将您赚取的USDT奖励提现到任何支持的链",
+    "available_balance": "可用余额",
+    "wallet": "钱包",
+    "multi_chain_support": "多链支持",
+    "multi_chain_description": "提现到任何支持的区块链网络，自动桥接",
+    "withdrawal_chain": "提现链",
+    "select_target_chain": "选择目标链",
+    "withdrawal_currency": "提现货币",
+    "withdrawal_amount": "提现金额",
+    "enter_amount": "输入USDT金额",
+    "amount": "金额",
+    "network_fee": "网络费用",
+    "you_receive": "您将收到",
+    "withdraw_to": "提现到",
+    "selected_chain": "已选链",
+    "processing": "正在处理提现...",
+    "cross_chain_note": "跨链提现到 {targetChain} 将通过桥接处理",
+    "crossChainProcessing": "跨链提现处理中",
+    "estimatedArrival": "您将在大约 {minutes} 分钟内在 {chain} 上收到 {amount} USDT",
+    "withdrawal_failed": "提现失败",
+    "invalid_amount": "无效金额",
+    "enter_valid_amount": "请输入有效的提现金额",
+    "wallet_required": "需要钱包",
+    "connect_wallet": "请连接您的钱包以提现",
+    "insufficient_balance": "余额不足",
+    "available_balance_is": "可用余额：${amount} USDT",
+    "view_transaction_history": "查看交易历史"
   }
 }
