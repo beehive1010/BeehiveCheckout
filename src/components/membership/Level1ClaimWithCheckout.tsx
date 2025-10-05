@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useActiveAccount } from 'thirdweb/react';
-import { PayEmbed } from 'thirdweb/react';
-import { createThirdwebClient } from 'thirdweb';
+import { CheckoutWidget } from 'thirdweb/react';
+import { createThirdwebClient, defineChain } from 'thirdweb';
 import { arbitrum } from 'thirdweb/chains';
 import { Button } from '../ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '../ui/card';
@@ -31,10 +31,11 @@ export function Level1ClaimWithCheckout({
   const [isRegistered, setIsRegistered] = useState(false);
   const [isCheckingRegistration, setIsCheckingRegistration] = useState(true);
   const [hasNFT, setHasNFT] = useState(false);
-  const [showPayEmbed, setShowPayEmbed] = useState(false);
+  const [showCheckout, setShowCheckout] = useState(false);
 
   const LEVEL_1_PRICE_USDT = 130;
-  const SERVER_WALLET = import.meta.env.VITE_SERVER_WALLET_ADDRESS || '0x0bA198F73DF3A1374a49Acb2c293ccA20e150Fe0';
+  const SERVER_WALLET = import.meta.env.VITE_SERVER_WALLET_ADDRESS || '0x8AABc891958D8a813dB15C355F0aEaa85E4E5C9c';
+  const USDT_CONTRACT = '0xFd086bC7CD5C481DCC9C85ebE478A1C0b69FCbb9';
   const THIRDWEB_CLIENT_ID = import.meta.env.VITE_THIRDWEB_CLIENT_ID;
 
   const client = createThirdwebClient({
@@ -228,83 +229,51 @@ export function Level1ClaimWithCheckout({
       </CardHeader>
 
       <CardContent className="space-y-4">
-        {!showPayEmbed ? (
-          <>
-            {/* Info Box */}
-            <div className="p-3 bg-blue-500/10 border border-blue-500/20 rounded-lg">
-              <div className="flex items-start gap-2">
-                <Zap className="h-4 w-4 text-blue-400 mt-0.5" />
-                <div>
-                  <p className="text-sm font-medium text-blue-400">Pay with Checkout Widget</p>
-                  <p className="text-xs text-muted-foreground mt-1">
-                    Server wallet will mint and send NFT to you after payment confirmation
-                  </p>
-                </div>
-              </div>
+        {/* Info Box */}
+        <div className="p-3 bg-blue-500/10 border border-blue-500/20 rounded-lg">
+          <div className="flex items-start gap-2">
+            <Zap className="h-4 w-4 text-blue-400 mt-0.5" />
+            <div>
+              <p className="text-sm font-medium text-blue-400">Pay with Checkout Widget</p>
+              <p className="text-xs text-muted-foreground mt-1">
+                Server wallet will mint and send NFT to you after payment confirmation
+              </p>
             </div>
-
-            {/* Start Payment Button */}
-            <Button
-              onClick={() => setShowPayEmbed(true)}
-              className="w-full bg-gradient-to-r from-honey to-orange-500 hover:from-honey/90 hover:to-orange-500/90 text-white font-semibold py-3 rounded-lg transition-all"
-            >
-              <Crown className="h-5 w-5 mr-2" />
-              Pay {LEVEL_1_PRICE_USDT} USDT
-            </Button>
-          </>
-        ) : (
-          <div className="space-y-4">
-            <PayEmbed
-              client={client}
-              payOptions={{
-                mode: 'direct_payment',
-                paymentInfo: {
-                  amount: LEVEL_1_PRICE_USDT.toString(),
-                  chain: arbitrum,
-                  token: {
-                    address: '0xFd086bC7CD5C481DCC9C85ebE478A1C0b69FCbb9', // USDT
-                    symbol: 'USDT',
-                    decimals: 6
-                  },
-                  sellerAddress: SERVER_WALLET
-                },
-                metadata: {
-                  level: '1',
-                  buyer: account.address,
-                  referrer: referrerWallet || 'none'
-                }
-              }}
-              onPaymentSuccess={handlePaymentSuccess}
-              onError={(error) => {
-                console.error('Payment error:', error);
-                toast({
-                  title: 'Payment Failed',
-                  description: error.message || 'Please try again',
-                  variant: 'destructive'
-                });
-                onError?.(error.message || 'Payment failed');
-              }}
-            />
-
-            <Button
-              variant="outline"
-              onClick={() => setShowPayEmbed(false)}
-              className="w-full"
-            >
-              Cancel
-            </Button>
           </div>
-        )}
+        </div>
+
+        {/* Checkout Widget */}
+        <div className="flex justify-center">
+          <CheckoutWidget
+            client={client}
+            image="https://beehive1010.github.io/level1.png"
+            name="BEEHIVE Level 1 Membership"
+            currency="USD"
+            chain={defineChain(42161)}
+            amount={LEVEL_1_PRICE_USDT.toString()}
+            tokenAddress={USDT_CONTRACT}
+            seller={SERVER_WALLET}
+            buttonLabel="CLAIM LEVEL 1 NFT"
+            onTransactionSuccess={handlePaymentSuccess}
+            onError={(error) => {
+              console.error('Payment error:', error);
+              toast({
+                title: 'Payment Failed',
+                description: error.message || 'Please try again',
+                variant: 'destructive'
+              });
+              onError?.(error.message || 'Payment failed');
+            }}
+          />
+        </div>
 
         {/* Payment Info */}
-        {!showPayEmbed && (
-          <div className="text-center text-xs text-muted-foreground space-y-1">
-            <p>💳 Multi-chain payment supported</p>
-            <p>🤖 Server mints and sends NFT</p>
-            <p>⚡ Automatic membership activation</p>
-            <p>✅ One-click process</p>
-          </div>
-        )}
+        <div className="text-center text-xs text-muted-foreground space-y-1">
+          <p>💳 Multi-chain payment supported</p>
+          <p>🤖 Server mints and sends NFT</p>
+          <p>⚡ Automatic membership activation</p>
+          <p>✅ One-click process</p>
+        </div>
       </CardContent>
     </Card>
   );
