@@ -22,6 +22,7 @@ import {
     ChevronDown,
     Clock,
     DollarSign,
+    Gift,
     History,
     RefreshCw,
     Shield,
