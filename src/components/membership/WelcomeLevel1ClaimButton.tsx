@@ -2,7 +2,9 @@ import {useEffect, useState, useCallback, useRef} from 'react';
 import {useActiveAccount, useActiveWalletChain, useSwitchActiveWalletChain, CheckoutWidget} from 'thirdweb/react';
 import {createThirdwebClient, defineChain} from 'thirdweb';
 import {arbitrum} from 'thirdweb/chains';
-import {balanceOf} from 'thirdweb/extensions/erc1155';
+import {balanceOf, claimTo} from 'thirdweb/extensions/erc1155';
+import {getApprovalForTransaction} from 'thirdweb/extensions/erc20';
+import {sendAndConfirmTransaction} from 'thirdweb';
 import {Button} from '../ui/button';
 import {Card, CardContent, CardHeader, CardTitle} from '../ui/card';
 import {Badge} from '../ui/badge';
@@ -35,7 +37,10 @@ export function WelcomeLevel1ClaimButton({ onSuccess, referrerWallet, className 
   const [isStabilizing, setIsStabilizing] = useState(false);
   const [isEligible, setIsEligible] = useState(false);
   const [hasNFT, setHasNFT] = useState(false);
-  const [showCheckout, setShowCheckout] = useState(false);
+  const [showPayEmbed, setShowPayEmbed] = useState(false);
+  const [approvalStep, setApprovalStep] = useState<'idle' | 'approving' | 'approved'>('idle');
+  const [isApproving, setIsApproving] = useState(false);
+  const payEmbedRef = useRef<HTMLDivElement | null>(null);
 
   // Fixed Level 1 pricing and info
   const LEVEL_1_PRICE_USDT = 130;
@@ -262,8 +267,8 @@ export function WelcomeLevel1ClaimButton({ onSuccess, referrerWallet, className 
     }
   };
 
-  const handleStartCheckout = async () => {
-    if (!account?.address || hasNFT) {
+  const handleApproveAndClaim = async () => {
+    if (!account?.address || isApproving || hasNFT) {
       return;
     }
 
@@ -292,23 +297,105 @@ export function WelcomeLevel1ClaimButton({ onSuccess, referrerWallet, className 
         return;
       }
 
-      // Open checkout widget
-      setShowCheckout(true);
+      // Start approval + claim process
+      setIsApproving(true);
+      setApprovalStep('approving');
+
+      toast({
+        title: '⏳ Processing Approval',
+        description: 'Please sign the transaction in your wallet to approve USDT spending',
+        duration: 5000
+      });
+
+      const claimTx = claimTo({
+        contract: nftContract,
+        to: account.address as `0x${string}`,
+        tokenId: BigInt(1),
+        quantity: BigInt(1),
+      });
+
+      const approveTx = await getApprovalForTransaction({
+        transaction: claimTx,
+        account,
+      });
+
+      if (approveTx) {
+        toast({
+          title: '⏳ Approval Pending',
+          description: 'Waiting for blockchain confirmation...',
+          duration: 10000
+        });
+
+        await sendAndConfirmTransaction({
+          transaction: approveTx,
+          account,
+        });
+
+        toast({
+          title: '✅ USDT Approved',
+          description: 'Opening payment interface...',
+          duration: 3000
+        });
+      }
+
+      setApprovalStep('approved');
+      setShowPayEmbed(true);
 
     } catch (error: any) {
-      console.error('❌ Error:', error);
+      console.error('❌ Approval error:', error);
+
+      let errorMessage = 'Failed to approve USDT';
+      if (error.message?.includes('insufficient funds')) {
+        errorMessage = 'Insufficient ETH for gas fees';
+      } else if (error.message?.includes('user rejected')) {
+        errorMessage = 'Transaction rejected by user';
+      }
+
       toast({
-        title: '❌ Error',
-        description: 'Failed to start checkout',
+        title: '❌ Approval Failed',
+        description: errorMessage,
         variant: 'destructive',
         duration: 5000
       });
+
+      setApprovalStep('idle');
+    } finally {
+      setIsApproving(false);
+    }
+  };
+
+  const handleClosePayEmbed = async () => {
+    setShowPayEmbed(false);
+
+    // Re-check if NFT was claimed
+    if (account?.address) {
+      try {
+        const balance = await balanceOf({
+          contract: nftContract,
+          owner: account.address,
+          tokenId: BigInt(1)
+        });
+
+        if (Number(balance) > 0) {
+          setHasNFT(true);
+          toast({
+            title: '🎉 Level 1 NFT Claimed!',
+            description: 'Processing membership activation...',
+            duration: 5000
+          });
+
+          // Trigger activation
+          handlePaymentSuccess('manual_check');
+        }
+      } catch (error) {
+        console.error('Error checking NFT balance:', error);
+      }
     }
   };
 
   const handlePaymentSuccess = async (result: any) => {
     console.log('🎉 Payment successful:', result);
-    setShowCheckout(false);
+    setShowPayEmbed(false);
 
     toast({
       title: '💳 Payment Received!',
@@ -347,6 +434,9 @@ export function WelcomeLevel1ClaimButton({ onSuccess, referrerWallet, className 
           variant: "default",
           duration: 3000,
         });
+
+        // Close PayEmbed if still open
+        setShowPayEmbed(false);
 
         // Call onSuccess callback
         if (onSuccess) {
@@ -465,10 +555,10 @@ export function WelcomeLevel1ClaimButton({ onSuccess, referrerWallet, className 
                 <p className="text-green-800 font-semibold">✅ You already own Level 1 NFT</p>
                 <p className="text-xs text-green-700 mt-1">Your membership is active</p>
               </div>
-            ) : !showCheckout ? (
+            ) : (
               <Button
-                onClick={handleStartCheckout}
-                disabled={!account?.address || isWrongNetwork || isStabilizing || isProcessing}
+                onClick={handleApproveAndClaim}
+                disabled={!account?.address || isWrongNetwork || isStabilizing || isApproving}
                 className="w-full h-12 bg-gradient-to-r from-honey to-orange-500 hover:from-honey/90 hover:to-orange-500/90 text-white font-semibold text-lg shadow-lg transition-all disabled:opacity-50"
               >
                 {!account?.address ? (
@@ -481,10 +571,15 @@ export function WelcomeLevel1ClaimButton({ onSuccess, referrerWallet, className 
                     <Crown className="mr-2 h-5 w-5" />
                     Switch Network First
                   </>
-                ) : isProcessing ? (
+                ) : isApproving ? (
                   <>
                     <Loader2 className="mr-2 h-5 w-5 animate-spin" />
-                    Processing...
+                    {approvalStep === 'approving' ? 'Approving USDT...' : 'Processing...'}
+                  </>
+                ) : approvalStep === 'approved' ? (
+                  <>
+                    <Crown className="mr-2 h-5 w-5" />
+                    Approved - Ready to Claim
                   </>
                 ) : (
                   <>
@@ -493,30 +588,6 @@ export function WelcomeLevel1ClaimButton({ onSuccess, referrerWallet, className 
                   </>
                 )}
               </Button>
-            ) : (
-              <div className="space-y-4">
-                <div className="flex justify-center">
-                  <CheckoutWidget
-                    client={checkoutClient}
-                    image="https://beehive1010.github.io/level1.png"
-                    name="BEEHIVE Level 1 Membership"
-                    currency="USD"
-                    chain={defineChain(42161)}
-                    amount={LEVEL_1_PRICE_USDT.toString()}
-                    tokenAddress={USDT_CONTRACT}
-                    seller={SERVER_WALLET}
-                    buttonLabel="PAY & CLAIM NFT"
-                    onTransactionSuccess={handlePaymentSuccess}
-                  />
-                </div>
-                <Button
-                  variant="outline"
-                  onClick={() => setShowCheckout(false)}
-                  className="w-full"
-                >
-                  Cancel
-                </Button>
-              </div>
             )}
 
             {/* Progress indicator */}
@@ -552,6 +623,48 @@ export function WelcomeLevel1ClaimButton({ onSuccess, referrerWallet, className 
           referrerWallet={referrerWallet}
           onRegistrationComplete={handleRegistrationComplete}
         />
+      )}
+
+      {/* PayEmbed Modal */}
+      {showPayEmbed && account?.address && (
+        <div className="fixed inset-0 z-[9999] flex items-center justify-center">
+          <div className="absolute inset-0 bg-black/80 backdrop-blur-sm" onClick={handleClosePayEmbed} />
+          <div
+            ref={payEmbedRef}
+            className="relative p-4 max-h-[min(90vh,800px)] overflow-y-auto bg-black rounded-2xl w-full max-w-[500px] min-h-[600px]"
+            onClick={e => e.stopPropagation()}
+          >
+            <button
+              onClick={handleClosePayEmbed}
+              className="absolute top-4 right-4 z-10 text-gray-400 hover:text-white p-2 rounded-full bg-gray-800/50 hover:bg-gray-700/50 transition-colors"
+              title="Close"
+            >
+              <X size={24} />
+            </button>
+            {/* USDT Payment Notice */}
+            <div className="mb-4 p-3 bg-gradient-to-r from-green-500/20 to-emerald-500/20 border border-green-500/30 rounded-lg">
+              <div className="flex items-center gap-2 mb-1">
+                <div className="w-2 h-2 bg-green-400 rounded-full animate-pulse"></div>
+                <span className="text-sm font-bold text-green-400">Payment Currency: USDT</span>
+              </div>
+              <p className="text-xs text-gray-300">
+                Please use USDT (Tether) for payment. Price: {LEVEL_1_PRICE_USDT} USDT on Arbitrum One.
+              </p>
+            </div>
+            <CheckoutWidget
+              client={checkoutClient}
+              image="https://beehive1010.github.io/level1.png"
+              name="BEEHIVE Level 1 Membership"
+              currency="USD"
+              chain={defineChain(42161)}
+              amount={LEVEL_1_PRICE_USDT.toString()}
+              tokenAddress={USDT_CONTRACT}
+              seller={SERVER_WALLET}
+              buttonLabel="PAY & CLAIM NFT"
+              onTransactionSuccess={handlePaymentSuccess}
+            />
+          </div>
+        </div>
       )}
     </ErrorBoundary>
   );
