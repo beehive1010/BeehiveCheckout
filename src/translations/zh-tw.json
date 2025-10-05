@@ -1107,6 +1107,7 @@
     "startEarning": "Start Earning Rewards",
     "start_earning": "Start earning rewards by participating in the platform!",
     "status": {
+      "claimable": "可領取",
       "completed": "Completed",
       "failed": "Failed",
       "pending": "Pending"
@@ -1412,7 +1413,8 @@
     "created": "創建：{date}"
   },
   "rewardsPage": {
-    "overview": {
+    "overview": "獎勵概覽",
+    "overviewSection": {
       "claimable": "可領取",
       "pending": "待處理",
       "totalEarned": "總收益",
