@@ -3,7 +3,7 @@ import { useI18n } from '../contexts/I18nContext';
 import { Card, CardContent, CardHeader, CardTitle } from '../components/ui/card';
 import { Info } from 'lucide-react';
 
-export function CheckoutTest() {
+export default function CheckoutTest() {
   const { t } = useI18n();
 
   return (
