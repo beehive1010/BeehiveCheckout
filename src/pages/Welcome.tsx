@@ -34,20 +34,20 @@ export default function Welcome() {
       setNoReferrerError(false);
       console.log('🔗 Referrer detected from URL:', ref);
     } else {
-      // Check localStorage for stored referrer
+      // Priority 2: Check localStorage for stored referrer
       const storedReferrer = referralService.getReferrerWallet();
       if (storedReferrer && storedReferrer.startsWith('0x') && storedReferrer.length === 42) {
         setReferrerWallet(storedReferrer);
         setNoReferrerError(false);
         console.log('🔗 Referrer loaded from storage:', storedReferrer);
       } else {
-        // Immediately set default referrer instead of setting error first
-        const defaultReferrer = '0x0000000000000000000000000000000000000001';
+        // Priority 3: Use default referrer ONLY if no URL param and no localStorage
+        const defaultReferrer = '0x3C1FF5B4BE2A1FB8c157aF55aa6450eF66D7E242';
         setReferrerWallet(defaultReferrer);
         // Store the default referrer to localStorage so Registration can access it
         localStorage.setItem('beehive-referrer', defaultReferrer);
         setNoReferrerError(false);
-        console.log('🔧 No valid referrer found, using default referrer immediately:', defaultReferrer);
+        console.log('🔧 No referrer from URL or storage, using default referrer:', defaultReferrer);
       }
     }
   }, []);
