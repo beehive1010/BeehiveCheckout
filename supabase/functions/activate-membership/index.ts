@@ -331,7 +331,7 @@ serve(async (req) => {
     }
 
     // Step 5: Record referral if referrer exists - use matrix placement function
-    // 🔧 FIX: Allow default referrer (0x00...001) for matrix placement
+    // 🔧 FIX: Allow default referrer (0x3C1FF5B4BE2A1FB8c157aF55aa6450eF66D7E242) for matrix placement
     let referralRecord = null;
     if (normalizedReferrerWallet && memberRecord) {
       try {
@@ -404,7 +404,7 @@ serve(async (req) => {
 
     // Step 7: Process layer reward for Level 1 activation (direct referral to upline)
     let layerRewardResult = null;
-    if (level === 1 && normalizedReferrerWallet && normalizedReferrerWallet !== '0x0000000000000000000000000000000000000001') {
+    if (level === 1 && normalizedReferrerWallet && normalizedReferrerWallet !== '0x3C1FF5B4BE2A1FB8c157aF55aa6450eF66D7E242') {
       try {
         console.log(`💰 Processing layer reward for Level 1 activation...`);
         console.log(`🎯 Reward will be sent to referrer: ${normalizedReferrerWallet}`);

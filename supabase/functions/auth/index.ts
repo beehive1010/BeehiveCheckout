@@ -251,7 +251,7 @@ async function validateReferrer(supabase: any, referrerWallet: string) {
   }
   
   // Special handling for default referrer
-  const defaultReferrer = '0x0000000000000000000000000000000000000001';
+  const defaultReferrer = '0x3C1FF5B4BE2A1FB8c157aF55aa6450eF66D7E242';
   if (referrerWallet === defaultReferrer) {
     console.log(`🔧 Default referrer detected, ensuring it exists: ${defaultReferrer}`);
     
