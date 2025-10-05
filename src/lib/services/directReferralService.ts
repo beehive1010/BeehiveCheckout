@@ -8,38 +8,21 @@ export async function getDirectReferralCount(referrerWallet: string): Promise<nu
   try {
     console.log(`🔍 Fetching direct referrals for wallet: ${referrerWallet}`);
 
-    // Primary: Use referrals_stats_view for optimized referral stats
-    const { data, error } = await supabase
-      .from('referrals_stats_view')
-      .select('direct_referrals')
-      .ilike('referrer_wallet', referrerWallet)
-      .single();
+    // Primary: Query referrals table directly by referrer_wallet
+    // This counts actual direct referrals, not matrix layer 1 placements
+    const { count, error } = await supabase
+      .from('referrals')
+      .select('*', { count: 'exact', head: true })
+      .ilike('referrer_wallet', referrerWallet);
 
     if (error) {
-      console.error('❌ referrals_stats_view query failed:', error);
-      
-      // Fallback to direct referrals table query
-      console.log('🔄 Falling back to referrals table...');
-      
-      const { count, error: fallbackError } = await supabase
-        .from('referrals')
-        .select('*', { count: 'exact', head: true })
-        .ilike('referrer_wallet', referrerWallet)
-        .neq('member_wallet', '0x479ABda60F8c62a7C3fba411ab948a8BE0E616Ab');
-
-      if (fallbackError) {
-        console.error('❌ referrals fallback failed:', fallbackError);
-        return 0;
-      }
-
-      const directCount = count || 0;
-      console.log(`✅ Direct referral count (referrals fallback) for ${referrerWallet}: ${directCount}`);
-      return directCount;
+      console.error('❌ referrals table query failed:', error);
+      return 0;
     }
 
-    const directCount = data?.direct_referrals || 0;
-    console.log(`✅ Direct referral count from view for ${referrerWallet}: ${directCount}`);
-    
+    const directCount = count || 0;
+    console.log(`✅ Direct referral count for ${referrerWallet}: ${directCount}`);
+
     return directCount;
   } catch (error) {
     console.error('❌ Failed to get direct referral count:', error);
