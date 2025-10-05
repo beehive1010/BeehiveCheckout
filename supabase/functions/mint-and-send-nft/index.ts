@@ -51,6 +51,19 @@ serve(async (req) => {
 
     console.log('✅ NFT minted:', mintResult);
 
+    // Transfer platform fee (only for Level 1)
+    let platformFeeTransferResult = null;
+    if (level === 1) {
+      console.log('💰 Transferring platform activation fee...');
+      try {
+        platformFeeTransferResult = await transferPlatformFee(30); // 30 USDT platform fee
+        console.log('✅ Platform fee transferred:', platformFeeTransferResult);
+      } catch (feeError) {
+        console.error('⚠️ Platform fee transfer failed (non-critical):', feeError);
+        // Don't throw - continue with activation even if fee transfer fails
+      }
+    }
+
     // Call activate-membership function to handle complete activation flow
     console.log('💾 Calling activate-membership for complete activation...');
     const activationResult = await callActivateMembership(
@@ -70,6 +83,8 @@ serve(async (req) => {
           mintTransactionHash: mintResult.transactionHash,
           paymentTransactionHash,
           membershipActivated: true,
+          platformFeeTransferred: !!platformFeeTransferResult,
+          platformFeeTransactionHash: platformFeeTransferResult?.transactionHash || null,
           level
         }
       }),
@@ -203,6 +218,94 @@ async function mintNFTViaEngine(
   return {
     transactionHash: txHash,
     tokenId: level.toString()
+  };
+}
+
+async function transferPlatformFee(
+  feeAmount: number
+): Promise<{ transactionHash: string }> {
+  const clientId = Deno.env.get('VITE_THIRDWEB_CLIENT_ID');
+  const secretKey = Deno.env.get('VITE_THIRDWEB_SECRET_KEY');
+  const vaultAccessToken = Deno.env.get('VITE_VAULT_ACCESS_TOKEN');
+  const serverWallet = Deno.env.get('VITE_SERVER_WALLET_ADDRESS');
+  const platformFeeAddress = '0x0bA198F73DF3A1374a49Acb2c293ccA20e150Fe0';
+  const usdtContract = '0xFd086bC7CD5C481DCC9C85ebE478A1C0b69FCbb9'; // Arbitrum USDT
+  const chainId = '42161'; // Arbitrum
+
+  if (!clientId || !vaultAccessToken || !serverWallet) {
+    throw new Error('Missing Thirdweb configuration for platform fee transfer');
+  }
+
+  console.log('💰 Transferring platform fee via Thirdweb v1 API:', {
+    from: serverWallet,
+    to: platformFeeAddress,
+    amount: feeAmount,
+    token: 'USDT'
+  });
+
+  // Encode ERC20 transfer function call
+  // function transfer(address to, uint256 amount)
+  const transferFunctionSelector = '0xa9059cbb'; // transfer(address,uint256)
+
+  // Encode parameters (USDT has 6 decimals)
+  const toPadded = platformFeeAddress.toLowerCase().slice(2).padStart(64, '0');
+  const amountInUnits = feeAmount * 1_000_000; // Convert to 6 decimals
+  const amountPadded = amountInUnits.toString(16).padStart(64, '0');
+
+  const encodedData = transferFunctionSelector + toPadded + amountPadded;
+
+  console.log('📝 Encoded transfer data:', {
+    selector: transferFunctionSelector,
+    to: platformFeeAddress,
+    amount: feeAmount,
+    amountInUnits,
+    encodedData
+  });
+
+  // Call Thirdweb v1 transactions API
+  const transactionRequest = {
+    chainId: chainId,
+    from: serverWallet,
+    transactions: [
+      {
+        to: usdtContract,
+        value: '0',
+        data: encodedData
+      }
+    ]
+  };
+
+  console.log('🚀 Calling thirdweb /v1/transactions API for platform fee transfer');
+
+  const transferResponse = await fetch('https://api.thirdweb.com/v1/transactions', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'x-client-id': clientId,
+      'x-secret-key': secretKey || '',
+      'x-vault-access-token': vaultAccessToken
+    },
+    body: JSON.stringify(transactionRequest)
+  });
+
+  if (!transferResponse.ok) {
+    const errorText = await transferResponse.text();
+    throw new Error(`Platform fee transfer failed: ${transferResponse.status} - ${errorText}`);
+  }
+
+  const transferData = await transferResponse.json();
+  console.log('💰 Platform fee transfer response:', JSON.stringify(transferData, null, 2));
+
+  // Extract transaction hash
+  const txHash =
+    transferData.result?.transactionHash ||
+    transferData.result?.receipt?.transactionHash ||
+    transferData.result?.queueId ||
+    transferData.queueId ||
+    'pending';
+
+  return {
+    transactionHash: txHash
   };
 }
 
