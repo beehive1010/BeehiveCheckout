@@ -1839,6 +1839,7 @@
     "claiming": "领取中...",
     "availableIn": "可用时间",
     "rewardsWillAppear": "当团队成员升级会员资格时，奖励将在此处显示",
+    "withdrawal_currency": "提现货币",
     "crossChainProcessing": "跨链提现处理中 🌉",
     "processing": "提现处理中 ⏳",
     "estimatedArrival": "{amount} {chain} 预计 {minutes} 分钟内到账"
