@@ -404,7 +404,7 @@ serve(async (req) => {
 
     // Step 7: Process layer reward for Level 1 activation (direct referral to upline)
     let layerRewardResult = null;
-    if (level === 1 && normalizedReferrerWallet && normalizedReferrerWallet !== '0x3C1FF5B4BE2A1FB8c157aF55aa6450eF66D7E242') {
+    if (level === 1 && normalizedReferrerWallet && normalizedReferrerWallet !== '0x479ABda60F8c62a7C3fba411ab948a8BE0E616Ab') {
       try {
         console.log(`💰 Processing layer reward for Level 1 activation...`);
         console.log(`🎯 Reward will be sent to referrer: ${normalizedReferrerWallet}`);

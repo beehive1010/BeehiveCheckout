@@ -25,7 +25,7 @@ export async function getDirectReferralCount(referrerWallet: string): Promise<nu
         .from('referrals')
         .select('*', { count: 'exact', head: true })
         .ilike('referrer_wallet', referrerWallet)
-        .neq('member_wallet', '0x0000000000000000000000000000000000000001');
+        .neq('member_wallet', '0x479ABda60F8c62a7C3fba411ab948a8BE0E616Ab');
 
       if (fallbackError) {
         console.error('❌ referrals fallback failed:', fallbackError);
