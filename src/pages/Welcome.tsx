@@ -1,5 +1,5 @@
 import React, {useEffect, useState} from 'react';
-import {WelcomeLevel1ClaimButton} from '../components/membership/WelcomeLevel1ClaimButton';
+import {CheckoutLevel1Button} from '../components/membership/CheckoutLevel1Button';
 import {useLocation} from 'wouter';
 import {useActiveAccount} from 'thirdweb/react';
 import {referralService} from '../api/landing/referral.client';
@@ -319,7 +319,7 @@ export default function Welcome() {
         </div>
         
         <div className="max-w-lg mx-auto">
-          <WelcomeLevel1ClaimButton
+          <CheckoutLevel1Button
             onSuccess={handleActivationComplete}
             referrerWallet={referrerWallet}
             className="w-full"

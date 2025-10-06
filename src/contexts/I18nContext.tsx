@@ -105,31 +105,37 @@ const I18nProvider = ({ children }: { children: React.ReactNode }) => {
   const setLanguage = async (lang: Language) => {
     setLanguageState(lang);
     localStorage.setItem('beehive-language', lang);
-    
+
     // Load translations for new language if not in local-only mode
     if (!useLocalOnly) {
-      await loadHybridTranslations();
+      setIsLoading(true);
+      try {
+        await hybridI18nService.getTranslationsForLanguage(lang, true);
+        console.log(`🌍 Loaded hybrid translations for ${lang}`);
+      } catch (error) {
+        console.error('Failed to load hybrid translations:', error);
+      } finally {
+        setIsLoading(false);
+      }
     }
   };
 
   const t = (key: string, interpolations?: Record<string, string | number>): string => {
     try {
-      if (isLoading) {
-        return key;
-      }
-
       let result: string;
-      
+
+      // Always try to get translations from cache, even when loading
+      // This prevents showing translation keys during language switch
       if (useLocalOnly) {
         // Local-only mode: directly access local translations from hybrid service
         const cacheInfo = hybridI18nService.getCacheInfo();
         const currentCache = cacheInfo.cacheStatus[language];
-        
+
         if (currentCache) {
           // Use cached translations (which include local translations)
           const cachedTranslations = hybridI18nService['cache'][language]?.translations || {};
           result = cachedTranslations[key];
-          
+
           // Fallback to English if available
           if (!result && language !== 'en') {
             const enCache = hybridI18nService['cache']['en']?.translations || {};
@@ -140,7 +146,7 @@ const I18nProvider = ({ children }: { children: React.ReactNode }) => {
         // Hybrid mode: get translations synchronously from cache
         const cachedTranslations = hybridI18nService['cache'][language]?.translations || {};
         result = cachedTranslations[key];
-        
+
         // Fallback to English
         if (!result && language !== 'en') {
           const enTranslations = hybridI18nService['cache']['en']?.translations || {};
