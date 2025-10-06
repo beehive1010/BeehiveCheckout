@@ -149,10 +149,21 @@ export function ActiveMembershipClaimButton({
 
   // Check user registration and allowance when account changes
   useEffect(() => {
-    if (account?.address) {
-      checkUserRegistration();
-      checkUSDTAllowance();
-    }
+    let isMounted = true;
+
+    const runChecks = async () => {
+      if (account?.address && isMounted) {
+        await checkUserRegistration();
+        await checkUSDTAllowance();
+      }
+    };
+
+    runChecks();
+
+    // Cleanup function to prevent state updates on unmounted component
+    return () => {
+      isMounted = false;
+    };
   }, [account?.address]);
 
   // Function to call ThirdWeb webhook for membership activation
