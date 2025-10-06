@@ -191,10 +191,22 @@ export const authService = {
       
       // If not activated in database, fall back to blockchain check
       console.log(`🔗 Database shows no activation, checking blockchain for ${walletAddress}`);
-      const chainResult = await callEdgeFunction('activate-membership', {
-        action: 'check-activation-status'
-      }, walletAddress);
-      
+      let chainResult;
+      try {
+        chainResult = await callEdgeFunction('activate-membership', {
+          action: 'check-activation-status'
+        }, walletAddress);
+      } catch (chainError: any) {
+        // If 403 error (NFT_OWNERSHIP_REQUIRED), user is simply not activated yet
+        if (chainError.message?.includes('403') || chainError.message?.includes('NFT_OWNERSHIP_REQUIRED')) {
+          console.log(`ℹ️ User does not have NFT yet for ${walletAddress}`);
+          return { isActivated: false, memberData: null, error: null };
+        }
+        // Other errors should be returned
+        console.log(`❌ Error checking blockchain activation: ${chainError.message}`);
+        return { isActivated: false, memberData: null, error: { message: chainError.message } };
+      }
+
       if (!chainResult.success) {
         console.log(`❌ No activation found in database or blockchain for ${walletAddress}`);
         return { isActivated: false, memberData: null, error: { message: chainResult.error || chainResult.message } };
@@ -229,7 +241,7 @@ export const authService = {
       
     } catch (error: any) {
       console.error('Error checking member activation:', error);
-      
+
       // Final fallback: Use Edge Function instead of direct database check
       try {
         console.log('🔄 Error occurred, trying Edge Function fallback...');
@@ -250,17 +262,26 @@ export const authService = {
           const fallbackResult = await fallbackResponse.json();
           if (fallbackResult.success && fallbackResult.member && fallbackResult.member.current_level > 0) {
             console.log('✅ Found membership in Edge Function fallback');
-            return { 
-              isActivated: true, 
-              memberData: fallbackResult.member, 
-              error: null 
+            return {
+              isActivated: true,
+              memberData: fallbackResult.member,
+              error: null
             };
           }
+        } else if (fallbackResponse.status === 403) {
+          // 403 means user doesn't have NFT yet - this is expected, not an error
+          console.log(`ℹ️ Fallback confirms: User does not have NFT yet for ${walletAddress}`);
+          return { isActivated: false, memberData: null, error: null };
         }
-      } catch (fallbackError) {
+      } catch (fallbackError: any) {
+        // If 403 or NFT_OWNERSHIP_REQUIRED, user simply isn't activated
+        if (fallbackError.message?.includes('403') || fallbackError.message?.includes('NFT_OWNERSHIP_REQUIRED')) {
+          console.log(`ℹ️ Fallback confirms: User does not have NFT yet for ${walletAddress}`);
+          return { isActivated: false, memberData: null, error: null };
+        }
         console.warn('Edge Function fallback failed:', fallbackError);
       }
-      
+
       return { isActivated: false, memberData: null, error: { message: error.message } };
     }
   },
