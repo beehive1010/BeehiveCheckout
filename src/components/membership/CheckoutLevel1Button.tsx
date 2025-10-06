@@ -10,6 +10,7 @@ import { useToast } from '../../hooks/use-toast';
 import { useI18n } from '../../contexts/I18nContext';
 import { Crown, Loader2, Check, AlertCircle, Zap, ArrowRight } from 'lucide-react';
 import { supabase } from '../../lib/supabaseClient';
+import RegistrationModal from '../modals/RegistrationModal';
 
 interface CheckoutLevel1ButtonProps {
   referrerWallet?: string;
@@ -35,6 +36,7 @@ export function CheckoutLevel1Button({
   const [hasNFT, setHasNFT] = useState(false);
   const [isProcessing, setIsProcessing] = useState(false);
   const [isWrongNetwork, setIsWrongNetwork] = useState(false);
+  const [showRegistrationModal, setShowRegistrationModal] = useState(false);
 
   const USDT_CONTRACT = '0xFd086bC7CD5C481DCC9C85ebE478A1C0b69FCbb9'; // Arbitrum USDT
   const SERVER_WALLET = import.meta.env.VITE_SERVER_WALLET_ADDRESS || '0x8AABc891958D8a813dB15C355F0aEaa85E4E5C9c'; // Server wallet address
@@ -237,17 +239,44 @@ export function CheckoutLevel1Button({
     );
   }
 
+  const handleRegistrationComplete = () => {
+    console.log('✅ Registration completed');
+    setShowRegistrationModal(false);
+    // Recheck registration status
+    setTimeout(() => {
+      checkRegistration();
+    }, 1000);
+  };
+
   if (!isRegistered) {
     return (
-      <Card className={`border-red-500/30 bg-red-500/5 ${className}`}>
-        <CardContent className="pt-6 text-center">
-          <AlertCircle className="h-12 w-12 text-red-400 mx-auto mb-3" />
-          <p className="text-red-400 font-semibold">Registration Required</p>
-          <p className="text-sm text-muted-foreground mt-2">
-            Please complete registration before purchasing NFT
-          </p>
-        </CardContent>
-      </Card>
+      <>
+        <Card className={`border-yellow-500/30 bg-yellow-500/5 ${className}`}>
+          <CardContent className="pt-6 text-center">
+            <AlertCircle className="h-12 w-12 text-yellow-400 mx-auto mb-3" />
+            <p className="text-yellow-400 font-semibold">Registration Required</p>
+            <p className="text-sm text-muted-foreground mt-2 mb-4">
+              Please complete registration before purchasing NFT
+            </p>
+            <Button
+              onClick={() => setShowRegistrationModal(true)}
+              className="w-full bg-yellow-600 hover:bg-yellow-700 text-white"
+            >
+              Register Now
+            </Button>
+          </CardContent>
+        </Card>
+
+        {account?.address && (
+          <RegistrationModal
+            isOpen={showRegistrationModal}
+            onClose={() => setShowRegistrationModal(false)}
+            walletAddress={account.address}
+            referrerWallet={referrerWallet}
+            onRegistrationComplete={handleRegistrationComplete}
+          />
+        )}
+      </>
     );
   }
 
