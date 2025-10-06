@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useActiveAccount, useActiveWalletChain, useSwitchActiveWalletChain } from 'thirdweb/react';
 import { getContract, prepareContractCall, sendAndConfirmTransaction, sendTransaction, waitForReceipt } from 'thirdweb';
 import { arbitrum } from 'thirdweb/chains';
@@ -44,13 +44,6 @@ export function CheckoutLevel1Button({
   const LEVEL_1_PRICE_WEI = BigInt(LEVEL_1_PRICE_USDT) * BigInt('1000000'); // 6 decimals - 130000000
   const API_BASE = import.meta.env.VITE_API_BASE_URL || 'https://cvqibjcbfrwsgkvthccp.supabase.co/functions/v1';
 
-  // Debug: Log the transfer amount
-  console.log('💰 CheckoutLevel1Button - Transfer amount:', {
-    LEVEL_1_PRICE_USDT,
-    LEVEL_1_PRICE_WEI: LEVEL_1_PRICE_WEI.toString(),
-    SERVER_WALLET
-  });
-
   // Check network status
   useEffect(() => {
     if (activeChain?.id && activeChain.id !== arbitrum.id) {
@@ -60,15 +53,7 @@ export function CheckoutLevel1Button({
     }
   }, [activeChain?.id]);
 
-  // Check user registration and NFT ownership
-  useEffect(() => {
-    if (account?.address) {
-      checkRegistration();
-      checkNFTOwnership();
-    }
-  }, [account?.address]);
-
-  const checkRegistration = async () => {
+  const checkRegistration = useCallback(async () => {
     if (!account?.address) return;
 
     setIsCheckingRegistration(true);
@@ -92,9 +77,9 @@ export function CheckoutLevel1Button({
     } finally {
       setIsCheckingRegistration(false);
     }
-  };
+  }, [account?.address]);
 
-  const checkNFTOwnership = async () => {
+  const checkNFTOwnership = useCallback(async () => {
     if (!account?.address) return;
 
     try {
@@ -119,7 +104,15 @@ export function CheckoutLevel1Button({
     } catch (error) {
       console.warn('Failed to check NFT ownership:', error);
     }
-  };
+  }, [account?.address, API_BASE]);
+
+  // Check user registration and NFT ownership
+  useEffect(() => {
+    if (account?.address) {
+      checkRegistration();
+      checkNFTOwnership();
+    }
+  }, [account?.address, checkRegistration, checkNFTOwnership]);
 
   const handleSwitchNetwork = async () => {
     if (!switchChain) return;
