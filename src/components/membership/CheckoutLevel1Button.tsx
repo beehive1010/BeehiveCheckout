@@ -376,7 +376,7 @@ export function CheckoutLevel1Button({
     }
   };
 
-  // Debug: Log transaction details at component render
+  // Debug: Log transaction details at component mount
   useEffect(() => {
     console.log('🔍 CheckoutLevel1Button - Transaction Config:', {
       contract: USDT_CONTRACT,
@@ -386,58 +386,38 @@ export function CheckoutLevel1Button({
       decimals: 6,
       expectedHex: '0x' + LEVEL_1_PRICE_WEI.toString(16)
     });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   return (
-    <Card className={`bg-gradient-to-br from-honey/5 to-honey/15 border-honey/30 ${className}`}>
-      <CardHeader>
-        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
-          <div className="flex items-center gap-2">
-            <Crown className="h-5 w-5 sm:h-6 sm:w-6 text-honey" />
-            <CardTitle className="text-lg sm:text-xl">Level 1 NFT Purchase</CardTitle>
+    <Card className={`bg-gradient-to-br from-honey/5 to-honey/15 border-honey/30 shadow-lg ${className}`}>
+      <CardHeader className="pb-4">
+        <div className="flex flex-col gap-3">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <Crown className="h-6 w-6 text-honey" />
+              <CardTitle className="text-xl sm:text-2xl">Level 1 Membership</CardTitle>
+            </div>
+            <Badge className="bg-honey/20 text-honey border-honey/50 text-base sm:text-lg px-3 py-1">
+              {LEVEL_1_PRICE_USDT} USDT
+            </Badge>
           </div>
-          <Badge className="bg-honey/20 text-honey border-honey/50 w-fit">
-            {LEVEL_1_PRICE_USDT} USDT
-          </Badge>
+          <p className="text-sm text-muted-foreground">
+            Activate your BEEHIVE membership and start earning rewards
+          </p>
         </div>
       </CardHeader>
 
       <CardContent className="space-y-4">
-        {/* Checkout Flow Info */}
-        <div className="p-3 sm:p-4 bg-blue-500/10 border border-blue-500/20 rounded-lg space-y-3">
-          <div className="flex items-center gap-2">
-            <Zap className="h-4 w-4 sm:h-5 sm:w-5 text-blue-400 flex-shrink-0" />
-            <p className="text-xs sm:text-sm font-medium text-blue-400">Secure Server Wallet Checkout</p>
-          </div>
-          <div className="space-y-2 text-xs text-muted-foreground">
-            <div className="flex items-start gap-2">
-              <ArrowRight className="h-3 w-3 text-blue-400 flex-shrink-0 mt-0.5" />
-              <span>1. You pay 130 USDT to secure server wallet</span>
-            </div>
-            <div className="flex items-start gap-2">
-              <ArrowRight className="h-3 w-3 text-blue-400 flex-shrink-0 mt-0.5" />
-              <span>2. Server wallet claims NFT directly to your wallet</span>
-            </div>
-            <div className="flex items-start gap-2">
-              <ArrowRight className="h-3 w-3 text-blue-400 flex-shrink-0 mt-0.5" />
-              <span>3. 30 USDT platform fee sent to admin (100 USDT for NFT)</span>
-            </div>
-            <div className="flex items-start gap-2">
-              <ArrowRight className="h-3 w-3 text-blue-400 flex-shrink-0 mt-0.5" />
-              <span>4. Automatic membership activation</span>
-            </div>
-          </div>
-        </div>
-
         {/* Wrong Network Warning */}
         {isWrongNetwork && (
-          <div className="p-3 bg-yellow-50 border border-yellow-200 rounded-lg">
-            <div className="flex items-center gap-2 mb-2">
+          <div className="p-4 bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 rounded-lg">
+            <div className="flex items-center gap-2 mb-3">
               <div className="w-2 h-2 bg-yellow-400 rounded-full animate-pulse"></div>
-              <span className="text-sm font-medium text-yellow-800">Wrong Network</span>
+              <span className="text-sm font-semibold text-yellow-800 dark:text-yellow-200">Wrong Network</span>
             </div>
-            <p className="text-xs text-yellow-700 mb-3">
-              Switch to Arbitrum One to continue
+            <p className="text-xs text-yellow-700 dark:text-yellow-300 mb-3">
+              Switch to Arbitrum One to continue with your purchase
             </p>
             <Button
               onClick={handleSwitchNetwork}
@@ -459,16 +439,16 @@ export function CheckoutLevel1Button({
 
         {/* Payment Amount Display */}
         {!isWrongNetwork && (
-          <div className="p-3 sm:p-4 bg-gradient-to-r from-green-500/10 to-emerald-500/10 border border-green-500/20 rounded-lg">
+          <div className="p-4 bg-gradient-to-r from-green-500/10 to-emerald-500/10 border border-green-500/20 rounded-lg">
             <div className="flex items-center justify-between mb-2">
-              <span className="text-xs sm:text-sm font-medium text-muted-foreground">Payment Amount:</span>
-              <div className="flex items-center gap-1 sm:gap-2">
-                <span className="text-xl sm:text-2xl font-bold text-green-600 dark:text-green-400">{LEVEL_1_PRICE_USDT}</span>
-                <span className="text-xs sm:text-sm font-medium text-green-600 dark:text-green-400">USDT</span>
+              <span className="text-sm font-medium text-muted-foreground">Payment Amount:</span>
+              <div className="flex items-baseline gap-2">
+                <span className="text-3xl font-bold text-green-600 dark:text-green-400">{LEVEL_1_PRICE_USDT}</span>
+                <span className="text-base font-semibold text-green-600 dark:text-green-400">USDT</span>
               </div>
             </div>
-            <div className="text-xs text-muted-foreground break-all sm:break-normal">
-              Transfer to: {SERVER_WALLET.slice(0, 6)}...{SERVER_WALLET.slice(-4)}
+            <div className="text-xs text-muted-foreground mt-2">
+              Transfer to: <span className="font-mono">{SERVER_WALLET.slice(0, 6)}...{SERVER_WALLET.slice(-4)}</span>
             </div>
           </div>
         )}
@@ -478,28 +458,75 @@ export function CheckoutLevel1Button({
           <Button
             onClick={handlePayment}
             disabled={isProcessing}
-            className="w-full bg-gradient-to-r from-honey to-orange-500 hover:from-honey/90 hover:to-orange-500/90 text-white font-semibold py-4 sm:py-6 text-base sm:text-lg rounded-lg transition-all disabled:opacity-50"
+            className="w-full bg-gradient-to-r from-honey to-orange-500 hover:from-honey/90 hover:to-orange-500/90 text-white font-bold py-6 text-lg rounded-xl shadow-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed"
           >
             {isProcessing ? (
               <>
-                <Loader2 className="mr-2 h-4 w-4 sm:h-5 sm:w-5 animate-spin" />
-                Processing...
+                <Loader2 className="mr-2 h-5 w-5 animate-spin" />
+                Processing Payment...
               </>
             ) : (
               <>
-                <Crown className="mr-2 h-4 w-4 sm:h-5 sm:w-5" />
-                Pay {LEVEL_1_PRICE_USDT} USDT
+                <Crown className="mr-2 h-5 w-5" />
+                Pay {LEVEL_1_PRICE_USDT} USDT & Activate
               </>
             )}
           </Button>
         )}
 
+        {/* Checkout Flow Info - Collapsible */}
+        {!isWrongNetwork && (
+          <details className="group">
+            <summary className="cursor-pointer p-3 bg-blue-500/10 border border-blue-500/20 rounded-lg hover:bg-blue-500/15 transition-colors">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <Zap className="h-4 w-4 text-blue-400" />
+                  <span className="text-sm font-medium text-blue-400">How It Works</span>
+                </div>
+                <ArrowRight className="h-4 w-4 text-blue-400 group-open:rotate-90 transition-transform" />
+              </div>
+            </summary>
+            <div className="mt-2 p-3 space-y-2 text-xs text-muted-foreground">
+              <div className="flex items-start gap-2">
+                <span className="flex-shrink-0 w-5 h-5 rounded-full bg-blue-500/20 text-blue-400 flex items-center justify-center text-xs font-semibold">1</span>
+                <span>You pay 130 USDT to secure server wallet</span>
+              </div>
+              <div className="flex items-start gap-2">
+                <span className="flex-shrink-0 w-5 h-5 rounded-full bg-blue-500/20 text-blue-400 flex items-center justify-center text-xs font-semibold">2</span>
+                <span>Server wallet claims NFT directly to your wallet</span>
+              </div>
+              <div className="flex items-start gap-2">
+                <span className="flex-shrink-0 w-5 h-5 rounded-full bg-blue-500/20 text-blue-400 flex items-center justify-center text-xs font-semibold">3</span>
+                <span>30 USDT platform fee sent to admin (100 USDT for NFT)</span>
+              </div>
+              <div className="flex items-start gap-2">
+                <span className="flex-shrink-0 w-5 h-5 rounded-full bg-blue-500/20 text-blue-400 flex items-center justify-center text-xs font-semibold">4</span>
+                <span>Automatic membership activation & matrix placement</span>
+              </div>
+            </div>
+          </details>
+        )}
+
         {/* Additional Info */}
-        <div className="text-center text-xs text-muted-foreground space-y-1">
-          <p>💳 USDT payment on Arbitrum One</p>
-          <p>🔒 Secure server wallet processing</p>
-          <p>⚡ Instant NFT delivery to your wallet</p>
-          <p>✅ Automatic membership activation</p>
+        <div className="pt-2 border-t border-honey/10">
+          <div className="grid grid-cols-2 gap-2 text-center text-xs text-muted-foreground">
+            <div className="p-2 bg-secondary/50 rounded">
+              <p className="font-semibold text-foreground">💳 Payment</p>
+              <p>USDT on Arbitrum</p>
+            </div>
+            <div className="p-2 bg-secondary/50 rounded">
+              <p className="font-semibold text-foreground">⚡ Delivery</p>
+              <p>Instant NFT</p>
+            </div>
+            <div className="p-2 bg-secondary/50 rounded">
+              <p className="font-semibold text-foreground">🔒 Security</p>
+              <p>Server Wallet</p>
+            </div>
+            <div className="p-2 bg-secondary/50 rounded">
+              <p className="font-semibold text-foreground">✅ Activation</p>
+              <p>Automatic</p>
+            </div>
+          </div>
         </div>
       </CardContent>
     </Card>
