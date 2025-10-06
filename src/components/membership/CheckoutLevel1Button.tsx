@@ -104,7 +104,8 @@ export function CheckoutLevel1Button({
     } catch (error) {
       console.warn('Failed to check NFT ownership:', error);
     }
-  }, [account?.address, API_BASE]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [account?.address]); // Removed API_BASE from dependencies - it's a constant from env vars
 
   // Check user registration and NFT ownership
   useEffect(() => {
