@@ -109,11 +109,23 @@ export function CheckoutLevel1Button({
 
   // Check user registration and NFT ownership
   useEffect(() => {
-    if (account?.address) {
-      checkRegistration();
-      checkNFTOwnership();
-    }
-  }, [account?.address, checkRegistration, checkNFTOwnership]);
+    let isMounted = true;
+
+    const runChecks = async () => {
+      if (account?.address && isMounted) {
+        await checkRegistration();
+        await checkNFTOwnership();
+      }
+    };
+
+    runChecks();
+
+    // Cleanup function to prevent state updates on unmounted component
+    return () => {
+      isMounted = false;
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [account?.address]);
 
   const handleSwitchNetwork = async () => {
     if (!switchChain) return;
