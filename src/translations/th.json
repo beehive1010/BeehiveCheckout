@@ -2529,6 +2529,7 @@
     "startEarning": "Start Earning Rewards",
     "start_earning": "Start earning rewards by participating in the platform!",
     "status": {
+      "claimable": "สามารถรับได้",
       "completed": "Completed",
       "failed": "Failed",
       "pending": "Pending"
@@ -2971,7 +2972,8 @@
     "readyToClaim": "準備領取",
     "claiming": "領取中...",
     "availableIn": "可用時間",
-    "rewardsWillAppear": "當團隊成員升級会員資格時，獎勵將在此處顯示"
+    "rewardsWillAppear": "當團隊成員升級会員資格時，獎勵將在此處顯示",
+    "withdrawal_currency": "สกุลเงินถอน"
   },
   "countdown": {
     "timer": "倒計時器",
@@ -3055,7 +3057,8 @@
     "created": "創建：{date}"
   },
   "rewardsPage": {
-    "overview": {
+    "overview": "ภาพรวมรางวัล",
+    "overviewSection": {
       "claimable": "可領取",
       "pending": "待處理",
       "totalEarned": "總收益",

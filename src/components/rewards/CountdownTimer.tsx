@@ -209,64 +209,64 @@ export function CountdownTimer({
 
   return (
     <Card className={`${urgencyStyle.bg} ${urgencyStyle.border} border ${className}`}>
-      <CardHeader className="pb-3">
+      <CardHeader className="pb-2 sm:pb-3 px-3 sm:px-6 pt-3 sm:pt-6">
         <div className="flex items-center justify-between">
-          <CardTitle className={`text-lg ${urgencyStyle.color} flex items-center gap-2`}>
-            <Clock className="h-5 w-5" />
-            {title || t('countdown.timer')}
+          <CardTitle className={`text-sm sm:text-lg ${urgencyStyle.color} flex items-center gap-1.5 sm:gap-2`}>
+            <Clock className="h-4 w-4 sm:h-5 sm:w-5" />
+            <span className="truncate">{title || t('countdown.timer')}</span>
           </CardTitle>
-          <Badge 
-            variant="outline" 
-            className={`${urgencyStyle.bg} ${urgencyStyle.color} ${urgencyStyle.border}`}
+          <Badge
+            variant="outline"
+            className={`${urgencyStyle.bg} ${urgencyStyle.color} ${urgencyStyle.border} text-[10px] sm:text-xs px-1.5 sm:px-2.5 py-0.5 sm:py-1 whitespace-nowrap`}
           >
-            {timeRemaining.percentage > 50 ? t('countdown.status.safe') : 
+            {timeRemaining.percentage > 50 ? t('countdown.status.safe') :
              timeRemaining.percentage > 25 ? t('countdown.status.caution') :
              timeRemaining.percentage > 10 ? t('countdown.status.warning') : t('countdown.status.critical')}
           </Badge>
         </div>
         {description && (
-          <p className="text-sm text-muted-foreground">{description}</p>
+          <p className="text-xs sm:text-sm text-muted-foreground mt-1 sm:mt-2">{description}</p>
         )}
       </CardHeader>
-      
-      <CardContent className="space-y-4">
+
+      <CardContent className="space-y-3 sm:space-y-4 px-3 sm:px-6 pb-3 sm:pb-6">
         {/* Time Display */}
         <div className="text-center">
-          <div className={`text-3xl font-mono font-bold ${urgencyStyle.color} mb-1`}>
+          <div className={`text-xl sm:text-3xl font-mono font-bold ${urgencyStyle.color} mb-0.5 sm:mb-1`}>
             {formatTimeDisplay(timeRemaining)}
           </div>
-          <div className="text-xs text-muted-foreground">
-            {timeRemaining.days > 0 ? t('countdown.units.daysHoursMinutes') : 
+          <div className="text-[10px] sm:text-xs text-muted-foreground">
+            {timeRemaining.days > 0 ? t('countdown.units.daysHoursMinutes') :
              timeRemaining.hours > 0 ? t('countdown.units.hoursMinutesSeconds') : t('countdown.units.minutesSeconds')}
           </div>
         </div>
 
         {/* Progress Bar */}
-        <div className="space-y-2">
-          <div className="flex items-center justify-between text-xs">
+        <div className="space-y-1.5 sm:space-y-2">
+          <div className="flex items-center justify-between text-[10px] sm:text-xs">
             <span className="text-muted-foreground">{t('countdown.timeRemaining')}</span>
             <span className={urgencyStyle.color}>{timeRemaining.percentage.toFixed(1)}%</span>
           </div>
-          <Progress 
-            value={timeRemaining.percentage} 
-            className={`h-2 ${urgencyStyle.bg}`}
+          <Progress
+            value={timeRemaining.percentage}
+            className={`h-1.5 sm:h-2 ${urgencyStyle.bg}`}
           />
         </div>
 
         {/* Reward Information */}
         {rewardAmount && (
-          <div className={`rounded-lg p-3 ${urgencyStyle.bg} border ${urgencyStyle.border}`}>
+          <div className={`rounded-lg p-2 sm:p-3 ${urgencyStyle.bg} border ${urgencyStyle.border}`}>
             <div className="flex items-center justify-between">
               <div>
-                <div className="text-sm font-medium">{t('countdown.rewardAtStake')}</div>
-                <div className={`text-lg font-bold ${urgencyStyle.color}`}>
+                <div className="text-xs sm:text-sm font-medium">{t('countdown.rewardAtStake')}</div>
+                <div className={`text-base sm:text-lg font-bold ${urgencyStyle.color}`}>
                   ${rewardAmount} USDT
                 </div>
               </div>
-              <Zap className={`h-6 w-6 ${urgencyStyle.color}`} />
+              <Zap className={`h-5 w-5 sm:h-6 sm:w-6 ${urgencyStyle.color}`} />
             </div>
-            <p className="text-xs text-muted-foreground mt-2">
-              {timeRemaining.percentage > 25 
+            <p className="text-[10px] sm:text-xs text-muted-foreground mt-1 sm:mt-2">
+              {timeRemaining.percentage > 25
                 ? t('countdown.upgradeToClaimReward')
                 : t('countdown.urgentUpgradeWarning')
               }
@@ -276,27 +276,27 @@ export function CountdownTimer({
 
         {/* Action Buttons */}
         {canUpgrade && onUpgrade && (
-          <div className="space-y-2">
-            <Button 
+          <div className="space-y-1.5 sm:space-y-2">
+            <Button
               onClick={onUpgrade}
-              className={`w-full ${timeRemaining.percentage <= 25 ? 'bg-red-500 hover:bg-red-600 text-white animate-pulse' : 'bg-honey hover:bg-honey/90 text-black'}`}
+              className={`w-full h-9 sm:h-10 text-xs sm:text-sm ${timeRemaining.percentage <= 25 ? 'bg-red-500 hover:bg-red-600 text-white animate-pulse' : 'bg-honey hover:bg-honey/90 text-black'}`}
             >
               {timeRemaining.percentage <= 25 ? (
                 <>
-                  <AlertCircle className="mr-2 h-4 w-4" />
+                  <AlertCircle className="mr-1.5 sm:mr-2 h-3 w-3 sm:h-4 sm:w-4" />
                   {t('countdown.urgentUpgradeNow')}
                 </>
               ) : (
                 <>
-                  <ArrowUp className="mr-2 h-4 w-4" />
+                  <ArrowUp className="mr-1.5 sm:mr-2 h-3 w-3 sm:h-4 sm:w-4" />
                   {t('countdown.upgradeToClaim')}
                 </>
               )}
             </Button>
-            
+
             {timeRemaining.percentage <= 10 && (
               <div className="text-center">
-                <p className="text-xs text-red-400 font-medium animate-pulse">
+                <p className="text-[10px] sm:text-xs text-red-400 font-medium animate-pulse">
                   {t('countdown.criticalExpiring', { time: formatTimeDisplay(timeRemaining) })}
                 </p>
               </div>
@@ -305,22 +305,22 @@ export function CountdownTimer({
         )}
 
         {/* Timer Details */}
-        <div className="grid grid-cols-4 gap-2 pt-2 border-t border-border">
+        <div className="grid grid-cols-4 gap-1.5 sm:gap-2 pt-2 border-t border-border">
           <div className="text-center">
-            <div className={`text-lg font-bold ${urgencyStyle.color}`}>{timeRemaining.days}</div>
-            <div className="text-xs text-muted-foreground">{t('countdown.units.days')}</div>
+            <div className={`text-base sm:text-lg font-bold ${urgencyStyle.color}`}>{timeRemaining.days}</div>
+            <div className="text-[10px] sm:text-xs text-muted-foreground">{t('countdown.units.days')}</div>
           </div>
           <div className="text-center">
-            <div className={`text-lg font-bold ${urgencyStyle.color}`}>{timeRemaining.hours}</div>
-            <div className="text-xs text-muted-foreground">{t('countdown.units.hours')}</div>
+            <div className={`text-base sm:text-lg font-bold ${urgencyStyle.color}`}>{timeRemaining.hours}</div>
+            <div className="text-[10px] sm:text-xs text-muted-foreground">{t('countdown.units.hours')}</div>
           </div>
           <div className="text-center">
-            <div className={`text-lg font-bold ${urgencyStyle.color}`}>{timeRemaining.minutes}</div>
-            <div className="text-xs text-muted-foreground">{t('countdown.units.minutes')}</div>
+            <div className={`text-base sm:text-lg font-bold ${urgencyStyle.color}`}>{timeRemaining.minutes}</div>
+            <div className="text-[10px] sm:text-xs text-muted-foreground">{t('countdown.units.minutes')}</div>
           </div>
           <div className="text-center">
-            <div className={`text-lg font-bold ${urgencyStyle.color}`}>{timeRemaining.seconds}</div>
-            <div className="text-xs text-muted-foreground">{t('countdown.units.seconds')}</div>
+            <div className={`text-base sm:text-lg font-bold ${urgencyStyle.color}`}>{timeRemaining.seconds}</div>
+            <div className="text-[10px] sm:text-xs text-muted-foreground">{t('countdown.units.seconds')}</div>
           </div>
         </div>
       </CardContent>

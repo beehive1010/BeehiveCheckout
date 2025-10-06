@@ -79,11 +79,17 @@ async function registerUser(supabase: any, walletAddress: string, data: any) {
   }
 
   try {
+    // Default root wallet if no referrer provided
+    const DEFAULT_ROOT_WALLET = '0x479ABda60F8c62a7C3fba411ab948a8BE0E616Ab';
+    const referrerWallet = data.referrerWallet || data.referrer_wallet || DEFAULT_ROOT_WALLET;
+
+    console.log(`📋 Registration params: wallet=${walletAddress}, username=${data.username.trim()}, referrer=${referrerWallet}`);
+
     // Use updated database function to handle user registration
     const { data: registrationResult, error } = await supabase.rpc('process_user_registration', {
       p_wallet_address: walletAddress,
       p_username: data.username.trim(), // No fallback - username is mandatory
-      p_referrer_wallet: data.referrerWallet || data.referrer_wallet
+      p_referrer_wallet: referrerWallet
     });
     if (error) {
       console.error('User registration error:', error);
@@ -251,7 +257,7 @@ async function validateReferrer(supabase: any, referrerWallet: string) {
   }
   
   // Special handling for default referrer
-  const defaultReferrer = '0x0000000000000000000000000000000000000001';
+  const defaultReferrer = '0x3C1FF5B4BE2A1FB8c157aF55aa6450eF66D7E242';
   if (referrerWallet === defaultReferrer) {
     console.log(`🔧 Default referrer detected, ensuring it exists: ${defaultReferrer}`);
     

@@ -1,7 +1,7 @@
 // Utility functions for handling referrer display logic
 // Root wallet address should not be displayed to users
 
-const ROOT_WALLET = '0x0000000000000000000000000000000000000001';
+const ROOT_WALLET = '0x479ABda60F8c62a7C3fba411ab948a8BE0E616Ab';
 
 /**
  * Check if a wallet address is the root/system wallet

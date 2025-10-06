@@ -529,7 +529,7 @@ export default function Membership() {
           </div>
           
           <div className="max-w-4xl mx-auto" data-testid="quick-upgrade-section">
-            
+
             {/* Dynamic component selection for membership upgrades only */}
             {currentLevel === 0 ? (
               <div className="text-center p-8 text-muted-foreground">

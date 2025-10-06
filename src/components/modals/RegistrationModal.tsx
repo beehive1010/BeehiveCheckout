@@ -64,11 +64,11 @@ export default function RegistrationModal({
         setReferrerInfo(referrer);
       } else {
         // If validation fails and this is not the default referrer, try fallback to default
-        if (referrerWallet !== '0x0000000000000000000000000000000000000001') {
+        if (referrerWallet !== '0x479ABda60F8c62a7C3fba411ab948a8BE0E616Ab') {
           console.warn('❌ Referrer validation failed, falling back to default referrer:', error);
 
           // Test if default referrer is valid
-          const defaultReferrer = '0x0000000000000000000000000000000000000001';
+          const defaultReferrer = '0x479ABda60F8c62a7C3fba411ab948a8BE0E616Ab';
           const { isValid: defaultIsValid, referrer: defaultReferrerInfo } = await authService.validateReferrer(defaultReferrer);
 
           if (defaultIsValid && defaultReferrerInfo) {

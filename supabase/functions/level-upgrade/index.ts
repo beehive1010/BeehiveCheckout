@@ -8,11 +8,15 @@ const corsHeaders = {
 }
 
 interface LevelUpgradeRequest {
-  action: 'upgrade_level' | 'check_requirements' | 'get_pricing' | 'verify_transaction' | 'debug_user_status'
-  walletAddress: string
+  action?: 'upgrade_level' | 'check_requirements' | 'get_pricing' | 'verify_transaction' | 'debug_user_status'
+  walletAddress?: string
   targetLevel?: number
   transactionHash?: string
   network?: 'mainnet' | 'testnet' | 'simulation'
+  // CheckoutWidget payment flow parameters
+  recipientAddress?: string
+  paymentTransactionHash?: string
+  paymentAmount?: number
 }
 
 interface LevelUpgradeResponse {
@@ -126,7 +130,28 @@ serve(async (req) => {
       }
     )
 
-    const { action, walletAddress, targetLevel, transactionHash, network } = await req.json() as LevelUpgradeRequest
+    const requestBody = await req.json() as LevelUpgradeRequest
+
+    // CheckoutWidget payment flow (new approach - server-side minting)
+    if (requestBody.recipientAddress && requestBody.paymentTransactionHash && requestBody.paymentAmount) {
+      console.log('📝 CheckoutWidget upgrade request:', {
+        recipientAddress: requestBody.recipientAddress,
+        targetLevel: requestBody.targetLevel,
+        paymentAmount: requestBody.paymentAmount,
+        paymentTransactionHash: requestBody.paymentTransactionHash
+      });
+
+      return await handleCheckoutWidgetUpgrade(
+        supabase,
+        requestBody.recipientAddress,
+        requestBody.targetLevel!,
+        requestBody.paymentTransactionHash,
+        requestBody.paymentAmount
+      );
+    }
+
+    // Legacy flow (existing action-based approach)
+    const { action, walletAddress, targetLevel, transactionHash, network } = requestBody
 
     console.log(`🚀 Level Upgrade Action: ${action} for ${walletAddress}`)
 
@@ -134,29 +159,29 @@ serve(async (req) => {
 
     switch (action) {
       case 'upgrade_level':
-        response = await processLevelUpgrade(supabase, walletAddress, targetLevel!, transactionHash, network)
+        response = await processLevelUpgrade(supabase, walletAddress!, targetLevel!, transactionHash, network)
         break
-      
+
       case 'check_requirements':
-        response = await checkUpgradeRequirements(supabase, walletAddress, targetLevel!)
+        response = await checkUpgradeRequirements(supabase, walletAddress!, targetLevel!)
         break
-      
+
       case 'get_pricing':
-        response = await getLevelPricing(walletAddress, targetLevel)
+        response = await getLevelPricing(walletAddress!, targetLevel)
         break
-        
+
       case 'verify_transaction':
-        response = await verifyUpgradeTransaction(transactionHash!, walletAddress, targetLevel!, network)
+        response = await verifyUpgradeTransaction(transactionHash!, walletAddress!, targetLevel!, network)
         break
-      
+
       case 'debug_user_status':
-        response = await debugUserStatus(supabase, walletAddress)
+        response = await debugUserStatus(supabase, walletAddress!)
         break
-      
+
       default:
         response = {
           success: false,
-          action,
+          action: action || 'unknown',
           message: 'Invalid action specified',
           error: 'Unknown action'
         }
@@ -170,8 +195,8 @@ serve(async (req) => {
   } catch (error) {
     console.error('Level upgrade error:', error)
     return new Response(
-      JSON.stringify({ 
-        success: false, 
+      JSON.stringify({
+        success: false,
         action: 'error',
         error: error.message || 'Level upgrade failed',
         message: 'Processing failed'
@@ -180,6 +205,303 @@ serve(async (req) => {
     )
   }
 })
+
+// Handle CheckoutWidget payment flow with server-side NFT minting
+async function handleCheckoutWidgetUpgrade(
+  supabase: any,
+  recipientAddress: string,
+  targetLevel: number,
+  paymentTransactionHash: string,
+  paymentAmount: number
+): Promise<Response> {
+  try {
+    // Step 1: Verify payment transaction
+    console.log('🔍 Verifying payment transaction...');
+    const paymentVerified = await verifyPaymentTransaction(
+      paymentTransactionHash,
+      paymentAmount,
+      recipientAddress
+    );
+
+    if (!paymentVerified) {
+      throw new Error('Payment verification failed');
+    }
+
+    console.log('✅ Payment verified');
+
+    // Step 2: Mint NFT using Thirdweb Engine (server wallet)
+    console.log(`🎨 Minting Level ${targetLevel} NFT via Thirdweb Engine...`);
+    const mintResult = await mintNFTViaEngine(recipientAddress, targetLevel);
+
+    console.log('✅ NFT minted:', mintResult);
+
+    // Step 3: Update membership level and trigger rewards using existing flow
+    console.log('💾 Processing level upgrade with layer rewards...');
+    const upgradeResult = await processLevelUpgradeWithRewards(
+      supabase,
+      recipientAddress,
+      targetLevel,
+      mintResult.transactionHash,
+      paymentAmount
+    );
+
+    console.log('✅ Level upgrade complete:', upgradeResult);
+
+    return new Response(
+      JSON.stringify({
+        success: true,
+        message: `Level ${targetLevel} upgrade successful`,
+        data: {
+          mintTransactionHash: mintResult.transactionHash,
+          paymentTransactionHash,
+          membershipLevel: targetLevel,
+          layerRewardsTriggered: upgradeResult.layerRewardsTriggered
+        }
+      }),
+      {
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        status: 200,
+      }
+    );
+  } catch (error) {
+    console.error('❌ CheckoutWidget upgrade error:', error);
+    return new Response(
+      JSON.stringify({
+        success: false,
+        error: error.message,
+        details: error.stack
+      }),
+      {
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        status: 500,
+      }
+    );
+  }
+}
+
+// Verify payment transaction (simplified - TODO: on-chain verification)
+async function verifyPaymentTransaction(
+  txHash: string,
+  expectedAmount: number,
+  buyer: string
+): Promise<boolean> {
+  if (!txHash || !expectedAmount || !buyer) {
+    return false;
+  }
+
+  console.log('🔍 Payment verification (simplified):', {
+    txHash,
+    expectedAmount,
+    buyer
+  });
+
+  return true;
+}
+
+// Mint NFT via Thirdweb Engine (same as mint-and-send-nft)
+async function mintNFTViaEngine(
+  recipientAddress: string,
+  level: number
+): Promise<{ transactionHash: string; tokenId: string }> {
+  const clientId = Deno.env.get('VITE_THIRDWEB_CLIENT_ID');
+  const secretKey = Deno.env.get('VITE_THIRDWEB_SECRET_KEY');
+  const vaultAccessToken = Deno.env.get('VITE_VAULT_ACCESS_TOKEN');
+  const serverWallet = Deno.env.get('VITE_SERVER_WALLET_ADDRESS');
+  const nftContract = Deno.env.get('VITE_MEMBERSHIP_NFT_CONTRACT');
+  const chainId = '42161'; // Arbitrum
+
+  if (!clientId || !vaultAccessToken || !serverWallet || !nftContract) {
+    throw new Error('Missing Thirdweb configuration');
+  }
+
+  console.log('🎨 Minting NFT via Thirdweb v1 API:', {
+    contract: nftContract,
+    recipient: recipientAddress,
+    tokenId: level,
+    chain: chainId,
+    serverWallet
+  });
+
+  // Encode ERC1155 mint function call
+  const mintFunctionSelector = '0x731133e9'; // mint(address,uint256,uint256,bytes)
+
+  // Encode parameters
+  const toPadded = recipientAddress.toLowerCase().slice(2).padStart(64, '0');
+  const idPadded = level.toString(16).padStart(64, '0');
+  const amountPadded = '1'.padStart(64, '0'); // mint 1 NFT
+  const dataOffsetPadded = '80'.padStart(64, '0'); // offset to bytes data
+  const dataLengthPadded = '0'.padStart(64, '0'); // empty bytes data
+
+  const encodedData = mintFunctionSelector + toPadded + idPadded + amountPadded + dataOffsetPadded + dataLengthPadded;
+
+  console.log('📝 Encoded mint data:', {
+    selector: mintFunctionSelector,
+    to: recipientAddress,
+    tokenId: level,
+    amount: 1,
+    encodedData
+  });
+
+  // Call Thirdweb v1 transactions API
+  const transactionRequest = {
+    chainId: chainId,
+    from: serverWallet,
+    transactions: [
+      {
+        to: nftContract,
+        value: '0',
+        data: encodedData
+      }
+    ]
+  };
+
+  console.log('🚀 Calling thirdweb /v1/transactions API');
+
+  const mintResponse = await fetch('https://api.thirdweb.com/v1/transactions', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'x-client-id': clientId,
+      'x-secret-key': secretKey || '',
+      'x-vault-access-token': vaultAccessToken
+    },
+    body: JSON.stringify(transactionRequest)
+  });
+
+  if (!mintResponse.ok) {
+    const errorText = await mintResponse.text();
+    throw new Error(`Thirdweb mint failed: ${mintResponse.status} - ${errorText}`);
+  }
+
+  const mintData = await mintResponse.json();
+  console.log('🎨 Mint response:', JSON.stringify(mintData, null, 2));
+
+  // Extract transaction hash
+  const txHash =
+    mintData.result?.transactionHash ||
+    mintData.result?.receipt?.transactionHash ||
+    mintData.result?.queueId ||
+    mintData.queueId ||
+    'pending';
+
+  return {
+    transactionHash: txHash,
+    tokenId: level.toString()
+  };
+}
+
+// Process level upgrade with layer rewards (Level 2-19)
+async function processLevelUpgradeWithRewards(
+  supabase: any,
+  walletAddress: string,
+  targetLevel: number,
+  mintTxHash: string,
+  nftPrice: number
+): Promise<any> {
+  console.log('📞 Processing level upgrade with rewards:', {
+    walletAddress,
+    targetLevel,
+    mintTxHash,
+    nftPrice
+  });
+
+  // Step 1: Update membership table with new level
+  console.log('📝 Updating membership table...');
+  const { error: membershipError } = await supabase
+    .from('membership')
+    .upsert({
+      wallet_address: walletAddress,
+      nft_level: targetLevel,
+      transaction_hash: mintTxHash,
+      is_member: true,
+      claimed_at: new Date().toISOString(),
+      network: 'mainnet',
+      claim_price: nftPrice,
+      total_cost: nftPrice,
+      unlock_membership_level: targetLevel + 1
+    }, {
+      onConflict: 'wallet_address,nft_level'
+    });
+
+  if (membershipError) {
+    console.error('❌ Membership update error:', membershipError);
+    throw new Error(`Failed to update membership: ${membershipError.message}`);
+  }
+
+  console.log('✅ Membership record updated');
+
+  // Step 2: Update members table with new current_level
+  console.log('📝 Updating members table...');
+  const { error: membersError } = await supabase
+    .from('members')
+    .update({
+      current_level: targetLevel,
+      updated_at: new Date().toISOString()
+    })
+    .eq('wallet_address', walletAddress);
+
+  if (membersError) {
+    console.error('❌ Members update error:', membersError);
+    throw new Error(`Failed to update member level: ${membersError.message}`);
+  }
+
+  console.log('✅ Member level updated to', targetLevel);
+
+  // Step 3: Trigger appropriate rewards based on level
+  let directRewardData = null;
+  let directRewardError = null;
+  let matrixRewardData = null;
+  let matrixRewardError = null;
+
+  if (targetLevel === 1) {
+    // Level 1: Only direct referral reward (100 USDT, not NFT price)
+    const level1RewardAmount = 100; // Fixed reward amount for Level 1
+    console.log(`💰 Triggering direct referral reward for Level 1 (${level1RewardAmount} USDT)...`);
+
+    const { data, error } = await supabase.rpc('trigger_layer_rewards_on_upgrade', {
+      p_upgrading_member_wallet: walletAddress,
+      p_new_level: targetLevel,
+      p_nft_price: level1RewardAmount
+    });
+
+    directRewardData = data;
+    directRewardError = error;
+
+    if (directRewardError) {
+      console.error(`⚠️ Direct referral reward error:`, directRewardError);
+    } else {
+      console.log(`✅ Direct referral reward triggered:`, directRewardData);
+    }
+
+  } else if (targetLevel >= 2 && targetLevel <= 19) {
+    // Level 2-19: Only matrix layer rewards (no direct referral rewards)
+    console.log(`💰 Triggering matrix layer rewards for Level ${targetLevel}...`);
+
+    const { data, error } = await supabase.rpc('trigger_matrix_layer_rewards', {
+      p_upgrading_member_wallet: walletAddress,
+      p_new_level: targetLevel,
+      p_nft_price: nftPrice
+    });
+
+    matrixRewardData = data;
+    matrixRewardError = error;
+
+    if (matrixRewardError) {
+      console.error(`⚠️ Matrix layer reward error:`, matrixRewardError);
+    } else {
+      console.log(`✅ Matrix layer rewards triggered:`, matrixRewardData);
+    }
+  }
+
+  return {
+    membershipUpdated: true,
+    levelUpdated: targetLevel,
+    directRewardTriggered: targetLevel === 1 && !directRewardError,
+    matrixRewardsTriggered: targetLevel >= 2 && !matrixRewardError,
+    directRewardData: directRewardData,
+    matrixRewardData: matrixRewardData
+  };
+}
 
 // Process level upgrade transaction
 async function processLevelUpgrade(

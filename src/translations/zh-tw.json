@@ -1107,6 +1107,7 @@
     "startEarning": "Start Earning Rewards",
     "start_earning": "Start earning rewards by participating in the platform!",
     "status": {
+      "claimable": "可領取",
       "completed": "Completed",
       "failed": "Failed",
       "pending": "Pending"
@@ -1412,7 +1413,8 @@
     "created": "創建：{date}"
   },
   "rewardsPage": {
-    "overview": {
+    "overview": "獎勵概覽",
+    "overviewSection": {
       "claimable": "可領取",
       "pending": "待處理",
       "totalEarned": "總收益",
@@ -1839,6 +1841,7 @@
     "claiming": "領取中...",
     "availableIn": "可用時間",
     "rewardsWillAppear": "當團隊成員升級会員資格時，獎勵將在此處顯示",
+    "withdrawal_currency": "提現貨幣",
     "crossChainProcessing": "跨鏈提現處理中 🌉",
     "processing": "提現處理中 ⏳",
     "estimatedArrival": "{amount} {chain} 預計 {minutes} 分钟內到帳"

@@ -50,11 +50,14 @@ serve(async (req) => {
     // referrerWallet 会在获取用户数据后设置，这里先保存前端传递的值
     let normalizedReferrerWallet = referrerWallet
 
-    console.log(`🔍 Wallet address parsing (preserving original case):`, {
+    console.log(`🔍 Request details:`, {
+      action,
+      level,
       headerWallet: headerWalletAddress,
       bodyWallet: bodyWalletAddress,
       finalWallet: walletAddress,
-      referrerWallet: normalizedReferrerWallet
+      referrerWallet: normalizedReferrerWallet,
+      requestBody
     })
 
     if (!walletAddress) {
@@ -66,6 +69,79 @@ serve(async (req) => {
         status: 400,
         headers: { ...corsHeaders, 'Content-Type': 'application/json' }
       })
+    }
+
+    // Handle activation status check action (lightweight, no blockchain verification)
+    if (action === 'check-activation-status') {
+      console.log(`🔍 Checking activation status for ${walletAddress}`);
+
+      try {
+        // Check if user is registered
+        const { data: userData, error: userError } = await supabase
+          .from('users')
+          .select('*')
+          .ilike('wallet_address', walletAddress)
+          .single();
+
+        if (userError || !userData) {
+          return new Response(JSON.stringify({
+            success: true,
+            isActivated: false,
+            hasNFT: false,
+            member: null,
+            message: 'User not registered'
+          }), {
+            headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+            status: 200
+          });
+        }
+
+        // Check member data
+        const { data: memberData, error: memberError } = await supabase
+          .from('members')
+          .select('*')
+          .ilike('wallet_address', walletAddress)
+          .single();
+
+        if (memberError || !memberData) {
+          return new Response(JSON.stringify({
+            success: true,
+            isActivated: false,
+            hasNFT: false,
+            member: null,
+            message: 'No membership found'
+          }), {
+            headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+            status: 200
+          });
+        }
+
+        const isActivated = memberData.is_activated && memberData.current_level > 0;
+
+        return new Response(JSON.stringify({
+          success: true,
+          isActivated,
+          hasNFT: isActivated, // If activated in DB, assume NFT exists
+          member: memberData,
+          message: isActivated ? 'Member activated' : 'Member not activated'
+        }), {
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+          status: 200
+        });
+
+      } catch (error) {
+        console.error('❌ Activation status check failed:', error);
+        return new Response(JSON.stringify({
+          success: true,
+          isActivated: false,
+          hasNFT: false,
+          member: null,
+          error: (error as Error).message
+        }), {
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+          status: 200
+        });
+      }
     }
 
     // Handle NFT ownership check action
@@ -171,9 +247,10 @@ serve(async (req) => {
       .select('*')
       .ilike('wallet_address', walletAddress)
       .eq('nft_level', level)
-      .single();
+      .maybeSingle(); // Use maybeSingle() instead of single() to avoid error when no rows found
 
-    if (existingMembership && !membershipCheckError) {
+    // If membership exists, return already activated
+    if (existingMembership) {
       console.log(`⚠️ Level ${level} membership already claimed for: ${walletAddress}`);
       return new Response(JSON.stringify({
         success: true,
@@ -189,6 +266,11 @@ serve(async (req) => {
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
         status: 200
       });
+    }
+
+    // Log if there was an error checking membership (but continue if just no rows found)
+    if (membershipCheckError) {
+      console.warn(`⚠️ Error checking existing membership:`, membershipCheckError);
     }
 
     // Step 3: VERIFY ON-CHAIN NFT OWNERSHIP BEFORE CREATING MEMBERSHIP
@@ -325,7 +407,7 @@ serve(async (req) => {
     }
 
     // Step 5: Record referral if referrer exists - use matrix placement function
-    // 🔧 FIX: Allow default referrer (0x00...001) for matrix placement
+    // 🔧 FIX: Allow default referrer (0x3C1FF5B4BE2A1FB8c157aF55aa6450eF66D7E242) for matrix placement
     let referralRecord = null;
     if (normalizedReferrerWallet && memberRecord) {
       try {
@@ -398,7 +480,7 @@ serve(async (req) => {
 
     // Step 7: Process layer reward for Level 1 activation (direct referral to upline)
     let layerRewardResult = null;
-    if (level === 1 && normalizedReferrerWallet && normalizedReferrerWallet !== '0x0000000000000000000000000000000000000001') {
+    if (level === 1 && normalizedReferrerWallet && normalizedReferrerWallet !== '0x479ABda60F8c62a7C3fba411ab948a8BE0E616Ab') {
       try {
         console.log(`💰 Processing layer reward for Level 1 activation...`);
         console.log(`🎯 Reward will be sent to referrer: ${normalizedReferrerWallet}`);

@@ -1,5 +1,6 @@
 import {useEffect, useState, useCallback, useRef} from 'react';
-import {useActiveAccount, useActiveWalletChain, useSwitchActiveWalletChain, PayEmbed} from 'thirdweb/react';
+import {useActiveAccount, useActiveWalletChain, useSwitchActiveWalletChain, CheckoutWidget} from 'thirdweb/react';
+import {createThirdwebClient, defineChain} from 'thirdweb';
 import {arbitrum} from 'thirdweb/chains';
 import {balanceOf, claimTo} from 'thirdweb/extensions/erc1155';
 import {getApprovalForTransaction} from 'thirdweb/extensions/erc20';
@@ -43,7 +44,13 @@ export function WelcomeLevel1ClaimButton({ onSuccess, referrerWallet, className 
 
   // Fixed Level 1 pricing and info
   const LEVEL_1_PRICE_USDT = 130;
+  const SERVER_WALLET = import.meta.env.VITE_SERVER_WALLET_ADDRESS || '0x8AABc891958D8a813dB15C355F0aEaa85E4E5C9c';
+  const USDT_CONTRACT = '0xFd086bC7CD5C481DCC9C85ebE478A1C0b69FCbb9';
   const API_BASE = import.meta.env.VITE_API_BASE_URL || 'https://cvqibjcbfrwsgkvthccp.supabase.co/functions/v1';
+
+  const checkoutClient = createThirdwebClient({
+    clientId: import.meta.env.VITE_THIRDWEB_CLIENT_ID || client.clientId,
+  });
 
   // Check network status
   useEffect(() => {
@@ -386,51 +393,44 @@ export function WelcomeLevel1ClaimButton({ onSuccess, referrerWallet, className 
     }
   };
 
-  const handlePaymentSuccess = async (transactionHash: string) => {
-    console.log('🎉 Payment successful:', transactionHash);
+  const handlePaymentSuccess = async (result: any) => {
+    console.log('🎉 Payment successful:', result);
     setShowPayEmbed(false);
 
     toast({
-      title: '🎉 Level 1 NFT Claimed!',
-      description: 'Processing membership activation...',
+      title: '💳 Payment Received!',
+      description: 'Processing NFT minting...',
       duration: 5000
     });
 
     setIsProcessing(true);
-    setCurrentStep('Activating membership...');
-
-    // Validate transaction hash format (must be a real blockchain transaction hash)
-    const isValidTxHash = transactionHash &&
-                          transactionHash.startsWith('0x') &&
-                          transactionHash.length === 66;
-
-    if (!isValidTxHash) {
-      console.warn('⚠️ Invalid transaction hash:', transactionHash);
-      console.log('💡 Skipping USDT transfer for non-blockchain transaction');
-    }
+    setCurrentStep('Minting and sending NFT...');
 
     try {
-      const activateResponse = await fetch(`${API_BASE}/activate-membership`, {
+      // Call mint-and-send-nft Edge Function
+      const mintResponse = await fetch(`${API_BASE}/mint-and-send-nft`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
           'Authorization': `Bearer ${import.meta.env.VITE_SUPABASE_ANON_KEY}`,
-          'apikey': import.meta.env.VITE_SUPABASE_ANON_KEY,
           'x-wallet-address': account?.address || ''
         },
         body: JSON.stringify({
-          transactionHash: isValidTxHash ? transactionHash : undefined,
+          recipientAddress: account?.address,
           level: 1,
-          paymentMethod: 'multi_chain',
+          paymentTransactionHash: result.transactionHash,
           paymentAmount: LEVEL_1_PRICE_USDT,
           referrerWallet: referrerWallet
         })
       });
 
-      if (activateResponse.ok) {
+      if (mintResponse.ok) {
+        const mintResult = await mintResponse.json();
+        console.log('✅ NFT minted and sent:', mintResult);
+
         toast({
           title: '🎉 Welcome to BEEHIVE!',
-          description: 'Redirecting to dashboard...',
+          description: 'NFT sent to your wallet! Redirecting to dashboard...',
           variant: "default",
           duration: 3000,
         });
@@ -447,12 +447,14 @@ export function WelcomeLevel1ClaimButton({ onSuccess, referrerWallet, className 
         setTimeout(() => {
           window.location.href = '/dashboard';
         }, 1500);
+      } else {
+        throw new Error('Minting failed');
       }
     } catch (error) {
-      console.error('❌ Activation error:', error);
+      console.error('❌ Minting error:', error);
       toast({
-        title: '⚠️ Activation Pending',
-        description: 'NFT claimed, please refresh to complete activation.',
+        title: '⚠️ Minting Pending',
+        description: 'Payment received, but NFT minting is processing. Please refresh in a moment.',
         duration: 8000
       });
     } finally {
@@ -604,10 +606,10 @@ export function WelcomeLevel1ClaimButton({ onSuccess, referrerWallet, className 
 
           {/* Additional Information */}
           <div className="text-center text-xs text-muted-foreground pt-2 space-y-1">
-            <p>💳 USDT payment on Arbitrum One</p>
-            <p>⚡ Instant membership activation</p>
-            <p>✅ Automatic payment processing</p>
-            <p>🎯 NFT minting with claim conditions</p>
+            <p>💳 Multi-chain USDT payment supported</p>
+            <p>🤖 Server mints and sends NFT to you</p>
+            <p>⚡ No gas fees for users</p>
+            <p>✅ One-click checkout process</p>
           </div>
         </CardContent>
       </Card>
@@ -649,25 +651,17 @@ export function WelcomeLevel1ClaimButton({ onSuccess, referrerWallet, className 
                 Please use USDT (Tether) for payment. Price: {LEVEL_1_PRICE_USDT} USDT on Arbitrum One.
               </p>
             </div>
-            <PayEmbed
-              client={client}
-              payOptions={{
-                mode: "transaction",
-                transaction: claimTo({
-                  contract: nftContract,
-                  to: account.address as `0x${string}`,
-                  tokenId: BigInt(1),
-                  quantity: BigInt(1),
-                }),
-                metadata: {
-                  name: "Level 1 NFT Claim",
-                  image: "https://cvqibjcbfrwsgkvthccp.supabase.co/storage/v1/object/public/nft-metadata/level1.png"
-                }
-              }}
-              theme="dark"
-              onPaymentSuccess={async (result) => {
-                await handlePaymentSuccess(result.transactionHash);
-              }}
+            <CheckoutWidget
+              client={checkoutClient}
+              image="https://beehive1010.github.io/level1.png"
+              name="BEEHIVE Level 1 Membership"
+              currency="USD"
+              chain={defineChain(42161)}
+              amount={LEVEL_1_PRICE_USDT.toString()}
+              tokenAddress={USDT_CONTRACT}
+              seller={SERVER_WALLET}
+              buttonLabel="PAY & CLAIM NFT"
+              onTransactionSuccess={handlePaymentSuccess}
             />
           </div>
         </div>

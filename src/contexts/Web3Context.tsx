@@ -380,22 +380,41 @@ function Web3ContextProvider({ children }: { children: React.ReactNode }) {
 
   // Handle wallet connection and record it
   useEffect(() => {
+    let disconnectTimer: NodeJS.Timeout | null = null;
+
     const handleWalletConnection = async () => {
       if (account?.address) {
+        // Clear any pending disconnect timer
+        if (disconnectTimer) {
+          clearTimeout(disconnectTimer);
+          disconnectTimer = null;
+        }
+
         setIsConnected(true);
         setWalletAddress(account.address);
-        
+
         // Store wallet data
+        const wasAddress = sessionStorage.getItem('wallet-address');
+        const wasChainId = sessionStorage.getItem('active-chain-id');
+
         sessionStorage.setItem('wallet-address', account.address);
         if (activeChain?.id !== undefined && activeChain.id !== null) {
           sessionStorage.setItem('active-chain-id', activeChain.id.toString());
         }
-        
-        console.log('🔗 Wallet connected:', {
-          address: account.address,
-          walletId: wallet?.id,
-          chainId: activeChain?.id
-        });
+
+        // Only log if it's a new connection or chain switch
+        if (wasAddress !== account.address) {
+          console.log('🔗 Wallet connected:', {
+            address: account.address,
+            walletId: wallet?.id,
+            chainId: activeChain?.id
+          });
+        } else if (wasChainId && activeChain?.id && wasChainId !== activeChain.id.toString()) {
+          console.log('🔄 Chain switched:', {
+            from: wasChainId,
+            to: activeChain.id
+          });
+        }
 
         // Check if we need Supabase authentication
         if (!isSupabaseAuthenticated) {
@@ -405,33 +424,47 @@ function Web3ContextProvider({ children }: { children: React.ReactNode }) {
             setLocation('/auth');
           }
         }
-        
+
         // Note: recordWalletConnection will be called later when both wallet and Supabase auth are ready
       } else {
+        // Delay disconnect to avoid false disconnects during chain switching
         const wasConnected = isConnected;
-        setIsConnected(false);
-        setWalletAddress(null);
-        setReferrerWallet(null);
-        sessionStorage.removeItem('wallet-address');
-        sessionStorage.removeItem('active-chain-id');
-        
-        // Reset member status on wallet disconnect
-        setIsMember(false);
-        
-        // Auto-redirect to landing page when wallet disconnects (except admin and public pages)
-        const publicPages = ['/', '/hiveworld', '/register', '/welcome'];
-        const isPublicPage = publicPages.includes(location) || location.startsWith('/hiveworld/');
-        
-        if (wasConnected && !location.startsWith('/admin/') && !isPublicPage) {
-          console.log('🔄 Wallet disconnected, redirecting to landing page');
-          setLocation('/');
-        }
-        
-        console.log('🔗 Wallet disconnected');
+
+        disconnectTimer = setTimeout(() => {
+          // Double-check account is still null after delay
+          if (!account?.address) {
+            setIsConnected(false);
+            setWalletAddress(null);
+            setReferrerWallet(null);
+            sessionStorage.removeItem('wallet-address');
+            sessionStorage.removeItem('active-chain-id');
+
+            // Reset member status on wallet disconnect
+            setIsMember(false);
+
+            // Auto-redirect to landing page when wallet disconnects (except admin and public pages)
+            const publicPages = ['/', '/hiveworld', '/register', '/welcome'];
+            const isPublicPage = publicPages.includes(location) || location.startsWith('/hiveworld/');
+
+            if (wasConnected && !location.startsWith('/admin/') && !isPublicPage) {
+              console.log('🔄 Wallet disconnected, redirecting to landing page');
+              setLocation('/');
+            }
+
+            console.log('🔗 Wallet disconnected');
+          }
+        }, 300); // 300ms delay to confirm it's a real disconnect
       }
     };
 
     handleWalletConnection();
+
+    // Cleanup timeout on unmount
+    return () => {
+      if (disconnectTimer) {
+        clearTimeout(disconnectTimer);
+      }
+    };
   }, [account, wallet, activeChain, isConnected, location, setLocation]);
 
   // Check membership status when both wallet and Supabase auth are ready

@@ -1,7 +1,6 @@
 import React, {useEffect, useState} from 'react';
 import {WelcomeLevel1ClaimButton} from '../components/membership/WelcomeLevel1ClaimButton';
 import {useLocation} from 'wouter';
-import {useActiveAccount} from 'thirdweb/react';
 import {referralService} from '../api/landing/referral.client';
 import {authService} from '../lib/supabase';
 import {Card, CardContent} from '../components/ui/card';
@@ -9,12 +8,13 @@ import {Badge} from '../components/ui/badge';
 import {Crown, RefreshCw, User, Users} from 'lucide-react';
 import {useI18n} from '../contexts/I18nContext';
 import {useWallet} from '../hooks/useWallet';
+import {useWeb3} from '../contexts/Web3Context';
 import ErrorBoundary from '../components/ui/error-boundary';
 
 export default function Welcome() {
   const { t } = useI18n();
   const [, setLocation] = useLocation();
-  const account = useActiveAccount();
+  const { account } = useWeb3();
   const { refreshUserData, userStatus, isUserLoading } = useWallet();
   const [referrerWallet, setReferrerWallet] = useState<string>('');
   const [referrerInfo, setReferrerInfo] = useState<{ username?: string; wallet: string } | null>(null);
@@ -28,6 +28,7 @@ export default function Welcome() {
     const urlParams = new URLSearchParams(window.location.search);
     const ref = urlParams.get('ref');
 
+    // Priority 1: URL parameter (highest priority)
     if (ref && ref.startsWith('0x') && ref.length === 42) {
       setReferrerWallet(ref);
       referralService.handleReferralParameter();
@@ -189,34 +190,8 @@ export default function Welcome() {
 
   // Note: Default referrer handling is now done immediately in the first useEffect above
 
-  // Auto-detect status inconsistency and prompt user to refresh
-  useEffect(() => {
-    if (userStatus && account?.address && !isUserLoading && !isRefreshing) {
-      // Check if user might be activated but cache shows otherwise
-      const suspectedActivated = userStatus.isRegistered && !userStatus.isActivated;
-      
-      if (suspectedActivated) {
-        // Check with server after a delay
-        const checkServerStatus = setTimeout(async () => {
-          try {
-            const serverStatus = await authService.isActivatedMember(account.address);
-            if (serverStatus.isActivated && !userStatus.isActivated) {
-              console.log('🔍 Detected status inconsistency: server says activated but cache says not');
-              // Auto-refresh after showing message briefly
-              setTimeout(() => {
-                console.log('🔄 Auto-refreshing due to detected inconsistency...');
-                refreshUserData();
-              }, 1000);
-            }
-          } catch (error) {
-            console.warn('Status inconsistency check failed:', error);
-          }
-        }, 3000); // Check after 3 seconds
-
-        return () => clearTimeout(checkServerStatus);
-      }
-    }
-  }, [userStatus, account?.address, isUserLoading, isRefreshing, refreshUserData]);
+  // Removed auto-refresh useEffect to prevent infinite loops
+  // Users can manually refresh using the "Refresh Status" button if needed
 
   // Show loading state while checking membership
   if (isCheckingMembership) {
@@ -232,13 +207,13 @@ export default function Welcome() {
 
   return (
     <ErrorBoundary>
-      <div className="min-h-screen bg-background py-8">
-        <div className="container mx-auto px-4 max-w-4xl">
-        <div className="text-center mb-8">
-          <h1 className="text-4xl font-bold text-foreground mb-4">
+      <div className="min-h-screen bg-background py-4 sm:py-8">
+        <div className="container mx-auto px-4 max-w-3xl">
+        <div className="text-center mb-6 sm:mb-8">
+          <h1 className="text-3xl sm:text-4xl font-bold text-foreground mb-3 sm:mb-4">
             {t('welcome.title')}
           </h1>
-          <p className="text-xl text-muted-foreground mb-2">
+          <p className="text-lg sm:text-xl text-muted-foreground mb-2">
             {t('welcome.subtitle')}
           </p>
           
@@ -317,33 +292,24 @@ export default function Welcome() {
           </Card>
         </div>
         
-        <div className="max-w-lg mx-auto">
-          <WelcomeLevel1ClaimButton
+        <div className="max-w-2xl mx-auto">
+          <CheckoutLevel1Button
             onSuccess={handleActivationComplete}
             referrerWallet={referrerWallet}
             className="w-full"
           />
-          
-          {/* Referrer information for the claim */}
-          {referrerWallet && (
-            <div className="mt-4 p-3 bg-honey/5 border border-honey/20 rounded-lg">
-              <div className="text-center text-sm text-muted-foreground">
-                <span className="font-medium text-honey">Matrix Placement:</span> You will be placed under{' '}
-                {referrerInfo?.username ? (
-                  <span className="font-medium">{referrerInfo.username}</span>
-                ) : (
-                  <span className="font-mono text-xs">{referrerWallet.slice(0, 8)}...{referrerWallet.slice(-6)}</span>
-                )}
-              </div>
-            </div>
-          )}
         </div>
-        
-        <div className="mt-8 text-center text-sm text-muted-foreground space-y-2">
-          <p className="mb-2">{t('welcome.instructions.step1')}</p>
-          <p>{t('welcome.instructions.step2')}</p>
-          <div className="p-3 bg-secondary/50 rounded-lg mt-4">
-            <p className="text-xs text-honey/90">
+
+        <div className="mt-6 text-center text-sm text-muted-foreground space-y-3 max-w-md mx-auto">
+          <div className="p-4 bg-secondary/30 rounded-lg border border-honey/10">
+            <p className="text-xs font-medium text-foreground mb-2">📋 Quick Start Guide</p>
+            <div className="space-y-1.5 text-xs">
+              <p>{t('welcome.instructions.step1')}</p>
+              <p>{t('welcome.instructions.step2')}</p>
+            </div>
+          </div>
+          <div className="p-3 bg-honey/5 border border-honey/20 rounded-lg">
+            <p className="text-xs text-honey/90 font-medium">
               {t('welcome.matrixPlacementInfo')}
             </p>
           </div>

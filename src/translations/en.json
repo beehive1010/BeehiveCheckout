@@ -1430,6 +1430,26 @@
       "title": "Layer Reward System"
     },
     "information": {
+      "activatedMembers": "Activated Members",
+      "currentPhase": "Current Phase",
+      "layerRewardsSubtitle": "Earn rewards when members in your matrix upgrade their membership levels across 19 layers",
+      "bccRewardsSubtitle": "BCC tokens released progressively based on membership activation milestones across four phases",
+      "layerRewardsSystem": "Layer Rewards System",
+      "layerRewardsSystemDesc": "Understand how layer rewards work when members in your matrix upgrade their membership levels. Each layer has specific eligibility requirements and reward amounts.",
+      "layerRewardsMobileDesc": "Understand how layer rewards work when members in your matrix upgrade their membership levels. Each layer has specific eligibility requirements and reward amounts.",
+      "layerRewardsPreview": "Layer Rewards Structure Preview",
+      "viewAll19LayersDetails": "View All 19 Layers Details",
+      "viewAll19Layers": "View All 19 Layers",
+      "bccRewardsSystem": "BCC Rewards System",
+      "bccRewardsSystemDesc": "Learn about the four-phase BCC release system based on member activation milestones. Rewards decrease progressively to ensure long-term sustainability.",
+      "bccRewardsMobileDesc": "Learn about the four-phase BCC release system based on member activation milestones. Rewards decrease progressively to ensure long-term sustainability.",
+      "viewAllPhases": "View All Phases",
+      "bccLockingRewardsTitle": "BCC Locking Rewards",
+      "bccLockingRewardsDesc": "BCC tokens are released progressively based on membership activation milestones across four phases",
+      "bccReleaseMechanism": "BCC Release Mechanism",
+      "autoDistribution": "Auto Distribution",
+      "bccReleaseMechanismDesc": "BCC rewards are automatically released to member balances when they activate new membership levels",
+      "completeFourPhaseDetails": "Complete Four-Phase Details",
       "bccPhasesPreview": "BCC Release Phases Preview",
       "phase": "Phase",
       "current": "Current",
@@ -1625,6 +1645,7 @@
     "startEarning": "Start Earning Rewards",
     "start_earning": "Start earning rewards by participating in the platform!",
     "status": {
+      "claimable": "Claimable",
       "completed": "Completed",
       "failed": "Failed",
       "pending": "Pending"
@@ -1775,7 +1796,8 @@
     },
     "loading": "Loading rewards data...",
     "management": "Rewards Management",
-    "overview": {
+    "overview": "Rewards Overview",
+    "overviewSection": {
       "claimable": "Claimable",
       "pending": "Pending",
       "totalEarned": "Total Earned",
@@ -3091,6 +3113,7 @@
     "readyToClaim": "Ready to Claim",
     "claiming": "Claiming...",
     "availableIn": "Available in",
-    "rewardsWillAppear": "Rewards will appear here when team members upgrade their memberships"
+    "rewardsWillAppear": "Rewards will appear here when team members upgrade their memberships",
+    "withdrawal_currency": "Withdrawal Currency"
   }
 }

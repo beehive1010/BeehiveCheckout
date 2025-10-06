@@ -40,6 +40,7 @@ import AuthCallback from "@/pages/AuthCallback";
 import AdminNFTsPage from "@/pages/AdminNFTs";
 import TestUpgradeMembership from "@/pages/TestUpgradeMembership";
 import MultiChainClaimDemo from "@/pages/MultiChainClaimDemo";
+import CheckoutTest from "@/pages/CheckoutTest";
 // import PhotoUploadDemo from "@/pages/PhotoUploadDemo";
 
 // Import proper Header and Navigation components
@@ -435,6 +436,8 @@ function Router() {
         <Route path="/multi-chain-claim-demo" component={MultiChainClaimDemo} />
 
         {/* Test routes */}
+        <Route path="/checkout-test" component={CheckoutTest} />
+
         <Route path="/testUpgradeMembership" component={() => (
           <MemberGuard requireActivation={true} redirectTo="/welcome">
             <TestUpgradeMembership />

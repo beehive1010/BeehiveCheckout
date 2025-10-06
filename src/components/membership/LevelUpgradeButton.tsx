@@ -487,44 +487,47 @@ export function LevelUpgradeButton({ onSuccess, targetLevel, className = '' }: L
   const isLoading = isLevelLoading || isLoadingLevel;
   const upgradeLevel = levelInfo.tokenId;
   const canUpgrade = levelInfo.canClaim && upgradeLevel >= 3 && upgradeLevel <= 19;
-  
-  // Enhanced debug logging - ALWAYS output for troubleshooting
-  console.log('🔧 LevelUpgradeButton CRITICAL DEBUG:', {
-    currentUserLevel,
-    upgradeLevel,
-    'levelInfo.canClaim': levelInfo.canClaim,
-    'upgradeLevel >= 3': upgradeLevel >= 3,
-    'upgradeLevel <= 19': upgradeLevel <= 19,
-    canUpgrade,
-    isLoading,
-    isProcessing,
-    isLevelLoading,
-    isLoadingLevel,
-    accountAddress: account?.address,
-    activeChain: activeChain?.id,
-    buttonDisabled: isProcessing || !account?.address || isLoading || !canUpgrade,
-    disabledReasons: {
-      'isProcessing': isProcessing,
-      'noAccount': !account?.address,
-      'isLoading (combined)': isLoading,
-      'isLevelLoading': isLevelLoading,
-      'isLoadingLevel': isLoadingLevel,
-      'cantUpgrade': !canUpgrade,
-      'cantClaim': !levelInfo.canClaim,
-      'wrongLevel': !(upgradeLevel >= 3 && upgradeLevel <= 19)
-    },
-    'Raw levelInfo': levelInfo
-  });
-  
-  // Alert if button is disabled
-  if (isProcessing || !account?.address || isLoading || !canUpgrade) {
-    console.warn('⚠️ UPGRADE BUTTON IS DISABLED:', {
-      reason: !account?.address ? 'NO_WALLET' : 
-              isLoading ? 'LOADING' : 
-              isProcessing ? 'PROCESSING' : 
-              !canUpgrade ? 'CANT_UPGRADE' : 'UNKNOWN'
+
+  // Debug logging moved to useEffect to avoid render loop
+  useEffect(() => {
+    console.log('🔧 LevelUpgradeButton DEBUG:', {
+      currentUserLevel,
+      upgradeLevel,
+      'levelInfo.canClaim': levelInfo.canClaim,
+      'upgradeLevel >= 3': upgradeLevel >= 3,
+      'upgradeLevel <= 19': upgradeLevel <= 19,
+      canUpgrade,
+      isLoading,
+      isProcessing,
+      isLevelLoading,
+      isLoadingLevel,
+      accountAddress: account?.address,
+      activeChain: activeChain?.id,
+      buttonDisabled: isProcessing || !account?.address || isLoading || !canUpgrade,
+      disabledReasons: {
+        'isProcessing': isProcessing,
+        'noAccount': !account?.address,
+        'isLoading (combined)': isLoading,
+        'isLevelLoading': isLevelLoading,
+        'isLoadingLevel': isLoadingLevel,
+        'cantUpgrade': !canUpgrade,
+        'cantClaim': !levelInfo.canClaim,
+        'wrongLevel': !(upgradeLevel >= 3 && upgradeLevel <= 19)
+      },
+      'Raw levelInfo': levelInfo
     });
-  }
+
+    // Alert if button is disabled
+    if (isProcessing || !account?.address || isLoading || !canUpgrade) {
+      console.warn('⚠️ UPGRADE BUTTON IS DISABLED:', {
+        reason: !account?.address ? 'NO_WALLET' :
+                isLoading ? 'LOADING' :
+                isProcessing ? 'PROCESSING' :
+                !canUpgrade ? 'CANT_UPGRADE' : 'UNKNOWN'
+      });
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [account?.address, currentUserLevel, upgradeLevel, canUpgrade, isLoading, isProcessing]);
 
   return (
     <Card className={`bg-gradient-to-br from-blue/5 to-blue/15 border-blue/30 ${className}`}>
