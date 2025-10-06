@@ -233,13 +233,13 @@ export default function Welcome() {
 
   return (
     <ErrorBoundary>
-      <div className="min-h-screen bg-background py-8">
-        <div className="container mx-auto px-4 max-w-4xl">
-        <div className="text-center mb-8">
-          <h1 className="text-4xl font-bold text-foreground mb-4">
+      <div className="min-h-screen bg-background py-4 sm:py-8">
+        <div className="container mx-auto px-4 max-w-3xl">
+        <div className="text-center mb-6 sm:mb-8">
+          <h1 className="text-3xl sm:text-4xl font-bold text-foreground mb-3 sm:mb-4">
             {t('welcome.title')}
           </h1>
-          <p className="text-xl text-muted-foreground mb-2">
+          <p className="text-lg sm:text-xl text-muted-foreground mb-2">
             {t('welcome.subtitle')}
           </p>
           
@@ -318,33 +318,24 @@ export default function Welcome() {
           </Card>
         </div>
         
-        <div className="max-w-lg mx-auto">
+        <div className="max-w-2xl mx-auto">
           <CheckoutLevel1Button
             onSuccess={handleActivationComplete}
             referrerWallet={referrerWallet}
             className="w-full"
           />
-          
-          {/* Referrer information for the claim */}
-          {referrerWallet && (
-            <div className="mt-4 p-3 bg-honey/5 border border-honey/20 rounded-lg">
-              <div className="text-center text-sm text-muted-foreground">
-                <span className="font-medium text-honey">Matrix Placement:</span> You will be placed under{' '}
-                {referrerInfo?.username ? (
-                  <span className="font-medium">{referrerInfo.username}</span>
-                ) : (
-                  <span className="font-mono text-xs">{referrerWallet.slice(0, 8)}...{referrerWallet.slice(-6)}</span>
-                )}
-              </div>
-            </div>
-          )}
         </div>
-        
-        <div className="mt-8 text-center text-sm text-muted-foreground space-y-2">
-          <p className="mb-2">{t('welcome.instructions.step1')}</p>
-          <p>{t('welcome.instructions.step2')}</p>
-          <div className="p-3 bg-secondary/50 rounded-lg mt-4">
-            <p className="text-xs text-honey/90">
+
+        <div className="mt-6 text-center text-sm text-muted-foreground space-y-3 max-w-md mx-auto">
+          <div className="p-4 bg-secondary/30 rounded-lg border border-honey/10">
+            <p className="text-xs font-medium text-foreground mb-2">📋 Quick Start Guide</p>
+            <div className="space-y-1.5 text-xs">
+              <p>{t('welcome.instructions.step1')}</p>
+              <p>{t('welcome.instructions.step2')}</p>
+            </div>
+          </div>
+          <div className="p-3 bg-honey/5 border border-honey/20 rounded-lg">
+            <p className="text-xs text-honey/90 font-medium">
               {t('welcome.matrixPlacementInfo')}
             </p>
           </div>
