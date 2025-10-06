@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Test Edge Function Fixes</title>
+    <style>
+        body { font-family: monospace; padding: 20px; background: #1e1e1e; color: #d4d4d4; }
+        .test { margin: 15px 0; padding: 15px; background: #2d2d2d; border-radius: 5px; }
+        .success { border-left: 4px solid #4CAF50; }
+        .error { border-left: 4px solid #f44336; }
+        button { padding: 10px 20px; margin: 5px; cursor: pointer; }
+        pre { background: #1e1e1e; padding: 10px; overflow: auto; }
+    </style>
+</head>
+<body>
+    <h1>🔍 Edge Function 修复测试</h1>
+
+    <div class="test">
+        <h3>当前配置</h3>
+        <pre id="config"></pre>
+    </div>
+
+    <div class="test">
+        <h3>测试 1: check-activation-status (应该成功)</h3>
+        <button onclick="testCheckActivation()">运行测试</button>
+        <pre id="test1"></pre>
+    </div>
+
+    <div class="test">
+        <h3>测试 2: check-nft-ownership (应该成功)</h3>
+        <button onclick="testCheckNFT()">运行测试</button>
+        <pre id="test2"></pre>
+    </div>
+
+    <div class="test">
+        <h3>测试 3: get-member-info (应该失败 - 已废弃)</h3>
+        <button onclick="testOldAction()">运行测试</button>
+        <pre id="test3"></pre>
+    </div>
+
+    <script>
+        const SUPABASE_URL = 'https://cvqibjcbfrwsgkvthccp.supabase.co';
+        const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImN2cWliamNiZnJ3c2drdnRoY2NwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MjY3Mzk2ODYsImV4cCI6MjA0MjMxNTY4Nn0.MqNPSZvhJc1yJ8D0MIeWlA-66FdJCdmPzuVmHm3_bC4';
+        const TEST_WALLET = '0x3C1FF5B4BE2A1FB8c157aF55aa6450eF66D7E242';
+
+        document.getElementById('config').textContent = JSON.stringify({
+            SUPABASE_URL,
+            TEST_WALLET,
+            timestamp: new Date().toISOString()
+        }, null, 2);
+
+        async function testCheckActivation() {
+            const output = document.getElementById('test1');
+            output.textContent = '测试中...';
+
+            try {
+                const response = await fetch(`${SUPABASE_URL}/functions/v1/activate-membership`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${SUPABASE_ANON_KEY}`,
+                        'apikey': SUPABASE_ANON_KEY,
+                        'x-wallet-address': TEST_WALLET
+                    },
+                    body: JSON.stringify({
+                        action: 'check-activation-status'
+                    })
+                });
+
+                const result = await response.json();
+                output.textContent = `状态: ${response.status}\n` + JSON.stringify(result, null, 2);
+                output.parentElement.className = response.ok ? 'test success' : 'test error';
+            } catch (error) {
+                output.textContent = 'ERROR: ' + error.message;
+                output.parentElement.className = 'test error';
+            }
+        }
+
+        async function testCheckNFT() {
+            const output = document.getElementById('test2');
+            output.textContent = '测试中...';
+
+            try {
+                const response = await fetch(`${SUPABASE_URL}/functions/v1/activate-membership`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${SUPABASE_ANON_KEY}`,
+                        'apikey': SUPABASE_ANON_KEY,
+                        'x-wallet-address': TEST_WALLET
+                    },
+                    body: JSON.stringify({
+                        action: 'check-nft-ownership',
+                        level: 1
+                    })
+                });
+
+                const result = await response.json();
+                output.textContent = `状态: ${response.status}\n` + JSON.stringify(result, null, 2);
+                output.parentElement.className = response.ok ? 'test success' : 'test error';
+            } catch (error) {
+                output.textContent = 'ERROR: ' + error.message;
+                output.parentElement.className = 'test error';
+            }
+        }
+
+        async function testOldAction() {
+            const output = document.getElementById('test3');
+            output.textContent = '测试中...';
+
+            try {
+                const response = await fetch(`${SUPABASE_URL}/functions/v1/activate-membership`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${SUPABASE_ANON_KEY}`,
+                        'apikey': SUPABASE_ANON_KEY,
+                        'x-wallet-address': TEST_WALLET
+                    },
+                    body: JSON.stringify({
+                        action: 'get-member-info'
+                    })
+                });
+
+                const result = await response.json();
+                output.textContent = `状态: ${response.status}\n` + JSON.stringify(result, null, 2);
+                output.parentElement.className = 'test error'; // 这个应该失败
+            } catch (error) {
+                output.textContent = 'ERROR: ' + error.message;
+                output.parentElement.className = 'test error';
+            }
+        }
+    </script>
+</body>
+</html>
