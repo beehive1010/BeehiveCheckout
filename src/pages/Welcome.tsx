@@ -190,35 +190,8 @@ export default function Welcome() {
 
   // Note: Default referrer handling is now done immediately in the first useEffect above
 
-  // Auto-detect status inconsistency and prompt user to refresh
-  useEffect(() => {
-    if (userStatus && account?.address && !isUserLoading && !isRefreshing) {
-      // Check if user might be activated but cache shows otherwise
-      const suspectedActivated = userStatus.isRegistered && !userStatus.isActivated;
-
-      if (suspectedActivated) {
-        // Check with server after a delay
-        const checkServerStatus = setTimeout(async () => {
-          try {
-            const serverStatus = await authService.isActivatedMember(account.address);
-            if (serverStatus.isActivated && !userStatus.isActivated) {
-              console.log('🔍 Detected status inconsistency: server says activated but cache says not');
-              // Auto-refresh after showing message briefly
-              setTimeout(() => {
-                console.log('🔄 Auto-refreshing due to detected inconsistency...');
-                refreshUserData();
-              }, 1000);
-            }
-          } catch (error) {
-            console.warn('Status inconsistency check failed:', error);
-          }
-        }, 3000); // Check after 3 seconds
-
-        return () => clearTimeout(checkServerStatus);
-      }
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [userStatus, account?.address, isUserLoading, isRefreshing]);
+  // Removed auto-refresh useEffect to prevent infinite loops
+  // Users can manually refresh using the "Refresh Status" button if needed
 
   // Show loading state while checking membership
   if (isCheckingMembership) {

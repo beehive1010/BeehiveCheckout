@@ -50,11 +50,14 @@ serve(async (req) => {
     // referrerWallet 会在获取用户数据后设置，这里先保存前端传递的值
     let normalizedReferrerWallet = referrerWallet
 
-    console.log(`🔍 Wallet address parsing (preserving original case):`, {
+    console.log(`🔍 Request details:`, {
+      action,
+      level,
       headerWallet: headerWalletAddress,
       bodyWallet: bodyWalletAddress,
       finalWallet: walletAddress,
-      referrerWallet: normalizedReferrerWallet
+      referrerWallet: normalizedReferrerWallet,
+      requestBody
     })
 
     if (!walletAddress) {
@@ -66,6 +69,79 @@ serve(async (req) => {
         status: 400,
         headers: { ...corsHeaders, 'Content-Type': 'application/json' }
       })
+    }
+
+    // Handle activation status check action (lightweight, no blockchain verification)
+    if (action === 'check-activation-status') {
+      console.log(`🔍 Checking activation status for ${walletAddress}`);
+
+      try {
+        // Check if user is registered
+        const { data: userData, error: userError } = await supabase
+          .from('users')
+          .select('*')
+          .ilike('wallet_address', walletAddress)
+          .single();
+
+        if (userError || !userData) {
+          return new Response(JSON.stringify({
+            success: true,
+            isActivated: false,
+            hasNFT: false,
+            member: null,
+            message: 'User not registered'
+          }), {
+            headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+            status: 200
+          });
+        }
+
+        // Check member data
+        const { data: memberData, error: memberError } = await supabase
+          .from('members')
+          .select('*')
+          .ilike('wallet_address', walletAddress)
+          .single();
+
+        if (memberError || !memberData) {
+          return new Response(JSON.stringify({
+            success: true,
+            isActivated: false,
+            hasNFT: false,
+            member: null,
+            message: 'No membership found'
+          }), {
+            headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+            status: 200
+          });
+        }
+
+        const isActivated = memberData.is_activated && memberData.current_level > 0;
+
+        return new Response(JSON.stringify({
+          success: true,
+          isActivated,
+          hasNFT: isActivated, // If activated in DB, assume NFT exists
+          member: memberData,
+          message: isActivated ? 'Member activated' : 'Member not activated'
+        }), {
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+          status: 200
+        });
+
+      } catch (error) {
+        console.error('❌ Activation status check failed:', error);
+        return new Response(JSON.stringify({
+          success: true,
+          isActivated: false,
+          hasNFT: false,
+          member: null,
+          error: (error as Error).message
+        }), {
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+          status: 200
+        });
+      }
     }
 
     // Handle NFT ownership check action
