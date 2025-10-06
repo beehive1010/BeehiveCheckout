@@ -293,7 +293,7 @@ export default function Welcome() {
         </div>
         
         <div className="max-w-2xl mx-auto">
-          <CheckoutLevel1Button
+          <WelcomeLevel1ClaimButton
             onSuccess={handleActivationComplete}
             referrerWallet={referrerWallet}
             className="w-full"
