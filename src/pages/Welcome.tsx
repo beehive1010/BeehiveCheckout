@@ -195,7 +195,7 @@ export default function Welcome() {
     if (userStatus && account?.address && !isUserLoading && !isRefreshing) {
       // Check if user might be activated but cache shows otherwise
       const suspectedActivated = userStatus.isRegistered && !userStatus.isActivated;
-      
+
       if (suspectedActivated) {
         // Check with server after a delay
         const checkServerStatus = setTimeout(async () => {
@@ -217,7 +217,8 @@ export default function Welcome() {
         return () => clearTimeout(checkServerStatus);
       }
     }
-  }, [userStatus, account?.address, isUserLoading, isRefreshing, refreshUserData]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [userStatus, account?.address, isUserLoading, isRefreshing]);
 
   // Show loading state while checking membership
   if (isCheckingMembership) {
