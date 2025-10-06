@@ -134,9 +134,9 @@ export const authService = {
   // Get member info via activate-membership Edge Function (check_existing) to bypass RLS
   async getMemberInfo(walletAddress: string) {
     try {
-      // Use fast database-only get-member-info instead of slow blockchain check_existing
+      // Use fast database-only check-activation-status instead of slow blockchain check
       const result = await callEdgeFunction('activate-membership', {
-        action: 'get-member-info'
+        action: 'check-activation-status'
       }, walletAddress);
       
       if (!result.success) {
@@ -254,7 +254,7 @@ export const authService = {
             'x-wallet-address': walletAddress,
           },
           body: JSON.stringify({
-            action: 'get-member-info'
+            action: 'check-activation-status'
           })
         });
 

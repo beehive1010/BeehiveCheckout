@@ -3096,6 +3096,7 @@
     "withdraw_to": "Withdraw to",
     "withdrawal_amount": "Withdrawal Amount",
     "withdrawal_chain": "Withdrawal Chain",
+    "withdrawal_currency": "Withdrawal Currency",
     "withdrawal_failed": "Withdrawal Failed",
     "you_receive": "You Receive",
     "crossChainProcessing": "Cross-chain Withdrawal Processing 🌉",

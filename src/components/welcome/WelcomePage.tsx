@@ -109,7 +109,7 @@ export function WelcomePage() {
                     const memberStartTime = performance.now();
                     console.log('🔍 Quick database check for membership activation...');
 
-                    // Fast database-only check using member-info Edge Function
+                    // Fast database-only check using check-activation-status action
                     // Add timestamp to prevent caching issues
                     const memberResponse = await fetch(`https://cvqibjcbfrwsgkvthccp.supabase.co/functions/v1/activate-membership?t=${Date.now()}`, {
                         method: 'POST',
@@ -120,7 +120,7 @@ export function WelcomePage() {
                             'x-wallet-address': walletAddress,
                         },
                         body: JSON.stringify({
-                            action: 'get-member-info'
+                            action: 'check-activation-status'  // ✅ 使用正确的 action
                         })
                     });
                     const memberEndTime = performance.now();
@@ -132,27 +132,21 @@ export function WelcomePage() {
                             success: memberResult.success,
                             hasMember: !!memberResult.member,
                             isActivated: memberResult.isActivated,
-                            currentLevel: memberResult.currentLevel
+                            hasNFT: memberResult.hasNFT
                         });
 
-                        // Use the same logic as Dashboard and MemberGuard - check the isActivated field with fallback
-                        const apiActivated = memberResult.success && memberResult.isActivated;
-                        const fallbackActivated = memberResult.success && memberResult.member?.current_level > 0;
-
-                        if (apiActivated || (!apiActivated && fallbackActivated)) {
+                        // check-activation-status returns: { success, isActivated, hasNFT, member }
+                        if (memberResult.success && memberResult.isActivated) {
                             isActivated = true;
-                            currentLevel = memberResult.currentLevel || memberResult.member?.current_level || 1;
+                            currentLevel = memberResult.member?.current_level || 1;
                             console.log('✅ WelcomePage: Found activated member:', {
                                 isActivated,
-                                currentLevel,
-                                viaAPI: apiActivated,
-                                viaFallback: fallbackActivated && !apiActivated
+                                currentLevel
                             });
                         } else {
                             console.log('📋 WelcomePage: User not activated', {
                                 isActivated: memberResult.isActivated,
-                                currentLevel: memberResult.currentLevel,
-                                memberLevel: memberResult.member?.current_level
+                                hasNFT: memberResult.hasNFT
                             });
                         }
                     }
@@ -245,38 +239,38 @@ export function WelcomePage() {
         try {
             console.log('🔍 Background check: 检查链上NFT状态...');
 
-            // 使用Supabase客户端调用激活函数
+            // 使用 check-nft-ownership action 检查链上NFT
             const {callEdgeFunction} = await import('../../lib/supabaseClient');
 
             const result = await callEdgeFunction('activate-membership', {
-                action: 'check_existing'
+                action: 'check-nft-ownership',
+                level: 1
             }, walletAddress);
 
-            console.log('🔗 Background check result:', result);
+            console.log('🔗 Background NFT check result:', result);
 
-            if (result.action === 'already_activated') {
-                console.log('✅ Background sync: User is already activated - updating UI');
-                // User has NFT and is activated - redirect to dashboard
-                setWelcomeState({
-                    showClaimComponent: false,
-                    userLevel: result.member.current_level,
-                    isActivated: true,
-                    hasOnChainNFT: true,
-                    needsSync: false,
-                });
-                setLocation('/dashboard');
-            } else if (result.action === 'synced_from_chain') {
-                console.log('🔄 Background sync: Synced from chain - updating UI');
-                // 从链上同步了记录
-                setWelcomeState({
-                    showClaimComponent: false,
-                    userLevel: result.level,
-                    isActivated: true,
-                    hasOnChainNFT: true,
-                    needsSync: false,
-                });
+            // 如果用户拥有NFT，再检查激活状态
+            if (result.success && result.hasNFT) {
+                console.log('✅ Background: User has NFT on-chain, checking activation...');
 
-                setTimeout(() => setLocation('/dashboard'), 1000);
+                // 检查数据库激活状态
+                const activationResult = await callEdgeFunction('activate-membership', {
+                    action: 'check-activation-status'
+                }, walletAddress);
+
+                if (activationResult.success && activationResult.isActivated) {
+                    console.log('✅ Background sync: User is already activated - updating UI');
+                    setWelcomeState({
+                        showClaimComponent: false,
+                        userLevel: activationResult.member?.current_level || 1,
+                        isActivated: true,
+                        hasOnChainNFT: true,
+                        needsSync: false,
+                    });
+                    setLocation('/dashboard');
+                } else {
+                    console.log('⚠️ User has NFT but not activated in DB - may need manual sync');
+                }
             }
         } catch (error) {
             console.log('⚠️ Background NFT check failed (non-blocking):', error);
@@ -294,39 +288,43 @@ export function WelcomePage() {
             // 使用Supabase客户端调用激活函数
             const {callEdgeFunction} = await import('../../lib/supabaseClient');
 
-            const result = await callEdgeFunction('activate-membership', {
-                level: 1,
-                transactionHash: 'check_existing' // 特殊标识，表示只检查不验证交易
+            // 先检查链上NFT所有权
+            const nftResult = await callEdgeFunction('activate-membership', {
+                action: 'check-nft-ownership',
+                level: 1
             }, walletAddress);
 
-            if (result.success) {
-                if (result.action === 'already_synced') {
+            if (nftResult.success && nftResult.hasNFT) {
+                // 有NFT，检查激活状态
+                const activationResult = await callEdgeFunction('activate-membership', {
+                    action: 'check-activation-status'
+                }, walletAddress);
+
+                if (activationResult.success && activationResult.isActivated) {
                     // 数据库已有记录且已激活
                     setWelcomeState({
                         showClaimComponent: false,
-                        userLevel: result.member.current_level,
+                        userLevel: activationResult.member?.current_level || 1,
                         isActivated: true,
                         hasOnChainNFT: true,
                         needsSync: false,
                     });
                     setLocation('/dashboard');
-                } else if (result.action === 'synced_from_chain') {
-                    // 从链上同步了记录
+                } else {
+                    // 有NFT但未激活 - 显示同步提示
                     toast({
                         title: '✅ 检测到已拥有NFT',
-                        description: '已自动同步会员身份，正在跳转...',
-                        duration: 3000,
+                        description: '但数据库未激活，请联系支持',
+                        duration: 5000,
                     });
 
                     setWelcomeState({
                         showClaimComponent: false,
-                        userLevel: result.level,
-                        isActivated: true,
+                        userLevel: 0,
+                        isActivated: false,
                         hasOnChainNFT: true,
-                        needsSync: false,
+                        needsSync: true,
                     });
-
-                    setTimeout(() => setLocation('/dashboard'), 2000);
                 }
             } else {
                 // 链上没有NFT，显示claim组件
