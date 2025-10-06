@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
-import { TransactionButton, useActiveAccount, useActiveWalletChain, useSwitchActiveWalletChain } from 'thirdweb/react';
-import { getContract, prepareContractCall } from 'thirdweb';
+import { useActiveAccount, useActiveWalletChain, useSwitchActiveWalletChain } from 'thirdweb/react';
+import { getContract, prepareContractCall, sendAndConfirmTransaction } from 'thirdweb';
 import { arbitrum } from 'thirdweb/chains';
 import { Button } from '../ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '../ui/card';
@@ -308,14 +308,50 @@ export function CheckoutLevel1Button({
   });
 
   // Prepare USDT transfer to server wallet
-  const transferTransaction = prepareContractCall({
-    contract: usdtContract,
-    method: "function transfer(address to, uint256 amount) returns (bool)",
-    params: [
-      SERVER_WALLET as `0x${string}`,
-      LEVEL_1_PRICE_WEI
-    ]
-  });
+  const prepareTransferTransaction = () => {
+    return prepareContractCall({
+      contract: usdtContract,
+      method: "function transfer(address to, uint256 amount) returns (bool)",
+      params: [
+        SERVER_WALLET as `0x${string}`,
+        LEVEL_1_PRICE_WEI
+      ]
+    });
+  };
+
+  // Handle payment with manual transaction sending
+  const handlePayment = async () => {
+    if (!account?.address || isProcessing) return;
+
+    setIsProcessing(true);
+    try {
+      console.log('💰 Preparing USDT transfer:', {
+        from: account.address,
+        to: SERVER_WALLET,
+        amount: LEVEL_1_PRICE_WEI.toString(),
+        amountInUSDT: LEVEL_1_PRICE_USDT
+      });
+
+      toast({
+        title: '💳 Confirm Payment',
+        description: `Please confirm the ${LEVEL_1_PRICE_USDT} USDT payment in your wallet`,
+        duration: 5000
+      });
+
+      const transferTx = prepareTransferTransaction();
+      const result = await sendAndConfirmTransaction({
+        transaction: transferTx,
+        account: account
+      });
+
+      console.log('✅ Payment confirmed:', result.transactionHash);
+      await handlePaymentSuccess(result);
+
+    } catch (error: any) {
+      console.error('❌ Payment error:', error);
+      handlePaymentError(error);
+    }
+  };
 
   // Debug: Log transaction details
   console.log('🔍 Transfer Transaction Details:', {
@@ -329,12 +365,12 @@ export function CheckoutLevel1Button({
   return (
     <Card className={`bg-gradient-to-br from-honey/5 to-honey/15 border-honey/30 ${className}`}>
       <CardHeader>
-        <div className="flex items-center justify-between">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
           <div className="flex items-center gap-2">
-            <Crown className="h-6 w-6 text-honey" />
-            <CardTitle className="text-xl">Level 1 NFT Purchase</CardTitle>
+            <Crown className="h-5 w-5 sm:h-6 sm:w-6 text-honey" />
+            <CardTitle className="text-lg sm:text-xl">Level 1 NFT Purchase</CardTitle>
           </div>
-          <Badge className="bg-honey/20 text-honey border-honey/50">
+          <Badge className="bg-honey/20 text-honey border-honey/50 w-fit">
             {LEVEL_1_PRICE_USDT} USDT
           </Badge>
         </div>
@@ -342,26 +378,26 @@ export function CheckoutLevel1Button({
 
       <CardContent className="space-y-4">
         {/* Checkout Flow Info */}
-        <div className="p-4 bg-blue-500/10 border border-blue-500/20 rounded-lg space-y-3">
+        <div className="p-3 sm:p-4 bg-blue-500/10 border border-blue-500/20 rounded-lg space-y-3">
           <div className="flex items-center gap-2">
-            <Zap className="h-5 w-5 text-blue-400" />
-            <p className="text-sm font-medium text-blue-400">Secure Server Wallet Checkout</p>
+            <Zap className="h-4 w-4 sm:h-5 sm:w-5 text-blue-400 flex-shrink-0" />
+            <p className="text-xs sm:text-sm font-medium text-blue-400">Secure Server Wallet Checkout</p>
           </div>
           <div className="space-y-2 text-xs text-muted-foreground">
-            <div className="flex items-center gap-2">
-              <ArrowRight className="h-3 w-3 text-blue-400" />
+            <div className="flex items-start gap-2">
+              <ArrowRight className="h-3 w-3 text-blue-400 flex-shrink-0 mt-0.5" />
               <span>1. You pay 130 USDT to secure server wallet</span>
             </div>
-            <div className="flex items-center gap-2">
-              <ArrowRight className="h-3 w-3 text-blue-400" />
+            <div className="flex items-start gap-2">
+              <ArrowRight className="h-3 w-3 text-blue-400 flex-shrink-0 mt-0.5" />
               <span>2. Server wallet claims NFT directly to your wallet</span>
             </div>
-            <div className="flex items-center gap-2">
-              <ArrowRight className="h-3 w-3 text-blue-400" />
+            <div className="flex items-start gap-2">
+              <ArrowRight className="h-3 w-3 text-blue-400 flex-shrink-0 mt-0.5" />
               <span>3. 30 USDT platform fee sent to admin (100 USDT for NFT)</span>
             </div>
-            <div className="flex items-center gap-2">
-              <ArrowRight className="h-3 w-3 text-blue-400" />
+            <div className="flex items-start gap-2">
+              <ArrowRight className="h-3 w-3 text-blue-400 flex-shrink-0 mt-0.5" />
               <span>4. Automatic membership activation</span>
             </div>
           </div>
@@ -397,41 +433,39 @@ export function CheckoutLevel1Button({
 
         {/* Payment Amount Display */}
         {!isWrongNetwork && (
-          <div className="p-4 bg-gradient-to-r from-green-500/10 to-emerald-500/10 border border-green-500/20 rounded-lg">
-            <div className="flex items-center justify-between">
-              <span className="text-sm font-medium text-muted-foreground">Payment Amount:</span>
-              <div className="flex items-center gap-2">
-                <span className="text-2xl font-bold text-green-600 dark:text-green-400">{LEVEL_1_PRICE_USDT}</span>
-                <span className="text-sm font-medium text-green-600 dark:text-green-400">USDT</span>
+          <div className="p-3 sm:p-4 bg-gradient-to-r from-green-500/10 to-emerald-500/10 border border-green-500/20 rounded-lg">
+            <div className="flex items-center justify-between mb-2">
+              <span className="text-xs sm:text-sm font-medium text-muted-foreground">Payment Amount:</span>
+              <div className="flex items-center gap-1 sm:gap-2">
+                <span className="text-xl sm:text-2xl font-bold text-green-600 dark:text-green-400">{LEVEL_1_PRICE_USDT}</span>
+                <span className="text-xs sm:text-sm font-medium text-green-600 dark:text-green-400">USDT</span>
               </div>
             </div>
-            <div className="mt-2 text-xs text-muted-foreground">
-              Transfer to Server Wallet: {SERVER_WALLET.slice(0, 6)}...{SERVER_WALLET.slice(-4)}
+            <div className="text-xs text-muted-foreground break-all sm:break-normal">
+              Transfer to: {SERVER_WALLET.slice(0, 6)}...{SERVER_WALLET.slice(-4)}
             </div>
           </div>
         )}
 
         {/* Payment Button */}
         {!isWrongNetwork && (
-          <TransactionButton
-            transaction={() => transferTransaction}
-            onTransactionConfirmed={handlePaymentSuccess}
-            onError={handlePaymentError}
+          <Button
+            onClick={handlePayment}
             disabled={isProcessing}
-            className="w-full !bg-gradient-to-r !from-honey !to-orange-500 hover:!from-honey/90 hover:!to-orange-500/90 !text-white !font-semibold !py-6 !text-lg !rounded-lg !transition-all"
+            className="w-full bg-gradient-to-r from-honey to-orange-500 hover:from-honey/90 hover:to-orange-500/90 text-white font-semibold py-4 sm:py-6 text-base sm:text-lg rounded-lg transition-all disabled:opacity-50"
           >
             {isProcessing ? (
               <>
-                <Loader2 className="mr-2 h-5 w-5 animate-spin" />
+                <Loader2 className="mr-2 h-4 w-4 sm:h-5 sm:w-5 animate-spin" />
                 Processing...
               </>
             ) : (
               <>
-                <Crown className="mr-2 h-5 w-5" />
+                <Crown className="mr-2 h-4 w-4 sm:h-5 sm:w-5" />
                 Pay {LEVEL_1_PRICE_USDT} USDT
               </>
             )}
-          </TransactionButton>
+          </Button>
         )}
 
         {/* Additional Info */}
