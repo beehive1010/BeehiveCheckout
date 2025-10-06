@@ -1,7 +1,6 @@
 import React, {useEffect, useState} from 'react';
 import {CheckoutLevel1Button} from '../components/membership/CheckoutLevel1Button';
 import {useLocation} from 'wouter';
-import {useActiveAccount} from 'thirdweb/react';
 import {referralService} from '../api/landing/referral.client';
 import {authService} from '../lib/supabase';
 import {Card, CardContent} from '../components/ui/card';
@@ -9,12 +8,13 @@ import {Badge} from '../components/ui/badge';
 import {Crown, RefreshCw, User, Users} from 'lucide-react';
 import {useI18n} from '../contexts/I18nContext';
 import {useWallet} from '../hooks/useWallet';
+import {useWeb3} from '../contexts/Web3Context';
 import ErrorBoundary from '../components/ui/error-boundary';
 
 export default function Welcome() {
   const { t } = useI18n();
   const [, setLocation] = useLocation();
-  const account = useActiveAccount();
+  const { account } = useWeb3(); // Use account from Web3Context instead of direct hook
   const { refreshUserData, userStatus, isUserLoading } = useWallet();
   const [referrerWallet, setReferrerWallet] = useState<string>('');
   const [referrerInfo, setReferrerInfo] = useState<{ username?: string; wallet: string } | null>(null);
