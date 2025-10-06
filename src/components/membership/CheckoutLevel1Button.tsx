@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useActiveAccount, useActiveWalletChain, useSwitchActiveWalletChain } from 'thirdweb/react';
-import { getContract, prepareContractCall, sendAndConfirmTransaction } from 'thirdweb';
+import { getContract, prepareContractCall, sendAndConfirmTransaction, sendTransaction, waitForReceipt } from 'thirdweb';
 import { arbitrum } from 'thirdweb/chains';
 import { Button } from '../ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '../ui/card';
@@ -307,19 +307,7 @@ export function CheckoutLevel1Button({
     chain: arbitrum
   });
 
-  // Prepare USDT transfer to server wallet
-  const prepareTransferTransaction = () => {
-    return prepareContractCall({
-      contract: usdtContract,
-      method: "function transfer(address to, uint256 amount) returns (bool)",
-      params: [
-        SERVER_WALLET as `0x${string}`,
-        LEVEL_1_PRICE_WEI
-      ]
-    });
-  };
-
-  // Handle payment with manual transaction sending
+  // Handle payment with manual transaction sending using raw transaction
   const handlePayment = async () => {
     if (!account?.address || isProcessing) return;
 
@@ -338,29 +326,67 @@ export function CheckoutLevel1Button({
         duration: 5000
       });
 
-      const transferTx = prepareTransferTransaction();
-      const result = await sendAndConfirmTransaction({
+      // Create USDT transfer transaction
+      const transferTx = prepareContractCall({
+        contract: usdtContract,
+        method: "function transfer(address to, uint256 amount) returns (bool)",
+        params: [
+          SERVER_WALLET as `0x${string}`,
+          LEVEL_1_PRICE_WEI
+        ]
+      });
+
+      console.log('🔍 Sending transaction...');
+
+      // Send transaction and wait for hash
+      const txHash = await sendTransaction({
         transaction: transferTx,
         account: account
       });
 
-      console.log('✅ Payment confirmed:', result.transactionHash);
+      console.log('📝 Transaction sent:', txHash);
+
+      toast({
+        title: '⏳ Transaction Pending',
+        description: 'Waiting for confirmation...',
+        duration: 3000
+      });
+
+      // Wait for receipt
+      const receipt = await waitForReceipt({
+        client,
+        chain: arbitrum,
+        transactionHash: txHash
+      });
+
+      console.log('✅ Payment confirmed:', receipt);
+
+      // Create result object matching expected format
+      const result = {
+        transactionHash: txHash,
+        receipt: receipt
+      };
+
       await handlePaymentSuccess(result);
 
     } catch (error: any) {
       console.error('❌ Payment error:', error);
       handlePaymentError(error);
+      setIsProcessing(false);
     }
   };
 
-  // Debug: Log transaction details
-  console.log('🔍 Transfer Transaction Details:', {
-    contract: USDT_CONTRACT,
-    to: SERVER_WALLET,
-    amount: LEVEL_1_PRICE_WEI.toString(),
-    amountInUSDT: LEVEL_1_PRICE_USDT,
-    decimals: 6
-  });
+  // Debug: Log transaction details at component render
+  useEffect(() => {
+    console.log('🔍 CheckoutLevel1Button - Transaction Config:', {
+      contract: USDT_CONTRACT,
+      serverWallet: SERVER_WALLET,
+      amount: LEVEL_1_PRICE_WEI.toString(),
+      amountInUSDT: LEVEL_1_PRICE_USDT,
+      decimals: 6,
+      expectedHex: '0x' + LEVEL_1_PRICE_WEI.toString(16)
+    });
+  }, []);
 
   return (
     <Card className={`bg-gradient-to-br from-honey/5 to-honey/15 border-honey/30 ${className}`}>
