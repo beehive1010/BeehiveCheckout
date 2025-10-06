@@ -41,8 +41,15 @@ export function CheckoutLevel1Button({
   const USDT_CONTRACT = '0xFd086bC7CD5C481DCC9C85ebE478A1C0b69FCbb9'; // Arbitrum USDT
   const SERVER_WALLET = import.meta.env.VITE_SERVER_WALLET_ADDRESS || '0x8AABc891958D8a813dB15C355F0aEaa85E4E5C9c'; // Server wallet address
   const LEVEL_1_PRICE_USDT = 130;
-  const LEVEL_1_PRICE_WEI = BigInt(LEVEL_1_PRICE_USDT) * BigInt('1000000'); // 6 decimals
+  const LEVEL_1_PRICE_WEI = BigInt(LEVEL_1_PRICE_USDT) * BigInt('1000000'); // 6 decimals - 130000000
   const API_BASE = import.meta.env.VITE_API_BASE_URL || 'https://cvqibjcbfrwsgkvthccp.supabase.co/functions/v1';
+
+  // Debug: Log the transfer amount
+  console.log('💰 CheckoutLevel1Button - Transfer amount:', {
+    LEVEL_1_PRICE_USDT,
+    LEVEL_1_PRICE_WEI: LEVEL_1_PRICE_WEI.toString(),
+    SERVER_WALLET
+  });
 
   // Check network status
   useEffect(() => {
@@ -376,6 +383,22 @@ export function CheckoutLevel1Button({
                 'Switch to Arbitrum One'
               )}
             </Button>
+          </div>
+        )}
+
+        {/* Payment Amount Display */}
+        {!isWrongNetwork && (
+          <div className="p-4 bg-gradient-to-r from-green-500/10 to-emerald-500/10 border border-green-500/20 rounded-lg">
+            <div className="flex items-center justify-between">
+              <span className="text-sm font-medium text-muted-foreground">Payment Amount:</span>
+              <div className="flex items-center gap-2">
+                <span className="text-2xl font-bold text-green-600 dark:text-green-400">{LEVEL_1_PRICE_USDT}</span>
+                <span className="text-sm font-medium text-green-600 dark:text-green-400">USDT</span>
+              </div>
+            </div>
+            <div className="mt-2 text-xs text-muted-foreground">
+              Transfer to Server Wallet: {SERVER_WALLET.slice(0, 6)}...{SERVER_WALLET.slice(-4)}
+            </div>
           </div>
         )}
 
