@@ -94,7 +94,7 @@ export default function RewardHistory({ className, walletAddress }: RewardHistor
           rolled_up_to,
           roll_up_reason
         `)
-        .or(`reward_recipient_wallet.eq.${activeWallet},triggering_member_wallet.eq.${activeWallet}`)
+        .ilike('reward_recipient_wallet', activeWallet)
         .order('created_at', { ascending: false })
         .limit(100);
 
