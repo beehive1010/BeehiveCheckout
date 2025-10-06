@@ -317,6 +317,15 @@ export function CheckoutLevel1Button({
     ]
   });
 
+  // Debug: Log transaction details
+  console.log('🔍 Transfer Transaction Details:', {
+    contract: USDT_CONTRACT,
+    to: SERVER_WALLET,
+    amount: LEVEL_1_PRICE_WEI.toString(),
+    amountInUSDT: LEVEL_1_PRICE_USDT,
+    decimals: 6
+  });
+
   return (
     <Card className={`bg-gradient-to-br from-honey/5 to-honey/15 border-honey/30 ${className}`}>
       <CardHeader>
