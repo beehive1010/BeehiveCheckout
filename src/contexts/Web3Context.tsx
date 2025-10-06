@@ -191,7 +191,7 @@ function Web3ContextProvider({ children }: { children: React.ReactNode }) {
                     'x-wallet-address': account.address,
                   },
                   body: JSON.stringify({
-                    action: 'get-member-info'
+                    action: 'check-activation-status'
                   })
                 });
 
@@ -469,9 +469,20 @@ function Web3ContextProvider({ children }: { children: React.ReactNode }) {
 
   // Check membership status when both wallet and Supabase auth are ready
   useEffect(() => {
-    if (isConnected && isSupabaseAuthenticated && account?.address) {
-      checkMembershipStatus();
-    }
+    let isMounted = true;
+
+    const runCheck = async () => {
+      if (isConnected && isSupabaseAuthenticated && account?.address && isMounted) {
+        await checkMembershipStatus();
+      }
+    };
+
+    runCheck();
+
+    return () => {
+      isMounted = false;
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isConnected, isSupabaseAuthenticated, account?.address]);
 
   // Check gas sponsorship eligibility when wallet or chain changes

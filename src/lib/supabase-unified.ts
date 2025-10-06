@@ -141,7 +141,7 @@ export const authService = {
   async getMemberInfo(walletAddress: string) {
     try {
       const result = await callEdgeFunction('activate-membership', {
-        action: 'get-member-info'
+        action: 'check-activation-status'
       }, walletAddress);
       
       if (!result.success) {
