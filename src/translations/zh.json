@@ -3375,19 +3375,19 @@
     "button": {
       "unlock": "Unlock Membership Benefits - 130 USDT"
     },
-    "checkingChain": "Checking on-chain NFT status...",
-    "checkingMembership": "Checking membership status...",
-    "description": "Complete your membership by purchasing your 等级 1 Warrior NFT. This unlocks all platform features and starts your Web3 journey!",
+    "checkingChain": "正在检查链上 NFT 状态...",
+    "checkingMembership": "正在检查会员状态...",
+    "description": "通过购买等级 1 战士 NFT 完成您的会员资格。这将解锁所有平台功能并开启您的 Web3 之旅！",
     "error": {
-      "description": "There was an error with your purchase. Please try again.",
-      "title": "Purchase 失败"
+      "description": "购买时出现错误。请重试。",
+      "title": "购买失败"
     },
     "instructions": {
-      "step1": "🎯 连接 your wallet and claim your NFT to activate 等级 1 membership",
-      "step2": "⚡ This will enable access to the 3x3 referral matrix and BCC reward system"
+      "step1": "🎯 连接您的钱包并领取 NFT 以激活等级 1 会员资格",
+      "step2": "⚡ 这将启用 3×3 推荐矩阵和 BCC 奖励系统的访问权限"
     },
-    "matrixPlacement": "You'll be placed in their 3×3 matrix system",
-    "matrixPlacementInfo": "💡 Matrix Placement: You'll be automatically placed in the first available slot in your referrer's matrix tree, following the 3×3 structure (Layer 1→2→3...). This determines your position for earning layer rewards.",
+    "matrixPlacement": "您将被放置在他们的 3×3 矩阵系统中",
+    "matrixPlacementInfo": "💡 矩阵放置：您将自动放置在推荐人矩阵树的第一个可用位置，遵循 3×3 结构（第 1 层→第 2 层→第 3 层...）。这决定了您获得层级奖励的位置。",
     "nft": {
       "description": "Your membership credential on the blockchain",
       "price": "Price",
@@ -3408,18 +3408,18 @@
       "howToGet": "Existing members can generate referral links from their dashboard.",
       "title": "需要推荐链接"
     },
-    "referredBy": "Referred by",
+    "referredBy": "推荐人",
     "refreshing": "刷新中...",
     "refreshStatus": "刷新状态",
     "statusActivated": "✅ 已激活 (等级 {level})",
     "statusNotActivated": "⏳ 未激活",
     "refreshHint": "💡 如果您已领取 NFT，请尝试点击上方的\"刷新状态\"",
-    "subtitle": "Activate your 等级 1 membership by claiming your ERC-5115 NFT",
+    "subtitle": "通过领取您的 ERC-5115 NFT 激活等级 1 会员资格",
     "success": {
-      "description": "Your 等级 1 membership has been activated. Welcome to Beehive!",
-      "title": "Purchase 成功ful!"
+      "description": "您的等级 1 会员资格已激活。欢迎来到 Beehive！",
+      "title": "购买成功！"
     },
-    "supportText": "Secure payments across multiple blockchains with instant NFT delivery",
-    "title": "Welcome to Beehive Community"
+    "supportText": "跨多个区块链的安全支付，即时交付 NFT",
+    "title": "欢迎来到 Beehive 社区"
   }
 }
