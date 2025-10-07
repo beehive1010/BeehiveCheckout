@@ -227,7 +227,7 @@ export default function Welcome() {
             >
               <RefreshCw className={`h-4 w-4 ${(isRefreshing || isUserLoading) ? 'animate-spin' : ''}`} />
               <span>
-                {isRefreshing ? 'Refreshing...' : 'Refresh Status'}
+                {isRefreshing ? t('welcome.refreshing') : t('welcome.refreshStatus')}
               </span>
             </button>
           </div>
@@ -235,20 +235,20 @@ export default function Welcome() {
           {/* Status indicator */}
           {userStatus && (
             <div className="mb-4 space-y-2">
-              <Badge 
+              <Badge
                 variant={userStatus.isActivated ? "default" : "secondary"}
                 className={`${userStatus.isActivated ? 'bg-green-100 text-green-800 border-green-200' : 'bg-orange-100 text-orange-800 border-orange-200'}`}
               >
-                {userStatus.isActivated ? 
-                  `✅ Activated (Level ${userStatus.membershipLevel})` : 
-                  '⏳ Not Activated'
+                {userStatus.isActivated ?
+                  t('welcome.statusActivated', { level: userStatus.membershipLevel }) :
+                  t('welcome.statusNotActivated')
                 }
               </Badge>
               
               {/* Show hint if user is registered but not activated (might need refresh) */}
               {userStatus.isRegistered && !userStatus.isActivated && (
                 <div className="text-xs text-muted-foreground bg-blue-50 border border-blue-200 rounded-lg p-2 max-w-md mx-auto">
-                  💡 If you've already claimed your NFT, try clicking "Refresh Status" above
+                  {t('welcome.refreshHint')}
                 </div>
               )}
             </div>

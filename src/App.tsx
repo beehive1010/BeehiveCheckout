@@ -9,7 +9,7 @@ import { AdminAuthProvider } from "./contexts/AdminAuthContext";
 import { ThemeProvider } from "next-themes";
 import { Toaster as HotToaster } from "react-hot-toast";
 import { setupGlobalChunkErrorHandler, preloadThirdwebModules } from "@/utils/moduleLoader";
-import { useEffect } from "react";
+import React, { useEffect } from "react";
 import ErrorBoundary from "@/components/ui/error-boundary";
 
 // Refactored pages with clean architecture
@@ -138,15 +138,16 @@ const RouteGuard = ({ children }: { children: React.ReactNode }) => <div>{childr
 
 // Smart routing component that routes based on user status
 function SmartHomePage() {
-  const { 
-    isConnected, 
+  const {
+    isConnected,
     isCheckingRegistration,
-    isNewUser, 
-    needsNFTClaim, 
+    isNewUser,
+    needsNFTClaim,
     isFullyActivated,
     userStatus,
     isUserLoading
   } = useWallet();
+  const [, setLocation] = useLocation();
 
   // Debug logging
   console.log('SmartHomePage status:', {
@@ -160,25 +161,24 @@ function SmartHomePage() {
     isUserLoading
   });
 
-  // Show landing page while checking user status or if not connected
-  if (!isConnected || isCheckingRegistration) {
-    return <LandingPage />;
-  }
+  // Use useEffect to redirect instead of direct component rendering
+  // This prevents double-rendering and infinite redirect loops
+  React.useEffect(() => {
+    if (isConnected && !isCheckingRegistration && !isUserLoading) {
+      if (isNewUser) {
+        console.log('🔀 SmartHomePage: Redirecting to /register (new user)');
+        setLocation('/register');
+      } else if (needsNFTClaim) {
+        console.log('🔀 SmartHomePage: Redirecting to /welcome (needs NFT claim)');
+        setLocation('/welcome');
+      } else if (isFullyActivated) {
+        console.log('🔀 SmartHomePage: Redirecting to /dashboard (fully activated)');
+        setLocation('/dashboard');
+      }
+    }
+  }, [isConnected, isCheckingRegistration, isUserLoading, isNewUser, needsNFTClaim, isFullyActivated, setLocation]);
 
-  // Route based on enhanced user status
-  if (isNewUser) {
-    return <Registration />;
-  }
-  
-  if (needsNFTClaim) {
-    return <Welcome />;
-  }
-  
-  if (isFullyActivated) {
-    return <Dashboard />;
-  }
-
-  // Fallback to landing page
+  // Always show landing page for root "/" - redirects will happen via useEffect
   return <LandingPage />;
 }
 

@@ -3084,6 +3084,11 @@
       "title": "Referral Link Required"
     },
     "referredBy": "Referred by",
+    "refreshing": "Refreshing...",
+    "refreshStatus": "Refresh Status",
+    "statusActivated": "✅ Activated (Level {level})",
+    "statusNotActivated": "⏳ Not Activated",
+    "refreshHint": "💡 If you've already claimed your NFT, try clicking \"Refresh Status\" above",
     "subtitle": "Activate your Level 1 membership by claiming your ERC-5115 NFT",
     "success": {
       "description": "Your Level 1 membership has been activated. Welcome to Beehive!",
