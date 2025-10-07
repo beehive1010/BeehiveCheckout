@@ -476,6 +476,7 @@
   "common": {
     "accessDenied": "Access Denied",
     "active": "Active",
+    "ActiveMember": "Active Member",
     "address_copied": "Address Copied",
     "allPartners": "All Partners",
     "authenticationFailed": "Authentication Failed",
@@ -2663,6 +2664,7 @@
           "layerCount": "19 Layers",
           "layer": "Layer {layer}",
           "active": "Active: {count}",
+          "ActiveMember": "Active Member",
           "fillRate": "Fill Rate",
           "complete": "{percent}% Complete",
           "layerComplete": "Layer Complete",

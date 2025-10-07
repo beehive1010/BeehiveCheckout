@@ -241,21 +241,38 @@ export function useNFTClaim() {
         });
 
         if (!activateResponse.ok) {
-          console.warn('⚠️ Activation API call failed, but NFT was claimed successfully');
+          const errorText = await activateResponse.text();
+          console.error('❌ Activation API call failed:', errorText);
+
           toast({
-            title: '⚠️ Activation Pending',
-            description: 'NFT claimed successfully. Please refresh in a moment.',
-            duration: 8000,
+            title: '⚠️ NFT Claimed but Activation Failed',
+            description: 'NFT claimed successfully, but database activation failed. Please contact support with your transaction hash.',
+            variant: 'destructive',
+            duration: 10000,
           });
+
+          // Don't call onSuccess if activation failed
+          // Return partial success with error details
+          return {
+            success: false,
+            txHash: claimTxResult.transactionHash,
+            error: `Activation failed: ${errorText}`,
+            nftClaimed: true // NFT was claimed but activation failed
+          };
         } else {
           const activateResult = await activateResponse.json();
           console.log('✅ Membership activated:', activateResult);
-        }
-      }
 
-      // Success callback
-      if (onSuccess) {
-        onSuccess();
+          // Only call onSuccess if activation was successful
+          if (onSuccess) {
+            onSuccess();
+          }
+        }
+      } else {
+        // No activation endpoint, just call onSuccess
+        if (onSuccess) {
+          onSuccess();
+        }
       }
 
       return { success: true, txHash: claimTxResult.transactionHash };

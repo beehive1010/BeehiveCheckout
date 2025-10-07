@@ -147,6 +147,7 @@
   },
   "common": {
     "active": "激活",
+    "ActiveMember": "活跃成员",
     "address_copied": "地址已复制",
     "back": "返回",
     "block_explorer": "区块浏览器",
@@ -2050,6 +2051,7 @@
           "layerCount": "19层",
           "layer": "第{layer}层",
           "active": "活跃: {count}",
+          "ActiveMember": "活跃成员",
           "fillRate": "填充率",
           "complete": "{percent}% 完成",
           "layerComplete": "层级完成",

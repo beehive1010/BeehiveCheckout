@@ -104,6 +104,7 @@
     "save": "保存",
     "success": "成功",
     "active": "激活",
+    "ActiveMember": "アクティブメンバー",
     "address_copied": "地址已複製",
     "block_explorer": "區块瀏覽器",
     "caution": "注意",
@@ -348,6 +349,7 @@
     },
     "status": {
       "active": "アクティブ"
+    "ActiveMember": "アクティブメンバー",
     },
     "success": {
       "copied": "コピー済み！",
@@ -1030,6 +1032,7 @@
     },
     "status": {
       "active": "アクティブ",
+    "ActiveMember": "アクティブメンバー",
       "memberSince": "メンバー開始"
     },
     "subtitle": "統計、残高、アカウント詳細を表示",
@@ -1069,6 +1072,7 @@
       "restricted": "受限",
       "locked": "鎖定",
       "active": "活跃",
+    "ActiveMember": "アクティブメンバー",
       "limited": "受限",
       "usage": "用途"
     },
@@ -1180,6 +1184,7 @@
     "title": "メンバーシップレベル",
     "walletNotConnected": "まずウォレットを接続してください",
     "active": "激活",
+    "ActiveMember": "アクティブメンバー",
     "expired": "已過期",
     "pending": "待處理",
     "status": "狀態",
@@ -1360,6 +1365,7 @@
           "layerCount": "19層",
           "layer": "第{layer}層",
           "active": "活跃: {count}",
+    "ActiveMember": "アクティブメンバー",
           "fillRate": "填充率",
           "complete": "{percent}% 完成",
           "layerComplete": "層級完成",
@@ -1391,6 +1397,7 @@
       },
       "visualization": {
         "active": "アクティブ",
+    "ActiveMember": "アクティブメンバー",
         "available": "利用可能",
         "inactive": "非アクティブ",
         "layerNumber": "層{{layer}}",
@@ -1756,6 +1763,7 @@
       "title": "矩阵表現",
       "status": "狀態",
       "active": "活跃",
+    "ActiveMember": "アクティブメンバー",
       "currentLevel": "當前級別",
       "level": "級別",
       "matrixRewards": "矩阵獎勵",
@@ -2109,6 +2117,7 @@
       "autoDistribution": "自動分發",
       "currentPhase": "當前阶段",
       "active": "活跃中",
+    "ActiveMember": "アクティブメンバー",
       "activationProgress": "激活進度",
       "phaseRewardPool": "阶段一獎勵池",
       "remaining": "剩餘",
@@ -2571,6 +2580,7 @@
       "hours_72_from_activation": "激活后72小時"
     },
     "active": "Active",
+    "ActiveMember": "アクティブメンバー",
     "available_bcc": "Available BCC",
     "available_usdt": "Available USDT",
     "bccLocked": "Locked BCC: Tier-based release",
@@ -2770,6 +2780,7 @@
       "autoDistribution": "Auto Distribution",
       "currentPhase": "Current Phase",
       "active": "Active",
+    "ActiveMember": "アクティブメンバー",
       "activationProgress": "Activation Progress",
       "phaseRewardPool": "Phase 1 Reward Pool",
       "remaining": "remaining",
@@ -3122,6 +3133,7 @@
     "soldOut": "Sold Out",
     "status": {
       "active": "ACTIVE",
+    "ActiveMember": "アクティブメンバー",
       "burned": "BURNED",
       "claimed": "Ready to Use",
       "serviceActivated": "Service Activated",
