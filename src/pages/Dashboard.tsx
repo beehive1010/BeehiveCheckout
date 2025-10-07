@@ -215,7 +215,7 @@ export default function Dashboard() {
           matrix_layer,
           triggering_member_wallet
         `)
-        .ilike('reward_recipient_wallet', walletAddress) // Use correct column name
+        .eq('reward_recipient_wallet', walletAddress.toLowerCase()) // Use correct column name
         .order('created_at', { ascending: false });
 
       if (rewardError) {

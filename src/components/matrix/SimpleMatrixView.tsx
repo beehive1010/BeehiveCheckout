@@ -60,7 +60,7 @@ const SimpleMatrixView: React.FC<SimpleMatrixViewProps> = ({ walletAddress, root
             referrer_wallet,
             member_activation_sequence
           `)
-          .ilike('matrix_root_wallet', walletAddress) // Use ilike for case-insensitive comparison
+          .eq('matrix_root_wallet', walletAddress.toLowerCase()) // Use ilike for case-insensitive comparison
           .order('matrix_layer')
           .order('member_activation_sequence');
         

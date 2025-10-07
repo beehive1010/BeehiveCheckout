@@ -265,7 +265,7 @@ class DirectDatabaseClient {
     }
     
     return this.query('members', {
-      filter: { [`wallet_address.ilike`]: walletAddress },
+      filter: { [`wallet_address.eq`]: walletAddress.toLowerCase() },
       select: '*',
       single: true,
       timeout: 5000

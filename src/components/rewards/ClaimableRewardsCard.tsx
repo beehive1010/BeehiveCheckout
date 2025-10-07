@@ -74,7 +74,7 @@ export default function ClaimableRewardsCard({ walletAddress }: { walletAddress:
           created_at,
           claimed_at
         `)
-        .ilike('reward_recipient_wallet', memberWalletAddress)
+        .eq('reward_recipient_wallet', memberWalletAddress.toLowerCase())
         .in('status', ['claimable', 'pending'])
         .order('created_at', { ascending: false });
 

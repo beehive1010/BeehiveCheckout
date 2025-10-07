@@ -13,7 +13,7 @@ export async function getDirectReferralCount(referrerWallet: string): Promise<nu
     const { count, error } = await supabase
       .from('referrals')
       .select('*', { count: 'exact', head: true })
-      .ilike('referrer_wallet', referrerWallet);
+      .eq('referrer_wallet', referrerWallet.toLowerCase());
 
     if (error) {
       console.error('❌ referrals table query failed:', error);
@@ -87,7 +87,7 @@ export async function getDirectReferralDetails(referrerWallet: string): Promise<
         referrer_wallet,
         placed_at
       `)
-      .ilike('referrer_wallet', referrerWallet)
+      .eq('referrer_wallet', referrerWallet.toLowerCase())
       .order('placed_at', { ascending: false });
 
     if (referralError) {

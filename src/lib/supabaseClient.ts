@@ -519,20 +519,20 @@ export const matrixService = {
       const { count: directReferralsCount } = await supabase
         .from('referrals')
         .select('*', { count: 'exact', head: true })
-        .ilike('referrer_wallet', walletAddress)
+        .eq('referrer_wallet', walletAddress.toLowerCase())
         .eq('matrix_layer', 1);
 
       // Get total matrix team size from referrals table
       const { count: totalTeamSize } = await supabase
         .from('referrals')
         .select('*', { count: 'exact', head: true })
-        .ilike('matrix_root_wallet', walletAddress);
+        .eq('matrix_root_wallet', walletAddress.toLowerCase());
 
       // Get max depth from referrals
       const { data: maxDepthData } = await supabase
         .from('referrals')
         .select('matrix_layer')
-        .ilike('matrix_root_wallet', walletAddress)
+        .eq('matrix_root_wallet', walletAddress.toLowerCase())
         .order('matrix_layer', { ascending: false })
         .limit(1);
 
@@ -548,7 +548,7 @@ export const matrixService = {
           matrix_position,
           is_spillover_placement
         `)
-        .ilike('matrix_root_wallet', walletAddress)
+        .eq('matrix_root_wallet', walletAddress.toLowerCase())
         .order('placed_at', { ascending: false })
         .limit(10);
 
@@ -659,13 +659,13 @@ export const matrixService = {
       const { count: totalSpilloverMembers } = await supabase
         .from('spillover_matrix')
         .select('*', { count: 'exact', head: true })
-        .ilike('matrix_root_wallet', walletAddress);
+        .eq('matrix_root_wallet', walletAddress.toLowerCase());
 
       // Get members with spillover
       const { count: spilloverCount } = await supabase
         .from('spillover_matrix')
         .select('*', { count: 'exact', head: true })
-        .ilike('matrix_root_wallet', walletAddress)
+        .eq('matrix_root_wallet', walletAddress.toLowerCase())
         .neq('matrix_layer', 'original_layer');
 
       return {
@@ -1075,7 +1075,7 @@ export const rewardService = {
           nft_level,
           root_wallet
         `)
-        .ilike('root_wallet', walletAddress)
+        .eq('root_wallet', walletAddress.toLowerCase())
         .order('created_at', { ascending: false });
 
       if (allError) throw allError;
@@ -1496,7 +1496,7 @@ export const transactionService = {
           matrix_layer,
           reward_type
         `)
-        .ilike('claimer_wallet', walletAddress)
+        .eq('claimer_wallet', walletAddress.toLowerCase())
         .order('created_at', { ascending: false })
         .range(offset, offset + limit - 1);
 
@@ -1557,7 +1557,7 @@ export const transactionService = {
       const { data: rewardsData } = await supabase
         .from('reward_claims')
         .select('amount, status')
-        .ilike('claimer_wallet', walletAddress)
+        .eq('claimer_wallet', walletAddress.toLowerCase())
         .eq('status', 'completed');
 
       const totalRewards = rewardsData?.reduce((sum, reward) => sum + reward.amount, 0) || 0;
