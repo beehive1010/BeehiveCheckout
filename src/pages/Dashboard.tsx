@@ -410,8 +410,8 @@ export default function Dashboard() {
 
     const balanceSubscription = supabase
       .channel('balance_changes')
-      .on('postgres_changes', 
-        { event: '*', schema: 'public', table: 'user_balances', filter: `wallet_address=ilike.${walletAddress}` },
+      .on('postgres_changes',
+        { event: '*', schema: 'public', table: 'user_balances', filter: `wallet_address=eq.${walletAddress.toLowerCase()}` },
         (payload: any) => {
           console.log('💰 Balance updated:', payload);
           loadBalanceData();
