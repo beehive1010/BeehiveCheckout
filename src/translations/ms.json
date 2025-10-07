@@ -588,7 +588,7 @@
     },
     "status": {
       "active": "Active",
-      "ActiveMember": "Ahli Aktif",
+      "ActiveMember": "Ahli Aktif"
     },
     "tokenPurchase": {
       "bccDescription": "Purchase Beehive Crypto Coins for platform usage",

@@ -414,7 +414,7 @@
     },
     "status": {
       "active": "활성",
-      "ActiveMember": "활성 회원",
+      "ActiveMember": "활성 회원"
     },
     "success": {
       "copied": "복사됨!",

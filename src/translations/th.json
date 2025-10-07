@@ -453,7 +453,7 @@
     },
     "status": {
       "active": "Active",
-      "ActiveMember": "สมาชิกที่ใช้งานอยู่",
+      "ActiveMember": "สมาชิกที่ใช้งานอยู่"
     },
     "success": {
       "copied": "Copied!",
