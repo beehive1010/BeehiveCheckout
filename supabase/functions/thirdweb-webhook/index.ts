@@ -87,6 +87,21 @@ serve(async (req) => {
         await handleTokenTransfer(supabase, data)
         break
 
+      case 'tokens_claimed':
+      case 'TokensClaimed':
+        await handleTokensClaimed(supabase, data)
+        break
+
+      case 'transfer_single':
+      case 'TransferSingle':
+        await handleTransferSingle(supabase, data)
+        break
+
+      case 'transfer_batch':
+      case 'TransferBatch':
+        await handleTransferBatch(supabase, data)
+        break
+
       default:
         console.log(`⚠️ Unhandled webhook event type: ${actualEventType}`)
     }
@@ -481,12 +496,12 @@ async function handleTokenTransfer(supabase: any, data: any) {
         user_wallet: SERVER_WALLET,
         action: 'auto_platform_fee_transfer',
         old_values: {
-          received_amount: amountUSDC,
+          received_amount: amountUSDT,
           from_address: from,
           trigger_tx: transactionHash
         },
         new_values: {
-          transferred_amount: PLATFORM_FEE_USDC,
+          transferred_amount: PLATFORM_FEE_USDT,
           to_address: PLATFORM_RECIPIENT,
           transfer_result: transferResult
         }
@@ -499,6 +514,130 @@ async function handleTokenTransfer(supabase: any, data: any) {
 
   } catch (error) {
     console.error('❌ Error in handleTokenTransfer:', error)
+  }
+}
+
+// Handle TokensClaimed event - when someone claims an NFT
+async function handleTokensClaimed(supabase: any, data: any) {
+  try {
+    const { claimer, receiver, startTokenId, quantityClaimed, transactionHash, chainId } = data
+
+    console.log(`🎁 TokensClaimed event:`, {
+      claimer,
+      receiver,
+      tokenId: startTokenId,
+      quantity: quantityClaimed,
+      transactionHash,
+      chainId
+    })
+
+    // Log the claim event
+    await supabase.from('transaction_logs').insert({
+      transaction_hash: transactionHash,
+      transaction_type: 'nft_claimed',
+      chain_id: chainId,
+      metadata: {
+        event_type: 'TokensClaimed',
+        claimer: claimer?.toLowerCase(),
+        receiver: receiver?.toLowerCase(),
+        token_id: startTokenId,
+        quantity: quantityClaimed,
+        timestamp: new Date().toISOString()
+      },
+      created_at: new Date().toISOString()
+    })
+
+    console.log(`✅ TokensClaimed event logged for token ${startTokenId}`)
+
+  } catch (error) {
+    console.error('❌ Error in handleTokensClaimed:', error)
+  }
+}
+
+// Handle TransferSingle event - ERC1155 single NFT transfer
+async function handleTransferSingle(supabase: any, data: any) {
+  try {
+    const { operator, from, to, id, value, transactionHash, chainId } = data
+
+    console.log(`📦 TransferSingle event:`, {
+      operator,
+      from,
+      to,
+      tokenId: id,
+      value,
+      transactionHash,
+      chainId
+    })
+
+    // Check if this is a mint (from zero address)
+    const isMint = from?.toLowerCase() === '0x0000000000000000000000000000000000000000'
+
+    // Log the transfer event
+    await supabase.from('transaction_logs').insert({
+      transaction_hash: transactionHash,
+      transaction_type: isMint ? 'nft_minted' : 'nft_transferred',
+      chain_id: chainId,
+      metadata: {
+        event_type: 'TransferSingle',
+        operator: operator?.toLowerCase(),
+        from: from?.toLowerCase(),
+        to: to?.toLowerCase(),
+        token_id: id,
+        value: value,
+        is_mint: isMint,
+        timestamp: new Date().toISOString()
+      },
+      created_at: new Date().toISOString()
+    })
+
+    console.log(`✅ TransferSingle event logged: ${isMint ? 'MINT' : 'TRANSFER'} of token ${id}`)
+
+  } catch (error) {
+    console.error('❌ Error in handleTransferSingle:', error)
+  }
+}
+
+// Handle TransferBatch event - ERC1155 batch NFT transfer
+async function handleTransferBatch(supabase: any, data: any) {
+  try {
+    const { operator, from, to, ids, values, transactionHash, chainId } = data
+
+    console.log(`📦 TransferBatch event:`, {
+      operator,
+      from,
+      to,
+      tokenIds: ids,
+      values,
+      transactionHash,
+      chainId
+    })
+
+    // Check if this is a batch mint (from zero address)
+    const isMint = from?.toLowerCase() === '0x0000000000000000000000000000000000000000'
+
+    // Log the batch transfer event
+    await supabase.from('transaction_logs').insert({
+      transaction_hash: transactionHash,
+      transaction_type: isMint ? 'nft_batch_minted' : 'nft_batch_transferred',
+      chain_id: chainId,
+      metadata: {
+        event_type: 'TransferBatch',
+        operator: operator?.toLowerCase(),
+        from: from?.toLowerCase(),
+        to: to?.toLowerCase(),
+        token_ids: ids,
+        values: values,
+        is_mint: isMint,
+        count: ids?.length || 0,
+        timestamp: new Date().toISOString()
+      },
+      created_at: new Date().toISOString()
+    })
+
+    console.log(`✅ TransferBatch event logged: ${isMint ? 'BATCH MINT' : 'BATCH TRANSFER'} of ${ids?.length} tokens`)
+
+  } catch (error) {
+    console.error('❌ Error in handleTransferBatch:', error)
   }
 }
 
@@ -515,16 +654,16 @@ async function sendWithdrawalNotification(supabase: any, transactionHash: string
         .single()
       withdrawalData = data
     }
-    
+
     if (!withdrawalData) return
-    
+
     const targetTokenSymbol = withdrawalData.metadata?.target_token_symbol || 'USDT'
     const netAmount = withdrawalData.metadata?.net_amount || withdrawalData.amount
     const feeAmount = withdrawalData.metadata?.fee_amount || 0
-    
+
     // Create notification
     let title, message
-    
+
     switch (status) {
       case 'completed':
         title = '提现成功 ✅'
@@ -537,7 +676,7 @@ async function sendWithdrawalNotification(supabase: any, transactionHash: string
       default:
         return
     }
-    
+
     await supabase
       .from('notifications')
       .insert({
@@ -556,9 +695,9 @@ async function sendWithdrawalNotification(supabase: any, transactionHash: string
         },
         created_at: new Date().toISOString()
       })
-    
+
     console.log(`📧 Notification sent to ${withdrawalData.user_wallet}: ${title}`)
-    
+
   } catch (error) {
     console.error('Error sending notification:', error)
   }

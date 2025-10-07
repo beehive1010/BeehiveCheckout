@@ -1,15 +1,14 @@
 import {useEffect, useState, useCallback, useRef} from 'react';
-import {useActiveAccount, useActiveWalletChain, useSwitchActiveWalletChain, CheckoutWidget} from 'thirdweb/react';
-import {createThirdwebClient, defineChain} from 'thirdweb';
+import {useActiveAccount, useActiveWalletChain, useSwitchActiveWalletChain} from 'thirdweb/react';
+import {getContract, sendTransaction, waitForReceipt} from 'thirdweb';
 import {arbitrum} from 'thirdweb/chains';
 import {balanceOf, claimTo} from 'thirdweb/extensions/erc1155';
-import {getApprovalForTransaction} from 'thirdweb/extensions/erc20';
-import {sendAndConfirmTransaction} from 'thirdweb';
+import {approve, balanceOf as erc20BalanceOf, allowance} from 'thirdweb/extensions/erc20';
 import {Button} from '../ui/button';
 import {Card, CardContent, CardHeader, CardTitle} from '../ui/card';
 import {Badge} from '../ui/badge';
 import {useToast} from '../../hooks/use-toast';
-import {Coins, Crown, Gift, Loader2, Zap, X} from 'lucide-react';
+import {Coins, Crown, Gift, Loader2, Zap} from 'lucide-react';
 import {authService} from '../../lib/supabase';
 import {useI18n} from '../../contexts/I18nContext';
 import RegistrationModal from '../modals/RegistrationModal';
@@ -37,20 +36,13 @@ export function WelcomeLevel1ClaimButton({ onSuccess, referrerWallet, className 
   const [isStabilizing, setIsStabilizing] = useState(false);
   const [isEligible, setIsEligible] = useState(false);
   const [hasNFT, setHasNFT] = useState(false);
-  const [showPayEmbed, setShowPayEmbed] = useState(false);
-  const [approvalStep, setApprovalStep] = useState<'idle' | 'approving' | 'approved'>('idle');
-  const [isApproving, setIsApproving] = useState(false);
-  const payEmbedRef = useRef<HTMLDivElement | null>(null);
 
   // Fixed Level 1 pricing and info
   const LEVEL_1_PRICE_USDT = 130;
-  const SERVER_WALLET = import.meta.env.VITE_SERVER_WALLET_ADDRESS || '0x8AABc891958D8a813dB15C355F0aEaa85E4E5C9c';
-  const USDT_CONTRACT = '0x6B174f1f3B7f92E048f0f15FD2b22c167DA6F008'; // Arbitrum Sepolia USDT
+  const LEVEL_1_PRICE_WEI = BigInt(LEVEL_1_PRICE_USDT * 1_000_000); // USDT has 6 decimals
+  const USDT_CONTRACT = '0x6B174f1f3B7f92E048f0f15FD2b22c167DA6F008'; // Arbitrum Mainnet USDT
+  const NFT_CONTRACT = '0xe57332db0B8d7e6aF8a260a4fEcfA53104728693'; // Arbitrum Mainnet NFT
   const API_BASE = import.meta.env.VITE_API_BASE_URL || 'https://cvqibjcbfrwsgkvthccp.supabase.co/functions/v1';
-
-  const checkoutClient = createThirdwebClient({
-    clientId: import.meta.env.VITE_THIRDWEB_CLIENT_ID || client.clientId,
-  });
 
   // Check network status
   useEffect(() => {
@@ -267,8 +259,49 @@ export function WelcomeLevel1ClaimButton({ onSuccess, referrerWallet, className 
     }
   };
 
+  const sendTransactionWithRetry = async (transaction: any, account: any, description: string, maxRetries = 3) => {
+    let lastError: any = null;
+    const baseDelay = 2000;
+
+    for (let attempt = 1; attempt <= maxRetries; attempt++) {
+      try {
+        console.log(`📤 Sending ${description} (attempt ${attempt}/${maxRetries})...`);
+
+        if (attempt > 1) {
+          await new Promise(resolve => setTimeout(resolve, baseDelay * attempt));
+        }
+
+        const result = await sendTransaction({
+          transaction,
+          account,
+        });
+
+        console.log(`✅ ${description} successful on attempt ${attempt}`);
+        return result;
+
+      } catch (error: any) {
+        lastError = error;
+        console.error(`❌ ${description} failed on attempt ${attempt}:`, error.message);
+
+        if (error.message?.includes('User rejected') ||
+            error.message?.includes('user denied') ||
+            error.message?.includes('User cancelled')) {
+          throw new Error('Transaction cancelled by user');
+        }
+
+        if (attempt === maxRetries) {
+          break;
+        }
+
+        console.log(`🔄 Retrying ${description} in ${baseDelay * attempt}ms...`);
+      }
+    }
+
+    throw new Error(`${description} failed after ${maxRetries} attempts: ${lastError?.message || 'Unknown error'}`);
+  };
+
   const handleApproveAndClaim = async () => {
-    if (!account?.address || isApproving || hasNFT) {
+    if (!account?.address || isProcessing || hasNFT) {
       return;
     }
 
@@ -297,165 +330,197 @@ export function WelcomeLevel1ClaimButton({ onSuccess, referrerWallet, className 
         return;
       }
 
-      // Start approval + claim process
-      setIsApproving(true);
-      setApprovalStep('approving');
+      console.log('🎯 Level 1 NFT Claim attempt started');
+      setIsProcessing(true);
 
-      toast({
-        title: '⏳ Processing Approval',
-        description: 'Please sign the transaction in your wallet to approve USDT spending',
-        duration: 5000
+      // Step 1: Setup contracts
+      const usdtContract = getContract({
+        client,
+        address: USDT_CONTRACT,
+        chain: arbitrum
       });
 
-      const claimTx = claimTo({
-        contract: nftContract,
-        to: account.address as `0x${string}`,
-        tokenId: BigInt(1),
-        quantity: BigInt(1),
+      const nftContractDirect = getContract({
+        client,
+        address: NFT_CONTRACT,
+        chain: arbitrum
       });
 
-      const approveTx = await getApprovalForTransaction({
-        transaction: claimTx,
-        account,
+      // Step 2: Check USDT balance
+      console.log('💰 Checking USDT balance...');
+      setCurrentStep('Checking USDT balance...');
+
+      const tokenBalance = await erc20BalanceOf({
+        contract: usdtContract,
+        address: account.address
       });
 
-      if (approveTx) {
+      if (tokenBalance < LEVEL_1_PRICE_WEI) {
+        throw new Error(`Insufficient USDT balance. You have ${(Number(tokenBalance) / 1e6).toFixed(2)} USDT but need ${LEVEL_1_PRICE_USDT} USDT`);
+      }
+
+      console.log('✅ Sufficient USDT balance confirmed');
+
+      // Step 3: Check and request approval
+      setCurrentStep('Checking USDT approval...');
+
+      const currentAllowance = await allowance({
+        contract: usdtContract,
+        owner: account.address,
+        spender: NFT_CONTRACT
+      });
+
+      console.log(`💰 Current allowance: ${Number(currentAllowance) / 1e6} USDT, Required: ${LEVEL_1_PRICE_USDT} USDT`);
+
+      if (currentAllowance < LEVEL_1_PRICE_WEI) {
+        console.log('💰 Requesting USDT approval...');
+
         toast({
-          title: '⏳ Approval Pending',
-          description: 'Waiting for blockchain confirmation...',
-          duration: 10000
+          title: '⏳ Approval Required',
+          description: 'Please approve USDT spending in your wallet',
+          duration: 5000
         });
 
-        await sendAndConfirmTransaction({
-          transaction: approveTx,
-          account,
+        const approveTransaction = approve({
+          contract: usdtContract,
+          spender: NFT_CONTRACT,
+          amount: LEVEL_1_PRICE_WEI.toString()
         });
+
+        setCurrentStep('Waiting for approval...');
+
+        const approveTxResult = await sendTransactionWithRetry(
+          approveTransaction,
+          account,
+          'USDT approval transaction'
+        );
+
+        await waitForReceipt({
+          client,
+          chain: arbitrum,
+          transactionHash: approveTxResult?.transactionHash,
+        });
+
+        console.log('✅ USDT approval confirmed');
 
         toast({
           title: '✅ USDT Approved',
-          description: 'Opening payment interface...',
+          description: 'Now claiming your Level 1 NFT...',
           duration: 3000
         });
+      } else {
+        console.log('✅ Sufficient allowance already exists');
       }
 
-      setApprovalStep('approved');
-      setShowPayEmbed(true);
-
-    } catch (error: any) {
-      console.error('❌ Approval error:', error);
-
-      let errorMessage = 'Failed to approve USDT';
-      if (error.message?.includes('insufficient funds')) {
-        errorMessage = 'Insufficient ETH for gas fees';
-      } else if (error.message?.includes('user rejected')) {
-        errorMessage = 'Transaction rejected by user';
-      }
+      // Step 4: Claim NFT
+      console.log('🎁 Claiming Level 1 NFT...');
+      setCurrentStep('Minting Level 1 NFT...');
 
       toast({
-        title: '❌ Approval Failed',
-        description: errorMessage,
-        variant: 'destructive',
+        title: '⏳ Claiming NFT',
+        description: 'Please confirm the claim transaction in your wallet',
         duration: 5000
       });
 
-      setApprovalStep('idle');
-    } finally {
-      setIsApproving(false);
-    }
-  };
+      const claimTransaction = claimTo({
+        contract: nftContractDirect,
+        to: account.address,
+        tokenId: BigInt(1),
+        quantity: BigInt(1)
+      });
 
-  const handleClosePayEmbed = async () => {
-    setShowPayEmbed(false);
+      const claimTxResult = await sendTransactionWithRetry(
+        claimTransaction,
+        account,
+        'Level 1 NFT claim transaction'
+      );
 
-    // Re-check if NFT was claimed
-    if (account?.address) {
-      try {
-        const balance = await balanceOf({
-          contract: nftContract,
-          owner: account.address,
-          tokenId: BigInt(1)
-        });
+      // Wait for confirmation
+      setCurrentStep('Waiting for NFT confirmation...');
+      const receipt = await waitForReceipt({
+        client,
+        chain: arbitrum,
+        transactionHash: claimTxResult.transactionHash,
+        maxBlocksWaitTime: 50
+      });
 
-        if (Number(balance) > 0) {
-          setHasNFT(true);
-          toast({
-            title: '🎉 Level 1 NFT Claimed!',
-            description: 'Processing membership activation...',
-            duration: 5000
-          });
+      console.log('✅ Level 1 NFT claim confirmed');
+      console.log('🔗 Transaction hash:', claimTxResult.transactionHash);
 
-          // Trigger activation
-          handlePaymentSuccess('manual_check');
-        }
-      } catch (error) {
-        console.error('Error checking NFT balance:', error);
-      }
-    }
-  };
+      // Step 5: Process activation
+      toast({
+        title: '🎉 NFT Claimed!',
+        description: 'Processing membership activation...',
+        duration: 5000
+      });
 
-  const handlePaymentSuccess = async (result: any) => {
-    console.log('🎉 Payment successful:', result);
-    setShowPayEmbed(false);
+      setCurrentStep('Activating membership...');
 
-    toast({
-      title: '💳 Payment Received!',
-      description: 'Processing NFT minting...',
-      duration: 5000
-    });
-
-    setIsProcessing(true);
-    setCurrentStep('Minting and sending NFT...');
-
-    try {
-      // Call mint-and-send-nft Edge Function
-      const mintResponse = await fetch(`${API_BASE}/mint-and-send-nft`, {
+      // Call mint-and-send-nft to record in database
+      const activateResponse = await fetch(`${API_BASE}/mint-and-send-nft`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
           'Authorization': `Bearer ${import.meta.env.VITE_SUPABASE_ANON_KEY}`,
-          'x-wallet-address': account?.address || ''
+          'x-wallet-address': account.address
         },
         body: JSON.stringify({
-          recipientAddress: account?.address,
+          recipientAddress: account.address,
           level: 1,
-          paymentTransactionHash: result.transactionHash,
+          paymentTransactionHash: claimTxResult.transactionHash,
           paymentAmount: LEVEL_1_PRICE_USDT,
           referrerWallet: referrerWallet
         })
       });
 
-      if (mintResponse.ok) {
-        const mintResult = await mintResponse.json();
-        console.log('✅ NFT minted and sent:', mintResult);
+      if (activateResponse.ok) {
+        const activateResult = await activateResponse.json();
+        console.log('✅ Membership activated:', activateResult);
 
         toast({
           title: '🎉 Welcome to BEEHIVE!',
-          description: 'NFT sent to your wallet! Redirecting to dashboard...',
+          description: 'Level 1 membership activated! Redirecting to dashboard...',
           variant: "default",
           duration: 3000,
         });
 
-        // Close PayEmbed if still open
-        setShowPayEmbed(false);
+        setHasNFT(true);
 
-        // Call onSuccess callback
         if (onSuccess) {
           onSuccess();
         }
 
-        // Auto-redirect to dashboard after 1.5 seconds
         setTimeout(() => {
           window.location.href = '/dashboard';
         }, 1500);
       } else {
-        throw new Error('Minting failed');
+        console.warn('⚠️ Activation API call failed, but NFT was claimed successfully');
+        toast({
+          title: '⚠️ Activation Pending',
+          description: 'NFT claimed successfully. Please refresh in a moment.',
+          duration: 8000
+        });
       }
-    } catch (error) {
-      console.error('❌ Minting error:', error);
+
+    } catch (error: any) {
+      console.error('❌ Claim error:', error);
+
+      let errorMessage = 'Failed to claim NFT';
+      if (error.message?.includes('Insufficient USDT')) {
+        errorMessage = error.message;
+      } else if (error.message?.includes('insufficient funds')) {
+        errorMessage = 'Insufficient ETH for gas fees';
+      } else if (error.message?.includes('cancelled')) {
+        errorMessage = 'Transaction cancelled by user';
+      } else if (error.message) {
+        errorMessage = error.message;
+      }
+
       toast({
-        title: '⚠️ Minting Pending',
-        description: 'Payment received, but NFT minting is processing. Please refresh in a moment.',
-        duration: 8000
+        title: '❌ Claim Failed',
+        description: errorMessage,
+        variant: 'destructive',
+        duration: 5000
       });
     } finally {
       setIsProcessing(false);
@@ -463,6 +528,7 @@ export function WelcomeLevel1ClaimButton({ onSuccess, referrerWallet, className 
       checkEligibility();
     }
   };
+
 
   return (
     <ErrorBoundary>
@@ -558,7 +624,7 @@ export function WelcomeLevel1ClaimButton({ onSuccess, referrerWallet, className 
             ) : (
               <Button
                 onClick={handleApproveAndClaim}
-                disabled={!account?.address || isWrongNetwork || isStabilizing || isApproving}
+                disabled={!account?.address || isWrongNetwork || isStabilizing || isProcessing}
                 className="w-full h-12 bg-gradient-to-r from-honey to-orange-500 hover:from-honey/90 hover:to-orange-500/90 text-white font-semibold text-lg shadow-lg transition-all disabled:opacity-50"
               >
                 {!account?.address ? (
@@ -571,15 +637,10 @@ export function WelcomeLevel1ClaimButton({ onSuccess, referrerWallet, className 
                     <Crown className="mr-2 h-5 w-5" />
                     Switch Network First
                   </>
-                ) : isApproving ? (
+                ) : isProcessing ? (
                   <>
                     <Loader2 className="mr-2 h-5 w-5 animate-spin" />
-                    {approvalStep === 'approving' ? 'Approving USDT...' : 'Processing...'}
-                  </>
-                ) : approvalStep === 'approved' ? (
-                  <>
-                    <Crown className="mr-2 h-5 w-5" />
-                    Approved - Ready to Claim
+                    Processing...
                   </>
                 ) : (
                   <>
@@ -623,48 +684,6 @@ export function WelcomeLevel1ClaimButton({ onSuccess, referrerWallet, className 
           referrerWallet={referrerWallet}
           onRegistrationComplete={handleRegistrationComplete}
         />
-      )}
-
-      {/* PayEmbed Modal */}
-      {showPayEmbed && account?.address && (
-        <div className="fixed inset-0 z-[9999] flex items-center justify-center">
-          <div className="absolute inset-0 bg-black/80 backdrop-blur-sm" onClick={handleClosePayEmbed} />
-          <div
-            ref={payEmbedRef}
-            className="relative p-4 max-h-[min(90vh,800px)] overflow-y-auto bg-black rounded-2xl w-full max-w-[500px] min-h-[600px]"
-            onClick={e => e.stopPropagation()}
-          >
-            <button
-              onClick={handleClosePayEmbed}
-              className="absolute top-4 right-4 z-10 text-gray-400 hover:text-white p-2 rounded-full bg-gray-800/50 hover:bg-gray-700/50 transition-colors"
-              title="Close"
-            >
-              <X size={24} />
-            </button>
-            {/* USDT Payment Notice */}
-            <div className="mb-4 p-3 bg-gradient-to-r from-green-500/20 to-emerald-500/20 border border-green-500/30 rounded-lg">
-              <div className="flex items-center gap-2 mb-1">
-                <div className="w-2 h-2 bg-green-400 rounded-full animate-pulse"></div>
-                <span className="text-sm font-bold text-green-400">Payment Currency: USDT</span>
-              </div>
-              <p className="text-xs text-gray-300">
-                Please use USDT (Tether) for payment. Price: {LEVEL_1_PRICE_USDT} USDT on Arbitrum One.
-              </p>
-            </div>
-            <CheckoutWidget
-              client={checkoutClient}
-              image="https://beehive1010.github.io/level1.png"
-              name="BEEHIVE Level 1 Membership"
-              currency="USD"
-              chain={defineChain(42161)}
-              amount={LEVEL_1_PRICE_USDT.toString()}
-              tokenAddress={USDT_CONTRACT}
-              seller={SERVER_WALLET}
-              buttonLabel="PAY & CLAIM NFT"
-              onTransactionSuccess={handlePaymentSuccess}
-            />
-          </div>
-        </div>
       )}
     </ErrorBoundary>
   );
