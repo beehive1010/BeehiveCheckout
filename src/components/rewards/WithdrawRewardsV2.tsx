@@ -154,7 +154,7 @@ export const WithdrawRewardsV2: React.FC<WithdrawRewardsV2Props> = ({ walletAddr
       const { data, error } = await supabase
         .from('user_balances')
         .select('reward_balance, total_withdrawn, available_balance')
-        .ilike('wallet_address', memberWalletAddress)
+        .eq('wallet_address', memberWalletAddress.toLowerCase())
         .single();
 
       if (error) {

@@ -44,7 +44,7 @@ export default function Membership() {
         const { data: memberData } = await supabase
           .from('members')
           .select('referrer_wallet')
-          .ilike('wallet_address', walletAddress)
+          .eq('wallet_address', walletAddress.toLowerCase())
           .single();
         
         if (memberData?.referrer_wallet) {
@@ -247,7 +247,7 @@ export default function Membership() {
         const { data, error } = await supabase
           .from('membership')
           .select('unlock_membership_level')
-          .ilike('wallet_address', walletAddress!)
+          .eq('wallet_address', walletAddress!.toLowerCase())
           .order('nft_level', { ascending: false })
           .limit(1)
           .single();

@@ -58,7 +58,7 @@ export function Level1ClaimWithCheckout({
       const { data, error } = await supabase
         .from('users')
         .select('wallet_address, username')
-        .ilike('wallet_address', account.address)
+        .eq('wallet_address', account.address.toLowerCase())
         .single();
 
       if (data && !error) {

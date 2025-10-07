@@ -81,7 +81,7 @@ export function useNFTLevelClaim(targetLevel?: number) {
       const { data: memberData, error: memberError } = await supabase
         .from('members')
         .select('current_level, wallet_address')
-        .ilike('wallet_address', account.address)
+        .eq('wallet_address', account.address.toLowerCase())
         .single();
 
       let currentLevel = 0;

@@ -58,7 +58,7 @@ export default function TestUpgradeMembership() {
         const { data: memberData, error } = await supabase
           .from('members')
           .select('current_level, wallet_address')
-          .ilike('wallet_address', account.address)
+          .eq('wallet_address', account.address.toLowerCase())
           .single();
 
         let fetchedLevel = 0;

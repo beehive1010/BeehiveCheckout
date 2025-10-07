@@ -57,7 +57,7 @@ export function LevelUpgradeButton({ onSuccess, targetLevel, className = '' }: L
       const { data: memberData, error } = await supabase
         .from('members')
         .select('current_level')
-        .ilike('wallet_address', account.address)
+        .eq('wallet_address', account.address.toLowerCase())
         .single();
       
       if (!error && memberData) {

@@ -162,7 +162,7 @@ export const UserManagement: React.FC = () => {
           const { data: rewardStats } = await supabase
             .from('user_balances')
             .select('reward_balance, total_withdrawn')
-            .ilike('wallet_address', user.wallet_address)
+            .eq('wallet_address', user.wallet_address.toLowerCase())
             .single();
 
           return {
