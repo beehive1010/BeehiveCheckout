@@ -120,17 +120,17 @@ const getComprehensiveUserData = async (walletAddress: string, method: string) =
       const [memberView, rewardView, referralCountResult] = await Promise.all([
         supabase.from('v_member_overview')
           .select('*')
-          .eq('wallet_address', walletAddress)
+          .ilike('wallet_address', walletAddress)
           .single(),
 
         supabase.from('v_reward_overview')
           .select('*')
-          .eq('wallet_address', walletAddress)
+          .ilike('wallet_address', walletAddress)
           .single(),
 
         supabase.from('referrals')
           .select('*', { count: 'exact', head: true })
-          .eq('referrer_wallet', walletAddress)
+          .ilike('referrer_wallet', walletAddress)
       ]);
 
       return {
@@ -164,17 +164,17 @@ const getComprehensiveUserData = async (walletAddress: string, method: string) =
       const [memberOverview, rewardOverview, matrixResult, recentRewards] = await Promise.all([
         supabase.from('v_member_overview')
           .select('*')
-          .eq('wallet_address', walletAddress)
+          .ilike('wallet_address', walletAddress)
           .single(),
 
         supabase.from('v_reward_overview')
           .select('*')
-          .eq('wallet_address', walletAddress)
+          .ilike('wallet_address', walletAddress)
           .single(),
 
         supabase.from('referrals')
           .select('*')
-          .eq('referrer_wallet', walletAddress),
+          .ilike('referrer_wallet', walletAddress),
 
         // For individual reward records, layer_rewards is acceptable
         supabase.from('layer_rewards')

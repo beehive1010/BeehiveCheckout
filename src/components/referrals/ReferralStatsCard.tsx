@@ -135,7 +135,7 @@ export default function ReferralStatsCard({ className, onViewMatrix }: ReferralS
         const { data: basicReferrals } = await supabase
           .from('members')
           .select('wallet_address, current_level')
-          .eq('referrer_wallet', walletAddress)
+          .ilike('referrer_wallet', walletAddress)
           .limit(10);
 
         const activatedCount = basicReferrals?.filter(r => r.current_level > 0).length || 0;

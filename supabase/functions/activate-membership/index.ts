@@ -28,7 +28,7 @@ serve(async (req) => {
   }
 
   try {
-    // Create Supabase client
+    // Create Supabase client with extended timeout for matrix operations
     const supabase = createClient(
       Deno.env.get('SUPABASE_URL') ?? '',
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? '',
@@ -37,6 +37,14 @@ serve(async (req) => {
           autoRefreshToken: false,
           persistSession: false
         },
+        db: {
+          schema: 'public'
+        },
+        global: {
+          headers: {
+            'x-statement-timeout': '30000' // 30 second timeout for matrix triggers
+          }
+        }
       }
     )
 
@@ -274,8 +282,16 @@ serve(async (req) => {
       .eq('nft_level', level)
       .maybeSingle(); // Use maybeSingle() instead of single() to avoid error when no rows found
 
-    // If membership exists, return already activated
-    if (existingMembership) {
+    // ✅ CRITICAL: Also check members table for idempotency
+    // If members record exists but membership doesn't, this was a partial success (timeout during triggers)
+    const { data: existingMember, error: memberCheckError } = await supabase
+      .from('members')
+      .select('*')
+      .ilike('wallet_address', walletAddress)
+      .maybeSingle();
+
+    // If both membership and members exist, return already activated
+    if (existingMembership && existingMember) {
       console.log(`⚠️ Level ${level} membership already claimed for: ${walletAddress}`);
       return new Response(JSON.stringify({
         success: true,
@@ -283,6 +299,7 @@ serve(async (req) => {
         message: `Level ${level} membership already activated`,
         result: {
           membership: existingMembership,
+          member: existingMember,
           walletAddress,
           level,
           alreadyActivated: true
@@ -293,9 +310,56 @@ serve(async (req) => {
       });
     }
 
+    // ✅ IDEMPOTENCY FIX: If members exists but membership doesn't,
+    // this means previous activation partially succeeded (likely timeout during member creation)
+    // Just create the missing membership record and return success
+    if (existingMember && !existingMembership) {
+      console.log(`🔧 Found existing member but missing membership record -补充创建 membership`);
+
+      const membershipData = {
+        wallet_address: walletAddress,
+        nft_level: level,
+        claim_price: level === 1 ? 30 : (level === 2 ? 150 : 800),
+        claimed_at: existingMember.activation_time || new Date().toISOString(),
+        is_member: true,
+        unlock_membership_level: level
+      };
+
+      const { data: newMembership, error: membershipError } = await supabase
+        .from('membership')
+        .insert(membershipData)
+        .select()
+        .single();
+
+      if (membershipError) {
+        console.error('❌ Failed to补充 membership record:', membershipError);
+      } else {
+        console.log(`✅ 补充 membership record created for existing member`);
+      }
+
+      return new Response(JSON.stringify({
+        success: true,
+        method: '补充_activation',
+        message: `Completed partial activation - membership record补充创建`,
+        result: {
+          membership: newMembership,
+          member: existingMember,
+          walletAddress,
+          level,
+          wasPartialActivation: true
+        }
+      }), {
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        status: 200
+      });
+    }
+
     // Log if there was an error checking membership (but continue if just no rows found)
     if (membershipCheckError) {
       console.warn(`⚠️ Error checking existing membership:`, membershipCheckError);
+    }
+    if (memberCheckError) {
+      console.warn(`⚠️ Error checking existing member:`, memberCheckError);
     }
 
     // Step 3: VERIFY ON-CHAIN NFT OWNERSHIP BEFORE CREATING MEMBERSHIP

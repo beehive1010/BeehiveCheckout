@@ -32,7 +32,7 @@ export const BCCBalanceDisplay: React.FC<BCCBalanceProps> = ({ walletAddress }) 
       const { data, error } = await supabase
         .from('user_balances')
         .select('bcc_balance, bcc_locked, bcc_total_unlocked, bcc_used, last_updated')
-        .eq('wallet_address', walletAddress)
+        .ilike('wallet_address', walletAddress)
         .single();
 
       if (error) throw error;
@@ -49,7 +49,7 @@ export const BCCBalanceDisplay: React.FC<BCCBalanceProps> = ({ walletAddress }) 
       const { data, error } = await supabase
         .from('bcc_release_logs')
         .select('*')
-        .eq('wallet_address', walletAddress)
+        .ilike('wallet_address', walletAddress)
         .order('created_at', { ascending: false })
         .limit(1)
         .single();

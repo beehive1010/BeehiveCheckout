@@ -46,19 +46,19 @@ export function useUserReferralStats() {
       const { count: directReferrals } = await supabase
         .from('referrals')
         .select('*', { count: 'exact', head: true })
-        .eq('referrer_wallet', walletAddress);
+        .ilike('referrer_wallet', walletAddress);
 
       // Get total team count from referrals table (all matrix members under this root)
       const { count: totalTeam } = await supabase
         .from('referrals')
         .select('*', { count: 'exact', head: true })
-        .eq('matrix_root_wallet', walletAddress);
+        .ilike('matrix_root_wallet', walletAddress);
 
       // Get member's current level and info using canonical view
       const { data: memberData, error: memberError } = await supabase
         .from('v_member_overview')
         .select('current_level, wallet_address')
-        .eq('wallet_address', walletAddress)
+        .ilike('wallet_address', walletAddress)
         .maybeSingle() as { data: { current_level: number; wallet_address: string } | null; error: any };
 
       if (memberError) {
@@ -72,14 +72,14 @@ export function useUserReferralStats() {
       const { data: rewardOverview } = await supabase
         .from('v_reward_overview')
         .select('*')
-        .eq('wallet_address', walletAddress)
+        .ilike('wallet_address', walletAddress)
         .maybeSingle();
 
       // Calculate total earnings from paid rewards count (need actual amount - use layer_rewards for details)
       const { data: claimedRewardsData } = await supabase
         .from('layer_rewards')
         .select('reward_amount')
-        .eq('reward_recipient_wallet', walletAddress)
+        .ilike('reward_recipient_wallet', walletAddress)
         .eq('status', 'claimed');
 
       const totalEarnings = claimedRewardsData?.reduce((sum, reward) => sum + (Number(reward.reward_amount) || 0), 0) || 0;
@@ -93,7 +93,7 @@ export function useUserReferralStats() {
           matrix_position,
           matrix_layer
         `)
-        .eq('matrix_root_wallet', walletAddress)
+        .ilike('matrix_root_wallet', walletAddress)
         .eq('matrix_layer', 1) // Only direct layer 1 members
         .order('placed_at', { ascending: false })
         .limit(5);
@@ -104,7 +104,7 @@ export function useUserReferralStats() {
           const { data: memberData } = await supabase
             .from('v_member_overview')
             .select('current_level, is_active')
-            .eq('wallet_address', referral.member_wallet)
+            .ilike('wallet_address', referral.member_wallet)
             .maybeSingle();
 
           return {

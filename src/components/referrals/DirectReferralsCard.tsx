@@ -60,7 +60,7 @@ const DirectReferralsCard: React.FC<DirectReferralsCardProps> = ({
           referrer_wallet,
           is_spillover_placement
         `)
-        .eq('referrer_wallet', walletAddress)
+        .ilike('referrer_wallet', walletAddress)
         .neq('member_wallet', '0x479ABda60F8c62a7C3fba411ab948a8BE0E616Ab')
         .order('placed_at', { ascending: false });
 

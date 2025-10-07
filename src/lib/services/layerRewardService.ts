@@ -27,7 +27,7 @@ async function getUserCurrentLevel(walletAddress: string): Promise<number> {
     const { data, error } = await supabase
       .from('members')
       .select('current_level')
-      .eq('wallet_address', walletAddress)
+      .ilike('wallet_address', walletAddress)
       .single();
 
     if (error) {

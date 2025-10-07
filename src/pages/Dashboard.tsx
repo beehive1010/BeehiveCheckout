@@ -139,19 +139,19 @@ export default function Dashboard() {
         supabase
           .from('members')
           .select('wallet_address, current_level, activation_time')
-          .eq('referrer_wallet', walletAddress),
-          
+          .ilike('referrer_wallet', walletAddress),
+
         // Matrix团队统计 - 使用matrix_referrals表
         supabase
           .from('matrix_referrals')
           .select('member_wallet, layer, referral_type')
-          .eq('matrix_root_wallet', walletAddress),
-          
+          .ilike('matrix_root_wallet', walletAddress),
+
         // 当前用户信息
         supabase
           .from('members')
           .select('wallet_address, current_level, activation_time')
-          .eq('wallet_address', walletAddress)
+          .ilike('wallet_address', walletAddress)
           .single()
       ]);
 

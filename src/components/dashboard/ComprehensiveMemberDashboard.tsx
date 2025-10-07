@@ -127,7 +127,7 @@ const ComprehensiveMemberDashboard: React.FC = () => {
       const { data: memberData, error: memberError } = await supabase
         .from('members')
         .select('current_level, levels_owned, activation_rank, tier_level')
-        .eq('wallet_address', walletAddress!)
+        .ilike('wallet_address', walletAddress!)
         .maybeSingle();
 
       if (memberError) {
@@ -139,13 +139,13 @@ const ComprehensiveMemberDashboard: React.FC = () => {
       const { count: directReferrals } = await supabase
         .from('members')
         .select('*', { count: 'exact', head: true })
-        .eq('referrer_wallet', walletAddress!);
+        .ilike('referrer_wallet', walletAddress!);
 
       // Get total downline from direct referrals (fallback since matrix placements table doesn't exist)
       const { count: totalDownline } = await supabase
         .from('users')
         .select('*', { count: 'exact', head: true })
-        .eq('referrer_wallet', walletAddress!);
+        .ilike('referrer_wallet', walletAddress!);
 
       setMemberStats({
         currentLevel: memberData?.current_level || 0,
@@ -166,7 +166,7 @@ const ComprehensiveMemberDashboard: React.FC = () => {
       const { data: balanceData, error: balanceError } = await supabase
         .from('user_balances')
         .select('bcc_transferable, bcc_restricted, bcc_locked, total_usdt_earned')
-        .eq('wallet_address', walletAddress!)
+        .ilike('wallet_address', walletAddress!)
         .maybeSingle();
 
       if (balanceError) {
@@ -205,7 +205,7 @@ const ComprehensiveMemberDashboard: React.FC = () => {
           created_at,
           expires_at
         `)
-        .eq('reward_recipient_wallet', walletAddress!)
+        .ilike('reward_recipient_wallet', walletAddress!)
         .in('status', ['claimable', 'pending'])
         .order('created_at', { ascending: false });
 

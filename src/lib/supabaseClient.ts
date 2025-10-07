@@ -214,14 +214,61 @@ export const authService = {
       
       const memberData = chainResult.member || null;
       const isActivated = chainResult.hasNFT || (memberData?.current_level > 0) || false;
-      
-      // If user has NFT but no member record, they should still be considered activated
+
+      // ✅ CRITICAL FIX: If user has NFT but no member record, auto-trigger activation补充
       if (chainResult.hasNFT && !memberData) {
-        console.log(`🔄 User has Level 1 NFT but no member record - treating as activated`);
+        console.log(`🔄 User has Level 1 NFT but no member record - 自动补充激活记录`);
+
+        try {
+          // ✅ Auto-trigger activation to补充 missing database records
+          console.log(`📞 Calling activate-membership to补充 missing database records...`);
+
+          const补充Result = await callEdgeFunction('activate-membership', {
+            level: 1,
+            walletAddress: walletAddress,
+            transactionHash: '补充_from_chain_verification',
+            source: '补充_missing_records'
+          }, walletAddress);
+
+          console.log(`📊补充 activation result:`, 补充Result);
+
+          if (补充Result.success) {
+            console.log(`✅ Successfully补充 database records for ${walletAddress}`);
+
+            // Re-check database to get complete member data
+            const recheck = await callEdgeFunction('auth', {
+              action: 'get-user'
+            }, walletAddress);
+
+            if (recheck.success && recheck.isMember) {
+              return {
+                isActivated: true,
+                memberData: {
+                  wallet_address: walletAddress,
+                  current_level: recheck.membershipLevel,
+                  activation_sequence: recheck.member?.activation_sequence,
+                  referrer_wallet: recheck.member?.referrer_wallet,
+                  activation_time: recheck.member?.activation_time
+                },
+                error: null
+              };
+            }
+          } else {
+            console.warn(`⚠️ Failed to补充 records:`, 补充Result.error);
+          }
+        } catch (补充Error: any) {
+          console.error(`❌ Error during补充:`, 补充Error);
+        }
+
+        // If补充 failed, return status requiring manual sync
         return {
-          isActivated: true,
-          memberData: { current_level: 1, wallet_address: walletAddress },
-          error: null
+          isActivated: false,
+          memberData: null,
+          error: {
+            message: 'NFT_FOUND_DATABASE_PENDING',
+            requiresDataSync: true,
+            hasNFTOnChain: true
+          }
         };
       }
 
