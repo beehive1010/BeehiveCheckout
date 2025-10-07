@@ -35,7 +35,7 @@ serve(async (req) => {
 
     // Verify webhook signature (optional but recommended)
     const signature = req.headers.get('x-signature')
-    const webhookSecret = Deno.env.get('THIRDWEB_WEBHOOK_SECRET')
+    const webhookSecret = Deno.env.get('VITE_THIRDWEB_WEBHOOK_SECRET')
     
     if (webhookSecret && signature) {
       console.log('📝 Webhook signature verification (simplified for now)')
@@ -592,8 +592,120 @@ async function handleTransferSingle(supabase: any, data: any) {
 
     console.log(`✅ TransferSingle event logged: ${isMint ? 'MINT' : 'TRANSFER'} of token ${id}`)
 
+    // ✅ NEW: Auto-activate membership for NFT Level 1-3 mints
+    if (isMint && to && (id === '1' || id === '2' || id === '3')) {
+      console.log(`🎯 NFT Level ${id} minted to ${to} - triggering auto-activation`)
+      await autoActivateMembership(supabase, to, id, transactionHash, chainId)
+    }
+
   } catch (error) {
     console.error('❌ Error in handleTransferSingle:', error)
+  }
+}
+
+// Auto-activate membership when NFT is minted
+async function autoActivateMembership(
+  supabase: any,
+  walletAddress: string,
+  tokenId: string,
+  transactionHash: string,
+  chainId: string
+) {
+  try {
+    console.log(`🚀 Auto-activating membership for wallet ${walletAddress}, Level ${tokenId}`)
+
+    // Check if user already has membership record for this level
+    const { data: existingMembership } = await supabase
+      .from('membership')
+      .select('*')
+      .ilike('wallet_address', walletAddress)
+      .eq('nft_level', parseInt(tokenId))
+      .maybeSingle()
+
+    if (existingMembership) {
+      console.log(`⚠️ Membership already exists for ${walletAddress} Level ${tokenId}, skipping auto-activation`)
+      return
+    }
+
+    // Check if user is registered in users table
+    const { data: userData } = await supabase
+      .from('users')
+      .select('wallet_address, referrer_wallet')
+      .ilike('wallet_address', walletAddress)
+      .maybeSingle()
+
+    if (!userData) {
+      console.log(`⚠️ User ${walletAddress} not registered in users table, skipping auto-activation`)
+      console.log(`💡 User needs to complete registration first`)
+      return
+    }
+
+    // Call activate-membership Edge Function
+    const supabaseUrl = Deno.env.get('SUPABASE_URL')
+    const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')
+
+    console.log(`📞 Calling activate-membership Edge Function...`)
+
+    const activateResponse = await fetch(
+      `${supabaseUrl}/functions/v1/activate-membership`,
+      {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${supabaseServiceKey}`,
+          'x-wallet-address': walletAddress,
+        },
+        body: JSON.stringify({
+          walletAddress: walletAddress,
+          level: parseInt(tokenId),
+          transactionHash: transactionHash,
+          referrerWallet: userData.referrer_wallet,
+          source: 'webhook_auto_activation'
+        }),
+      }
+    )
+
+    if (activateResponse.ok) {
+      const result = await activateResponse.json()
+      console.log(`✅ Auto-activation successful for ${walletAddress} Level ${tokenId}:`, result)
+
+      // Log successful auto-activation
+      await supabase.from('audit_logs').insert({
+        user_wallet: walletAddress,
+        action: 'webhook_auto_activation',
+        old_values: {
+          transaction_hash: transactionHash,
+          chain_id: chainId,
+          token_id: tokenId
+        },
+        new_values: {
+          activation_result: result,
+          timestamp: new Date().toISOString()
+        }
+      })
+
+    } else {
+      const errorText = await activateResponse.text()
+      console.error(`❌ Auto-activation failed for ${walletAddress} Level ${tokenId}:`, errorText)
+
+      // Log failed auto-activation
+      await supabase.from('audit_logs').insert({
+        user_wallet: walletAddress,
+        action: 'webhook_auto_activation_failed',
+        old_values: {
+          transaction_hash: transactionHash,
+          chain_id: chainId,
+          token_id: tokenId
+        },
+        new_values: {
+          error: errorText,
+          timestamp: new Date().toISOString()
+        }
+      })
+    }
+
+  } catch (error) {
+    console.error(`❌ Error in autoActivateMembership for ${walletAddress}:`, error)
   }
 }
 

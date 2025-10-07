@@ -587,8 +587,8 @@
       "totalRewards": "Total Rewards"
     },
     "status": {
-      "active": "Active"
-    "ActiveMember": "Ahli Aktif",
+      "active": "Active",
+      "ActiveMember": "Ahli Aktif",
     },
     "tokenPurchase": {
       "bccDescription": "Purchase Beehive Crypto Coins for platform usage",

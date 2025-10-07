@@ -348,8 +348,8 @@
       "bccLocked": "BCC Locked"
     },
     "status": {
-      "active": "アクティブ"
-    "ActiveMember": "アクティブメンバー",
+      "active": "アクティブ",
+      "ActiveMember": "アクティブメンバー"
     },
     "success": {
       "copied": "コピー済み！",
@@ -1365,7 +1365,7 @@
           "layerCount": "19層",
           "layer": "第{layer}層",
           "active": "活跃: {count}",
-    "ActiveMember": "アクティブメンバー",
+          "ActiveMember": "アクティブメンバー",
           "fillRate": "填充率",
           "complete": "{percent}% 完成",
           "layerComplete": "層級完成",

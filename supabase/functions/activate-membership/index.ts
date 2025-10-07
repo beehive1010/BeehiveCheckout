@@ -151,11 +151,11 @@ serve(async (req) => {
 
       try {
         // Create Thirdweb client
-        const thirdwebClientId = Deno.env.get('THIRDWEB_CLIENT_ID');
-        const thirdwebSecretKey = Deno.env.get('THIRDWEB_SECRET_KEY');
+        const thirdwebClientId = Deno.env.get('VITE_THIRDWEB_CLIENT_ID');
+        const thirdwebSecretKey = Deno.env.get('VITE_THIRDWEB_SECRET_KEY');
 
         if (!thirdwebClientId) {
-          throw new Error('THIRDWEB_CLIENT_ID environment variable is required');
+          throw new Error('VITE_THIRDWEB_CLIENT_ID environment variable is required');
         }
 
         const client = createThirdwebClient({
@@ -302,11 +302,11 @@ serve(async (req) => {
     console.log(`🔐 Verifying on-chain NFT ownership for Level ${level}...`);
 
     try {
-      const thirdwebClientId = Deno.env.get('THIRDWEB_CLIENT_ID');
-      const thirdwebSecretKey = Deno.env.get('THIRDWEB_SECRET_KEY');
+      const thirdwebClientId = Deno.env.get('VITE_THIRDWEB_CLIENT_ID');
+      const thirdwebSecretKey = Deno.env.get('VITE_THIRDWEB_SECRET_KEY');
 
       if (!thirdwebClientId) {
-        throw new Error('THIRDWEB_CLIENT_ID environment variable is required');
+        throw new Error('VITE_THIRDWEB_CLIENT_ID environment variable is required');
       }
 
       const client = createThirdwebClient({
@@ -430,9 +430,15 @@ serve(async (req) => {
 
       console.log(`🔢 Assigned activation_sequence: ${nextSequence}`);
 
+      // ✅ IMPORTANT: Always use referrer from users table (most reliable source)
+      // Frontend may pass cached/stale referrer, but users table is source of truth
+      const finalReferrerWallet = userData.referrer_wallet || normalizedReferrerWallet;
+
+      console.log(`🔗 Using referrer wallet: ${finalReferrerWallet} (from ${userData.referrer_wallet ? 'users table' : 'request parameter'})`);
+
       const memberData = {
         wallet_address: walletAddress,
-        referrer_wallet: normalizedReferrerWallet,
+        referrer_wallet: finalReferrerWallet,
         current_level: level,
         activation_sequence: nextSequence,
         activation_time: new Date().toISOString(),
@@ -446,13 +452,34 @@ serve(async (req) => {
         .single();
 
       if (memberError) {
-        console.warn('⚠️ Failed to create members record:', memberError);
-      } else {
-        memberRecord = newMember;
-        console.log(`✅ Members record created: ${memberRecord.wallet_address}`);
+        console.error('❌ CRITICAL: Failed to create members record:', memberError);
+        return new Response(JSON.stringify({
+          success: false,
+          error: 'MEMBER_CREATION_FAILED',
+          message: `Failed to create members record: ${memberError.message}`,
+          details: memberError,
+          memberData: memberData,
+          userData: { wallet: userData.wallet_address, referrer: userData.referrer_wallet }
+        }), {
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+          status: 500
+        });
       }
-    } catch (memberErr) {
-      console.warn('⚠️ Members record creation error (non-critical):', memberErr);
+
+      memberRecord = newMember;
+      console.log(`✅ Members record created: ${memberRecord.wallet_address}`);
+
+    } catch (memberErr: any) {
+      console.error('❌ CRITICAL: Members record creation exception:', memberErr);
+      return new Response(JSON.stringify({
+        success: false,
+        error: 'MEMBER_CREATION_EXCEPTION',
+        message: `Exception during members record creation: ${memberErr.message}`,
+        details: memberErr
+      }), {
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        status: 500
+      });
     }
 
     // Step 5: Record referral if referrer exists - use matrix placement function

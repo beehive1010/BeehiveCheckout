@@ -640,8 +640,8 @@
       "totalRewards": "Total Rewards"
     },
     "status": {
-      "active": "Active"
-    "ActiveMember": "活躍成員",
+      "active": "Active",
+      "ActiveMember": "活躍成員"
     },
     "tokenPurchase": {
       "bccDescription": "Purchase Beehive Crypto Coins for platform usage",

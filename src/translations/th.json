@@ -452,8 +452,8 @@
       "totalRewards": "Total Rewards"
     },
     "status": {
-      "active": "Active"
-    "ActiveMember": "สมาชิกที่ใช้งานอยู่",
+      "active": "Active",
+      "ActiveMember": "สมาชิกที่ใช้งานอยู่",
     },
     "success": {
       "copied": "Copied!",
