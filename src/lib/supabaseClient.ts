@@ -1571,7 +1571,7 @@ export const transactionService = {
       const { count: rewardTransactions } = await supabase
         .from('reward_claims')
         .select('*', { count: 'exact', head: true })
-        .ilike('claimer_wallet', walletAddress);
+        .eq('claimer_wallet', walletAddress.toLowerCase());
 
       return {
         totalSpent,
