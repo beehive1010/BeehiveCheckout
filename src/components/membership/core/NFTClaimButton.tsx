@@ -232,11 +232,11 @@ export function useNFTClaim() {
             'x-wallet-address': account.address,
           },
           body: JSON.stringify({
-            recipientAddress: account.address,
+            walletAddress: account.address,        // ✅ Match Edge Function parameter name
             level,
-            paymentTransactionHash: claimTxResult.transactionHash,
+            transactionHash: claimTxResult.transactionHash,  // ✅ Match Edge Function parameter name
             paymentAmount: priceUSDT,
-            ...activationPayload,
+            ...activationPayload,  // Contains referrerWallet
           }),
         });
 
