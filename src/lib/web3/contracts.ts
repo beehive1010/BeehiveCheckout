@@ -31,7 +31,7 @@ export const contractAddresses = {
   // Membership contracts across chains
   BBC_MEMBERSHIP: {
     // Arbitrum mainnet - NEW CONTRACT ADDRESS
-    arbitrum: '0x15742D22f64985bC124676e206FCE3fFEb175719',
+    arbitrum: '0xe57332db0B8d7e6aF8a260a4fEcfA53104728693',
     // Arbitrum Sepolia testnet - V4 TEST CONTRACT
     arbitrumSepolia: '0xC99CF23CeCE6bF79bD2a23FE5f1D9716D62EC9E1',
     // Alpha Centauri L3 testnet
@@ -63,7 +63,7 @@ export const contractAddresses = {
   USDT: {
     ethereum: '0xdAC17F958D2ee523a2206206994597C13D831ec7',
     polygon: '0xc2132D05D31c914a87C6611C10748AEb04B58e8F',
-    arbitrum: '0xfA278827a612BBA895e7F0A4fBA504b22ff3E7C9', // NEW ARB ONE PAYMENT TOKEN
+    arbitrum: '0x6B174f1f3B7f92E048f0f15FD2b22c167DA6F008', // NEW ARB ONE PAYMENT TOKEN
     arbitrumSepolia: '0xb67f84e6148D087D4fc5F390BedC75597770f6c0', // Test USDT V4
     optimism: '0x94b008aA00579c1307B0EF2c499aD98a8ce58e58',
     bsc: '0x55d398326f99059fF775485246999027B3197955', // BSC USDT

@@ -1,7 +1,7 @@
 import {useEffect, useState, useCallback, useRef} from 'react';
 import {useActiveAccount, useActiveWalletChain, useSwitchActiveWalletChain, CheckoutWidget} from 'thirdweb/react';
 import {createThirdwebClient, defineChain} from 'thirdweb';
-import {arbitrumSepolia} from 'thirdweb/chains';
+import {arbitrum} from 'thirdweb/chains';
 import {balanceOf, claimTo} from 'thirdweb/extensions/erc1155';
 import {getApprovalForTransaction} from 'thirdweb/extensions/erc20';
 import {sendAndConfirmTransaction} from 'thirdweb';
@@ -45,7 +45,7 @@ export function WelcomeLevel1ClaimButton({ onSuccess, referrerWallet, className 
   // Fixed Level 1 pricing and info
   const LEVEL_1_PRICE_USDT = 130;
   const SERVER_WALLET = import.meta.env.VITE_SERVER_WALLET_ADDRESS || '0x8AABc891958D8a813dB15C355F0aEaa85E4E5C9c';
-  const USDT_CONTRACT = '0xb67f84e6148D087D4fc5F390BedC75597770f6c0'; // Arbitrum Sepolia USDT
+  const USDT_CONTRACT = '0x6B174f1f3B7f92E048f0f15FD2b22c167DA6F008'; // Arbitrum Sepolia USDT
   const API_BASE = import.meta.env.VITE_API_BASE_URL || 'https://cvqibjcbfrwsgkvthccp.supabase.co/functions/v1';
 
   const checkoutClient = createThirdwebClient({
@@ -54,7 +54,7 @@ export function WelcomeLevel1ClaimButton({ onSuccess, referrerWallet, className 
 
   // Check network status
   useEffect(() => {
-    if (activeChain?.id && activeChain.id !== arbitrumSepolia.id) {
+    if (activeChain?.id && activeChain.id !== arbitrum.id) {
       setIsWrongNetwork(true);
     } else {
       setIsWrongNetwork(false);
@@ -74,7 +74,7 @@ export function WelcomeLevel1ClaimButton({ onSuccess, referrerWallet, className 
 
     try {
       setIsProcessing(true);
-      await switchChain(arbitrumSepolia);
+      await switchChain(arbitrum);
       toast({
         title: t('wallet.networkSwitched'),
         description: t('wallet.networkSwitchedDesc'),

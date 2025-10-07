@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { useActiveAccount } from 'thirdweb/react';
 import { CheckoutWidget } from 'thirdweb/react';
 import { createThirdwebClient, defineChain } from 'thirdweb';
-import { arbitrumSepolia } from 'thirdweb/chains';
+import { arbitrum } from 'thirdweb/chains';
 import { Button } from '../ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '../ui/card';
 import { Badge } from '../ui/badge';
@@ -35,7 +35,7 @@ export function Level1ClaimWithCheckout({
 
   const LEVEL_1_PRICE_USDT = 130;
   const SERVER_WALLET = import.meta.env.VITE_SERVER_WALLET_ADDRESS || '0x8AABc891958D8a813dB15C355F0aEaa85E4E5C9c';
-  const USDT_CONTRACT = '0xb67f84e6148D087D4fc5F390BedC75597770f6c0';
+  const USDT_CONTRACT = '0x6B174f1f3B7f92E048f0f15FD2b22c167DA6F008';
   const THIRDWEB_CLIENT_ID = import.meta.env.VITE_THIRDWEB_CLIENT_ID;
 
   const client = createThirdwebClient({

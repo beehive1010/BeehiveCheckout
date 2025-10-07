@@ -1,7 +1,7 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts"
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
 import { createThirdwebClient, getContract, readContract } from 'https://esm.sh/thirdweb@5'
-import { arbitrum, arbitrumSepolia } from 'https://esm.sh/thirdweb@5/chains'
+import { arbitrum } from 'https://esm.sh/thirdweb@5/chains'
 
 // Correct database interface definition matching the actual database schema
 interface MemberInfo {
@@ -163,10 +163,10 @@ serve(async (req) => {
           secretKey: thirdwebSecretKey
         });
 
-        // Check both contracts: old ARB ONE and new ARB Sepolia V4
+        // Check both contracts: old ARB ONE and new ARB ONE
         const contractAddresses = [
-          { chain: arbitrum, address: '0x15742D22f64985bC124676e206FCE3fFEb175719', name: 'ARB ONE' },
-          { chain: arbitrumSepolia, address: '0xC99CF23CeCE6bF79bD2a23FE5f1D9716D62EC9E1', name: 'ARB Sepolia V4' }
+          { chain: arbitrum, address: '0x15742D22f64985bC124676e206FCE3fFEb175719', name: 'ARB ONE Old' },
+          { chain: arbitrum, address: '0xe57332db0B8d7e6aF8a260a4fEcfA53104728693', name: 'ARB ONE New' }
         ];
 
         let hasNFT = false;
@@ -314,10 +314,10 @@ serve(async (req) => {
         secretKey: thirdwebSecretKey
       });
 
-      // Check both contracts: old ARB ONE and new ARB Sepolia V4
+      // Check both contracts: old ARB ONE and new ARB ONE
       const contractAddresses = [
-        { chain: arbitrum, address: '0x15742D22f64985bC124676e206FCE3fFEb175719', name: 'ARB ONE' },
-        { chain: arbitrumSepolia, address: '0xC99CF23CeCE6bF79bD2a23FE5f1D9716D62EC9E1', name: 'ARB Sepolia V4' }
+        { chain: arbitrum, address: '0x15742D22f64985bC124676e206FCE3fFEb175719', name: 'ARB ONE Old' },
+        { chain: arbitrum, address: '0xe57332db0B8d7e6aF8a260a4fEcfA53104728693', name: 'ARB ONE New' }
       ];
 
       let hasNFT = false;
