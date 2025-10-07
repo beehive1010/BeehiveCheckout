@@ -83,7 +83,7 @@ import { WelcomeLevel1ClaimButton } from '../components/membership/WelcomeLevel1
 />
 ```
 
-**现在** ✅:
+**Now / 现在** ✅:
 ```typescript
 import { MembershipActivationButton } from '../components/membership';
 
@@ -94,15 +94,15 @@ import { MembershipActivationButton } from '../components/membership';
 />
 ```
 
-**改进**:
-- ✅ 更清晰的组件名称
-- ✅ 标准化的 props 顺序
-- ✅ 统一的 API 设计
+**Improvements / 改进**:
+- ✅ Clearer component name / 更清晰的组件名称
+- ✅ Standardized props order / 标准化的props顺序
+- ✅ Unified API design / 统一的API设计
 
 ---
 
-#### Membership.tsx (Level 2-19 升级)
-**之前** (100+ 行):
+#### Membership.tsx (Level 2-19 Upgrade / Level 2-19 升级)
+**Before / 之前** (100+ lines / 行):
 ```typescript
 import { Level2ClaimButtonV2 } from '...';
 import { LevelUpgradeButtonGeneric } from '...';
@@ -125,12 +125,12 @@ import { LevelUpgradeButtonGeneric } from '...';
 )}
 ```
 
-**现在** ✅ (30 行):
+**Now / 现在** ✅ (30 lines / 行):
 ```typescript
 import { MembershipUpgradeButton } from '../components/membership';
 
 {currentLevel === 0 ? (
-  <div>需要激活 Level 1</div>
+  <div>Need to activate Level 1 / 需要激活Level 1</div>
 ) : currentLevel >= 1 && currentLevel < 19 ? (
   <MembershipUpgradeButton
     targetLevel={currentLevel + 1}
@@ -140,23 +140,23 @@ import { MembershipUpgradeButton } from '../components/membership';
     className="w-full"
   />
 ) : (
-  <div>最高等级</div>
+  <div>Max level reached / 最高等级</div>
 )}
 ```
 
-**改进**:
-- ✅ **代码减少 70%**
-- ✅ **消除复杂条件判断**
-- ✅ **统一组件 API**
-- ✅ **移除 NFT 检测逻辑**（组件内部处理）
-- ✅ **更易维护和测试**
+**Improvements / 改进**:
+- ✅ **70% code reduction / 代码减少70%**
+- ✅ **Eliminated complex conditionals / 消除复杂条件判断**
+- ✅ **Unified component API / 统一组件API**
+- ✅ **Removed NFT detection logic / 移除NFT检测逻辑** (handled internally / 组件内部处理)
+- ✅ **Easier to maintain and test / 更易维护和测试**
 
 ---
 
-### 4. 导出清理 ✅
+### 4. Export Cleanup / 导出清理 ✅
 
-#### 主导出文件 (src/components/membership/index.ts)
-**之前** (10+ 导出):
+#### Main Export File / 主导出文件 (src/components/membership/index.ts)
+**Before / 之前** (10+ exports / 导出):
 ```typescript
 export { MembershipActivationButton } from './ActiveMember';
 export { WelcomeLevel1ClaimButton } from './ActiveMember';
@@ -170,102 +170,108 @@ export { Level2ClaimButton } from './UpgradeLevel';
 // ... 更多
 ```
 
-**现在** ✅ (核心导出):
+**Now / 现在** ✅ (core exports / 核心导出):
 ```typescript
-// Core functionality
+// Core functionality / 核心功能
 export { useNFTClaim } from './core/NFTClaimButton';
 export type { NFTClaimConfig } from './core/NFTClaimButton';
 
-// Level 1 Activation
+// Level 1 Activation / Level 1 激活
 export { MembershipActivationButton } from './ActiveMember';
 
-// Level 2-19 Upgrade
+// Level 2-19 Upgrade / Level 2-19 升级
 export { MembershipUpgradeButton } from './UpgradeLevel';
 
-// UI components
+// UI components / UI 组件
 export { default as MembershipBadge } from './MembershipBadge';
+
+// Archived: MultiChain components moved to _archive/
+// 已归档: MultiChain 组件移至 _archive/
 ```
 
-**改进**:
-- ✅ 从 10+ 个减少到 5 个导出
-- ✅ 清晰的分类
-- ✅ 只导出推荐组件
+**Improvements / 改进**:
+- ✅ Reduced from 10+ to 5 exports / 从10+个减少到5个导出
+- ✅ Clear categorization / 清晰的分类
+- ✅ Only exports recommended components / 只导出推荐组件
 
 ---
 
-## 📁 最终文件结构
+## 📁 Final File Structure / 最终文件结构
 
 ```
 src/
 ├── components/
 │   └── membership/
 │       ├── ActiveMember/
-│       │   ├── MembershipActivationButton.tsx  ⭐ ONLY
+│       │   ├── MembershipActivationButton.tsx  ⭐ ONLY / 唯一
 │       │   └── index.ts
 │       ├── UpgradeLevel/
-│       │   ├── MembershipUpgradeButton.tsx     ⭐ ONLY
+│       │   ├── MembershipUpgradeButton.tsx     ⭐ ONLY / 唯一
 │       │   └── index.ts
 │       ├── core/
 │       │   └── NFTClaimButton.tsx (useNFTClaim hook)
 │       ├── _archive/
-│       │   └── [13 个旧组件]
+│       │   └── [13 archived components / 13个归档组件]
 │       ├── index.ts
 │       ├── README.md
 │       ├── STRUCTURE.md
 │       └── MembershipBadge.tsx
 ├── hooks/
-│   ├── useMembershipNFT.ts         ✅
-│   ├── useNFTVerification.ts       ✅
-│   ├── useNFTLevelClaim.ts         ⚠️ (需重构)
-│   ├── useLevelConfig.ts           ✅
-│   ├── useMatrixByLevel.ts         ✅
+│   ├── useMembershipNFT.ts         ✅ Good / 良好
+│   ├── useNFTVerification.ts       ✅ Good / 良好
+│   ├── useNFTLevelClaim.ts         ⚠️ (needs refactor / 需重构)
+│   ├── useLevelConfig.ts           ✅ Good / 良好
+│   ├── useMatrixByLevel.ts         ✅ Good / 良好
 │   └── _archive/
-│       └── useERC20Approval.ts     🗃️
+│       └── useERC20Approval.ts     🗃️ Archived / 已归档
 └── pages/
-    ├── Welcome.tsx                  ✅ (已更新)
-    └── Membership.tsx               ✅ (已更新)
+    ├── Welcome.tsx                  ✅ (updated / 已更新)
+    ├── Membership.tsx               ✅ (updated / 已更新)
+    └── _archive/
+        ├── MultiChainClaimDemo.tsx  🗃️ (archived / 已归档)
+        └── CheckoutTest.tsx         🗃️ (archived / 已归档)
 ```
 
 ---
 
-## 🎯 核心组件 API
+## 🎯 Core Component API / 核心组件 API
 
-### MembershipActivationButton (Level 1)
+### MembershipActivationButton (Level 1 / 一级)
 
 ```typescript
 interface MembershipActivationButtonProps {
-  referrerWallet: string;        // 推荐人钱包地址
-  onSuccess?: () => void;        // 成功回调
-  className?: string;            // CSS 类名
+  referrerWallet: string;        // Referrer wallet address / 推荐人钱包地址
+  onSuccess?: () => void;        // Success callback / 成功回调
+  className?: string;            // CSS class name / CSS类名
 }
 
-// 内部自动处理:
-// ✅ 推荐人验证
-// ✅ 自我推荐检查
-// ✅ 用户注册
-// ✅ USDT 授权 (精确金额)
-// ✅ NFT claim
-// ✅ 后端激活 (activate-membership)
+// Handled internally / 内部自动处理:
+// ✅ Referrer validation / 推荐人验证
+// ✅ Self-referral check / 自我推荐检查
+// ✅ User registration / 用户注册
+// ✅ USDT approval (exact amount) / USDT授权（精确金额）
+// ✅ NFT claim / NFT领取
+// ✅ Backend activation / 后端激活 (activate-membership)
 ```
 
-### MembershipUpgradeButton (Level 2-19)
+### MembershipUpgradeButton (Level 2-19 / 二至十九级)
 
 ```typescript
 interface MembershipUpgradeButtonProps {
-  targetLevel: number;           // 目标等级 (2-19)
-  currentLevel: number;          // 当前等级 (1-18)
-  directReferralsCount: number;  // 直推人数 (Level 2 需要)
-  onSuccess?: () => void;        // 成功回调
-  className?: string;            // CSS 类名
+  targetLevel: number;           // Target level (2-19) / 目标等级 (2-19)
+  currentLevel: number;          // Current level (1-18) / 当前等级 (1-18)
+  directReferralsCount: number;  // Direct referrals count (for Level 2) / 直推人数（Level 2需要）
+  onSuccess?: () => void;        // Success callback / 成功回调
+  className?: string;            // CSS class name / CSS类名
 }
 
-// 内部自动处理:
-// ✅ Level 2: 验证 ≥3 直推
-// ✅ 顺序升级检查
-// ✅ NFT 所有权验证
-// ✅ USDT 授权 (精确金额)
-// ✅ NFT claim
-// ✅ 后端激活 (level-upgrade)
+// Handled internally / 内部自动处理:
+// ✅ Level 2: Verify ≥3 direct referrals / Level 2: 验证≥3直推
+// ✅ Sequential upgrade check / 顺序升级检查
+// ✅ NFT ownership verification / NFT所有权验证
+// ✅ USDT approval (exact amount) / USDT授权（精确金额）
+// ✅ NFT claim / NFT领取
+// ✅ Backend activation / 后端激活 (level-upgrade)
 ```
 
 ---

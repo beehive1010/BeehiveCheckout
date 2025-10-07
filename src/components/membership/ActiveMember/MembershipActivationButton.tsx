@@ -284,18 +284,19 @@ export function MembershipActivationButton({
         return;
       }
 
-      // Use the core claim function
+      // Use the core claim function with activate-membership endpoint
       const result = await claimNFT({
         level: 1,
         priceUSDT: LEVEL_1_PRICE,
-        activationEndpoint: 'mint-and-send-nft',
+        activationEndpoint: 'activate-membership', // ✅ Use activate-membership instead of mint-and-send-nft
         activationPayload: {
           referrerWallet: referrerWallet,
         },
         onSuccess: () => {
+          console.log('✅ Level 1 activation successful - all records created');
           toast({
             title: '🎉 Welcome to BEEHIVE!',
-            description: 'Level 1 membership activated! Redirecting to dashboard...',
+            description: 'Level 1 membership activated! Your referral relationships and rewards have been created.',
             variant: 'default',
             duration: 3000,
           });
