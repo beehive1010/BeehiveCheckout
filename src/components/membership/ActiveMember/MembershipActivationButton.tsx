@@ -1,27 +1,20 @@
-/**
- * Membership Activation Button (Level 1)
- *
- * Handles initial membership activation with referrer validation
- * - Requires valid referrer wallet
- * - No direct referral requirements
- * - Price: 130 USDT
- */
+
 
 import { useEffect, useState, useCallback } from 'react';
 import { useActiveAccount, useActiveWalletChain, useSwitchActiveWalletChain } from 'thirdweb/react';
 import { arbitrum } from 'thirdweb/chains';
 import { balanceOf } from 'thirdweb/extensions/erc1155';
-import { Button } from '../ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '../ui/card';
-import { Badge } from '../ui/badge';
-import { useToast } from '../../hooks/use-toast';
+import { Button } from '../../ui/button';
+import { Card, CardContent, CardHeader, CardTitle } from '../../ui/card';
+import { Badge } from '../../ui/badge';
+import { useToast } from '../../../hooks/use-toast';
 import { Coins, Crown, Gift, Loader2, Zap } from 'lucide-react';
-import { authService } from '../../lib/supabase';
-import { useI18n } from '../../contexts/I18nContext';
-import RegistrationModal from '../modals/RegistrationModal';
-import ErrorBoundary from '../ui/error-boundary';
-import { useMembershipNFT } from '../../hooks/useMembershipNFT';
-import { useNFTClaim } from './core/NFTClaimButton';
+import { authService } from '../../../lib/supabase';
+import { useI18n } from '../../../contexts/I18nContext';
+import RegistrationModal from '../../modals/RegistrationModal';
+import ErrorBoundary from '../../ui/error-boundary';
+import { useMembershipNFT } from '../../../hooks/useMembershipNFT';
+import { useNFTClaim } from '../core/NFTClaimButton';
 
 interface MembershipActivationButtonProps {
   onSuccess?: () => void;

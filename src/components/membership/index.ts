@@ -17,9 +17,9 @@ export { MembershipActivationButton } from './ActiveMember';
 // ✅ Level 2-19 Upgrade (UpgradeLevel folder)
 export { MembershipUpgradeButton } from './UpgradeLevel';
 
-// Multi-chain components (optional features)
-export { MultiChainNFTClaimButton } from './MultiChainNFTClaimButton';
-export { default as MultiChainMembershipClaim } from './MultiChainMembershipClaim';
-
 // UI components
 export { default as MembershipBadge } from './MembershipBadge';
+
+// Archived: MultiChain components moved to _archive/
+// - MultiChainNFTClaimButton
+// - MultiChainMembershipClaim

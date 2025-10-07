@@ -12,15 +12,15 @@ import { useActiveAccount, useActiveWalletChain, useSwitchActiveWalletChain } fr
 import { arbitrum } from 'thirdweb/chains';
 import { getContract } from 'thirdweb';
 import { balanceOf } from 'thirdweb/extensions/erc1155';
-import { Button } from '../ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '../ui/card';
-import { Badge } from '../ui/badge';
-import { useToast } from '../../hooks/use-toast';
+import { Button } from '../../ui/button';
+import { Card, CardContent, CardHeader, CardTitle } from '../../ui/card';
+import { Badge } from '../../ui/badge';
+import { useToast } from '../../../hooks/use-toast';
 import { Coins, Crown, Loader2, Star, TrendingUp, Users } from 'lucide-react';
-import { supabase } from '../../lib/supabase';
-import { useI18n } from '../../contexts/I18nContext';
-import { client } from '../../lib/thirdwebClient';
-import { useNFTClaim } from './core/NFTClaimButton';
+import { supabase } from '../../../lib/supabase';
+import { useI18n } from '../../../contexts/I18nContext';
+import { client } from '../../../lib/thirdwebClient';
+import { useNFTClaim } from '../core/NFTClaimButton';
 
 interface MembershipUpgradeButtonProps {
   targetLevel: number; // 2-19
