@@ -239,9 +239,21 @@ export function MembershipActivationButton({
       });
 
       if (Number(balance) > 0) {
-        console.log('✅ User already owns Level 1 NFT');
+        console.log('✅ User already owns Level 1 NFT - redirecting to dashboard');
         setHasNFT(true);
         setIsEligible(false);
+
+        // Redirect to dashboard after short delay
+        toast({
+          title: t('membership.activation.alreadyActivated'),
+          description: t('membership.activation.redirectingToDashboard'),
+          duration: 2000,
+        });
+
+        setTimeout(() => {
+          window.location.href = '/dashboard';
+        }, 2000);
+
         return;
       }
 
@@ -295,8 +307,8 @@ export function MembershipActivationButton({
         onSuccess: () => {
           console.log('✅ Level 1 activation successful - all records created');
           toast({
-            title: '🎉 Welcome to BEEHIVE!',
-            description: 'Level 1 membership activated! Your referral relationships and rewards have been created.',
+            title: `🎉 ${t('membership.activation.welcome')}`,
+            description: t('membership.activation.successDescription'),
             variant: 'default',
             duration: 3000,
           });
@@ -330,10 +342,10 @@ export function MembershipActivationButton({
         <CardHeader className="text-center pb-4">
           <div className="flex items-center justify-center mb-3">
             <Crown className="h-8 w-8 text-honey mr-2" />
-            <Badge className="bg-honey/20 text-honey border-honey/50">Level 1 Activation</Badge>
+            <Badge className="bg-honey/20 text-honey border-honey/50">{t('membership.activation.level1Badge')}</Badge>
           </div>
-          <CardTitle className="text-2xl text-honey mb-2">Activate Membership</CardTitle>
-          <p className="text-muted-foreground">Join the BEEHIVE community with Level 1 NFT</p>
+          <CardTitle className="text-2xl text-honey mb-2">{t('membership.activation.title')}</CardTitle>
+          <p className="text-muted-foreground">{t('membership.activation.subtitle')}</p>
         </CardHeader>
 
         <CardContent className="space-y-6">
@@ -342,22 +354,22 @@ export function MembershipActivationButton({
             <div className="text-center p-4 bg-gradient-to-br from-orange-500/10 to-orange-500/5 rounded-lg border border-orange-500/20">
               <Coins className="h-6 w-6 text-orange-400 mx-auto mb-2" />
               <h3 className="font-semibold text-orange-400 mb-1">{LEVEL_1_PRICE} USDT</h3>
-              <p className="text-xs text-muted-foreground">Activation Price</p>
+              <p className="text-xs text-muted-foreground">{t('membership.activation.activationPrice')}</p>
             </div>
             <div className="text-center p-4 bg-gradient-to-br from-purple-500/10 to-purple-500/5 rounded-lg border border-purple-500/20">
               <Crown className="h-6 w-6 text-purple-400 mx-auto mb-2" />
               <h3 className="font-semibold text-purple-400 mb-1">Level 1</h3>
-              <p className="text-xs text-muted-foreground">Membership NFT</p>
+              <p className="text-xs text-muted-foreground">{t('membership.activation.membershipNFT')}</p>
             </div>
             <div className="text-center p-4 bg-gradient-to-br from-blue-500/10 to-blue-500/5 rounded-lg border border-blue-500/20">
               <Gift className="h-6 w-6 text-blue-400 mx-auto mb-2" />
               <h3 className="font-semibold text-blue-400 mb-1">Matrix</h3>
-              <p className="text-xs text-muted-foreground">3×3 referral system</p>
+              <p className="text-xs text-muted-foreground">{t('membership.activation.matrixSystem')}</p>
             </div>
             <div className="text-center p-4 bg-gradient-to-br from-green-500/10 to-green-500/5 rounded-lg border border-green-500/20">
               <Zap className="h-6 w-6 text-green-400 mx-auto mb-2" />
-              <h3 className="font-semibold text-green-400 mb-1">Instant</h3>
-              <p className="text-xs text-muted-foreground">Activation</p>
+              <h3 className="font-semibold text-green-400 mb-1">{t('membership.activation.instant')}</h3>
+              <p className="text-xs text-muted-foreground">{t('membership.activation.instantActivation')}</p>
             </div>
           </div>
 
@@ -366,9 +378,9 @@ export function MembershipActivationButton({
             <div className="flex items-start gap-2">
               <Zap className="h-4 w-4 text-blue-400 mt-0.5" />
               <div>
-                <p className="text-sm font-medium text-blue-400">Arbitrum One - USDT Payment</p>
+                <p className="text-sm font-medium text-blue-400">{t('membership.activation.networkInfo')}</p>
                 <p className="text-xs text-muted-foreground mt-1">
-                  Pay with USDT on Arbitrum One. Make sure you're on the correct network.
+                  {t('membership.activation.networkDescription')}
                 </p>
               </div>
             </div>
@@ -380,18 +392,19 @@ export function MembershipActivationButton({
               <div className="p-3 bg-yellow-50 border border-yellow-200 rounded-lg dark:bg-yellow-950 dark:border-yellow-800">
                 <div className="flex items-center gap-2 mb-2">
                   <div className="w-2 h-2 bg-yellow-400 rounded-full animate-pulse"></div>
-                  <span className="text-sm font-medium text-yellow-800 dark:text-yellow-200">Wrong Network</span>
+                  <span className="text-sm font-medium text-yellow-800 dark:text-yellow-200">{t('membership.activation.wrongNetwork')}</span>
                 </div>
                 <p className="text-xs text-yellow-700 dark:text-yellow-300 mb-3">
-                  You're on {activeChain?.id === 1 ? 'Ethereum Mainnet' : `Network ${activeChain?.id}`}. Switch
-                  to Arbitrum One to activate your membership.
+                  {t('membership.activation.wrongNetworkDescription', {
+                    networkName: activeChain?.id === 1 ? 'Ethereum Mainnet' : `Network ${activeChain?.id}`
+                  })}
                 </p>
                 <Button
                   onClick={handleSwitchNetwork}
                   className="w-full bg-yellow-600 hover:bg-yellow-700 text-white"
                   size="sm"
                 >
-                  Switch to Arbitrum One
+                  {t('membership.activation.switchNetwork')}
                 </Button>
               </div>
             )}

@@ -1897,6 +1897,26 @@
   },
   "membership": {
     "active": "Active",
+    "activation": {
+      "activationPrice": "Activation Price",
+      "alreadyActivated": "Already Activated",
+      "instant": "Instant",
+      "instantActivation": "Activation",
+      "level1Badge": "Level 1 Activation",
+      "matrixSystem": "3×3 referral system",
+      "membershipNFT": "Membership NFT",
+      "networkDescription": "Pay with USDT on Arbitrum One. Make sure you're on the correct network.",
+      "networkInfo": "Arbitrum One - USDT Payment",
+      "processing": "Processing activation...",
+      "redirectingToDashboard": "Redirecting to dashboard...",
+      "subtitle": "Join the BEEHIVE community with Level 1 NFT",
+      "successDescription": "Level 1 membership activated! Your referral relationships and rewards have been created.",
+      "switchNetwork": "Switch to Arbitrum One",
+      "title": "Activate Membership",
+      "welcome": "Welcome to BEEHIVE!",
+      "wrongNetwork": "Wrong Network",
+      "wrongNetworkDescription": "You're on {networkName}. Switch to Arbitrum One to activate your membership."
+    },
     "benefits": "Benefits",
     "claiming": {
       "processing": "Processing claim for ${price}...",
