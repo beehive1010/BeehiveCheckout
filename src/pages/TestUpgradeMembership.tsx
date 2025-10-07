@@ -7,8 +7,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '../components/ui/card'
 import { Badge } from '../components/ui/badge';
 import { Button } from '../components/ui/button';
 import { useToast } from '../hooks/use-toast';
-import { LevelUpgradeButton } from '../components/membership/LevelUpgradeButton';
-import { Level2ClaimButtonV2 } from '../components/membership/Level2ClaimButtonV2';
+import { MembershipUpgradeButton } from '../components/membership';
 import { Crown, Shield, Star, Zap, Lock, CheckCircle, Loader2, TrendingUp } from 'lucide-react';
 import { LEVEL_PRICING } from '../hooks/useNFTLevelClaim';
 
@@ -26,6 +25,7 @@ export default function TestUpgradeMembership() {
   const [levelStates, setLevelStates] = useState<LevelState[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [userLevel, setUserLevel] = useState<number>(0);
+  const [directReferralsCount, setDirectReferralsCount] = useState<number>(0);
 
   // Initialize level states for levels 3-19
   useEffect(() => {
@@ -229,18 +229,13 @@ export default function TestUpgradeMembership() {
                     </Button>
                   ) : levelState.status === 'available' ? (
                     <div className="space-y-2">
-                      {levelState.level === 2 ? (
-                        <Level2ClaimButtonV2
-                          onSuccess={handleLevelUpgradeSuccess}
-                          className="w-full"
-                        />
-                      ) : (
-                        <LevelUpgradeButton
-                          targetLevel={levelState.level}
-                          onSuccess={handleLevelUpgradeSuccess}
-                          className="w-full"
-                        />
-                      )}
+                      <MembershipUpgradeButton
+                        targetLevel={levelState.level}
+                        currentLevel={userLevel}
+                        directReferralsCount={directReferralsCount}
+                        onSuccess={handleLevelUpgradeSuccess}
+                        className="w-full"
+                      />
                     </div>
                   ) : (
                     <Button 
@@ -269,16 +264,12 @@ export default function TestUpgradeMembership() {
                 🚀 Your Next Upgrade
               </h2>
               <div className="max-w-2xl mx-auto">
-                {userLevel === 1 ? (
-                  <Level2ClaimButtonV2
-                    onSuccess={handleLevelUpgradeSuccess}
-                  />
-                ) : (
-                  <LevelUpgradeButton
-                    targetLevel={userLevel + 1}
-                    onSuccess={handleLevelUpgradeSuccess}
-                  />
-                )}
+                <MembershipUpgradeButton
+                  targetLevel={userLevel + 1}
+                  currentLevel={userLevel}
+                  directReferralsCount={directReferralsCount}
+                  onSuccess={handleLevelUpgradeSuccess}
+                />
               </div>
             </div>
           )}
