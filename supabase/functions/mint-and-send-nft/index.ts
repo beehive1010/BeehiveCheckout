@@ -222,15 +222,22 @@ async function mintNFTViaEngine(
 }
 
 async function transferPlatformFee(
-  feeAmount: number
+  feeAmount: number,
+  network: string = 'mainnet'
 ): Promise<{ transactionHash: string }> {
   const clientId = Deno.env.get('VITE_THIRDWEB_CLIENT_ID');
   const secretKey = Deno.env.get('VITE_THIRDWEB_SECRET_KEY');
   const vaultAccessToken = Deno.env.get('VITE_VAULT_ACCESS_TOKEN');
   const serverWallet = Deno.env.get('VITE_SERVER_WALLET_ADDRESS');
   const platformFeeAddress = '0x0bA198F73DF3A1374a49Acb2c293ccA20e150Fe0';
-  const usdtContract = '0xFd086bC7CD5C481DCC9C85ebE478A1C0b69FCbb9'; // Arbitrum USDT
-  const chainId = '42161'; // Arbitrum
+
+  // Use correct USDT contract and chain ID based on network
+  const usdtContract = network === 'mainnet'
+    ? '0xFd086bC7CD5C481DCC9C85ebE478A1C0b69FCbb9' // Arbitrum mainnet USDT
+    : '0xb67f84e6148D087D4fc5F390BedC75597770f6c0'; // Arbitrum Sepolia USDT
+  const chainId = network === 'mainnet'
+    ? '42161' // Arbitrum mainnet
+    : '421614'; // Arbitrum Sepolia
 
   if (!clientId || !vaultAccessToken || !serverWallet) {
     throw new Error('Missing Thirdweb configuration for platform fee transfer');

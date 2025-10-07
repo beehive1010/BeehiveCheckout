@@ -1099,12 +1099,17 @@ async function verifyUpgradeTransaction(
 
   try {
     // Use the same verification logic as activation but for upgrades
-    const RPC_URL = network === 'mainnet' 
-      ? 'https://arb1.arbitrum.io/rpc' 
+    const RPC_URL = network === 'mainnet'
+      ? 'https://arb1.arbitrum.io/rpc'
       : 'https://sepolia-rollup.arbitrum.io/rpc'
-    
-    const NFT_CONTRACT = '0x36a1aC6D8F0204827Fad16CA5e222F1Aeae4Adc8' // ARB ONE Membership Contract
-    const PAYMENT_TOKEN_CONTRACT = '0xFd086bC7CD5C481DCC9C85ebE478A1C0b69FCbb9' // Arbitrum USDT
+
+    // Use correct contract addresses based on network
+    const NFT_CONTRACT = network === 'mainnet'
+      ? '0x15742D22f64985bC124676e206FCE3fFEb175719' // ARB ONE Membership Contract
+      : '0xC99CF23CeCE6bF79bD2a23FE5f1D9716D62EC9E1' // ARB Sepolia V4 Membership Contract
+    const PAYMENT_TOKEN_CONTRACT = network === 'mainnet'
+      ? '0xFd086bC7CD5C481DCC9C85ebE478A1C0b69FCbb9' // Arbitrum mainnet USDT
+      : '0xb67f84e6148D087D4fc5F390BedC75597770f6c0' // Arbitrum Sepolia USDT
     const EXPECTED_TOKEN_ID = targetLevel
 
     // Get transaction receipt

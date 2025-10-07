@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { TransactionButton, useActiveAccount } from 'thirdweb/react';
 import { getContract, prepareContractCall } from 'thirdweb';
-import { arbitrum } from 'thirdweb/chains';
+import { arbitrumSepolia } from 'thirdweb/chains';
 import { Button } from '../ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '../ui/card';
 import { Badge } from '../ui/badge';
@@ -33,7 +33,7 @@ export function Level1ClaimButtonWithPayModal({
   const [hasNFT, setHasNFT] = useState(false);
 
   const NFT_CONTRACT = import.meta.env.VITE_MEMBERSHIP_NFT_CONTRACT;
-  const USDT_CONTRACT = '0xFd086bC7CD5C481DCC9C85ebE478A1C0b69FCbb9'; // Arbitrum USDT
+  const USDT_CONTRACT = '0xb67f84e6148D087D4fc5F390BedC75597770f6c0'; // Arbitrum USDT
   const LEVEL_1_PRICE_USDT = 130;
   const LEVEL_1_PRICE_WEI = BigInt(LEVEL_1_PRICE_USDT) * BigInt('1000000'); // 6 decimals
 
@@ -78,7 +78,7 @@ export function Level1ClaimButtonWithPayModal({
       const nftContract = getContract({
         client,
         address: NFT_CONTRACT,
-        chain: arbitrum
+        chain: arbitrumSepolia
       });
 
       const response = await fetch(
@@ -231,7 +231,7 @@ export function Level1ClaimButtonWithPayModal({
   const nftContract = getContract({
     client,
     address: NFT_CONTRACT,
-    chain: arbitrum
+    chain: arbitrumSepolia
   });
 
   // Prepare claim transaction

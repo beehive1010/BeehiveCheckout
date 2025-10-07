@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useActiveAccount, useActiveWalletChain, useSwitchActiveWalletChain } from 'thirdweb/react';
 import { getContract, prepareContractCall, sendTransaction, waitForReceipt } from 'thirdweb';
-import { arbitrum } from 'thirdweb/chains';
+import { arbitrumSepolia } from 'thirdweb/chains';
 import { Button } from '../ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '../ui/card';
 import { Badge } from '../ui/badge';
@@ -40,7 +40,7 @@ export function CheckoutLevel1Button({
   const [showRegistrationModal, setShowRegistrationModal] = useState(false);
 
   // Constants
-  const USDT_CONTRACT = '0xFd086bC7CD5C481DCC9C85ebE478A1C0b69FCbb9';
+  const USDT_CONTRACT = '0xb67f84e6148D087D4fc5F390BedC75597770f6c0';
   const SERVER_WALLET = import.meta.env.VITE_SERVER_WALLET_ADDRESS || '0x8AABc891958D8a813dB15C355F0aEaa85E4E5C9c';
   const LEVEL_1_PRICE_USDT = 130;
   const LEVEL_1_PRICE_WEI = BigInt(LEVEL_1_PRICE_USDT) * BigInt('1000000');
@@ -48,7 +48,7 @@ export function CheckoutLevel1Button({
 
   // Check network status
   useEffect(() => {
-    if (activeChain?.id && activeChain.id !== arbitrum.id) {
+    if (activeChain?.id && activeChain.id !== arbitrumSepolia.id) {
       setIsWrongNetwork(true);
     } else {
       setIsWrongNetwork(false);
@@ -192,7 +192,7 @@ export function CheckoutLevel1Button({
         const usdtContract = getContract({
           client,
           address: USDT_CONTRACT,
-          chain: arbitrum
+          chain: arbitrumSepolia
         });
 
         const transferTx = prepareContractCall({
@@ -214,7 +214,7 @@ export function CheckoutLevel1Button({
 
         await waitForReceipt({
           client,
-          chain: arbitrum,
+          chain: arbitrumSepolia,
           transactionHash: txHash
         });
 
@@ -272,7 +272,7 @@ export function CheckoutLevel1Button({
         <CardContent>
           {isWrongNetwork && switchChain && (
             <Button
-              onClick={() => switchChain(arbitrum)}
+              onClick={() => switchChain(arbitrumSepolia)}
               className="w-full mb-4 bg-yellow-600"
             >
               Switch to Arbitrum

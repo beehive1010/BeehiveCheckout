@@ -3,7 +3,7 @@ import { inAppWallet } from "thirdweb/wallets";
 import { claimTo } from "thirdweb/extensions/erc1155";
 import { approve, allowance } from "thirdweb/extensions/erc20";
 import { ConnectButton, TransactionButton } from "thirdweb/react";
-import { arbitrum } from "thirdweb/chains";
+import { arbitrumSepolia } from "thirdweb/chains";
 import { getContract } from "thirdweb";
 import { useActiveAccount } from "thirdweb/react";
 import { client } from "../../lib/thirdwebClient";
@@ -14,7 +14,7 @@ import { readContract } from "thirdweb";
 
 // Contract addresses from environment
 const MEMBERSHIP_NFT_CONTRACT = import.meta.env.VITE_MEMBERSHIP_NFT_CONTRACT;
-const USDT_CONTRACT = '0xFd086bC7CD5C481DCC9C85ebE478A1C0b69FCbb9'; // Arbitrum USDT
+const USDT_CONTRACT = '0xb67f84e6148D087D4fc5F390BedC75597770f6c0'; // Arbitrum USDT
 
 // Configure wallets with ARB One sponsorship
 const wallets = [
@@ -23,7 +23,7 @@ const wallets = [
       options: ["email", "phone", "google", "passkey"],
     },
     smartAccount: {
-      chain: arbitrum,
+      chain: arbitrumSepolia,
       sponsorGas: true,
     },
   }),
@@ -32,13 +32,13 @@ const wallets = [
 // Get contract instances
 const nftContract = getContract({
   client,
-  chain: arbitrum,
+  chain: arbitrumSepolia,
   address: MEMBERSHIP_NFT_CONTRACT,
 });
 
 const usdtContract = getContract({
   client,
-  chain: arbitrum, 
+  chain: arbitrumSepolia, 
   address: USDT_CONTRACT,
 });
 

@@ -32,8 +32,8 @@ export const contractAddresses = {
   BBC_MEMBERSHIP: {
     // Arbitrum mainnet - NEW CONTRACT ADDRESS
     arbitrum: '0x15742D22f64985bC124676e206FCE3fFEb175719',
-    // Arbitrum Sepolia testnet  
-    arbitrumSepolia: '0xAc8c8662726b72f8DB4F5D1d1a16aC5b06B7a90D',
+    // Arbitrum Sepolia testnet - V4 TEST CONTRACT
+    arbitrumSepolia: '0xC99CF23CeCE6bF79bD2a23FE5f1D9716D62EC9E1',
     // Alpha Centauri L3 testnet
     alphaCentauri: '0x5f6045Cc578b9f7E20416ede382f31FC151f32E7',
     demo: '0x99265477249389469929CEA07c4a337af9e12cdA', // Demo Beehive Member NFT
@@ -64,7 +64,7 @@ export const contractAddresses = {
     ethereum: '0xdAC17F958D2ee523a2206206994597C13D831ec7',
     polygon: '0xc2132D05D31c914a87C6611C10748AEb04B58e8F',
     arbitrum: '0xfA278827a612BBA895e7F0A4fBA504b22ff3E7C9', // NEW ARB ONE PAYMENT TOKEN
-    arbitrumSepolia: '0x4470734620414168Aa1673A30849DB25E5886E2A', // Test USDT
+    arbitrumSepolia: '0xb67f84e6148D087D4fc5F390BedC75597770f6c0', // Test USDT V4
     optimism: '0x94b008aA00579c1307B0EF2c499aD98a8ce58e58',
     bsc: '0x55d398326f99059fF775485246999027B3197955', // BSC USDT
     base: '0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913', // Base USDT (native stablecoin)

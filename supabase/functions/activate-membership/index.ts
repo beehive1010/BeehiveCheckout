@@ -1,7 +1,7 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts"
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
 import { createThirdwebClient, getContract, readContract } from 'https://esm.sh/thirdweb@5'
-import { arbitrum } from 'https://esm.sh/thirdweb@5/chains'
+import { arbitrum, arbitrumSepolia } from 'https://esm.sh/thirdweb@5/chains'
 
 // Correct database interface definition matching the actual database schema
 interface MemberInfo {
@@ -163,28 +163,53 @@ serve(async (req) => {
           secretKey: thirdwebSecretKey
         });
 
-        // Get contract instance - use the correct membership NFT contract
-        const contract = getContract({
-          client,
-          chain: arbitrum,
-          address: '0x15742D22f64985bC124676e206FCE3fFEb175719'
-        });
+        // Check both contracts: old ARB ONE and new ARB Sepolia V4
+        const contractAddresses = [
+          { chain: arbitrum, address: '0x15742D22f64985bC124676e206FCE3fFEb175719', name: 'ARB ONE' },
+          { chain: arbitrumSepolia, address: '0xC99CF23CeCE6bF79bD2a23FE5f1D9716D62EC9E1', name: 'ARB Sepolia V4' }
+        ];
 
-        // Check balance using ERC-1155 balanceOf function
-        const balance = await readContract({
-          contract,
-          method: "function balanceOf(address account, uint256 id) view returns (uint256)",
-          params: [walletAddress, BigInt(targetLevel)]
-        });
+        let hasNFT = false;
+        let totalBalance = BigInt(0);
+        let contractFound = '';
 
-        const hasNFT = Number(balance) > 0;
+        // Check each contract
+        for (const contractInfo of contractAddresses) {
+          try {
+            const contract = getContract({
+              client,
+              chain: contractInfo.chain,
+              address: contractInfo.address
+            });
 
-        console.log(`📊 NFT ownership check result: Level ${targetLevel} balance = ${balance.toString()}, hasNFT = ${hasNFT}`);
+            const balance = await readContract({
+              contract,
+              method: "function balanceOf(address account, uint256 id) view returns (uint256)",
+              params: [walletAddress, BigInt(targetLevel)]
+            });
+
+            if (Number(balance) > 0) {
+              hasNFT = true;
+              totalBalance = balance;
+              contractFound = contractInfo.name;
+              console.log(`✅ Found NFT on ${contractInfo.name}: Level ${targetLevel} balance = ${balance.toString()}`);
+              break; // Found NFT, no need to check further
+            } else {
+              console.log(`❌ No NFT on ${contractInfo.name} for Level ${targetLevel}`);
+            }
+          } catch (error) {
+            console.error(`⚠️ Error checking ${contractInfo.name}:`, error);
+            // Continue to next contract
+          }
+        }
+
+        console.log(`📊 NFT ownership check result: hasNFT = ${hasNFT}, contract = ${contractFound}, balance = ${totalBalance.toString()}`);
 
         return new Response(JSON.stringify({
           success: true,
           hasNFT,
-          balance: balance.toString(),
+          balance: totalBalance.toString(),
+          contractFound,
           level: targetLevel,
           walletAddress
         }), {
@@ -289,30 +314,54 @@ serve(async (req) => {
         secretKey: thirdwebSecretKey
       });
 
-      // Get NFT contract
-      const contract = getContract({
-        client,
-        chain: arbitrum,
-        address: '0x15742D22f64985bC124676e206FCE3fFEb175719'
-      });
+      // Check both contracts: old ARB ONE and new ARB Sepolia V4
+      const contractAddresses = [
+        { chain: arbitrum, address: '0x15742D22f64985bC124676e206FCE3fFEb175719', name: 'ARB ONE' },
+        { chain: arbitrumSepolia, address: '0xC99CF23CeCE6bF79bD2a23FE5f1D9716D62EC9E1', name: 'ARB Sepolia V4' }
+      ];
 
-      // Verify user owns the NFT on-chain
-      const balance = await readContract({
-        contract,
-        method: "function balanceOf(address account, uint256 id) view returns (uint256)",
-        params: [walletAddress, BigInt(level)]
-      });
+      let hasNFT = false;
+      let totalBalance = BigInt(0);
+      let contractFound = '';
 
-      const hasNFT = Number(balance) > 0;
+      // Check each contract
+      for (const contractInfo of contractAddresses) {
+        try {
+          const contract = getContract({
+            client,
+            chain: contractInfo.chain,
+            address: contractInfo.address
+          });
+
+          const balance = await readContract({
+            contract,
+            method: "function balanceOf(address account, uint256 id) view returns (uint256)",
+            params: [walletAddress, BigInt(level)]
+          });
+
+          if (Number(balance) > 0) {
+            hasNFT = true;
+            totalBalance = balance;
+            contractFound = contractInfo.name;
+            console.log(`✅ Found NFT on ${contractInfo.name}: Level ${level} balance = ${balance.toString()}`);
+            break; // Found NFT, no need to check further
+          } else {
+            console.log(`❌ No NFT on ${contractInfo.name} for Level ${level}`);
+          }
+        } catch (error) {
+          console.error(`⚠️ Error checking ${contractInfo.name}:`, error);
+          // Continue to next contract
+        }
+      }
 
       if (!hasNFT) {
-        console.error(`❌ NFT ownership verification failed: User does not own Level ${level} NFT on-chain`);
+        console.error(`❌ NFT ownership verification failed: User does not own Level ${level} NFT on any supported chain`);
         return new Response(JSON.stringify({
           success: false,
           error: 'NFT_OWNERSHIP_REQUIRED',
           message: `You must own a Level ${level} membership NFT on-chain before activation`,
           hasNFT: false,
-          balance: balance.toString(),
+          balance: totalBalance.toString(),
           level,
           walletAddress
         }), {
@@ -321,7 +370,7 @@ serve(async (req) => {
         });
       }
 
-      console.log(`✅ NFT ownership verified: Level ${level} balance = ${balance.toString()}`);
+      console.log(`✅ NFT ownership verified on ${contractFound}: Level ${level} balance = ${totalBalance.toString()}`);
 
     } catch (error) {
       console.error('❌ NFT ownership verification error:', error);

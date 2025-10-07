@@ -1,8 +1,9 @@
 import { useActiveAccount, useActiveWalletChain } from "thirdweb/react";
 import { createThirdwebClient, getContract } from "thirdweb";
-import { arbitrum } from "thirdweb/chains";
+import { arbitrumSepolia } from "thirdweb/chains";
 
-const NFT_CONTRACT_ADDRESS = "0x15742D22f64985bC124676e206FCE3fFEb175719";
+// V4 Contract on Arbitrum Sepolia
+const NFT_CONTRACT_ADDRESS = "0xC99CF23CeCE6bF79bD2a23FE5f1D9716D62EC9E1";
 
 const client = createThirdwebClient({
   clientId: import.meta.env.VITE_THIRDWEB_CLIENT_ID || "3123b1ac2ebdb966dd415c6e964dc335",
@@ -35,7 +36,7 @@ export function useMembershipNFT() {
 
   const nftContract = getContract({
     client,
-    chain: arbitrum,
+    chain: arbitrumSepolia,
     address: NFT_CONTRACT_ADDRESS,
   });
 
@@ -44,9 +45,9 @@ export function useMembershipNFT() {
     client,
     address: account?.address,
     isConnected: !!account?.address,
-    chain: arbitrum,
+    chain: arbitrumSepolia,
     switchChain,
-    chainId: arbitrum.id,
+    chainId: arbitrumSepolia.id,
     walletChain,
     contractAddress: NFT_CONTRACT_ADDRESS,
   };

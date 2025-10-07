@@ -416,7 +416,8 @@ async function handleTokenTransfer(supabase: any, data: any) {
     // Configuration
     const SERVER_WALLET = Deno.env.get('SERVER_WALLET_ADDRESS')?.toLowerCase()
     const PLATFORM_RECIPIENT = Deno.env.get('PLATFORM_FEE_RECIPIENT')?.toLowerCase() || '0x0bA198F73DF3A1374a49Acb2c293ccA20e150Fe0'.toLowerCase()
-    const USDT_ADDRESS_ARB = '0xFd086bC7CD5C481DCC9C85ebE478A1C0b69FCbb9'.toLowerCase()
+    const USDT_ADDRESS_ARB = '0xFd086bC7CD5C481DCC9C85ebE478A1C0b69FCbb9'.toLowerCase() // Arbitrum mainnet USDT
+    const USDT_ADDRESS_ARB_SEPOLIA = '0xb67f84e6148D087D4fc5F390BedC75597770f6c0'.toLowerCase() // Arbitrum Sepolia USDT
     const MIN_AMOUNT_USDT = 130 // Minimum 130 USDT to trigger auto transfer
     const PLATFORM_FEE_USDT = 30 // Transfer 30 USDT to platform
 
@@ -426,13 +427,18 @@ async function handleTokenTransfer(supabase: any, data: any) {
       return
     }
 
-    // Check if it's USDC on Arbitrum
-    if (chainId !== '42161' && chainId !== 42161) {
+    // Check if it's Arbitrum (mainnet or Sepolia)
+    if (chainId !== '42161' && chainId !== 42161 && chainId !== '421614' && chainId !== 421614) {
       console.log(`⚠️ Not Arbitrum chain, ignoring`)
       return
     }
 
-    if (contractAddress?.toLowerCase() !== USDT_ADDRESS_ARB) {
+    // Check if it's USDT token on the respective chain
+    const isArbitrumMainnet = chainId === '42161' || chainId === 42161
+    const isArbitrumSepolia = chainId === '421614' || chainId === 421614
+    const expectedUSDT = isArbitrumMainnet ? USDT_ADDRESS_ARB : USDT_ADDRESS_ARB_SEPOLIA
+
+    if (contractAddress?.toLowerCase() !== expectedUSDT) {
       console.log(`⚠️ Not USDT token, ignoring`)
       return
     }

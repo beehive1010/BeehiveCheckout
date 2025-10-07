@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useActiveAccount, useActiveWalletChain } from 'thirdweb/react';
 import { getContract, prepareContractCall, sendTransaction, waitForReceipt } from 'thirdweb';
-import { arbitrum } from 'thirdweb/chains';
+import { arbitrumSepolia } from 'thirdweb/chains';
 import { createThirdwebClient } from 'thirdweb';
 import { claimTo, balanceOf } from 'thirdweb/extensions/erc1155';
 import { approve, balanceOf as erc20BalanceOf, allowance } from 'thirdweb/extensions/erc20';
@@ -34,8 +34,8 @@ export function LevelUpgradeButton({ onSuccess, targetLevel, className = '' }: L
   const { levelInfo, isLoading: isLevelLoading, refetch: refetchLevel, getLevelName, formatPrice } = useNFTLevelClaim(targetLevel);
   
   const API_BASE = 'https://cvqibjcbfrwsgkvthccp.supabase.co/functions/v1';
-  const PAYMENT_TOKEN_CONTRACT = "0xFd086bC7CD5C481DCC9C85ebE478A1C0b69FCbb9"; // Arbitrum USDT
-  const NFT_CONTRACT = "0x15742D22f64985bC124676e206FCE3fFEb175719"; // ARB ONE Membership Contract
+  const PAYMENT_TOKEN_CONTRACT = "0xb67f84e6148D087D4fc5F390BedC75597770f6c0"; // Arbitrum USDT
+  const NFT_CONTRACT = "0xC99CF23CeCE6bF79bD2a23FE5f1D9716D62EC9E1"; // ARB ONE Membership Contract
   const THIRDWEB_CLIENT_ID = import.meta.env.VITE_THIRDWEB_CLIENT_ID;
 
   const client = createThirdwebClient({
@@ -165,8 +165,8 @@ export function LevelUpgradeButton({ onSuccess, targetLevel, className = '' }: L
     try {
       // Step 1: Network check
       const chainId = activeChain?.id;
-      if (chainId !== arbitrum.id) {
-        throw new Error(`Please switch to Arbitrum Sepolia network. Current: ${chainId}, Required: ${arbitrum.id}`);
+      if (chainId !== arbitrumSepolia.id) {
+        throw new Error(`Please switch to Arbitrum Sepolia network. Current: ${chainId}, Required: ${arbitrumSepolia.id}`);
       }
 
       // Step 2: Skip ETH balance check - gas is sponsored
@@ -176,13 +176,13 @@ export function LevelUpgradeButton({ onSuccess, targetLevel, className = '' }: L
       const usdcContract = getContract({
         client,
         address: PAYMENT_TOKEN_CONTRACT,
-        chain: arbitrum
+        chain: arbitrumSepolia
       });
 
       const nftContract = getContract({
         client,
         address: NFT_CONTRACT,
-        chain: arbitrum
+        chain: arbitrumSepolia
       });
 
       // Step 4: Check if user already owns this level NFT
@@ -267,7 +267,7 @@ export function LevelUpgradeButton({ onSuccess, targetLevel, className = '' }: L
 
         await waitForReceipt({
           client,
-          chain: arbitrum,
+          chain: arbitrumSepolia,
           transactionHash: approveTxResult?.transactionHash,
         });
         
@@ -312,7 +312,7 @@ export function LevelUpgradeButton({ onSuccess, targetLevel, className = '' }: L
       setCurrentStep('Waiting for NFT confirmation...');
       const receipt = await waitForReceipt({
         client,
-        chain: arbitrum,
+        chain: arbitrumSepolia,
         transactionHash: claimTxResult.transactionHash,
         maxBlocksWaitTime: 50
       });

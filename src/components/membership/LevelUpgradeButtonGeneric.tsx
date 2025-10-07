@@ -1,7 +1,7 @@
 import {useEffect, useState, useRef} from 'react';
 import {useActiveAccount, useActiveWalletChain, useSwitchActiveWalletChain, CheckoutWidget} from 'thirdweb/react';
 import {createThirdwebClient, defineChain, getContract} from 'thirdweb';
-import {arbitrum} from 'thirdweb/chains';
+import {arbitrumSepolia} from 'thirdweb/chains';
 import {balanceOf} from 'thirdweb/extensions/erc1155';
 import {Button} from '../ui/button';
 import {Card, CardContent, CardHeader, CardTitle} from '../ui/card';
@@ -79,8 +79,8 @@ export function LevelUpgradeButtonGeneric({
 
   const API_BASE = 'https://cvqibjcbfrwsgkvthccp.supabase.co/functions/v1';
   const SERVER_WALLET = import.meta.env.VITE_SERVER_WALLET_ADDRESS || '0x8AABc891958D8a813dB15C355F0aEaa85E4E5C9c';
-  const USDT_CONTRACT = '0xFd086bC7CD5C481DCC9C85ebE478A1C0b69FCbb9';
-  const NFT_CONTRACT = "0x15742D22f64985bC124676e206FCE3fFEb175719";
+  const USDT_CONTRACT = '0xb67f84e6148D087D4fc5F390BedC75597770f6c0'; // Arbitrum Sepolia USDT
+  const NFT_CONTRACT = "0xC99CF23CeCE6bF79bD2a23FE5f1D9716D62EC9E1"; // V4 Contract on Arbitrum Sepolia
 
   const checkoutClient = createThirdwebClient({
     clientId: import.meta.env.VITE_THIRDWEB_CLIENT_ID || client.clientId,
@@ -88,7 +88,7 @@ export function LevelUpgradeButtonGeneric({
 
   // Check network status
   useEffect(() => {
-    if (activeChain?.id && activeChain.id !== arbitrum.id) {
+    if (activeChain?.id && activeChain.id !== arbitrumSepolia.id) {
       setIsWrongNetwork(true);
     } else {
       setIsWrongNetwork(false);
@@ -130,7 +130,7 @@ export function LevelUpgradeButtonGeneric({
         const nftContract = getContract({
           client,
           address: NFT_CONTRACT,
-          chain: arbitrum
+          chain: arbitrumSepolia
         });
 
         const levelBalance = await balanceOf({
@@ -166,7 +166,7 @@ export function LevelUpgradeButtonGeneric({
 
     try {
       setIsProcessing(true);
-      await switchChain(arbitrum);
+      await switchChain(arbitrumSepolia);
       toast({
         title: t('wallet.networkSwitched'),
         description: t('wallet.networkSwitchedDesc'),
@@ -275,7 +275,7 @@ export function LevelUpgradeButtonGeneric({
   const nftContract = getContract({
     client,
     address: NFT_CONTRACT,
-    chain: arbitrum
+    chain: arbitrumSepolia
   });
 
   return (

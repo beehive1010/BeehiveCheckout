@@ -4,7 +4,7 @@ import { useActiveAccount, ClaimButton } from "thirdweb/react";
 import { Card, CardContent, CardHeader, CardTitle } from './ui/card';
 import { Zap } from 'lucide-react';
 import { useQueryClient } from '@tanstack/react-query';
-import { arbitrum } from 'thirdweb/chains';
+import { arbitrumSepolia } from 'thirdweb/chains';
 import { useWeb3 } from '../contexts/Web3Context';
 
 type DemoState = 'idle' | 'paying' | 'verifying' | 'claiming' | 'success' | 'error';
@@ -29,7 +29,7 @@ export default function DemoClaimButton({
   const { client } = useWeb3();
 
   // Contract addresses from environment
-  const DEMO_MEMBERSHIP_NFT = '0x15742D22f64985bC124676e206FCE3fFEb175719'; // ARB ONE Membership Contract
+  const DEMO_MEMBERSHIP_NFT = '0xC99CF23CeCE6bF79bD2a23FE5f1D9716D62EC9E1'; // ARB ONE Membership Contract
   const DEMO_USDT = '0xaf88d065e77c8cC2239327C5EDb3A432268e5831'; // ARB ONE Payment Token
   const CHAIN = arbitrum;
 

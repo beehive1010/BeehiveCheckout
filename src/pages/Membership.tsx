@@ -70,7 +70,7 @@ export default function Membership() {
       try {
         const { createThirdwebClient, getContract } = await import('thirdweb');
         const { balanceOf } = await import('thirdweb/extensions/erc1155');
-        const { arbitrum } = await import('thirdweb/chains');
+        const { arbitrumSepolia } = await import('thirdweb/chains');
         
         const client = createThirdwebClient({
           clientId: import.meta.env.VITE_THIRDWEB_CLIENT_ID
@@ -78,8 +78,8 @@ export default function Membership() {
         
         const nftContract = getContract({
           client,
-          address: '0x15742D22f64985bC124676e206FCE3fFEb175719',
-          chain: arbitrum
+          address: '0xC99CF23CeCE6bF79bD2a23FE5f1D9716D62EC9E1',
+          chain: arbitrumSepolia
         });
         
         // Check NFTs for levels 1-19 (batch query for efficiency)
