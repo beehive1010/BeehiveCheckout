@@ -220,6 +220,6 @@ BEGIN
     RAISE NOTICE '🎯 Usage: When a member claims Level 2 NFT:';
     RAISE NOTICE 'SELECT * FROM upgrade_member_nft_level(''wallet_address'', 2);';
     RAISE NOTICE '';
-    RAISE NOTICE '💡 Current state: All active members have Level 1 NFTs';
+    RAISE NOTICE '💡 Current state: All ActiveMember members have Level 1 NFTs';
     RAISE NOTICE 'Ready to process Level 2+ claims when they happen!';
 END $$;

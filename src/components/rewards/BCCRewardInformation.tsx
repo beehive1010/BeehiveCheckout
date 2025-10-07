@@ -145,7 +145,7 @@ export const BCCRewardInformation: React.FC<BCCRewardInformationProps> = ({
               </span>
             </div>
             <Badge className={`bg-green-500 text-white text-xs animate-pulse ${isMobile ? 'self-start' : ''}`}>
-              {t('rewards.bcc.active')}
+              {t('rewards.bcc.ActiveMember')}
             </Badge>
           </div>
           

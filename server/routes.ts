@@ -2440,7 +2440,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(404).json({ error: 'Advertisement NFT claim not found or already burned' });
       }
 
-      // Return the active code for the service
+      // Return the ActiveMember code for the service
       res.json({
         success: true,
         serviceCode: burnedClaim.activeCode,
@@ -3647,7 +3647,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           MIN(mn.purchased_at) as member_since,
           MAX(mn.purchased_at) as last_purchase_at
         FROM users u
-        LEFT JOIN membership_nfts_v2 mn ON u.wallet_address = mn.wallet_address AND mn.status = 'active'
+        LEFT JOIN membership_nfts_v2 mn ON u.wallet_address = mn.wallet_address AND mn.status = 'ActiveMember'
         WHERE u.wallet_address = ${walletAddress.toLowerCase()}
         GROUP BY u.wallet_address, u.username, u.member_activated
       `);
@@ -3726,7 +3726,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           nft_token_id, tx_hash, purchased_at, activated_at, status
         ) VALUES (
           ${nftId}, ${walletAddress}, ${level}, ${levelConfig.level_name}, 
-          ${levelConfig.price_usdt}, ${level}, ${txHash}, NOW(), NOW(), 'active'
+          ${levelConfig.price_usdt}, ${level}, ${txHash}, NOW(), NOW(), 'ActiveMember'
         )
       `);
       
@@ -3910,7 +3910,7 @@ async function createLayerReward(rootWallet: string, triggerWallet: string, trig
   // Check if root has required level
   const rootLevelResult = await db.execute(sql`
     SELECT MAX(level) as max_level FROM membership_nfts_v2 
-    WHERE wallet_address = ${rootWallet} AND status = 'active'
+    WHERE wallet_address = ${rootWallet} AND status = 'ActiveMember'
   `);
   
   const rootLevel = rootLevelResult.rows[0];

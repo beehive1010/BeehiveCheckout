@@ -1,13 +1,25 @@
-// Specialized membership claim components
-export { WelcomeLevel1ClaimButton } from './WelcomeLevel1ClaimButton';
-export { Level2ClaimButtonV2 } from './Level2ClaimButtonV2';
-export { LevelUpgradeButton } from './LevelUpgradeButton';
-export { LevelUpgradeButtonGeneric } from './LevelUpgradeButtonGeneric';
-export { ActiveMembershipClaimButton } from './ActiveMembershipClaimButton';
+/**
+ * Membership Components - Unified Export
+ *
+ * New Architecture (Direct Claim):
+ * - ActiveMember/: Level 1 activation components
+ * - UpgradeLevel/: Level 2-19 upgrade components
+ * - core/: Shared claim logic
+ */
 
-// Multi-chain payment components (using Thirdweb PayModal)
-export { Level1ClaimButtonWithPayModal } from './Level1ClaimButtonWithPayModal';
+// ✅ Core functionality (Direct Claim)
+export { useNFTClaim } from './core/NFTClaimButton';
+export type { NFTClaimConfig } from './core/NFTClaimButton';
+
+// ✅ Level 1 Activation (ActiveMember folder)
+export { MembershipActivationButton } from './ActiveMember';
+
+// ✅ Level 2-19 Upgrade (UpgradeLevel folder)
+export { MembershipUpgradeButton } from './UpgradeLevel';
+
+// Multi-chain components (optional features)
 export { MultiChainNFTClaimButton } from './MultiChainNFTClaimButton';
 export { default as MultiChainMembershipClaim } from './MultiChainMembershipClaim';
 
+// UI components
 export { default as MembershipBadge } from './MembershipBadge';

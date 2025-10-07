@@ -246,7 +246,7 @@ export default function ReferralMatrixVisualization({
               L{member.level} • {member.downlineCount} refs
             </div>
             <div className={`text-xs ${member.isActive ? 'text-green-500' : 'text-orange-500'}`}>
-              {member.isActive ? t('membershipSystem.matrix.visualization.active') : t('membershipSystem.matrix.visualization.inactive')}
+              {member.isActive ? t('membershipSystem.matrix.visualization.ActiveMember') : t('membershipSystem.matrix.visualization.inactive')}
             </div>
           </div>
         )}

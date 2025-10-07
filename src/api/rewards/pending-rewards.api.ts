@@ -117,11 +117,11 @@ export const pendingRewardsApi = {
   },
 
   /**
-   * Get active timers for a specific wallet
+   * Get ActiveMember timers for a specific wallet
    */
   async getActiveTimers(walletAddress: string): Promise<RewardTimerStatus[]> {
     try {
-      console.log('🔍 Fetching active timers for wallet:', walletAddress);
+      console.log('🔍 Fetching ActiveMember timers for wallet:', walletAddress);
       
       const { data, error } = await supabase
         .from('reward_timers')
@@ -131,7 +131,7 @@ export const pendingRewardsApi = {
         .order('expires_at', { ascending: true });
       
       if (error) {
-        console.error('❌ Get active timers error:', error);
+        console.error('❌ Get ActiveMember timers error:', error);
         throw new Error(`Database error: ${error.message}`);
       }
       
@@ -139,7 +139,7 @@ export const pendingRewardsApi = {
       return data as RewardTimerStatus[] || [];
       
     } catch (error) {
-      console.error('❌ Get active timers API error:', error);
+      console.error('❌ Get ActiveMember timers API error:', error);
       return [];
     }
   },
@@ -151,7 +151,7 @@ export const pendingRewardsApi = {
     try {
       console.log('🔄 Cancelling timers for upgraded member:', walletAddress);
       
-      // Cancel active timers for rewards that should now be claimable
+      // Cancel ActiveMember timers for rewards that should now be claimable
       const { error } = await supabase
         .from('reward_timers')
         .update({ 

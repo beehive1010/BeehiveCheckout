@@ -248,8 +248,8 @@ export default function RewardSystemInfoCard({
               <div className="flex flex-col sm:flex-row items-center justify-between gap-2 md:gap-4">
                 <div className="flex items-center gap-2 text-xs md:text-sm text-muted-foreground">
                   <div className="w-1.5 h-1.5 md:w-2 md:h-2 rounded-full bg-honey animate-pulse" />
-                  <span className="hidden sm:inline">{t('rewards.systemActive') || 'Reward system active and processing'}</span>
-                  <span className="sm:hidden">{t('rewards.active') || 'Active'}</span>
+                  <span className="hidden sm:inline">{t('rewards.systemActive') || 'Reward system ActiveMember and processing'}</span>
+                  <span className="sm:hidden">{t('rewards.ActiveMember') || 'Active'}</span>
                 </div>
                 <div className="flex items-center gap-2 md:gap-3">
                   <Button variant="outline" size="sm" className="border-honey/30 text-honey hover:bg-honey/10">

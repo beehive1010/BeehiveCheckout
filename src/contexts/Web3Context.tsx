@@ -212,7 +212,7 @@ function Web3ContextProvider({ children }: { children: React.ReactNode }) {
             // Route based on membership status  
             if (isActiveMember) {
               console.log('✅ User is a member, redirecting to dashboard');
-              console.log(`🔗 Referral access: ${canAccessReferrals ? 'Enabled' : 'Blocked (pending active)'}`);
+              console.log(`🔗 Referral access: ${canAccessReferrals ? 'Enabled' : 'Blocked (pending ActiveMember)'}`);
               setLocation('/dashboard');
             } else {
               console.log('⏳ User authenticated but not a member, redirecting to welcome');
@@ -345,7 +345,7 @@ function Web3ContextProvider({ children }: { children: React.ReactNode }) {
         setIsConnected(false);
         setWalletAddress(null);
         sessionStorage.removeItem('wallet-address');
-        sessionStorage.removeItem('active-chain-id');
+        sessionStorage.removeItem('ActiveMember-chain-id');
         
         // Redirect to landing page if not already there and not on admin/public pages
         const publicPages = ['/', '/hiveworld', '/register', '/welcome'];
@@ -395,11 +395,11 @@ function Web3ContextProvider({ children }: { children: React.ReactNode }) {
 
         // Store wallet data
         const wasAddress = sessionStorage.getItem('wallet-address');
-        const wasChainId = sessionStorage.getItem('active-chain-id');
+        const wasChainId = sessionStorage.getItem('ActiveMember-chain-id');
 
         sessionStorage.setItem('wallet-address', account.address);
         if (activeChain?.id !== undefined && activeChain.id !== null) {
-          sessionStorage.setItem('active-chain-id', activeChain.id.toString());
+          sessionStorage.setItem('ActiveMember-chain-id', activeChain.id.toString());
         }
 
         // Only log if it's a new connection or chain switch
@@ -437,7 +437,7 @@ function Web3ContextProvider({ children }: { children: React.ReactNode }) {
             setWalletAddress(null);
             setReferrerWallet(null);
             sessionStorage.removeItem('wallet-address');
-            sessionStorage.removeItem('active-chain-id');
+            sessionStorage.removeItem('ActiveMember-chain-id');
 
             // Reset member status on wallet disconnect
             setIsMember(false);

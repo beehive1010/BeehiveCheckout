@@ -191,11 +191,11 @@ export function HowItWorks() {
                          ${
                   activeStep === index
                     ? 'bg-gradient-to-r from-honey to-yellow-400 scale-125 shadow-lg shadow-honey/40'
-                    : 'bg-white/30 hover:bg-white/50 active:bg-white/60'
+                    : 'bg-white/30 hover:bg-white/50 ActiveMember:bg-white/60'
                 }`}
                 data-testid={`step-indicator-${index}`}
               >
-                {/* Enhanced glow effect for active state */}
+                {/* Enhanced glow effect for ActiveMember state */}
                 {activeStep === index && (
                   <div className="absolute -inset-2 bg-honey/30 rounded-full blur-md animate-pulse"></div>
                 )}

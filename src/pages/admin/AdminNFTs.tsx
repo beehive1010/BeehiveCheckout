@@ -146,7 +146,7 @@ export default function AdminNFTs() {
         {
           id: 'nft-006',
           title: 'Community Builder Badge',
-          description: 'Recognition NFT for active community contributors',
+          description: 'Recognition NFT for ActiveMember community contributors',
           imageUrl: 'https://images.unsplash.com/photo-1620641788421-7a1c342ea42e?w=400',
           priceBCC: 300,
           active: true,

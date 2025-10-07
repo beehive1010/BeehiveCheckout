@@ -21,7 +21,7 @@ BEGIN
     -- Get total members count
     SELECT COUNT(*) INTO total_members_count FROM members WHERE current_level > 0;
     
-    -- For each active member, build their complete matrix
+    -- For each ActiveMember member, build their complete matrix
     FOR member_record IN 
         SELECT wallet_address, referrer_wallet, current_level 
         FROM members 

@@ -46,7 +46,7 @@ BEGIN
     
     -- Validate referrer (if provided)
     IF p_referrer_wallet IS NOT NULL THEN
-        -- Check if referrer exists and is an active member
+        -- Check if referrer exists and is an ActiveMember member
         IF NOT EXISTS (
             SELECT 1 FROM membership 
             WHERE wallet_address = p_referrer_wallet 

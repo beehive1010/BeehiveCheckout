@@ -78,7 +78,7 @@ async function getDashboardStats(supabaseClient: any) {
 
     if (usersError) throw usersError;
 
-    // Get active members using canonical view
+    // Get ActiveMember members using canonical view
     const { count: activeMembers, error: membersError } = await supabaseClient
       .from('v_member_overview')
       .select('*', { count: 'exact', head: true })
@@ -111,7 +111,7 @@ async function getDashboardStats(supabaseClient: any) {
 
     if (pendingError) throw pendingError;
 
-    // Get active timers
+    // Get ActiveMember timers
     const { count: activeTimers, error: timersError } = await supabaseClient
       .from('countdown_timers')
       .select('*', { count: 'exact', head: true })
@@ -128,7 +128,7 @@ async function getDashboardStats(supabaseClient: any) {
 
     if (newRegError) throw newRegError;
 
-    // Get daily active users (users who logged in today)
+    // Get daily ActiveMember users (users who logged in today)
     const { count: dailyActiveUsers, error: dauError } = await supabaseClient
       .from('users')
       .select('*', { count: 'exact', head: true })
@@ -331,7 +331,7 @@ async function getNFTAnalytics(supabaseClient: any) {
     // Get NFT metadata
     const { data: nftData, error: nftError } = await supabaseClient
       .from('merchant_nfts')
-      .select('id, title, price_bcc, active');
+      .select('id, title, price_bcc, ActiveMember');
 
     if (nftError) throw nftError;
 

@@ -70,8 +70,8 @@ SELECT
     END as pending_status,
     
     CASE 
-        WHEN rs.active_countdowns > 0 THEN rs.active_countdowns || ' active (expires: ' || rs.next_countdown_expires::date || ')'
-        ELSE '0 active'
+        WHEN rs.active_countdowns > 0 THEN rs.active_countdowns || ' ActiveMember (expires: ' || rs.next_countdown_expires::date || ')'
+        ELSE '0 ActiveMember'
     END as countdown_status,
     
     rs.status_summary,

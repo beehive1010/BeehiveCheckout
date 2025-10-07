@@ -1126,7 +1126,7 @@ export class DatabaseStorage implements IStorage {
   }
 
   async createAdvertisementNFTClaim(claim: InsertAdvertisementNFTClaim): Promise<AdvertisementNFTClaim> {
-    // Generate unique active code
+    // Generate unique ActiveMember code
     const activeCode = `${claim.nftId.slice(0, 8)}-${Date.now().toString(36).toUpperCase()}-${Math.random().toString(36).substr(2, 6).toUpperCase()}`;
     
     const [newClaim] = await db
@@ -2163,12 +2163,12 @@ export class DatabaseStorage implements IStorage {
     const membership = await this.getMembershipState(walletAddress);
     if (!membership) return;
 
-    // Update user's current level to match membership active level
+    // Update user's current level to match membership ActiveMember level
     await this.updateUser(walletAddress, {
       currentLevel: membership.activeLevel
     });
 
-    // Recalculate referral layers if user has an active level
+    // Recalculate referral layers if user has an ActiveMember level
     if (membership.activeLevel > 0) {
       await this.calculateAndStore19Layers(walletAddress);
     }

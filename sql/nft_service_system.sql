@@ -12,7 +12,7 @@ CREATE TABLE IF NOT EXISTS public.nft_service_activations (
   nft_type text NOT NULL CHECK (nft_type IN ('advertisement', 'merchant')),
   service_code character varying UNIQUE,
   activation_form_data jsonb DEFAULT '{}'::jsonb,
-  status text NOT NULL DEFAULT 'pending' CHECK (status IN ('pending', 'active', 'in_progress', 'completed', 'cancelled')),
+  status text NOT NULL DEFAULT 'pending' CHECK (status IN ('pending', 'ActiveMember', 'in_progress', 'completed', 'cancelled')),
   admin_notes text,
   service_start_date timestamp with time zone,
   service_end_date timestamp with time zone,

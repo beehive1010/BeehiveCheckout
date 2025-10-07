@@ -58,8 +58,8 @@ FROM individual_matrix_placements imp
 LEFT JOIN members owner_m ON imp.matrix_owner = owner_m.wallet_address
 LEFT JOIN members member_m ON imp.member_wallet = member_m.wallet_address
 WHERE imp.is_active = true
-  AND owner_m.current_level > 0  -- Only matrix owners who are active members
-  AND member_m.current_level > 0  -- Only reward for active members
+  AND owner_m.current_level > 0  -- Only matrix owners who are ActiveMember members
+  AND member_m.current_level > 0  -- Only reward for ActiveMember members
 ORDER BY imp.matrix_owner, imp.layer_in_owner_matrix, imp.position_in_layer;
 
 -- Step 4: Verification and reporting

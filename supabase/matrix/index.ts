@@ -106,7 +106,7 @@ async function handleGetMatrix(supabase, walletAddress, data) {
       ascending: true
     });
     if (summaryError) throw summaryError;
-    // Calculate total team size and active members
+    // Calculate total team size and ActiveMember members
     const totalMembers = matrixData?.length || 0;
     const activeMembers = matrixData?.filter((m)=>m.member_data?.[0]?.is_activated)?.length || 0;
     const response = {

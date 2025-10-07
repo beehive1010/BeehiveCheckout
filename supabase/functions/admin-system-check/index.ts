@@ -362,7 +362,7 @@ async function checkRewardSystem(supabase: any): Promise<SystemCheckResult> {
 
 async function checkRewardTimers(supabase: any): Promise<SystemCheckResult> {
   try {
-    // Check for active reward timers
+    // Check for ActiveMember reward timers
     const { data: activeTimers, error: timerError } = await supabase
       .from('reward_timers')
       .select('*')

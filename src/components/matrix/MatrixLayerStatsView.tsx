@@ -84,7 +84,7 @@ const MatrixLayerStatsView: React.FC<MatrixLayerStatsViewProps> = ({
         else if (position === 'M' || position?.endsWith('.M')) layerCounts[layer].M++;
         else if (position === 'R' || position?.endsWith('.R')) layerCounts[layer].R++;
 
-        // Count active members (assume all are active since they're in the matrix)
+        // Count ActiveMember members (assume all are ActiveMember since they're in the matrix)
         layerCounts[layer].active++;
       });
 
@@ -240,7 +240,7 @@ const MatrixLayerStatsView: React.FC<MatrixLayerStatsViewProps> = ({
       <div className="flex justify-between items-center text-xs mb-2">
         <div className="flex items-center gap-1">
           <Users className="w-3 h-3" />
-          <span>{t('membershipSystem.matrix.stats.layerStats.active', { count: stat.activeMembers })}</span>
+          <span>{t('membershipSystem.matrix.stats.layerStats.ActiveMember', { count: stat.activeMembers })}</span>
         </div>
         <div className="flex items-center gap-1">
           <Target className="w-3 h-3" />

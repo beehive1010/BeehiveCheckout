@@ -183,7 +183,7 @@ ORDER BY imp.matrix_owner, imp.layer_in_owner_matrix;
 \echo '✅ Final Validation:'
 
 SELECT 
-    'Total active placements: ' || COUNT(*) as summary
+    'Total ActiveMember placements: ' || COUNT(*) as summary
 FROM individual_matrix_placements 
 WHERE is_active = true
 UNION ALL

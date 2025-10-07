@@ -138,7 +138,7 @@ BEGIN
         p_wallet_address,
         'earnings_info',
         '💰 Start Earning Rewards',
-        'Your matrix is now active! You can earn $100 for each member that joins your Layer 1 positions (L-M-R). Invite friends to maximize your earnings!',
+        'Your matrix is now ActiveMember! You can earn $100 for each member that joins your Layer 1 positions (L-M-R). Invite friends to maximize your earnings!',
         json_build_object(
             'reward_per_member', 100,
             'max_layer1_positions', 3,

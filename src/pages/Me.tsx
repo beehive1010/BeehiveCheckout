@@ -483,7 +483,7 @@ export default function Me() {
                     <div className="bg-green-500/5 rounded-lg p-4 border border-green-500/20">
                       <div className="flex items-center justify-between mb-2">
                         <h4 className="font-medium text-green-400">{t('me.tokens.transferable')}</h4>
-                        <Badge className="bg-green-500 text-white">{t('me.tokens.active')}</Badge>
+                        <Badge className="bg-green-500 text-white">{t('me.tokens.ActiveMember')}</Badge>
                       </div>
                       <div className="text-3xl font-bold text-green-400 mb-2">
                         {balanceBreakdown.bcc.transferable}

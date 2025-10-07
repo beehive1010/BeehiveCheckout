@@ -289,7 +289,7 @@ export const authService = {
 
 // === NFT LEVELS & PRICING ===
 export const nftService = {
-  // Get all active NFT levels
+  // Get all ActiveMember NFT levels
   async getNFTLevels() {
     return supabase
       .from('nft_levels')

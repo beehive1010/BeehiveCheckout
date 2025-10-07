@@ -18,7 +18,7 @@ DECLARE
     max_layer_found INTEGER := 0;
     records_for_member INTEGER;
 BEGIN
-    -- Get all active members count
+    -- Get all ActiveMember members count
     SELECT COUNT(*) INTO total_members_count FROM members WHERE current_level > 0;
     RAISE NOTICE 'Starting matrix generation for % members', total_members_count;
     

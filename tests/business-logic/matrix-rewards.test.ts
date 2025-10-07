@@ -59,7 +59,7 @@ describe('Matrix and Rewards Business Logic', () => {
       expect(referrals).toHaveLength(3);
     });
 
-    it('should enforce Level 2 requirement of 3 active direct referrals', async () => {
+    it('should enforce Level 2 requirement of 3 ActiveMember direct referrals', async () => {
       // Create referrals but don't activate them
       await supabase.from('referrals').insert([
         { referrer_wallet: testUsers[0].wallet_address, referred_wallet: testUsers[1].wallet_address },
@@ -79,7 +79,7 @@ describe('Matrix and Rewards Business Logic', () => {
         .update({ is_activated: true, current_level: 1 })
         .in('wallet_address', [testUsers[1].wallet_address, testUsers[2].wallet_address]);
 
-      // Still should fail with only 2 active referrals
+      // Still should fail with only 2 ActiveMember referrals
       const { data: stillNotEligible } = await supabase.rpc('check_level_2_eligibility', {
         p_wallet_address: testUsers[0].wallet_address
       });

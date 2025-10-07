@@ -51,7 +51,7 @@ BEGIN
             WHERE wallet_address = p_referrer_wallet 
             AND current_level > 0
         ) THEN
-            RETURN jsonb_build_object('success', false, 'error', 'Referrer is not an active member');
+            RETURN jsonb_build_object('success', false, 'error', 'Referrer is not an ActiveMember member');
         END IF;
         
         -- 获取推荐人用户名

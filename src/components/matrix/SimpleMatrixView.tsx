@@ -124,7 +124,7 @@ const SimpleMatrixView: React.FC<SimpleMatrixViewProps> = ({ walletAddress, root
               walletAddress: node.member_wallet,
               username: userData?.username || `User${node.member_wallet.slice(-4)}`,
               level: memberDetail?.current_level || 1,
-              isActive: true, // All in matrix are active
+              isActive: true, // All in matrix are ActiveMember
               layer: layer,
               position: position,
               isDirect: node.is_direct_referral || false,

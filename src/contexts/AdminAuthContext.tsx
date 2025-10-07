@@ -45,7 +45,7 @@ const AdminAuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }
             // Not an admin user or inactive - just reset admin state, don't sign out regular users
             setIsAdminAuthenticated(false);
             setAdminUser(null);
-            console.log('🔍 User is not an admin, but keeping regular user session active');
+            console.log('🔍 User is not an admin, but keeping regular user session ActiveMember');
           }
         }
       } catch (error) {

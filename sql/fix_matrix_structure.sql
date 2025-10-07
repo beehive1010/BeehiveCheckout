@@ -237,7 +237,7 @@ SELECT
     -- 状态
     CASE
         WHEN COUNT(*) = POWER(3, matrix_layer) THEN 'completed'
-        WHEN COUNT(*) > 0 THEN 'active'
+        WHEN COUNT(*) > 0 THEN 'ActiveMember'
         ELSE 'empty'
     END as layer_status
 

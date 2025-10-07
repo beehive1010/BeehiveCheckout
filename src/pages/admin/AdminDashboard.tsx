@@ -87,7 +87,7 @@ export default function AdminDashboard() {
             'Authorization': `Bearer ${supabaseKey}`,
           },
         }),
-        // Get active members count  
+        // Get ActiveMember members count
         fetch(`${supabaseUrl}/rest/v1/members?select=wallet_address&current_level=gt.0&count=exact&head=true`, {
           headers: {
             'apikey': supabaseKey,
@@ -365,7 +365,7 @@ export default function AdminDashboard() {
         </div>
       </div>
 
-      {/* Content Section based on active tab */}
+      {/* Content Section based on ActiveMember tab */}
       {activeSection === 'overview' && (
         <>
           {/* Quick Stats */}

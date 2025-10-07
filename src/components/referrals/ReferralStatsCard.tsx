@@ -174,7 +174,7 @@ export default function ReferralStatsCard({ className, onViewMatrix }: ReferralS
             position: member.matrix_position,
             placement_type: member.referral_type === 'direct' ? 'direct' : 'spillover',
             placed_at: member.placed_at,
-            is_active: true, // Assume active if in tree
+            is_active: true, // Assume ActiveMember if in tree
             member_level: 1 // Default level
           };
         }));
@@ -383,7 +383,7 @@ export default function ReferralStatsCard({ className, onViewMatrix }: ReferralS
                     variant={referral.is_active ? 'default' : 'outline'}
                     className={referral.is_active ? 'bg-green-600 text-white' : ''}
                   >
-                    {referral.is_active ? t('common.active') : t('common.pending')}
+                    {referral.is_active ? t('common.ActiveMember') : t('common.pending')}
                   </Badge>
                 </div>
               ))}

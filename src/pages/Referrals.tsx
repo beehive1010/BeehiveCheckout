@@ -23,11 +23,11 @@ export default function Referrals() {
   const { toast } = useToast();
   const activeAccount = useActiveAccount();
 
-  // Use ThirdWeb active account address directly if available
+  // Use ThirdWeb ActiveMember account address directly if available
   const activeWalletAddress = activeAccount?.address || walletAddress;
   
   console.log('🔍 Referrals page - useWallet address:', walletAddress);
-  console.log('🔍 Referrals page - ThirdWeb active account:', activeAccount?.address);
+  console.log('🔍 Referrals page - ThirdWeb ActiveMember account:', activeAccount?.address);
   console.log('🔍 Referrals page - Final wallet address used:', activeWalletAddress);
 
   const referralLink = `${window.location.origin}/welcome?ref=${activeWalletAddress}`;
@@ -158,7 +158,7 @@ export default function Referrals() {
                           variant={referral.activated ? 'default' : 'secondary'} 
                           className="text-xs px-2 py-1 flex-shrink-0"
                         >
-                          {referral.activated ? t('common.active') : t('common.pending')}
+                          {referral.activated ? t('common.ActiveMember') : t('common.pending')}
                         </Badge>
                       </div>
                     ))}

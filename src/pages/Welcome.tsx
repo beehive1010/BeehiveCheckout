@@ -1,5 +1,5 @@
 import React, {useEffect, useState} from 'react';
-import {WelcomeLevel1ClaimButton} from '../components/membership/WelcomeLevel1ClaimButton';
+import {MembershipActivationButton} from '../components/membership';
 import {useLocation} from 'wouter';
 import {referralService} from '../api/landing/referral.client';
 import {authService} from '../lib/supabase';
@@ -293,9 +293,9 @@ export default function Welcome() {
         </div>
         
         <div className="max-w-2xl mx-auto">
-          <WelcomeLevel1ClaimButton
-            onSuccess={handleActivationComplete}
+          <MembershipActivationButton
             referrerWallet={referrerWallet}
+            onSuccess={handleActivationComplete}
             className="w-full"
           />
         </div>

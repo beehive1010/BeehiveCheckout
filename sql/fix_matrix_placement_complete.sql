@@ -30,7 +30,7 @@ DECLARE
     next_available_slot RECORD;
     placement_counter INTEGER := 0;
 BEGIN
-    -- Get all active members ordered by activation rank
+    -- Get all ActiveMember members ordered by activation rank
     FOR root_member IN 
         SELECT wallet_address, activation_rank, created_at
         FROM members 

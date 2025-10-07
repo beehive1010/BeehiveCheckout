@@ -138,7 +138,7 @@ const mockNotifications: Notification[] = [
     type: 'matrix_full',
     priority: 'medium',
     title: 'Matrix Layer Filled',
-    message: 'Your Layer 1 matrix is now completely filled with active members.',
+    message: 'Your Layer 1 matrix is now completely filled with ActiveMember members.',
     is_read: false,
     created_at: '2024-09-03T12:15:00Z',
     action_url: '/matrix',

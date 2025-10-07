@@ -474,7 +474,7 @@ export const advertisementNFTs = pgTable("advertisement_nfts", {
   serviceType: text("service_type").notNull(), // 'dapp', 'banner', 'promotion'
   websiteUrl: text("website_url"), // URL to the advertised service/website
   priceBCC: integer("price_bcc").notNull(),
-  codeTemplate: text("code_template").notNull(), // Template for generating active codes
+  codeTemplate: text("code_template").notNull(), // Template for generating ActiveMember codes
   active: boolean("active").default(true).notNull(),
   totalSupply: integer("total_supply").default(1000).notNull(),
   claimedCount: integer("claimed_count").default(0).notNull(),
@@ -835,7 +835,7 @@ export const adminUsers = pgTable("admin_users", {
   passwordHash: text("password_hash").notNull(),
   role: text("role").notNull().default("viewer"), // super_admin, ops_admin, creator_admin, viewer
   permissions: text("permissions").array().default([]),
-  status: text("status").notNull().default("active"), // active, inactive, suspended
+  status: text("status").notNull().default("active"), // ActiveMember, inactive, suspended
   fullName: text("full_name"),
   notes: text("notes"),
   createdBy: text("created_by"),
@@ -902,7 +902,7 @@ export const adSlots = pgTable("ad_slots", {
   linkUrl: text("link_url").notNull(),
   startDate: timestamp("start_date").notNull(),
   endDate: timestamp("end_date").notNull(),
-  status: text("status").notNull().default("draft"), // draft, scheduled, active, expired, paused
+  status: text("status").notNull().default("draft"), // draft, scheduled, ActiveMember, expired, paused
   position: text("position").notNull().default("top"), // top, sidebar, bottom
   priority: integer("priority").default(0).notNull(),
   createdBy: varchar("created_by")
@@ -924,7 +924,7 @@ export const partnerChains = pgTable("partner_chains", {
   rpcUrl: text("rpc_url"),
   chainId: integer("chain_id").unique(),
   nativeCurrency: text("native_currency").notNull(),
-  status: text("status").notNull().default("active"), // active, inactive, maintenance
+  status: text("status").notNull().default("active"), // ActiveMember, inactive, maintenance
   featured: boolean("featured").default(false).notNull(),
   displayOrder: integer("display_order").default(0).notNull(),
   createdAt: timestamp("created_at").defaultNow().notNull(),
@@ -1288,7 +1288,7 @@ export const membershipNFTsV2 = pgTable("membership_nfts_v2", {
   txHash: text("tx_hash"), // Purchase transaction hash
   purchasedAt: timestamp("purchased_at").defaultNow().notNull(),
   activatedAt: timestamp("activated_at"), // When member was activated into matrix
-  status: text("status").default("active").notNull(), // active, pending, expired
+  status: text("status").default("active").notNull(), // ActiveMember, pending, expired
 });
 
 // V2: Matrix Tree Structure - Each member's 19-layer downline tree

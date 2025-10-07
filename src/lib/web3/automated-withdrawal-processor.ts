@@ -337,14 +337,14 @@ class AutomatedWithdrawalProcessor {
   }
 
   /**
-   * Get all active processings
+   * Get all ActiveMember processings
    */
   getActiveProcessings(): WithdrawalProcessingStatus[] {
     return Array.from(this.activeProcessings.values());
   }
 
   /**
-   * Cancel an active withdrawal processing
+   * Cancel an ActiveMember withdrawal processing
    */
   async cancelProcessing(withdrawalId: string): Promise<boolean> {
     const status = this.activeProcessings.get(withdrawalId);

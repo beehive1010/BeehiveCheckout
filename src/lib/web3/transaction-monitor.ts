@@ -452,7 +452,7 @@ class TransactionMonitor {
   }
 
   /**
-   * Stop all active monitoring
+   * Stop all ActiveMember monitoring
    */
   stopAllMonitoring(): void {
     this.activeMonitors.forEach((interval, monitorId) => {

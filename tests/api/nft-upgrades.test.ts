@@ -21,7 +21,7 @@ describe('NFT Upgrades API', () => {
   });
 
   describe('GET /nft-upgrades (get-level-info)', () => {
-    it('should return all active NFT levels', async () => {
+    it('should return all ActiveMember NFT levels', async () => {
       const response = await fetch(`${supabaseUrl}/functions/v1/nft-upgrades?action=get-level-info`, {
         headers: {
           'Authorization': `Bearer ${supabaseKey}`,
@@ -103,7 +103,7 @@ describe('NFT Upgrades API', () => {
       expect(response.status).toBe(200);
       expect(data.success).toBe(true);
       expect(data.eligible).toBe(false);
-      expect(data.restrictions.some((r: string) => r.includes('3 active direct referrals'))).toBe(true);
+      expect(data.restrictions.some((r: string) => r.includes('3 ActiveMember direct referrals'))).toBe(true);
     });
   });
 
@@ -223,7 +223,7 @@ describe('NFT Upgrades API', () => {
     });
 
     it('should allow Level 2 upgrade with sufficient referrals', async () => {
-      // Set up user with Level 1 and 3 active referrals
+      // Set up user with Level 1 and 3 ActiveMember referrals
       await setupMemberWithLevel(1);
       await setupActiveReferrals(3);
 

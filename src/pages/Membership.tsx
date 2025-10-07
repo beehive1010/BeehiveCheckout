@@ -9,8 +9,7 @@ import {Badge} from '../components/ui/badge';
 import {useToast} from '../hooks/use-toast';
 import {ArrowRight, Award, CheckCircle, Crown, Gift, Loader2, Lock, Shield, Star, Users, Zap} from 'lucide-react';
 import MembershipBadge from '../components/membership/MembershipBadge';
-import {LevelUpgradeButtonGeneric} from '../components/membership/LevelUpgradeButtonGeneric';
-import {Level2ClaimButtonV2} from '../components/membership/Level2ClaimButtonV2';
+import {MembershipUpgradeButton} from '../components/membership';
 
 interface MembershipLevel {
   level: number;
@@ -31,8 +30,6 @@ export default function Membership() {
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const [userReferrer, setUserReferrer] = useState<string>('');
-  const [hasLevel2NFT, setHasLevel2NFT] = useState<boolean>(false);
-  const [hasLevel3NFT, setHasLevel3NFT] = useState<boolean>(false);
 
   // Fetch user's referrer from members table
   useEffect(() => {
@@ -58,169 +55,7 @@ export default function Membership() {
     fetchUserReferrer();
   }, [walletAddress]);
 
-  // Check if user has Level 2 and Level 3 NFTs directly from blockchain
-  useEffect(() => {
-    const checkNFTOwnership = async () => {
-      if (!walletAddress) {
-        setHasLevel2NFT(false);
-        setHasLevel3NFT(false);
-        return;
-      }
-      
-      try {
-        const { createThirdwebClient, getContract } = await import('thirdweb');
-        const { balanceOf } = await import('thirdweb/extensions/erc1155');
-        const { arbitrum } = await import('thirdweb/chains');
-        
-        const client = createThirdwebClient({
-          clientId: import.meta.env.VITE_THIRDWEB_CLIENT_ID
-        });
-        
-        const nftContract = getContract({
-          client,
-          address: '0xe57332db0B8d7e6aF8a260a4fEcfA53104728693',
-          chain: arbitrum
-        });
-        
-        // Check NFTs for levels 1-19 (batch query for efficiency)
-        const nftChecks = [];
-        for (let level = 1; level <= 19; level++) {
-          nftChecks.push(
-            balanceOf({
-              contract: nftContract,
-              owner: walletAddress,
-              tokenId: BigInt(level)
-            })
-          );
-        }
-        
-        const nftBalances = await Promise.all(nftChecks);
-        const ownedLevels = nftBalances
-          .map((balance, index) => ({ level: index + 1, balance: Number(balance) }))
-          .filter(item => item.balance > 0)
-          .map(item => item.level);
-        
-        const hasLevel2 = ownedLevels.includes(2);
-        const hasLevel3 = ownedLevels.includes(3);
-        
-        setHasLevel2NFT(hasLevel2);
-        setHasLevel3NFT(hasLevel3);
-        
-        // Also set the state variables used in calculation (ensure consistency)
-        const hasLevel2NFT = hasLevel2;
-        const hasLevel3NFT = hasLevel3;
-        
-        console.log(`📊 Owned NFT Levels:`, ownedLevels);
-        console.log(`📊 Level 2 NFT: ${hasLevel2 ? 'OWNS' : 'DOES NOT OWN'}`);
-        console.log(`📊 Level 3 NFT: ${hasLevel3 ? 'OWNS' : 'DOES NOT OWN'}`);
-        console.log(`📊 Current Database Level: ${currentLevel}`);
-        
-        // Determine next claimable level
-        const maxOwnedLevel = ownedLevels.length > 0 ? Math.max(...ownedLevels) : 0;
-        const nextClaimableLevel = Math.max(currentLevel + 1, maxOwnedLevel + 1);
-        console.log(`📊 Max Owned NFT Level: ${maxOwnedLevel}, Next Claimable: ${nextClaimableLevel}`);
-        
-        if (hasLevel3) {
-          console.log(`✅ User eligible for Level 4+ claims`);
-        }
-        
-        // Debug target level calculation
-        const calculatedTargetLevel = hasLevel2NFT && currentLevel === 1 ? 3 : 
-                                      hasLevel3NFT && currentLevel === 3 ? 4 : 
-                                      currentLevel + 1;
-        console.log(`🔧 TARGET LEVEL CALCULATION:`, {
-          hasLevel2NFT,
-          hasLevel3NFT,
-          currentLevel,
-          'hasLevel2NFT && currentLevel === 1': hasLevel2NFT && currentLevel === 1,
-          'hasLevel3NFT && currentLevel === 3': hasLevel3NFT && currentLevel === 3,
-          calculatedTargetLevel,
-          'fallback currentLevel + 1': currentLevel + 1,
-          maxOwnedLevel,
-          'currentLevel vs maxOwned mismatch': currentLevel < maxOwnedLevel
-        });
-        
-        // Alert if there's a level sync issue
-        if (currentLevel < maxOwnedLevel) {
-          console.warn(`⚠️ LEVEL SYNC ISSUE: DB level ${currentLevel} < Max NFT level ${maxOwnedLevel}`);
-          console.log(`🔄 Consider refreshing page or syncing levels manually`);
-          
-          // Show sync notification to user
-          toast({
-            title: '🔄 数据同步中',
-            description: `检测到您拥有 Level ${maxOwnedLevel} NFT，正在同步会员等级数据...`,
-            duration: 5000
-          });
-          
-          // Automatically trigger data synchronization
-          setTimeout(() => {
-            triggerDataSynchronization(walletAddress, maxOwnedLevel);
-          }, 1000);
-        }
-      } catch (error) {
-        console.warn('⚠️ Failed to check NFT ownership:', error);
-        setHasLevel2NFT(false);
-        setHasLevel3NFT(false);
-      }
-    };
-
-    checkNFTOwnership();
-  }, [walletAddress, currentLevel]); // Re-check when currentLevel changes
-
-  // Function to trigger automatic data synchronization
-  const triggerDataSynchronization = async (walletAddress: string, maxOwnedLevel: number) => {
-    try {
-      console.log(`🔄 Triggering data synchronization for ${walletAddress}, max NFT level: ${maxOwnedLevel}`);
-      
-      // Call our NFT claim validator function via Supabase Edge Function
-      const response = await fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/nft-claim-validator`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${import.meta.env.VITE_SUPABASE_ANON_KEY}`,
-          'apikey': import.meta.env.VITE_SUPABASE_ANON_KEY
-        },
-        body: JSON.stringify({
-          wallet_address: walletAddress,
-          force_sync: true
-        })
-      });
-
-      if (response.ok) {
-        const result = await response.json();
-        console.log('✅ Data synchronization completed:', result);
-        
-        // Refresh all relevant queries after sync
-        setTimeout(() => {
-          queryClient.invalidateQueries({ queryKey: ['user-status', walletAddress] });
-          queryClient.invalidateQueries({ queryKey: ['/direct-referrals', walletAddress] });
-          queryClient.invalidateQueries({ queryKey: ['/next-unlock-level', walletAddress] });
-        }, 1500);
-        
-        toast({
-          title: '✅ 数据同步完成',
-          description: '会员等级已成功同步到最新状态',
-          duration: 3000
-        });
-      } else {
-        console.error('❌ Data synchronization failed:', await response.text());
-        toast({
-          title: '⚠️ 同步失败',
-          description: '请手动刷新页面或联系客服',
-          variant: 'destructive',
-          duration: 5000
-        });
-      }
-    } catch (error) {
-      console.error('❌ Data synchronization error:', error);
-      toast({
-        title: '⚠️ 同步错误',
-        description: '网络连接问题，请稍后重试',
-        variant: 'destructive',
-        duration: 5000
-      });
-    }
-  };
+  // MembershipUpgradeButton now handles NFT ownership checks internally
 
   // Fetch user's direct referrals count for Level 2 condition (from referrals table)
   const { data: directReferralsCount } = useQuery({
@@ -530,7 +365,7 @@ export default function Membership() {
           
           <div className="max-w-4xl mx-auto" data-testid="quick-upgrade-section">
 
-            {/* Dynamic component selection for membership upgrades only */}
+            {/* Unified upgrade component for all levels */}
             {currentLevel === 0 ? (
               <div className="text-center p-8 text-muted-foreground">
                 <p>{t('membership.needsActivation') || 'Please activate your Level 1 membership on the Welcome page first.'}</p>
@@ -538,17 +373,20 @@ export default function Membership() {
                   {t('membership.goToWelcome') || 'Go to Welcome Page →'}
                 </a>
               </div>
-            ) : currentLevel === 1 && (directReferralsCount || 0) >= 3 && !hasLevel2NFT ? (
-              <Level2ClaimButtonV2 
+            ) : currentLevel >= 1 && currentLevel < 19 ? (
+              <MembershipUpgradeButton
+                targetLevel={currentLevel + 1}
+                currentLevel={currentLevel}
+                directReferralsCount={directReferralsCount || 0}
                 onSuccess={() => {
                   toast({
-                    title: t('membership.upgradeSuccess') || 'Level 2 Upgrade Successful!',
-                    description: t('membership.upgradeSuccessDescription') || 'Your Level 2 membership has been activated successfully',
+                    title: t('membership.upgradeSuccess') || 'Upgrade Successful!',
+                    description: t('membership.upgradeSuccessDescription') || `Your Level ${currentLevel + 1} membership has been activated successfully`,
                     duration: 5000
                   });
-                  // Refresh user data and referrals count after successful upgrade
-                  console.log(`✅ Level 2 claim successful - refreshing user data`);
-                  // Add a small delay to ensure database updates have been processed
+
+                  console.log(`✅ Level ${currentLevel + 1} claim successful - refreshing user data`);
+                  // Refresh data after successful upgrade
                   setTimeout(() => {
                     queryClient.invalidateQueries({ queryKey: ['user-status', walletAddress] });
                     queryClient.invalidateQueries({ queryKey: ['/direct-referrals', walletAddress] });
@@ -556,64 +394,11 @@ export default function Membership() {
                     // Force a complete refetch
                     queryClient.refetchQueries({ queryKey: ['user-status', walletAddress] });
                   }, 2000);
-                  
-                  // Also try immediate refresh to catch quick database updates
+
+                  // Also try immediate refresh
                   queryClient.invalidateQueries({ queryKey: ['user-status', walletAddress] });
-                  queryClient.invalidateQueries({ queryKey: ['/next-unlock-level', walletAddress] });
                 }}
-              />
-            ) : currentLevel === 1 && hasLevel2NFT ? (
-              <div className="text-center p-8 bg-gradient-to-br from-blue-500/10 to-blue-500/5 rounded-lg border border-blue-500/20">
-                <p className="mb-2 text-blue-400 font-semibold">{t('membership.nftDetected')}</p>
-                <p className="text-sm text-muted-foreground mb-4">
-                  {t('membership.syncingData')}
-                </p>
-                <button 
-                  onClick={() => window.location.reload()} 
-                  className="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors"
-                >
-                  {t('membership.refreshNow')}
-                </button>
-              </div>
-            ) : currentLevel === 1 && (directReferralsCount || 0) < 3 ? (
-              <div className="text-center p-8 text-muted-foreground">
-                <p className="mb-2">{t('membership.level2RequiresReferrals') || 'Level 2 requires 3+ direct referrals'}</p>
-                <p className="text-sm">
-                  {t('membership.currentReferrals', { count: directReferralsCount || 0 }) || `Current referrals: ${directReferralsCount || 0}`}
-                </p>
-              </div>
-            ) : (currentLevel && currentLevel >= 2 && currentLevel < 19) || (currentLevel === 1 && hasLevel2NFT) ? (
-              <LevelUpgradeButtonGeneric 
-                targetLevel={
-                  // Fix: If user has Level 2 NFT but DB shows Level 1, show Level 2 upgrade first
-                  hasLevel2NFT && currentLevel === 1 ? 2 : 
-                  // If user has Level 3 NFT but DB shows Level 2, show Level 3 upgrade
-                  hasLevel3NFT && currentLevel === 2 ? 3 :
-                  // For normal sequential upgrades
-                  currentLevel + 1
-                }
-                currentLevel={currentLevel}
-                directReferralsCount={directReferralsCount || 0}
-                onSuccess={() => {
-                  const nextLevel = hasLevel2NFT && currentLevel === 1 ? 2 : 
-                                  hasLevel3NFT && currentLevel === 2 ? 3 : 
-                                  currentLevel + 1;
-                  
-                  toast({
-                    title: t('membership.upgradeSuccess') || 'Upgrade Successful!',
-                    description: t('membership.upgradeSuccessDescription') || 'Your membership has been upgraded successfully',
-                    duration: 5000
-                  });
-                  
-                  console.log(`✅ Level ${nextLevel} claim successful - refreshing user data`);
-                  // Trigger data synchronization check
-                  setTimeout(() => {
-                    queryClient.invalidateQueries({ queryKey: ['user-status', walletAddress] });
-                    queryClient.invalidateQueries({ queryKey: ['/direct-referrals', walletAddress] });
-                    // Force refresh NFT ownership check
-                    window.location.reload();
-                  }, 2000);
-                }}
+                className="w-full"
               />
             ) : (
               <div className="text-center p-8 text-muted-foreground">

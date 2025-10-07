@@ -12,7 +12,7 @@ SELECT
     -- Count downline members in their individual matrix
     COALESCE(downline_counts.total_downline_members, 0) as total_downline_members,
     
-    -- Count of active layers with members
+    -- Count of ActiveMember layers with members
     COALESCE(downline_counts.active_layers, 0) as active_layers,
     
     -- Deepest layer with members
