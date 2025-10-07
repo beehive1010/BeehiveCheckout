@@ -3413,7 +3413,7 @@
     "refreshStatus": "刷新状态",
     "statusActivated": "✅ 已激活 (等级 {level})",
     "statusNotActivated": "⏳ 未激活",
-    "refreshHint": "💡 如果您已领取 NFT，请尝试点击上方的"刷新状态"",
+    "refreshHint": "💡 如果您已领取 NFT，请尝试点击上方的\"刷新状态\"",
     "subtitle": "Activate your 等级 1 membership by claiming your ERC-5115 NFT",
     "success": {
       "description": "Your 等级 1 membership has been activated. Welcome to Beehive!",
