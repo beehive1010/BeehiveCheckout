@@ -239,20 +239,19 @@ export function MembershipActivationButton({
       });
 
       if (Number(balance) > 0) {
-        console.log('✅ User already owns Level 1 NFT - redirecting to dashboard');
+        console.log('✅ User already owns Level 1 NFT - redirecting to dashboard immediately');
         setHasNFT(true);
         setIsEligible(false);
 
-        // Redirect to dashboard after short delay
+        // Redirect to dashboard immediately
         toast({
           title: t('membership.activation.alreadyActivated'),
           description: t('membership.activation.redirectingToDashboard'),
-          duration: 2000,
+          duration: 1000,
         });
 
-        setTimeout(() => {
-          window.location.href = '/dashboard';
-        }, 2000);
+        // Immediate redirect without delay
+        window.location.href = '/dashboard';
 
         return;
       }
