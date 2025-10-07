@@ -350,7 +350,7 @@ export const orderService = {
     return supabase
       .from('bcc_purchase_orders')
       .select('*')
-      .ilike('wallet_address', walletAddress)
+      .eq('wallet_address', walletAddress.toLowerCase())
       .order('created_at', { ascending: false })
       .limit(limit);
   },
@@ -404,7 +404,7 @@ export const memberService = {
         ...updates,
         updated_at: new Date().toISOString(),
       })
-      .ilike('wallet_address', walletAddress)
+      .eq('wallet_address', walletAddress.toLowerCase())
       .select()
       .single();
   },
@@ -1228,7 +1228,7 @@ export const balanceService = {
       const { data: balanceData, error: balanceError } = await supabase
         .from('user_balances')
         .select('*')
-        .ilike('wallet_address', walletAddress)
+        .eq('wallet_address', walletAddress.toLowerCase())
         .single();
 
       if (balanceError && balanceError.code !== 'PGRST116') {
@@ -1353,7 +1353,7 @@ export const activationService = {
       const { data: memberData } = await supabase
         .from('members')
         .select('is_activated, current_level')
-        .ilike('wallet_address', walletAddress)
+        .eq('wallet_address', walletAddress.toLowerCase())
         .single();
 
       if (memberData?.is_activated) {
@@ -1447,7 +1447,7 @@ export const transactionService = {
           network,
           metadata
         `)
-        .ilike('wallet_address', walletAddress)
+        .eq('wallet_address', walletAddress.toLowerCase())
         .order('created_at', { ascending: false })
         .range(offset, offset + limit - 1);
 
@@ -1548,7 +1548,7 @@ export const transactionService = {
       const { data: ordersData } = await supabase
         .from('bcc_purchase_orders')
         .select('total_amount, status')
-        .ilike('wallet_address', walletAddress)
+        .eq('wallet_address', walletAddress.toLowerCase())
         .eq('status', 'completed');
 
       const totalSpent = ordersData?.reduce((sum, order) => sum + order.total_amount, 0) || 0;
@@ -1566,7 +1566,7 @@ export const transactionService = {
       const { count: totalTransactions } = await supabase
         .from('bcc_purchase_orders')
         .select('*', { count: 'exact', head: true })
-        .ilike('wallet_address', walletAddress);
+        .eq('wallet_address', walletAddress.toLowerCase());
 
       const { count: rewardTransactions } = await supabase
         .from('reward_claims')
