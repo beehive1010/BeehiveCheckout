@@ -23,7 +23,7 @@ interface USDTBalance {
 
 // Supported chains for withdrawal
 const SUPPORTED_CHAINS = {
-  42161: { name: 'Arbitrum', symbol: 'ARB', icon: '🔵', fee: 2.0, native: true },
+  42161: { name: 'Arbitrum', symbol: 'ARB', icon: '🔵', fee: 0.0, native: true },  // ✅ NO FEE for native chain
   1: { name: 'Ethereum', symbol: 'ETH', icon: '🔷', fee: 15.0, native: false },
   137: { name: 'Polygon', symbol: 'MATIC', icon: '🟣', fee: 1.0, native: false },
   10: { name: 'Optimism', symbol: 'OP', icon: '🔴', fee: 1.5, native: false },
@@ -217,7 +217,7 @@ export default function USDTWithdrawal() {
   };
 
   const targetChainInfo = SUPPORTED_CHAINS[parseInt(targetChain) as keyof typeof SUPPORTED_CHAINS];
-  const fee = targetChainInfo?.fee || 2.0;
+  const fee = targetChainInfo?.fee || 0.0;  // ✅ Default to 0 fee (for Arbitrum)
   const netAmount = parseFloat(amount || '0') - fee;
 
   return (

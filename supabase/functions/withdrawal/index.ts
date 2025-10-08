@@ -89,13 +89,13 @@ serve(async (req) => {
     const WITHDRAWAL_FEES: { [key: number]: number } = {
       1: 15.0,      // Ethereum - higher gas fees
       137: 1.0,     // Polygon - low fees
-      42161: 2.0,   // Arbitrum - moderate fees
+      42161: 0.0,   // Arbitrum - NO FEE (native chain)
       10: 1.5,      // Optimism - low-moderate fees
       56: 1.0,      // BSC - low fees
       8453: 1.5     // Base - low-moderate fees
     }
 
-    const fee = WITHDRAWAL_FEES[targetChainId] || 2.0
+    const fee = WITHDRAWAL_FEES[targetChainId] || 0.0  // ✅ Default to 0 fee (for Arbitrum)
     const netAmount = withdrawalAmount - fee
 
     console.log(`💰 Fee calculation: ${withdrawalAmount} - ${fee} = ${netAmount}`)
