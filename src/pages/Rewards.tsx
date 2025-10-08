@@ -104,7 +104,7 @@ export default function Rewards() {
       const { data: rewardsData, error: rewardsError } = await supabase
         .from('layer_rewards')
         .select('*')
-        .eq('reward_recipient_wallet', memberWalletAddress.toLowerCase())
+        .ilike('reward_recipient_wallet', memberWalletAddress)
         .order('created_at', { ascending: false });
 
       if (rewardsError) {
@@ -124,7 +124,7 @@ export default function Rewards() {
       const { data: pendingTimerData, error: pendingError } = await supabase
         .from('layer_rewards')
         .select('*')
-        .eq('reward_recipient_wallet', memberWalletAddress.toLowerCase())
+        .ilike('reward_recipient_wallet', memberWalletAddress)
         .eq('status', 'pending')
         .not('expires_at', 'is', null)
         .order('expires_at', { ascending: true })
