@@ -498,9 +498,9 @@ serve(async (req) => {
 
         // INSERT members will trigger:
         // 1. sync_member_to_membership_trigger -> creates membership automatically
-        // 2. trigger_recursive_matrix_placement -> matrix placement
-        // 3. trigger_auto_create_balance_with_initial -> user balance
-        // 4. trigger_member_initial_level1_rewards -> rewards
+        // 2. trigger_auto_create_balance_with_initial -> user balance
+        // 3. trigger_member_initial_level1_rewards -> rewards
+        // NOTE: trigger_recursive_matrix_placement is DISABLED - using batch placement instead
         const { data: newMember, error: memberError } = await supabase
           .from('members')
           .insert(memberData)
@@ -610,60 +610,79 @@ serve(async (req) => {
       }
     }
 
-    // Step 5: Record referral and matrix placement - NOW ASYNC
-    // ✅ NEW: Queue matrix placement for async processing
+    // Step 5: Record referral and matrix placement - BATCH PROCESSING
+    // ✅ NEW: Use batch_place_member_in_matrices with checkpointing
     let referralRecord = null;
-    let matrixQueuedForAsync = false;
+    let matrixResult: any = null;
 
     if (normalizedReferrerWallet && memberRecord) {
-      console.log(`🔗 Queueing async matrix placement for: ${walletAddress} -> ${normalizedReferrerWallet}`);
+      console.log(`🔗 Starting batch matrix placement for: ${walletAddress} -> ${normalizedReferrerWallet}`);
 
       try {
-        // ✅ Call async matrix placement function (non-blocking)
-        const matrixPlacementUrl = `${supabaseUrl}/functions/v1/process-matrix-placement`;
+        // ✅ Call batch placement function
+        // Recursively finds up to 19 uplines in referral tree
+        // Places member in each upline's matrix using BFS
+        // Supports checkpoint/resume if it times out
+        const { data: placementResult, error: placementError } = await supabase
+          .rpc('batch_place_member_in_matrices', {
+            p_member_wallet: walletAddress,
+            p_referrer_wallet: normalizedReferrerWallet,
+            p_batch_size: 19  // Process all uplines (up to 19 depth in referral tree)
+          });
 
-        // Fire and forget - don't await
-        fetch(matrixPlacementUrl, {
-          method: 'POST',
-          headers: {
-            'Authorization': `Bearer ${supabaseServiceKey}`,
-            'Content-Type': 'application/json'
-          },
-          body: JSON.stringify({
-            memberWallet: walletAddress,
-            referrerWallet: normalizedReferrerWallet
-          })
-        }).then(response => {
-          if (response.ok) {
-            console.log('✅ Matrix placement queued successfully');
-          } else {
-            console.error('❌ Matrix placement queue failed:', response.statusText);
+        if (placementError) {
+          console.error('❌ Matrix placement error:', placementError);
+          matrixResult = {
+            success: false,
+            error: placementError.message,
+            message: 'Matrix placement failed - will retry on next activation check'
+          };
+        } else {
+          console.log(`✅ Batch placement result:`, placementResult);
+          matrixResult = {
+            success: true,
+            ...placementResult,
+            message: placementResult.status === 'completed'
+              ? `Placed in ${placementResult.succeeded} matrices`
+              : `Partial placement: ${placementResult.processed}/${placementResult.total_uplines} processed`
+          };
+
+          // If partial, queue a resume call (non-blocking)
+          if (placementResult.status === 'partial') {
+            console.log('⏳ Partial placement - scheduling resume...');
+
+            // Fire and forget resume call after 2 seconds
+            setTimeout(async () => {
+              try {
+                const { data: resumeResult } = await supabase
+                  .rpc('resume_placement_for_member', {
+                    p_member_wallet: walletAddress,
+                    p_batch_size: 19  // Continue processing remaining uplines
+                  });
+                console.log('✅ Resume placement result:', resumeResult);
+              } catch (resumeErr) {
+                console.error('❌ Resume placement error:', resumeErr);
+              }
+            }, 2000);
           }
-        }).catch(err => {
-          console.error('❌ Matrix placement queue error:', err);
-        });
+        }
 
-        matrixQueuedForAsync = true;
-        console.log('✅ Matrix placement queued for async processing');
-
-      } catch (queueError: any) {
-        console.error('❌ Failed to queue matrix placement:', queueError);
-        // Don't fail the activation if queue fails
-        matrixQueuedForAsync = false;
+      } catch (placementErr: any) {
+        console.error('❌ Matrix placement exception:', placementErr);
+        matrixResult = {
+          success: false,
+          error: placementErr.message,
+          message: 'Matrix placement exception - check matrix_placement_progress table'
+        };
       }
 
     } else {
       console.log(`ℹ️ No referrer wallet, skipping matrix placement`);
+      matrixResult = {
+        success: true,
+        message: 'No referrer - no matrix placement needed'
+      };
     }
-
-    // ✅ Matrix placement is now async - set result based on queue status
-    let matrixResult = {
-      async: true,
-      queued: matrixQueuedForAsync,
-      message: matrixQueuedForAsync
-        ? 'Matrix placement queued for async processing'
-        : 'Matrix placement will be processed later'
-    };
 
     // Step 6: Verify blockchain transaction (if provided)
     if (level === 1 && transactionHash) {
