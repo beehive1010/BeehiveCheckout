@@ -209,99 +209,27 @@ export function MembershipUpgradeButton({
         targetLevel: targetLevel,
         network: 'mainnet',
       },
-      onSuccess: async () => {
-        console.log(`✅ Level ${targetLevel} upgrade successful - verifying database records...`);
+      onSuccess: async (claimResult: any) => {
+        console.log(`✅ Level ${targetLevel} upgrade successful - Backend processing complete`);
+        console.log('✅ Upgrade result:', claimResult);
 
+        // ✅ Backend already completed all records (members update, membership, layer rewards)
+        // Just show success message and reload
         toast({
           title: `🎉 Level ${targetLevel} Upgrade Complete!`,
-          description: 'Verifying your membership records...',
+          description: `Your Level ${targetLevel} membership is now active. Refreshing...`,
           variant: 'default',
-          duration: 3000,
+          duration: 2000,
         });
-
-        // ✅ FIX: Verify database records with retry
-        let verified = false;
-        let verificationAttempts = 0;
-        const maxAttempts = 5;
-
-        for (let i = 0; i < maxAttempts; i++) {
-          verificationAttempts = i + 1;
-          await new Promise(resolve => setTimeout(resolve, 2000)); // Wait 2 seconds
-
-          try {
-            const { data: member, error } = await supabase
-              .from('members')
-              .select(`
-                *,
-                membership!inner(nft_level)
-              `)
-              .ilike('wallet_address', account.address)
-              .eq('current_level', targetLevel)
-              .single();
-
-            if (!error && member && member.membership) {
-              // Check if membership for target level exists
-              const hasMembership = Array.isArray(member.membership)
-                ? member.membership.some((m: any) => m.nft_level === targetLevel)
-                : member.membership.nft_level === targetLevel;
-
-              if (hasMembership) {
-                verified = true;
-                console.log(`✅ Database records verified on attempt ${verificationAttempts}:`, {
-                  currentLevel: member.current_level,
-                  hasMembershipForLevel: true,
-                });
-                break;
-              }
-            }
-
-            console.log(`⏳ Verification attempt ${verificationAttempts}/${maxAttempts}...`);
-          } catch (verifyError) {
-            console.error(`❌ Verification attempt ${verificationAttempts} failed:`, verifyError);
-          }
-        }
-
-        if (!verified) {
-          console.error('⚠️ Database verification failed after', verificationAttempts, 'attempts');
-
-          // Record to queue for manual review
-          try {
-            await supabase.from('claim_sync_queue').insert({
-              wallet_address: account.address,
-              level: targetLevel,
-              tx_hash: `upgrade_verification_failed_${Date.now()}`,
-              status: 'pending',
-              source: 'frontend_upgrade_verification_failed',
-              error_message: `Database records not found after Level ${targetLevel} upgrade API success`,
-            });
-
-            console.log('✅ Added to claim_sync_queue for manual review');
-          } catch (queueError) {
-            console.error('❌ Failed to add to sync queue:', queueError);
-          }
-
-          toast({
-            title: '⚠️ Upgrade May Be Delayed',
-            description: `Your Level ${targetLevel} upgrade is processing. It may take a few minutes to complete. Please refresh in 5 minutes.`,
-            variant: 'default',
-            duration: 10000,
-          });
-        } else {
-          toast({
-            title: `✅ Level ${targetLevel} Upgrade Complete!`,
-            description: `Your Level ${targetLevel} membership is now active. Refreshing...`,
-            variant: 'default',
-            duration: 2000,
-          });
-        }
 
         if (onSuccess) {
           onSuccess();
         }
 
+        // Reload page after 1.5 seconds
         setTimeout(() => {
           window.location.reload();
-        }, verified ? 1500 : 3000); // Wait longer if verification failed
+        }, 1500);
       },
       onError: () => {
         checkUpgradeEligibility();
