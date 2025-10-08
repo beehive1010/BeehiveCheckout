@@ -68,13 +68,11 @@ export default defineConfig({
     ],
     force: true
   },
-  // Add experimental chunk retry
+  // Ensure absolute paths for all assets in production
   experimental: {
     renderBuiltUrl(filename, { hostType }) {
-      if (hostType === 'js') {
-        return `/${filename}`;
-      }
-      return { relative: true };
+      // Always use absolute paths to avoid MIME type issues
+      return `/${filename}`;
     }
   }
 });
