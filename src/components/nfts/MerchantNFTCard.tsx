@@ -122,12 +122,12 @@ export default function MerchantNFTCard({
     }
   };
 
-  const availableCount = nft.supply_available || 0;
-  const totalSupply = nft.supply_total || 0;
+  const availableCount = nft.supplyAvailable || 0;
+  const totalSupply = nft.supplyTotal || 0;
   const availabilityPercentage = totalSupply > 0 ? (availableCount / totalSupply) * 100 : 100;
-  const canPurchase = (bccBalance?.transferable || 0) >= nft.price_bcc && 
-                     availableCount > 0 && 
-                     nft.is_active && 
+  const canPurchase = (bccBalance?.transferable || 0) >= nft.priceBCC &&
+                     availableCount > 0 &&
+                     nft.isActive &&
                      !isOwned;
 
   const handlePurchaseClick = () => {
@@ -135,11 +135,11 @@ export default function MerchantNFTCard({
       let message = 'Cannot purchase this NFT';
       if (isOwned) {
         message = 'You already own this NFT';
-      } else if ((bccBalance?.transferable || 0) < nft.price_bcc) {
+      } else if ((bccBalance?.transferable || 0) < nft.priceBCC) {
         message = 'Insufficient BCC balance';
       } else if (availableCount <= 0) {
         message = 'NFT is sold out';
-      } else if (!nft.is_active) {
+      } else if (!nft.isActive) {
         message = 'NFT is not currently available';
       }
 
@@ -158,8 +158,8 @@ export default function MerchantNFTCard({
     <Card className={`group bg-secondary border-border hover:border-purple-400/50 hover:shadow-xl hover:shadow-purple-400/10 transition-all duration-300 ${className}`}>
       {/* NFT Image */}
       <div className="aspect-square bg-gradient-to-br from-purple-500/10 to-pink-500/5 rounded-t-2xl overflow-hidden relative">
-        <img 
-          src={nft.image_url} 
+        <img
+          src={nft.imageUrl}
           alt={nft.title}
           className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
         />
@@ -215,7 +215,7 @@ export default function MerchantNFTCard({
                 </DialogDescription>
               </DialogHeader>
               <div className="space-y-4">
-                <img src={nft.image_url} alt={nft.title} className="w-full h-48 object-cover rounded-lg" />
+                <img src={nft.imageUrl} alt={nft.title} className="w-full h-48 object-cover rounded-lg" />
                 <p className="text-sm text-muted-foreground">{nft.description}</p>
                 
                 {/* Metadata display */}
@@ -244,8 +244,8 @@ export default function MerchantNFTCard({
                 
                 <div className="flex items-center justify-between">
                   <div className="space-y-1">
-                    <div className="text-lg font-bold text-purple-400">{nft.price_bcc} BCC</div>
-                    <div className="text-xs text-muted-foreground">${nft.price_usdt} USDT</div>
+                    <div className="text-lg font-bold text-purple-400">{nft.priceBCC} BCC</div>
+                    <div className="text-xs text-muted-foreground">${nft.priceUSDT} USDT</div>
                   </div>
                   {totalSupply > 0 && (
                     <span className="text-sm text-muted-foreground">
@@ -345,12 +345,12 @@ export default function MerchantNFTCard({
           <div className="flex items-center justify-between">
             <div className="space-y-1">
               <div className="text-2xl font-bold text-purple-400">
-                {nft.price_bcc}
+                {nft.priceBCC}
               </div>
               <div className="text-xs text-muted-foreground">BCC</div>
             </div>
             <div className="text-right">
-              <div className="text-sm text-muted-foreground">${nft.price_usdt}</div>
+              <div className="text-sm text-muted-foreground">${nft.priceUSDT}</div>
               <div className="text-xs text-muted-foreground">USDT equiv.</div>
             </div>
           </div>
@@ -387,18 +387,18 @@ export default function MerchantNFTCard({
                 <>
                   <Zap className="w-4 h-4" />
                   <span>
-                    {(bccBalance?.transferable || 0) < nft.price_bcc ? 'Insufficient BCC' : 
+                    {(bccBalance?.transferable || 0) < nft.priceBCC ? 'Insufficient BCC' :
                      availableCount <= 0 ? 'Sold Out' : 'Unavailable'}
                   </span>
                 </>
               )}
             </div>
           </Button>
-          
+
           {/* Balance warning */}
-          {!canPurchase && !isOwned && (bccBalance?.transferable || 0) < nft.price_bcc && (
+          {!canPurchase && !isOwned && (bccBalance?.transferable || 0) < nft.priceBCC && (
             <p className="text-xs text-destructive text-center">
-              You need {nft.price_bcc - (bccBalance?.transferable || 0)} more BCC
+              You need {nft.priceBCC - (bccBalance?.transferable || 0)} more BCC
             </p>
           )}
         </div>

@@ -65,60 +65,60 @@ interface AdvertisementNFT {
   id: string;
   title: string;
   description: string;
-  image_url: string | null;
-  price_usdt: number;
-  price_bcc: number;
+  imageUrl: string | null;
+  priceUSDT: number;
+  priceBCC: number;
   category: string;
-  advertiser_wallet: string | null;
-  click_url: string | null;
-  impressions_target: number;
-  impressions_current: number;
-  is_active: boolean;
-  starts_at: string;
-  ends_at: string | null;
+  advertiserWallet: string | null;
+  clickUrl: string | null;
+  impressionsTarget: number;
+  impressionsCurrent: number;
+  isActive: boolean;
+  startsAt: string;
+  endsAt: string | null;
   metadata: any;
-  created_at: string;
-  updated_at: string;
+  createdAt: string;
+  updatedAt: string;
   // 多语言支持
   language?: string;
-  language_code?: string;
+  languageCode?: string;
   translations?: Record<string, { title?: string; description?: string; category?: string; }>;
-  available_languages?: string[];
+  availableLanguages?: string[];
 }
 
 interface MerchantNFT {
   id: string;
   title: string;
   description: string;
-  image_url: string | null;
-  price_usdt: number;
-  price_bcc: number;
+  imageUrl: string | null;
+  priceUSDT: number;
+  priceBCC: number;
   category: string;
-  supply_total: number | null;
-  supply_available: number | null;
-  is_active: boolean;
-  creator_wallet: string | null;
+  supplyTotal: number | null;
+  supplyAvailable: number | null;
+  isActive: boolean;
+  creatorWallet: string | null;
   metadata: any;
-  created_at: string;
-  updated_at: string;
+  createdAt: string;
+  updatedAt: string;
   // 多语言支持
   language?: string;
-  language_code?: string;
+  languageCode?: string;
   translations?: Record<string, { title?: string; description?: string; category?: string; }>;
-  available_languages?: string[];
+  availableLanguages?: string[];
 }
 
 interface NFTPurchase {
   id: string;
-  buyer_wallet: string;
-  nft_id: string;
-  nft_type: string;
-  payment_method: string;
-  price_bcc: number | null;
-  price_usdt: number;
-  purchased_at: string;
+  buyerWallet: string;
+  nftId: string;
+  nftType: string;
+  paymentMethod: string;
+  priceBCC: number | null;
+  priceUSDT: number;
+  purchasedAt: string;
   status: string;
-  transaction_hash: string | null;
+  transactionHash: string | null;
   metadata: any;
 }
 
@@ -180,20 +180,20 @@ export default function NFTs() {
           id: 'mock-1',
           title: 'Premium DeFi Analytics Dashboard',
           description: 'Access advanced analytics and insights for your DeFi portfolio with real-time tracking.',
-          image_url: 'https://via.placeholder.com/400x300/4F46E5/FFFFFF?text=DeFi+Analytics',
-          price_usdt: 99.99,
-          price_bcc: 150,
+          imageUrl: 'https://via.placeholder.com/400x300/4F46E5/FFFFFF?text=DeFi+Analytics',
+          priceUSDT: 99.99,
+          priceBCC: 150,
           category: 'defi',
-          advertiser_wallet: null,
-          click_url: 'https://example.com',
-          impressions_target: 10000,
-          impressions_current: 2345,
-          is_active: true,
-          starts_at: new Date().toISOString(),
-          ends_at: null,
+          advertiserWallet: null,
+          clickUrl: 'https://example.com',
+          impressionsTarget: 10000,
+          impressionsCurrent: 2345,
+          isActive: true,
+          startsAt: new Date().toISOString(),
+          endsAt: null,
           metadata: {},
-          created_at: new Date().toISOString(),
-          updated_at: new Date().toISOString(),
+          createdAt: new Date().toISOString(),
+          updatedAt: new Date().toISOString(),
           language: 'en',
           translations: {
             'zh': { 
@@ -207,26 +207,26 @@ export default function NFTs() {
               category: 'DeFi'
             }
           },
-          available_languages: ['en', 'zh', 'ja']
+          availableLanguages: ['en', 'zh', 'ja']
         },
         {
           id: 'mock-2',
           title: 'Gaming NFT Collection',
           description: 'Exclusive gaming NFTs that unlock special abilities and rewards in our Web3 game ecosystem.',
-          image_url: 'https://via.placeholder.com/400x300/EC4899/FFFFFF?text=Gaming+NFT',
-          price_usdt: 49.99,
-          price_bcc: 75,
+          imageUrl: 'https://via.placeholder.com/400x300/EC4899/FFFFFF?text=Gaming+NFT',
+          priceUSDT: 49.99,
+          priceBCC: 75,
           category: 'gaming',
-          advertiser_wallet: null,
-          click_url: 'https://example.com/gaming',
-          impressions_target: 5000,
-          impressions_current: 1234,
-          is_active: true,
-          starts_at: new Date().toISOString(),
-          ends_at: null,
+          advertiserWallet: null,
+          clickUrl: 'https://example.com/gaming',
+          impressionsTarget: 5000,
+          impressionsCurrent: 1234,
+          isActive: true,
+          startsAt: new Date().toISOString(),
+          endsAt: null,
           metadata: {},
-          created_at: new Date().toISOString(),
-          updated_at: new Date().toISOString(),
+          createdAt: new Date().toISOString(),
+          updatedAt: new Date().toISOString(),
           language: 'en',
           translations: {
             'zh': { 
@@ -240,7 +240,7 @@ export default function NFTs() {
               category: '게임'
             }
           },
-          available_languages: ['en', 'zh', 'ko']
+          availableLanguages: ['en', 'zh', 'ko']
         }
       ];
       
@@ -269,17 +269,17 @@ export default function NFTs() {
           id: 'merchant-1',
           title: 'Professional Web Development Service',
           description: 'Full-stack web development service including React, Node.js, and database integration.',
-          image_url: 'https://via.placeholder.com/400x300/10B981/FFFFFF?text=Web+Development',
-          price_usdt: 199.99,
-          price_bcc: 300,
+          imageUrl: 'https://via.placeholder.com/400x300/10B981/FFFFFF?text=Web+Development',
+          priceUSDT: 199.99,
+          priceBCC: 300,
           category: 'development',
-          supply_total: 10,
-          supply_available: 7,
-          is_active: true,
-          creator_wallet: null,
+          supplyTotal: 10,
+          supplyAvailable: 7,
+          isActive: true,
+          creatorWallet: null,
           metadata: { duration: '2-4 weeks', includes: ['Frontend', 'Backend', 'Database'] },
-          created_at: new Date().toISOString(),
-          updated_at: new Date().toISOString(),
+          createdAt: new Date().toISOString(),
+          updatedAt: new Date().toISOString(),
           language: 'en',
           translations: {
             'zh': { 
@@ -293,23 +293,23 @@ export default function NFTs() {
               category: 'การพัฒนา'
             }
           },
-          available_languages: ['en', 'zh', 'th']
+          availableLanguages: ['en', 'zh', 'th']
         },
         {
           id: 'merchant-2',
           title: 'Digital Marketing Consultation',
           description: 'Strategic digital marketing consultation to boost your Web3 project visibility and growth.',
-          image_url: 'https://via.placeholder.com/400x300/F59E0B/FFFFFF?text=Marketing',
-          price_usdt: 149.99,
-          price_bcc: 225,
+          imageUrl: 'https://via.placeholder.com/400x300/F59E0B/FFFFFF?text=Marketing',
+          priceUSDT: 149.99,
+          priceBCC: 225,
           category: 'consulting',
-          supply_total: 5,
-          supply_available: 3,
-          is_active: true,
-          creator_wallet: null,
+          supplyTotal: 5,
+          supplyAvailable: 3,
+          isActive: true,
+          creatorWallet: null,
           metadata: { duration: '1-2 weeks', includes: ['Strategy', 'Campaign', 'Analytics'] },
-          created_at: new Date().toISOString(),
-          updated_at: new Date().toISOString(),
+          createdAt: new Date().toISOString(),
+          updatedAt: new Date().toISOString(),
           language: 'en',
           translations: {
             'zh': { 
@@ -323,7 +323,7 @@ export default function NFTs() {
               category: 'Perundingan'
             }
           },
-          available_languages: ['en', 'zh', 'ms']
+          availableLanguages: ['en', 'zh', 'ms']
         }
       ];
       
@@ -421,22 +421,22 @@ export default function NFTs() {
         console.error('Failed to get balance from database:', error);
       }
     }
-    if (currentBCC < nft.price_bcc) {
+    if (currentBCC < nft.priceBCC) {
       toast({
         title: t('nfts.purchase.insufficientBcc'),
-        description: t('nfts.purchase.needBcc', { amount: nft.price_bcc, current: currentBCC }),
+        description: t('nfts.purchase.needBcc', { amount: nft.priceBCC, current: currentBCC }),
         variant: "destructive"
       });
       return;
     }
 
     // Validate amount before sending to API
-    const purchaseAmount = Number(nft.price_bcc);
+    const purchaseAmount = Number(nft.priceBCC);
     if (!purchaseAmount || purchaseAmount <= 0 || isNaN(purchaseAmount)) {
-      console.error('❌ Invalid purchase amount:', nft.price_bcc);
+      console.error('❌ Invalid purchase amount:', nft.priceBCC);
       toast({
         title: 'Invalid Amount',
-        description: `Invalid NFT price: ${nft.price_bcc}`,
+        description: `Invalid NFT price: ${nft.priceBCC}`,
         variant: "destructive"
       });
       return;
@@ -502,13 +502,13 @@ export default function NFTs() {
         nft_id: nft.id,
         nft_type: nftType,
         price_bcc: purchaseAmount,
-        price_usdt: nft.price_usdt || 0,
+        priceUSDT: nft.priceUSDT || 0,
         payment_method: 'bcc',
         transaction_hash: transactionHash,
         metadata: {
           nft_title: nft.title,
           category: nft.category || nftType,
-          image_url: nft.image_url
+          imageUrl: nft.imageUrl
         }
       });
 
@@ -520,12 +520,12 @@ export default function NFTs() {
       console.log('✅ NFT purchase record created successfully:', purchaseRecord?.id);
 
       // Update supply for merchant NFTs
-      if (nftType === 'merchant' && 'supply_available' in nft && nft.supply_available && nft.supply_available > 0) {
+      if (nftType === 'merchant' && 'supply_available' in nft && nft.supplyAvailable && nft.supplyAvailable > 0) {
         const { error: supplyError } = await supabase
           .from('merchant_nfts')
           .update({ 
-            supply_available: Math.max(0, nft.supply_available - 1),
-            updated_at: new Date().toISOString()
+            supplyAvailable: Math.max(0, nft.supplyAvailable - 1),
+            updatedAt: new Date().toISOString()
           })
           .eq('id', nft.id);
 
@@ -536,7 +536,7 @@ export default function NFTs() {
 
       toast({
         title: "🎉 " + t('nfts.purchase.success'),
-        description: `${t('nfts.purchase.successDesc')} "${nft.title}" for ${nft.price_bcc} BCC`,
+        description: `${t('nfts.purchase.successDesc')} "${nft.title}" for ${nft.priceBCC} BCC`,
         duration: 6000
       });
 
@@ -686,7 +686,7 @@ export default function NFTs() {
                   <div className="absolute inset-0 rounded-xl border-2 border-blue-500/40 opacity-0 group-hover:opacity-100 transition-all duration-300 animate-pulse"></div>
                   <CardHeader className="relative pb-3">
                     <StableImage
-                      src={nft.image_url}
+                      src={nft.imageUrl}
                       alt={nft.title}
                       className="w-full h-48 object-cover rounded-lg mb-3"
                       fallback="https://via.placeholder.com/400x300/e2e8f0/64748b?text=Advertisement+NFT"
@@ -737,8 +737,8 @@ export default function NFTs() {
                     
                     <div className="flex items-center justify-between">
                       <div className="text-center">
-                        <div className="text-lg font-bold text-blue-400">{nft.price_bcc || 0} BCC</div>
-                        <div className="text-xs text-muted-foreground">${nft.price_usdt || 0} USDT</div>
+                        <div className="text-lg font-bold text-blue-400">{nft.priceBCC || 0} BCC</div>
+                        <div className="text-xs text-muted-foreground">${nft.priceUSDT || 0} USDT</div>
                       </div>
                       <div className="text-center">
                         <div className="text-sm font-medium text-foreground">{(nft.impressions_current || 0).toLocaleString()}</div>
@@ -809,7 +809,7 @@ export default function NFTs() {
                   <div className="absolute inset-0 rounded-xl border-2 border-purple-500/40 opacity-0 group-hover:opacity-100 transition-all duration-300 animate-pulse"></div>
                   <CardHeader className="relative pb-3">
                     <StableImage
-                      src={nft.image_url}
+                      src={nft.imageUrl}
                       alt={nft.title}
                       className="w-full h-48 object-cover rounded-lg mb-3"
                       fallback="https://via.placeholder.com/400x300/9333ea/e9d5ff?text=Merchant+NFT"
@@ -828,9 +828,9 @@ export default function NFTs() {
                           contentStyle="text-xs"
                         />
                       </Badge>
-                      {nft.supply_total && (
+                      {nft.supplyTotal && (
                         <Badge variant="outline" className="text-xs">
-                          {nft.supply_available}/{nft.supply_total} left
+                          {nft.supplyAvailable}/{nft.supplyTotal} left
                         </Badge>
                       )}
                     </div>
@@ -867,12 +867,12 @@ export default function NFTs() {
                     
                     <div className="flex items-center justify-between">
                       <div className="text-center">
-                        <div className="text-lg font-bold text-purple-400">{nft.price_bcc || 0} BCC</div>
-                        <div className="text-xs text-muted-foreground">${nft.price_usdt || 0} USDT</div>
+                        <div className="text-lg font-bold text-purple-400">{nft.priceBCC || 0} BCC</div>
+                        <div className="text-xs text-muted-foreground">${nft.priceUSDT || 0} USDT</div>
                       </div>
-                      {nft.supply_total && (
+                      {nft.supplyTotal && (
                         <div className="text-center">
-                          <div className="text-sm font-medium text-foreground">{nft.supply_available || 0}</div>
+                          <div className="text-sm font-medium text-foreground">{nft.supplyAvailable || 0}</div>
                           <div className="text-xs text-muted-foreground">Available</div>
                         </div>
                       )}
@@ -882,7 +882,7 @@ export default function NFTs() {
                       onClick={() => handlePurchaseNFT(nft, 'merchant')}
                       disabled={
                         purchaseState.loading && purchaseState.nftId === nft.id ||
-                        (nft.supply_available !== null && nft.supply_available <= 0)
+                        (nft.supplyAvailable !== null && nft.supplyAvailable <= 0)
                       }
                       className="w-full bg-gradient-to-r from-purple-500 to-purple-400 hover:from-purple-600 hover:to-purple-500 text-white"
                     >
@@ -891,12 +891,12 @@ export default function NFTs() {
                           <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                           {t('nfts.purchase.purchasing')}
                         </>
-                      ) : nft.supply_available !== null && nft.supply_available <= 0 ? (
+                      ) : nft.supplyAvailable !== null && nft.supplyAvailable <= 0 ? (
                         t('nfts.merchant.soldOut')
                       ) : (
                         <>
                           <ShoppingCart className="mr-2 h-4 w-4" />
-                          {t('nfts.purchase.button')} ({nft.price_bcc} BCC)
+                          {t('nfts.purchase.button')} ({nft.priceBCC} BCC)
                         </>
                       )}
                     </Button>
@@ -942,7 +942,7 @@ export default function NFTs() {
                     <div className="absolute inset-0 rounded-xl border-2 border-green-500/40 opacity-0 group-hover:opacity-100 transition-all duration-300 animate-pulse"></div>
                     <CardHeader className="relative pb-3">
                       <StableImage
-                        src={nft.image_url}
+                        src={nft.imageUrl}
                         alt={nft.title}
                         className="w-full h-48 object-cover rounded-lg mb-3"
                         fallback="https://via.placeholder.com/400x300/10b981/dcfce7?text=My+NFT"
