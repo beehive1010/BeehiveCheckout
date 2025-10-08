@@ -219,7 +219,10 @@
     "expired": "已過期",
     "level": "等級",
     "pending": "待處理",
-    "status": "狀態",
+    "status": {
+      "label": "狀態",
+      "owned": "已擁有"
+    },
     "title": "会員",
     "upgrade": "升級",
     "yourTokens": "您的代幣",

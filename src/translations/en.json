@@ -1991,7 +1991,10 @@
       "distributionResult": "{claimableCount} claimable, {pendingCount} pending rewards created",
       "distributionWarning": "Reward Distribution Issue"
     },
-    "status": "Status",
+    "status": {
+      "label": "Status",
+      "owned": "Owned"
+    },
     "statusNotQualified": "❌ Not Qualified: {count}/{needed} referrals needed",
     "subtitle": "Unlock higher levels and exclusive benefits",
     "syncingData": "Your membership data is syncing. Please refresh the page in a few moments to access Level 3 upgrade.",
