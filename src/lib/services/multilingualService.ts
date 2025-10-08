@@ -97,6 +97,13 @@ class MultilingualService {
       // 处理多语言内容
       const processedData = data?.map(item => {
         const translation = item.translations[language] || item.translations['en'] || {};
+
+        // 检测内容的实际语言（基于translations结构）
+        // 如果只有'en'键且内容包含中文字符，说明这是中文内容被错误标记为英文
+        const hasOnlyEnTranslation = Object.keys(item.translations).length === 1 && item.translations['en'];
+        const titleIsChinese = /[\u4e00-\u9fff]/.test(translation.title || '');
+        const actualLanguage = (hasOnlyEnTranslation && titleIsChinese) ? 'zh' : language;
+
         return {
           id: item.id,
           title: translation.title || `NFT ${item.id.slice(0, 8)}`,
@@ -113,8 +120,9 @@ class MultilingualService {
           starts_at: item.starts_at,
           ends_at: item.ends_at,
           metadata: item.metadata,
-          language: language,
+          language: actualLanguage,  // 使用实际语言，不是请求的语言
           available_languages: Object.keys(item.translations),
+          translations: item.translations,  // 保留完整的translations对象供前端使用
           created_at: item.created_at
         };
       }) || [];
@@ -194,10 +202,28 @@ class MultilingualService {
       // 处理多语言内容
       const processedData = data?.map(item => {
         const translation = item.merchant_nft_translations?.find(t => t.language_code === language);
+        const displayTitle = translation?.title || item.title;
+        const displayDescription = translation?.description || item.description;
+
+        // 检测内容的实际语言
+        // 如果没有匹配的翻译，使用主表内容，并检测主表内容的语言
+        const hasTranslation = !!translation;
+        const titleIsChinese = /[\u4e00-\u9fff]/.test(displayTitle || '');
+        const actualLanguage = hasTranslation ? language : (titleIsChinese ? 'zh' : 'en');
+
+        // 构建translations对象供HybridTranslation使用
+        const translations: Record<string, any> = {};
+        item.merchant_nft_translations?.forEach(t => {
+          translations[t.language_code] = {
+            title: t.title,
+            description: t.description
+          };
+        });
+
         return {
           id: item.id,
-          title: translation?.title || item.title,
-          description: translation?.description || item.description,
+          title: displayTitle,
+          description: displayDescription,
           image_url: item.image_url,
           price_usdt: item.price_usdt,
           price_bcc: item.price_bcc,
@@ -207,9 +233,11 @@ class MultilingualService {
           creator_wallet: item.creator_wallet,
           is_active: item.is_active,
           metadata: item.metadata,
-          language: language,
+          language: actualLanguage,  // 使用实际语言
           available_languages: item.merchant_nft_translations?.map(t => t.language_code) || ['en'],
-          created_at: item.created_at
+          translations: translations,  // 添加完整的translations对象
+          created_at: item.created_at,
+          updated_at: item.updated_at
         };
       }) || [];
 

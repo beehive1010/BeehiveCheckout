@@ -312,6 +312,7 @@ async function claimReward(req, supabaseClient) {
             .from('layer_rewards')
             .update({
                 status: 'claimed',
+                claimed_at: new Date().toISOString(), // ✅ FIX: Add claimed_at timestamp for proper synchronization
                 updated_at: new Date().toISOString()
             })
             .eq('id', claim_id);
