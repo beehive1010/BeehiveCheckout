@@ -663,7 +663,8 @@
     },
     "status": {
       "active": "Active",
-      "ActiveMember": "活躍成員"
+      "ActiveMember": "活躍成員",
+      "owned": "已拥有"
     },
     "tokenPurchase": {
       "bccDescription": "Purchase Beehive Crypto Coins for platform usage",
