@@ -21,9 +21,9 @@ import { useI18n } from '../../../contexts/I18nContext';
 import { client } from '../../../lib/thirdwebClient';
 import { Loader2, Crown } from 'lucide-react';
 
-// 合约地址
-const USDT_CONTRACT = '0x6B174f1f3B7f92E048f0f15FD2b22c167DA6F008'; // Arbitrum USDT
-const NFT_CONTRACT = '0xe57332db0B8d7e6aF8a260a4fEcfA53104728693'; // Membership NFT
+// 合约地址 (Updated 2025-10-08)
+const USDT_CONTRACT = '0xFd086bC7CD5C481DCC9C85ebE478A1C0b69FCbb9'; // Arbitrum USDT (Official)
+const NFT_CONTRACT = '0x018F516B0d1E77Cc5947226Abc2E864B167C7E29'; // Membership NFT
 
 // Level 价格配置
 const LEVEL_PRICES: Record<number, number> = {

@@ -18,8 +18,8 @@ import { useI18n } from '../contexts/I18nContext';
 import type { PayEmbedProps } from 'thirdweb/react';
 import { Loader2 } from 'lucide-react';
 
-// Membership NFT 合约地址
-const NFT_CONTRACT = '0xe57332db0B8d7e6aF8a260a4fEcfA53104728693';
+// Membership NFT 合约地址 (Updated 2025-10-08)
+const NFT_CONTRACT = '0x018F516B0d1E77Cc5947226Abc2E864B167C7E29';
 
 // Level prices
 const LEVEL_PRICES: Record<number, number> = {

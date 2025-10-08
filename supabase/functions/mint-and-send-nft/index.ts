@@ -233,7 +233,7 @@ async function transferPlatformFee(
 
   // Use correct USDT contract and chain ID based on network
   const usdtContract = network === 'mainnet'
-    ? '0x6B174f1f3B7f92E048f0f15FD2b22c167DA6F008' // Arbitrum mainnet USDT
+    ? '0xFd086bC7CD5C481DCC9C85ebE478A1C0b69FCbb9' // Arbitrum mainnet USDT (Official)
     : '0xb67f84e6148D087D4fc5F390BedC75597770f6c0'; // Arbitrum Sepolia USDT
   const chainId = network === 'mainnet'
     ? '42161' // Arbitrum mainnet

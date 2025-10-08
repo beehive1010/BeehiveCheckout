@@ -174,7 +174,7 @@ serve(async (req) => {
         // Check both contracts: old ARB ONE and new ARB ONE
         const contractAddresses = [
           { chain: arbitrum, address: '0x15742D22f64985bC124676e206FCE3fFEb175719', name: 'ARB ONE Old' },
-          { chain: arbitrum, address: '0xe57332db0B8d7e6aF8a260a4fEcfA53104728693', name: 'ARB ONE New' }
+          { chain: arbitrum, address: '0x018F516B0d1E77Cc5947226Abc2E864B167C7E29', name: 'ARB ONE New (2025-10-08)' }
         ];
 
         let hasNFT = false;
@@ -394,7 +394,7 @@ serve(async (req) => {
       // Check both contracts: old ARB ONE and new ARB ONE
       const contractAddresses = [
         { chain: arbitrum, address: '0x15742D22f64985bC124676e206FCE3fFEb175719', name: 'ARB ONE Old' },
-        { chain: arbitrum, address: '0xe57332db0B8d7e6aF8a260a4fEcfA53104728693', name: 'ARB ONE New' }
+        { chain: arbitrum, address: '0x018F516B0d1E77Cc5947226Abc2E864B167C7E29', name: 'ARB ONE New (2025-10-08)' }
       ];
 
       let hasNFT = false;

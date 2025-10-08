@@ -72,7 +72,7 @@ const getLevelRequirements = (level: number): LevelRequirement => {
   };
 };
 
-const NFT_CONTRACT = '0xe57332db0B8d7e6aF8a260a4fEcfA53104728693';
+const NFT_CONTRACT = '0x018F516B0d1E77Cc5947226Abc2E864B167C7E29'; // Updated 2025-10-08
 
 export function MembershipUpgradeButton({
   targetLevel,

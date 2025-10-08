@@ -133,7 +133,7 @@ export default function TestPayEmbedClaim() {
             <strong>Flow:</strong> Based on StarNFT claim pattern (approve → navigate to purchase page)
           </p>
           <p>
-            <strong>Contract:</strong> 0xe57332db0B8d7e6aF8a260a4fEcfA53104728693 (Arbitrum)
+            <strong>Contract:</strong> 0x018F516B0d1E77Cc5947226Abc2E864B167C7E29 (Arbitrum - Updated 2025-10-08)
           </p>
           <p>
             <strong>Payment:</strong> USDT on Arbitrum (6 decimals)

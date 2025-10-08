@@ -28,8 +28,8 @@ export default function DemoClaimButton({
   const queryClient = useQueryClient();
   const { client } = useWeb3();
 
-  // Contract addresses from environment
-  const DEMO_MEMBERSHIP_NFT = '0xe57332db0B8d7e6aF8a260a4fEcfA53104728693'; // ARB ONE Membership Contract
+  // Contract addresses from environment (Updated 2025-10-08)
+  const DEMO_MEMBERSHIP_NFT = '0x018F516B0d1E77Cc5947226Abc2E864B167C7E29'; // ARB ONE Membership Contract
   const DEMO_USDT = '0xaf88d065e77c8cC2239327C5EDb3A432268e5831'; // ARB ONE Payment Token
   const CHAIN = arbitrum;
 

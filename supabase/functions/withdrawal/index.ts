@@ -167,7 +167,7 @@ serve(async (req) => {
       42161: {
         'ETH': { address: null, symbol: 'ETH', decimals: 18, isNative: true },
         'ARB': { address: '0x912CE59144191C1204E64559FE8253a0e49E6548', symbol: 'ARB', decimals: 18, isNative: false },
-        'USDT': { address: '0x6B174f1f3B7f92E048f0f15FD2b22c167DA6F008', symbol: 'USDT', decimals: 6, isNative: false }
+        'USDT': { address: '0xFd086bC7CD5C481DCC9C85ebE478A1C0b69FCbb9', symbol: 'USDT', decimals: 6, isNative: false }
       },
       10: { 
         'ETH': { address: null, symbol: 'ETH', decimals: 18, isNative: true },
@@ -213,7 +213,7 @@ serve(async (req) => {
     const targetTokenInfo = getTokenInfo(targetChainId, requestedTokenSymbol)
 
     // Source: We settle in ARB USDT (USDT on Arbitrum)
-    const sourceTokenAddress = sourceToken.address // ARB USDT: 0x6B174f1f3B7f92E048f0f15FD2b22c167DA6F008
+    const sourceTokenAddress = sourceToken.address // ARB USDT: 0xFd086bC7CD5C481DCC9C85ebE478A1C0b69FCbb9
     const targetTokenAddress = targetTokenInfo.address // Could be null for native tokens
 
     let result: any = {}

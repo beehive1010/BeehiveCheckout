@@ -5,8 +5,8 @@ import { createThirdwebClient, getContract } from 'thirdweb';
 import { arbitrum } from 'thirdweb/chains';
 import { balanceOf, allowance } from 'thirdweb/extensions/erc20';
 
-const USDT_CONTRACT = '0x6B174f1f3B7f92E048f0f15FD2b22c167DA6F008'; // ARB ONE New USDT
-const NFT_CONTRACT = '0xe57332db0B8d7e6aF8a260a4fEcfA53104728693'; // ARB ONE New NFT
+const USDT_CONTRACT = '0xFd086bC7CD5C481DCC9C85ebE478A1C0b69FCbb9'; // ARB ONE Official USDT (Updated 2025-10-08)
+const NFT_CONTRACT = '0x018F516B0d1E77Cc5947226Abc2E864B167C7E29'; // ARB ONE Membership NFT (Updated 2025-10-08)
 
 export async function diagnosePayment(walletAddress: string, clientId: string) {
   const client = createThirdwebClient({ clientId });

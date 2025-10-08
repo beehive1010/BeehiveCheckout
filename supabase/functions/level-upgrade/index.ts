@@ -1081,10 +1081,10 @@ async function verifyUpgradeTransaction(
 
     // Use correct contract addresses based on network
     const NFT_CONTRACT = network === 'mainnet'
-      ? '0xe57332db0B8d7e6aF8a260a4fEcfA53104728693' // ARB ONE New Membership Contract
+      ? '0x018F516B0d1E77Cc5947226Abc2E864B167C7E29' // ARB ONE New Membership Contract (2025-10-08)
       : '0xC99CF23CeCE6bF79bD2a23FE5f1D9716D62EC9E1' // ARB Sepolia V4 Membership Contract
     const PAYMENT_TOKEN_CONTRACT = network === 'mainnet'
-      ? '0x6B174f1f3B7f92E048f0f15FD2b22c167DA6F008' // Arbitrum mainnet USDT
+      ? '0xFd086bC7CD5C481DCC9C85ebE478A1C0b69FCbb9' // Arbitrum mainnet USDT (Official)
       : '0xb67f84e6148D087D4fc5F390BedC75597770f6c0' // Arbitrum Sepolia USDT
     const EXPECTED_TOKEN_ID = targetLevel
 

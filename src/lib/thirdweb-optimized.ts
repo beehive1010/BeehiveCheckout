@@ -101,8 +101,8 @@ export const alphaCentauri = defineChain({
 // Contract addresses by chain
 export const contractAddresses = {
   [arbitrumOne.id]: {
-    membershipNFT: "0x...", // Replace with deployed address
-    usdt: "0xFd086bC7CD5C481DCC9C85ebE478A1C0b69FCbb9",
+    membershipNFT: "0x018F516B0d1E77Cc5947226Abc2E864B167C7E29", // Beehive Membership NFT (Updated 2025-10-08)
+    usdt: "0xFd086bC7CD5C481DCC9C85ebE478A1C0b69FCbb9", // Official Arbitrum USDT
   },
   [arbitrumSepolia.id]: {
     membershipNFT: "0xAc8c8662726b72f8DB4F5D1d1a16aC5b06B7a90D",

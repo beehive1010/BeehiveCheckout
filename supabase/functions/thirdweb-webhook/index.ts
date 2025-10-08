@@ -431,7 +431,7 @@ async function handleTokenTransfer(supabase: any, data: any) {
     // Configuration
     const SERVER_WALLET = Deno.env.get('SERVER_WALLET_ADDRESS')?.toLowerCase()
     const PLATFORM_RECIPIENT = Deno.env.get('PLATFORM_FEE_RECIPIENT')?.toLowerCase() || '0x0bA198F73DF3A1374a49Acb2c293ccA20e150Fe0'.toLowerCase()
-    const USDT_ADDRESS_ARB = '0x6B174f1f3B7f92E048f0f15FD2b22c167DA6F008'.toLowerCase() // Arbitrum mainnet USDT
+    const USDT_ADDRESS_ARB = '0xFd086bC7CD5C481DCC9C85ebE478A1C0b69FCbb9'.toLowerCase() // Arbitrum mainnet USDT (Official)
     const MIN_AMOUNT_USDT = 130 // Minimum 130 USDT to trigger auto transfer
     const PLATFORM_FEE_USDT = 30 // Transfer 30 USDT to platform
 
