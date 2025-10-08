@@ -956,11 +956,11 @@
       "loadTreeDataFailed": "加載矩阵树數據失敗"
     },
     "navigation": {
-      "education": "Education",
-      "features": "Features",
-      "getStarted": "Get Started",
-      "home": "Home",
-      "howItWorks": "How It Works"
+      "education": "Pendidikan",
+      "features": "Ciri-ciri",
+      "getStarted": "Mulakan",
+      "home": "Laman Utama",
+      "howItWorks": "Cara Ia Berfungsi"
     }
   },
   "nav": {
@@ -2711,9 +2711,9 @@
       "title": "Ready to Start Your Journey?"
     },
     "ctaStats": {
-      "earningPotential": "Earning Potential",
-      "matrixSystem": "Matrix System",
-      "membershipLevels": "Membership Levels"
+      "earningPotential": "Potensi Pendapatan",
+      "matrixSystem": "Sistem Matriks",
+      "membershipLevels": "Tahap Keahlian"
     },
     "features": {
       "education": {
@@ -2760,24 +2760,24 @@
     },
     "howItWorks": {
       "step1": {
-        "description": "連接您的 Web3 錢包以開始使用",
-        "title": "連接錢包"
+        "description": "Sambungkan dompet Web3 anda untuk bermula",
+        "title": "Sambung Dompet"
       },
       "step2": {
-        "description": "完成註冊並激活等級 1 會員",
-        "title": "註冊並激活"
+        "description": "Lengkapkan pendaftaran dan aktifkan keahlian Tahap 1",
+        "title": "Daftar & Aktifkan"
       },
       "step3": {
-        "description": "訪問平台功能並開始賺取獎勵",
-        "title": "學習並賺取"
+        "description": "Akses ciri platform dan mula peroleh ganjaran",
+        "title": "Belajar & Peroleh"
       },
-      "subtitle": "只需三個簡單步驟即可開始，解鎖 Web3 會員的力量",
-      "title": "運作方式"
+      "subtitle": "Mulakan dalam tiga langkah mudah dan buka kekuatan keahlian Web3",
+      "title": "Cara Ia Berfungsi"
     },
     "matrix": {
-      "explainButton": "矩陣說明",
-      "explainDescription": "了解我們的矩陣系統如何運作以及您如何賺取獎勵",
-      "explainTitle": "學習 3×3 矩陣"
+      "explainButton": "Penjelasan Matriks",
+      "explainDescription": "Ketahui bagaimana sistem matriks kami berfungsi dan bagaimana anda boleh peroleh ganjaran",
+      "explainTitle": "Pelajari Matriks 3×3"
     },
     "platformFeatures": {
       "autoPlacement": "Auto-placement System",
@@ -2796,20 +2796,20 @@
     }
   },
   "footer": {
-    "backToTop": "Back to Top",
+    "backToTop": "Kembali ke Atas",
     "brand": {
-      "tagline": "Building the future of Web3 membership and education"
+      "tagline": "Membina masa depan keahlian dan pendidikan Web3"
     },
     "copyright": {
-      "blockchain": "Powered by blockchain technology",
-      "rights": "All rights reserved"
+      "blockchain": "Dikuasakan oleh teknologi blockchain",
+      "rights": "Hak cipta terpelihara"
     },
     "newsletter": {
-      "button": "Subscribe",
-      "description": "Subscribe to our newsletter for the latest updates and announcements",
-      "disclaimer": "We respect your privacy and will never share your email",
-      "placeholder": "Enter your email address",
-      "title": "Stay Updated"
+      "button": "Langgan",
+      "description": "Langgan surat berita kami untuk kemas kini dan pengumuman terkini",
+      "disclaimer": "Kami menghormati privasi anda dan tidak akan berkongsi e-mel anda",
+      "placeholder": "Masukkan alamat e-mel anda",
+      "title": "Kekal Dikemaskini"
     }
   },
   "discover": {

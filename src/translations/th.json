@@ -1634,11 +1634,11 @@
       "loadTreeDataFailed": "加載矩阵树數據失敗"
     },
     "navigation": {
-      "education": "Education",
-      "features": "Features",
-      "getStarted": "Get Started",
-      "home": "Home",
-      "howItWorks": "How It Works"
+      "education": "การศึกษา",
+      "features": "คุณสมบัติ",
+      "getStarted": "เริ่มต้น",
+      "home": "หน้าแรก",
+      "howItWorks": "วิธีการทำงาน"
     }
   },
   "nav": {

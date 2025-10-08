@@ -223,6 +223,26 @@
     "title": "会員",
     "upgrade": "升級",
     "yourTokens": "您的代幣",
+    "activation": {
+      "activationPrice": "激活價格",
+      "alreadyActivated": "已激活",
+      "instant": "即時",
+      "instantActivation": "激活",
+      "level1Badge": "等級 1 激活",
+      "matrixSystem": "3×3 推薦系統",
+      "membershipNFT": "會員 NFT",
+      "networkDescription": "使用 Arbitrum One 上的 USDT 支付。請確保您在正確的網絡上。",
+      "networkInfo": "Arbitrum One - USDT 支付",
+      "processing": "正在處理激活...",
+      "redirectingToDashboard": "正在重定向到儀表板...",
+      "subtitle": "使用等級 1 NFT 加入 BEEHIVE 社區",
+      "successDescription": "等級 1 會員已激活！您的推薦關係和獎勵已創建。",
+      "switchNetwork": "切換到 Arbitrum One",
+      "title": "激活會員",
+      "welcome": "歡迎來到 BEEHIVE！",
+      "wrongNetwork": "錯誤的網絡",
+      "wrongNetworkDescription": "您在 {networkName} 上。切換到 Arbitrum One 以激活您的會員資格。"
+    },
     "claiming": {
       "processing": "正在處理 {level} 級升級...",
       "success": "{level} 級 NFT 已領取!",
@@ -3407,6 +3427,8 @@
       "title": "Purchase Successful!"
     },
     "supportText": "Secure payments across multiple blockchains with instant NFT delivery",
-    "title": "Welcome to Beehive Community"
+    "title": "Welcome to Beehive Community",
+    "refreshStatus": "刷新狀態",
+    "statusNotActivated": "⏳ 尚未激活"
   }
 }

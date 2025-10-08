@@ -530,6 +530,7 @@ serve(async (req) => {
 
         memberRecord = newMember;
         console.log(`✅ Members record created: ${memberRecord.wallet_address}`);
+        console.log(`✅ Matrix placement trigger executed automatically`);
 
         // Membership should have been created by sync_member_to_membership_trigger
         // Verify it was created
@@ -546,23 +547,6 @@ serve(async (req) => {
         } else {
           console.warn(`⚠️ Membership not found after members creation - trigger may have failed`);
         }
-
-        // ⚡ ASYNC Matrix Placement (non-blocking)
-        // Run matrix placement in background to avoid blocking activation
-        console.log(`🔄 Starting async matrix placement for: ${walletAddress}`);
-        supabase.rpc('recursive_matrix_placement', {
-          p_member_wallet: walletAddress,
-          p_referrer_wallet: finalReferrerWallet
-        }).then(({ data, error }) => {
-          if (error) {
-            console.error('⚠️ Async matrix placement error (non-critical):', error);
-          } else {
-            console.log(`✅ Async matrix placement completed:`, data);
-          }
-        }).catch(err => {
-          console.error('⚠️ Async matrix placement exception:', err);
-        });
-        console.log(`✅ Matrix placement started in background (non-blocking)`);
 
 
       } catch (memberErr: any) {
