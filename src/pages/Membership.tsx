@@ -41,16 +41,21 @@ export default function Membership() {
         const { data: memberData, error } = await supabase
           .from('members')
           .select('referrer_wallet')
-          .eq('wallet_address', walletAddress.toLowerCase())
-          .maybeSingle(); // ✅ 使用 maybeSingle() 替代 single()
+          .ilike('wallet_address', walletAddress) // ✅ 使用 ilike 进行大小写不敏感查询
+          .maybeSingle();
 
         if (error) {
           console.warn('Failed to fetch user referrer:', error);
           return;
         }
 
+        console.log('📋 Fetched referrer data:', memberData);
+
         if (memberData?.referrer_wallet) {
+          console.log('✅ Setting userReferrer:', memberData.referrer_wallet);
           setUserReferrer(memberData.referrer_wallet);
+        } else {
+          console.warn('⚠️ No referrer_wallet found in member data');
         }
       } catch (error) {
         console.warn('Failed to fetch user referrer:', error);
@@ -354,18 +359,21 @@ export default function Membership() {
       {/* Direct NFT Claim Section - Using Dynamic ERC5115ClaimComponent */}
       {(() => {
         // 🔍 调试日志
-        const shouldShow = walletAddress && currentLevel > 0 && currentLevel < 19 && userReferrer;
+        const shouldShow = !!(walletAddress && currentLevel > 0 && currentLevel < 19 && userReferrer);
         console.log('🔍 Membership Upgrade Section Debug:', {
-          walletAddress: walletAddress ? `${walletAddress.substring(0, 10)}...` : 'null',
+          walletAddress: walletAddress ? `${walletAddress.substring(0, 10)}...` : null,
           currentLevel,
-          userReferrer: userReferrer ? `${userReferrer.substring(0, 10)}...` : 'null',
+          userReferrer: userReferrer || null,
+          userReferrerPreview: userReferrer ? `${userReferrer.substring(0, 10)}...` : null,
           directReferralsCount,
           shouldShow,
           conditions: {
             hasWallet: !!walletAddress,
             levelAboveZero: currentLevel > 0,
             levelBelowMax: currentLevel < 19,
-            hasReferrer: !!userReferrer
+            hasReferrer: !!userReferrer,
+            userReferrerType: typeof userReferrer,
+            userReferrerValue: userReferrer
           }
         });
         return null;
