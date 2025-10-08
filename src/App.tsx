@@ -41,6 +41,8 @@ import AdminNFTsPage from "@/pages/AdminNFTs";
 import TestUpgradeMembership from "@/pages/TestUpgradeMembership";
 import TestPayEmbedClaim from "@/pages/TestPayEmbedClaim";
 import MembershipPurchase from "@/pages/MembershipPurchase";
+import Welcome2 from "@/pages/Welcome2";
+import Membership2 from "@/pages/Membership2";
 // Archived: MultiChainClaimDemo and CheckoutTest moved to _archive/
 // import PhotoUploadDemo from "@/pages/PhotoUploadDemo";
 
@@ -448,6 +450,16 @@ function Router() {
 
         {/* Membership Purchase Page (PayEmbed) */}
         <Route path="/membership-purchase" component={MembershipPurchase} />
+
+        {/* Welcome2 - PayEmbed Version */}
+        <Route path="/welcome2" component={Welcome2} />
+
+        {/* Membership2 - PayEmbed Version */}
+        <Route path="/membership2" component={() => (
+          <MemberGuard requireActivation={true} redirectTo="/welcome2">
+            <Membership2 />
+          </MemberGuard>
+        )} />
 
         {/* Photo Upload Demo - Temporarily disabled */}
         {/* <Route path="/photo-upload-demo" component={() => (
