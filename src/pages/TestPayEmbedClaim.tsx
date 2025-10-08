@@ -13,7 +13,7 @@ import { useActiveAccount } from 'thirdweb/react';
 import { Card, CardContent, CardHeader, CardTitle } from '../components/ui/card';
 import { Badge } from '../components/ui/badge';
 import { useI18n } from '../contexts/I18nContext';
-import { ClaimMembershipNFT } from '../components/membership/claim/ClaimMembershipNFT';
+import { BeehiveMembershipClaimList } from '../components/membership/claim/BeehiveMembershipClaimList';
 import MembershipBadge from '../components/membership/MembershipBadge';
 import { Crown, Users, Gift, CheckCircle } from 'lucide-react';
 
@@ -110,82 +110,13 @@ export default function TestPayEmbedClaim() {
         </CardContent>
       </Card>
 
-      {/* Membership Levels Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {MEMBERSHIP_LEVELS.map((membership) => {
-          const Icon = membership.icon;
-          const isSelected = selectedLevel === membership.level;
-
-          return (
-            <Card
-              key={membership.level}
-              onClick={() => setSelectedLevel(membership.level)}
-              className={`cursor-pointer transition-all duration-300 hover:shadow-lg ${
-                isSelected
-                  ? 'ring-2 ring-honey shadow-honey/20 border-honey/30'
-                  : 'hover:border-honey/20'
-              }`}
-            >
-              <CardHeader className="pb-4">
-                <div className="flex items-center justify-between mb-4">
-                  <div className="flex items-center gap-3">
-                    <div className={`p-3 rounded-xl ${membership.bgColor}`}>
-                      <Icon className={`h-6 w-6 ${membership.color}`} />
-                    </div>
-                    <div>
-                      <CardTitle className="text-xl">{membership.name}</CardTitle>
-                      <p className="text-sm text-muted-foreground">Level {membership.level}</p>
-                    </div>
-                  </div>
-                  <MembershipBadge level={membership.level} />
-                </div>
-
-                {/* Price */}
-                <div className="p-4 rounded-lg bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-800 dark:to-gray-900 border border-gray-200/50 dark:border-gray-700/50">
-                  <div className="text-3xl font-bold text-foreground">${membership.price}</div>
-                  <p className="text-sm text-muted-foreground">USDT Payment</p>
-                </div>
-              </CardHeader>
-
-              <CardContent className="space-y-4">
-                {/* Benefits */}
-                <div>
-                  <h4 className="font-semibold text-sm mb-2 flex items-center gap-2">
-                    <Gift className="h-4 w-4 text-honey" />
-                    Benefits:
-                  </h4>
-                  <ul className="space-y-2">
-                    {membership.benefits.map((benefit, index) => (
-                      <li key={index} className="flex items-start gap-2 text-sm text-muted-foreground">
-                        <CheckCircle className="h-4 w-4 text-emerald-500 mt-0.5 flex-shrink-0" />
-                        <span>{benefit}</span>
-                      </li>
-                    ))}
-                  </ul>
-                </div>
-
-                {/* Claim Button */}
-                <ClaimMembershipNFT
-                  level={membership.level}
-                  disabled={!isSelected}
-                  onSuccess={() => {
-                    console.log(`✅ Level ${membership.level} claim flow started`);
-                  }}
-                  onError={(error) => {
-                    console.error(`❌ Level ${membership.level} claim error:`, error);
-                  }}
-                />
-
-                {isSelected && (
-                  <Badge className="w-full justify-center bg-honey/20 text-honey border-honey/30">
-                    Selected
-                  </Badge>
-                )}
-              </CardContent>
-            </Card>
-          );
-        })}
-      </div>
+      {/* Beehive Premium Membership List */}
+      <BeehiveMembershipClaimList
+        maxLevel={5}
+        onSuccess={(level) => {
+          console.log(`✅ Level ${level} claim flow started successfully`);
+        }}
+      />
 
       {/* Development Notes */}
       <Card className="mt-12 border-blue-500/20 bg-blue-500/5">

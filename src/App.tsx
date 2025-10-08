@@ -40,6 +40,7 @@ import AuthCallback from "@/pages/AuthCallback";
 import AdminNFTsPage from "@/pages/AdminNFTs";
 import TestUpgradeMembership from "@/pages/TestUpgradeMembership";
 import TestPayEmbedClaim from "@/pages/TestPayEmbedClaim";
+import MembershipPurchase from "@/pages/MembershipPurchase";
 // Archived: MultiChainClaimDemo and CheckoutTest moved to _archive/
 // import PhotoUploadDemo from "@/pages/PhotoUploadDemo";
 
@@ -444,6 +445,9 @@ function Router() {
 
         {/* Test: PayEmbed-style Claim Flow */}
         <Route path="/test-payembed-claim" component={TestPayEmbedClaim} />
+
+        {/* Membership Purchase Page (PayEmbed) */}
+        <Route path="/membership-purchase" component={MembershipPurchase} />
 
         {/* Photo Upload Demo - Temporarily disabled */}
         {/* <Route path="/photo-upload-demo" component={() => (
