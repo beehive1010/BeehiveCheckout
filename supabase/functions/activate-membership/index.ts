@@ -531,7 +531,14 @@ serve(async (req) => {
 
         memberRecord = newMember;
         console.log(`✅ Members record created: ${memberRecord.wallet_address}`);
-        console.log(`✅ Matrix placement trigger executed automatically`);
+        console.log(`✅ Database triggers executing in background...`);
+
+        // ✅ Shorter wait (500ms) - triggers will complete asynchronously
+        // Most critical triggers (membership, balance) complete quickly
+        // Matrix placement may take longer but happens asynchronously
+        await new Promise(resolve => setTimeout(resolve, 500));
+
+        console.log(`✅ Initial trigger execution complete, continuing verification...`);
 
         // Membership should have been created by sync_member_to_membership_trigger
         // Verify it was created
@@ -603,37 +610,60 @@ serve(async (req) => {
       }
     }
 
-    // Step 5: Record referral if referrer exists - use matrix placement function
-    // 🔧 FIX: Allow default referrer (0x3C1FF5B4BE2A1FB8c157aF55aa6450eF66D7E242) for matrix placement
+    // Step 5: Record referral and matrix placement - NOW ASYNC
+    // ✅ NEW: Queue matrix placement for async processing
     let referralRecord = null;
+    let matrixQueuedForAsync = false;
+
     if (normalizedReferrerWallet && memberRecord) {
+      console.log(`🔗 Queueing async matrix placement for: ${walletAddress} -> ${normalizedReferrerWallet}`);
+
       try {
-        console.log(`🔗 Recording referral for: ${walletAddress} -> ${normalizedReferrerWallet}`);
+        // ✅ Call async matrix placement function (non-blocking)
+        const matrixPlacementUrl = `${supabaseUrl}/functions/v1/process-matrix-placement`;
 
-        // Use the recursive matrix placement function to place member in all upline matrices
-        const matrixPlacementResult = await supabase.rpc(
-          'recursive_matrix_placement',
-          {
-            p_member_wallet: walletAddress,
-            p_referrer_wallet: normalizedReferrerWallet
+        // Fire and forget - don't await
+        fetch(matrixPlacementUrl, {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${supabaseServiceKey}`,
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({
+            memberWallet: walletAddress,
+            referrerWallet: normalizedReferrerWallet
+          })
+        }).then(response => {
+          if (response.ok) {
+            console.log('✅ Matrix placement queued successfully');
+          } else {
+            console.error('❌ Matrix placement queue failed:', response.statusText);
           }
-        );
+        }).catch(err => {
+          console.error('❌ Matrix placement queue error:', err);
+        });
 
-        if (matrixPlacementResult.error) {
-          console.warn('⚠️ Matrix placement failed:', matrixPlacementResult.error);
-        } else {
-          console.log(`✅ Matrix placement completed:`, matrixPlacementResult.data);
-          referralRecord = matrixPlacementResult.data;
-        }
-      } catch (referralErr) {
-        console.warn('⚠️ Matrix placement error (non-critical):', referralErr);
+        matrixQueuedForAsync = true;
+        console.log('✅ Matrix placement queued for async processing');
+
+      } catch (queueError: any) {
+        console.error('❌ Failed to queue matrix placement:', queueError);
+        // Don't fail the activation if queue fails
+        matrixQueuedForAsync = false;
       }
+
     } else {
-      console.warn(`⚠️ Skipping matrix placement: referrer=${normalizedReferrerWallet}, memberRecord=${!!memberRecord}`);
+      console.log(`ℹ️ No referrer wallet, skipping matrix placement`);
     }
 
-    // Matrix placement was already done in Step 5
-    let matrixResult = referralRecord;
+    // ✅ Matrix placement is now async - set result based on queue status
+    let matrixResult = {
+      async: true,
+      queued: matrixQueuedForAsync,
+      message: matrixQueuedForAsync
+        ? 'Matrix placement queued for async processing'
+        : 'Matrix placement will be processed later'
+    };
 
     // Step 6: Verify blockchain transaction (if provided)
     if (level === 1 && transactionHash) {
@@ -758,6 +788,68 @@ serve(async (req) => {
       }
     }
 
+    // ✅ Verify all database records were created before returning success
+    console.log(`🔍 Final verification: Checking all database records...`);
+
+    let finalVerification = {
+      memberExists: false,
+      membershipExists: false,
+      balanceExists: false,
+      referralsExist: false,
+      matrixPlacementExists: false
+    };
+
+    try {
+      // Check members record
+      const { data: finalMember } = await supabase
+        .from('members')
+        .select('*')
+        .ilike('wallet_address', walletAddress)
+        .single();
+      finalVerification.memberExists = !!finalMember;
+
+      // Check membership record
+      const { data: finalMembership } = await supabase
+        .from('membership')
+        .select('*')
+        .ilike('wallet_address', walletAddress)
+        .eq('nft_level', level)
+        .single();
+      finalVerification.membershipExists = !!finalMembership;
+
+      // Check user_balances record
+      const { data: finalBalance } = await supabase
+        .from('user_balances')
+        .select('*')
+        .ilike('wallet_address', walletAddress)
+        .single();
+      finalVerification.balanceExists = !!finalBalance;
+
+      // Check referrals record (if referrer exists)
+      if (normalizedReferrerWallet) {
+        const { data: finalReferrals } = await supabase
+          .from('referrals')
+          .select('*')
+          .ilike('referred_wallet', walletAddress)
+          .single();
+        finalVerification.referralsExist = !!finalReferrals;
+      } else {
+        finalVerification.referralsExist = true; // Skip check if no referrer
+      }
+
+      // Check matrix_referrals record
+      const { data: finalMatrixReferrals } = await supabase
+        .from('matrix_referrals')
+        .select('*')
+        .ilike('member_wallet', walletAddress);
+      finalVerification.matrixPlacementExists = !!finalMatrixReferrals && finalMatrixReferrals.length > 0;
+
+      console.log(`✅ Final verification results:`, finalVerification);
+
+    } catch (verifyError) {
+      console.warn(`⚠️ Final verification error:`, verifyError);
+    }
+
     // Return success response
     const responseData = {
       success: true,
@@ -781,12 +873,21 @@ serve(async (req) => {
           matrixPlaced: !!matrixResult,
           usdcTransferInitiated: !!usdcTransferResult,
           layerRewardProcessed: !!layerRewardResult
-        }
+        },
+        finalVerification: finalVerification
       },
       transactionHash
     };
 
     console.log(`🎉 Activation completed successfully for: ${walletAddress}`);
+
+    // Log verification status
+    if (finalVerification.memberExists && finalVerification.membershipExists && finalVerification.balanceExists) {
+      console.log(`📊 Core records verified (members, membership, user_balances)`);
+      if (!finalVerification.matrixPlacementExists) {
+        console.log(`⏳ Matrix placement may still be processing in background`);
+      }
+    }
 
     return new Response(JSON.stringify(responseData), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },

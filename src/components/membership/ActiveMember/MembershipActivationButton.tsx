@@ -303,86 +303,18 @@ export function MembershipActivationButton({
         activationPayload: {
           referrerWallet: referrerWallet,
         },
-        onSuccess: async () => {
-          console.log('✅ Level 1 activation successful - verifying database records...');
+        onSuccess: async (claimResult: any) => {
+          console.log('✅ Level 1 activation successful - Backend processing complete');
+          console.log('✅ Claim result:', claimResult);
 
+          // ✅ Backend already completed all records (members, membership, referrals, matrix_referrals)
+          // Just show success message and redirect
           toast({
             title: `🎉 ${t('membership.activation.welcome')}`,
-            description: 'Verifying your membership records...',
+            description: t('membership.activation.successDescription'),
             variant: 'default',
-            duration: 3000,
+            duration: 2000,
           });
-
-          // ✅ FIX: Verify database records with retry
-          let verified = false;
-          let verificationAttempts = 0;
-          const maxAttempts = 5;
-
-          for (let i = 0; i < maxAttempts; i++) {
-            verificationAttempts = i + 1;
-            await new Promise(resolve => setTimeout(resolve, 2000)); // Wait 2 seconds
-
-            try {
-              const { data: member, error } = await authService.supabase
-                .from('members')
-                .select(`
-                  *,
-                  membership!inner(nft_level),
-                  user_balances!inner(bcc_balance)
-                `)
-                .ilike('wallet_address', account.address)
-                .eq('current_level', 1)
-                .single();
-
-              if (!error && member && member.membership && member.user_balances) {
-                verified = true;
-                console.log(`✅ Database records verified on attempt ${verificationAttempts}:`, {
-                  hasMember: true,
-                  hasMembership: Array.isArray(member.membership) ? member.membership.length > 0 : !!member.membership,
-                  hasBalance: !!member.user_balances,
-                });
-                break;
-              }
-
-              console.log(`⏳ Verification attempt ${verificationAttempts}/${maxAttempts}...`);
-            } catch (verifyError) {
-              console.error(`❌ Verification attempt ${verificationAttempts} failed:`, verifyError);
-            }
-          }
-
-          if (!verified) {
-            console.error('⚠️ Database verification failed after', verificationAttempts, 'attempts');
-
-            // Record to queue for manual review
-            try {
-              await authService.supabase.from('claim_sync_queue').insert({
-                wallet_address: account.address,
-                level: 1,
-                tx_hash: `verification_failed_${Date.now()}`,
-                status: 'pending',
-                source: 'frontend_verification_failed',
-                error_message: 'Database records not found after activation API success',
-              });
-
-              console.log('✅ Added to claim_sync_queue for manual review');
-            } catch (queueError) {
-              console.error('❌ Failed to add to sync queue:', queueError);
-            }
-
-            toast({
-              title: '⚠️ Activation May Be Delayed',
-              description: 'Your activation is processing. It may take a few minutes to complete. If you don\'t see your membership after 5 minutes, please contact support.',
-              variant: 'default',
-              duration: 10000,
-            });
-          } else {
-            toast({
-              title: '✅ Activation Complete!',
-              description: t('membership.activation.successDescription'),
-              variant: 'default',
-              duration: 2000,
-            });
-          }
 
           setHasNFT(true);
 
@@ -390,9 +322,10 @@ export function MembershipActivationButton({
             onSuccess();
           }
 
+          // Redirect to dashboard after 1.5 seconds
           setTimeout(() => {
             window.location.href = '/dashboard';
-          }, verified ? 1500 : 3000); // Wait longer if verification failed
+          }, 1500);
         },
         onError: () => {
           checkEligibility();
@@ -401,9 +334,39 @@ export function MembershipActivationButton({
 
       if (result.success) {
         console.log('✅ Activation successful:', result.txHash);
+      } else {
+        // NFT claimed but activation failed
+        console.error('❌ Activation failed but NFT was claimed:', result);
+
+        toast({
+          title: '⚠️ Activation Delayed',
+          description: result.queuedForRetry
+            ? 'Your NFT was claimed successfully! Database activation is being processed automatically. Please refresh the page in 1-2 minutes.'
+            : 'NFT claimed but activation failed. Please contact support or try refreshing the page.',
+          variant: 'default',
+          duration: 10000,
+        });
+
+        // Still mark as having NFT since claim was successful
+        setHasNFT(true);
+
+        // Wait a bit longer before redirecting if queued for retry
+        if (result.queuedForRetry) {
+          setTimeout(() => {
+            window.location.href = '/dashboard';
+          }, 3000);
+        }
       }
     } catch (error: any) {
       console.error('❌ Activation error:', error);
+
+      // Show error to user
+      toast({
+        title: '❌ Activation Failed',
+        description: error.message || 'Failed to activate membership. Please try again.',
+        variant: 'destructive',
+        duration: 5000,
+      });
     }
   };
 

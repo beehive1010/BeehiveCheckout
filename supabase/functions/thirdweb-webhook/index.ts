@@ -592,10 +592,13 @@ async function handleTransferSingle(supabase: any, data: any) {
 
     console.log(`✅ TransferSingle event logged: ${isMint ? 'MINT' : 'TRANSFER'} of token ${id}`)
 
-    // ✅ NEW: Auto-activate membership for NFT Level 1-3 mints
+    // ❌ DISABLED: Auto-activation moved to frontend flow only
+    // Frontend calls activate-membership directly after NFT claim
+    // Webhook should NOT auto-activate to avoid race conditions and duplicate activations
     if (isMint && to && (id === '1' || id === '2' || id === '3')) {
-      console.log(`🎯 NFT Level ${id} minted to ${to} - triggering auto-activation`)
-      await autoActivateMembership(supabase, to, id, transactionHash, chainId)
+      console.log(`ℹ️ NFT Level ${id} minted to ${to} - activation handled by frontend`)
+      console.log(`ℹ️ Webhook auto-activation disabled to prevent race conditions`)
+      // await autoActivateMembership(supabase, to, id, transactionHash, chainId) // DISABLED
     }
 
   } catch (error) {
