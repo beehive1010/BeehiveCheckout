@@ -72,7 +72,7 @@ export function useUserReferralStats() {
       const { data: rewardOverview } = await supabase
         .from('v_reward_overview')
         .select('*')
-        .ilike('wallet_address', walletAddress)
+        .ilike('member_id', walletAddress)
         .maybeSingle();
 
       // Calculate total earnings from paid rewards count (need actual amount - use layer_rewards for details)
