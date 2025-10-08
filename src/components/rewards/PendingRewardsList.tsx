@@ -176,7 +176,7 @@ function RewardItem({ reward, onRewardExpired, variant = 'compact' }: RewardItem
               <div className="flex items-center gap-3 flex-shrink-0">
                 <div className="text-right">
                   <div className="font-bold text-honey text-sm">
-                    ${reward.reward_amount} USDT
+                    ${reward.reward_amount} {t('common.usdt')}
                   </div>
                   <div className={`text-xs font-mono ${urgency.color}`}>
                     {timeDisplay}
@@ -291,7 +291,7 @@ export function PendingRewardsList({ rewards, onRewardExpired, variant = 'compac
           {t('rewards.pendingRewardsCount', { count: rewards.length })}
         </span>
         <span className="font-medium text-honey">
-          ${rewards.reduce((sum, r) => sum + r.reward_amount, 0)} USDT
+          ${rewards.reduce((sum, r) => sum + r.reward_amount, 0)} {t('common.usdt')}
         </span>
       </div>
       

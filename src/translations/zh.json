@@ -1374,7 +1374,8 @@
       "safe": "安全",
       "caution": "小心",
       "warning": "警告",
-      "critical": "严重"
+      "critical": "严重",
+      "usdt": "USDT"
     },
     "units": {
       "days": "天",

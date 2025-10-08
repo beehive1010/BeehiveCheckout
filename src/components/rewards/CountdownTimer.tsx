@@ -173,7 +173,7 @@ export function CountdownTimer({
               </p>
               {rewardAmount && (
                 <p className="text-xs text-red-400 mt-2">
-                  {t('rewards.reward')}: ${rewardAmount} USDT ({t('rewards.mayRollupToUpline')})
+                  {t('rewards.reward')}: ${rewardAmount} {t('common.usdt')} ({t('rewards.mayRollupToUpline')})
                 </p>
               )}
             </div>
@@ -260,7 +260,7 @@ export function CountdownTimer({
               <div>
                 <div className="text-xs sm:text-sm font-medium">{t('countdown.rewardAtStake')}</div>
                 <div className={`text-base sm:text-lg font-bold ${urgencyStyle.color}`}>
-                  ${rewardAmount} USDT
+                  ${rewardAmount} {t('common.usdt')}
                 </div>
               </div>
               <Zap className={`h-5 w-5 sm:h-6 sm:w-6 ${urgencyStyle.color}`} />
