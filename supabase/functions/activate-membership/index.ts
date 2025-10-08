@@ -462,109 +462,142 @@ serve(async (req) => {
       });
     }
 
-    // Step 4: Record new membership claim (only after NFT ownership is verified)
-    // ✅ SKIP if membership already exists (partial activation scenario)
+    // Step 4 & 5: Create membership and members records in a single RPC transaction
+    // This prevents data layer gaps if one succeeds but the other fails
     let membership = existingMembership;
-
-    if (!existingMembership) {
-      // membership table has: id, wallet_address, nft_level, claim_price, claimed_at, is_member, unlock_membership_level
-      const membershipData = {
-        wallet_address: walletAddress, // 保持原始大小写
-        nft_level: level,
-        is_member: true,
-        claimed_at: new Date().toISOString()
-      };
-
-      const { data: newMembership, error: membershipError } = await supabase
-        .from('membership')
-        .insert(membershipData)
-        .select()
-        .single();
-
-      if (membershipError) {
-        console.error('❌ Failed to create membership record:', membershipError);
-        return new Response(JSON.stringify({
-          success: false,
-          error: `Failed to create membership record: ${membershipError.message}`,
-          detail: membershipError
-        }), {
-          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-          status: 500
-        });
-      }
-
-      membership = newMembership;
-      console.log(`✅ Membership record created successfully: ${membership.wallet_address}`);
-    } else {
-      console.log(`✅ Using existing membership record: ${membership.wallet_address}`);
-    }
-
-    // Step 5: Now that membership is created/exists, create members record
     let memberRecord = null;
-    try {
-      console.log(`👥 Creating members record for: ${walletAddress}`);
 
-      // Get the next activation sequence number using atomic function
-      const { data: nextSequence, error: seqError } = await supabase
-        .rpc('get_next_activation_sequence');
+    if (!existingMember) {
+      console.log(`👥 Creating members record (with automatic membership sync via trigger)...`);
 
-      if (seqError) {
-        console.error('❌ Failed to get activation sequence:', seqError);
-        throw new Error(`Failed to get activation sequence: ${seqError.message}`);
-      }
+      try {
+        // Get the next activation sequence number using atomic function
+        const { data: nextSequence, error: seqError } = await supabase
+          .rpc('get_next_activation_sequence');
 
-      console.log(`🔢 Assigned activation_sequence: ${nextSequence}`);
+        if (seqError) {
+          console.error('❌ Failed to get activation sequence:', seqError);
+          throw new Error(`Failed to get activation sequence: ${seqError.message}`);
+        }
 
-      // ✅ IMPORTANT: Always use referrer from users table (most reliable source)
-      // Frontend may pass cached/stale referrer, but users table is source of truth
-      const finalReferrerWallet = userData.referrer_wallet || normalizedReferrerWallet;
+        console.log(`🔢 Assigned activation_sequence: ${nextSequence}`);
 
-      console.log(`🔗 Using referrer wallet: ${finalReferrerWallet} (from ${userData.referrer_wallet ? 'users table' : 'request parameter'})`);
+        // ✅ IMPORTANT: Always use referrer from users table (most reliable source)
+        const finalReferrerWallet = userData.referrer_wallet || normalizedReferrerWallet;
+        console.log(`🔗 Using referrer wallet: ${finalReferrerWallet}`);
 
-      const memberData = {
-        wallet_address: walletAddress,
-        referrer_wallet: finalReferrerWallet,
-        current_level: level,
-        activation_sequence: nextSequence,
-        activation_time: new Date().toISOString(),
-        total_nft_claimed: 1
-      };
+        const memberData = {
+          wallet_address: walletAddress,
+          referrer_wallet: finalReferrerWallet,
+          current_level: level,
+          activation_sequence: nextSequence,
+          activation_time: new Date().toISOString(),
+          total_nft_claimed: 1
+        };
 
-      const { data: newMember, error: memberError } = await supabase
-        .from('members')
-        .insert(memberData)
-        .select()
-        .single();
+        // INSERT members will trigger:
+        // 1. sync_member_to_membership_trigger -> creates membership automatically
+        // 2. trigger_recursive_matrix_placement -> matrix placement
+        // 3. trigger_auto_create_balance_with_initial -> user balance
+        // 4. trigger_member_initial_level1_rewards -> rewards
+        const { data: newMember, error: memberError } = await supabase
+          .from('members')
+          .insert(memberData)
+          .select()
+          .single();
 
-      if (memberError) {
-        console.error('❌ CRITICAL: Failed to create members record:', memberError);
+        if (memberError) {
+          console.error('❌ CRITICAL: Failed to create members record:', memberError);
+
+          // Check if this was a timeout
+          if (memberError.message?.includes('timeout') || memberError.code === '57014') {
+            console.error('⏰ TIMEOUT during members creation - triggers took too long');
+            console.error('💡 User may have partial activation - use补充 script to complete');
+          }
+
+          return new Response(JSON.stringify({
+            success: false,
+            error: 'MEMBER_CREATION_FAILED',
+            message: `Failed to create members record: ${memberError.message}`,
+            details: memberError,
+            memberData: memberData,
+            isTimeout: memberError.message?.includes('timeout') || memberError.code === '57014'
+          }), {
+            headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+            status: 500
+          });
+        }
+
+        memberRecord = newMember;
+        console.log(`✅ Members record created: ${memberRecord.wallet_address}`);
+
+        // Membership should have been created by sync_member_to_membership_trigger
+        // Verify it was created
+        const { data: autoMembership } = await supabase
+          .from('membership')
+          .select('*')
+          .ilike('wallet_address', walletAddress)
+          .eq('nft_level', level)
+          .maybeSingle();
+
+        if (autoMembership) {
+          membership = autoMembership;
+          console.log(`✅ Membership auto-created by trigger: ${membership.wallet_address}`);
+        } else {
+          console.warn(`⚠️ Membership not found after members creation - trigger may have failed`);
+        }
+
+      } catch (memberErr: any) {
+        console.error('❌ CRITICAL: Members record creation exception:', memberErr);
+
+        // Check if this was a timeout
+        const isTimeout = memberErr.message?.includes('timeout') ||
+                         memberErr.message?.includes('canceling statement') ||
+                         memberErr.code === '57014';
+
+        if (isTimeout) {
+          console.error('⏰ TIMEOUT EXCEPTION - Database triggers exceeded time limit');
+          console.error('💡 Partial activation possible - check membership and members tables');
+        }
+
         return new Response(JSON.stringify({
           success: false,
-          error: 'MEMBER_CREATION_FAILED',
-          message: `Failed to create members record: ${memberError.message}`,
-          details: memberError,
-          memberData: memberData,
-          userData: { wallet: userData.wallet_address, referrer: userData.referrer_wallet }
+          error: 'MEMBER_CREATION_EXCEPTION',
+          message: `Exception during members record creation: ${memberErr.message}`,
+          details: memberErr,
+          isTimeout: isTimeout
         }), {
           headers: { ...corsHeaders, 'Content-Type': 'application/json' },
           status: 500
         });
       }
+    } else {
+      console.log(`✅ Using existing members record: ${existingMember.wallet_address}`);
+      memberRecord = existingMember;
 
-      memberRecord = newMember;
-      console.log(`✅ Members record created: ${memberRecord.wallet_address}`);
+      // If membership doesn't exist, create it
+      if (!existingMembership) {
+        console.log(`🔧 补充 missing membership record...`);
+        const membershipData = {
+          wallet_address: walletAddress,
+          nft_level: level,
+          is_member: true,
+          claimed_at: existingMember.activation_time || new Date().toISOString()
+        };
 
-    } catch (memberErr: any) {
-      console.error('❌ CRITICAL: Members record creation exception:', memberErr);
-      return new Response(JSON.stringify({
-        success: false,
-        error: 'MEMBER_CREATION_EXCEPTION',
-        message: `Exception during members record creation: ${memberErr.message}`,
-        details: memberErr
-      }), {
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-        status: 500
-      });
+        const { data: newMembership, error: membershipError } = await supabase
+          .from('membership')
+          .insert(membershipData)
+          .select()
+          .single();
+
+        if (!membershipError && newMembership) {
+          membership = newMembership;
+          console.log(`✅ Membership补充 created`);
+        }
+      } else {
+        membership = existingMembership;
+      }
     }
 
     // Step 5: Record referral if referrer exists - use matrix placement function

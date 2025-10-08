@@ -215,7 +215,7 @@ export default function Dashboard() {
           matrix_layer,
           triggering_member_wallet
         `)
-        .eq('reward_recipient_wallet', walletAddress.toLowerCase()) // Use correct column name
+        .ilike('reward_recipient_wallet', walletAddress) // Case insensitive match
         .order('created_at', { ascending: false });
 
       if (rewardError) {
