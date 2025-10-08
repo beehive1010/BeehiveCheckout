@@ -100,25 +100,24 @@ export default function Welcome2() {
   // EXACT SAME ULTRA-STRICT VALIDATION AS Welcome.tsx
   // 🔧 FIX: Only check on initial mount, not on every wallet reconnect
   useEffect(() => {
-    const checkMembershipStatus = async () => {
-      if (!account?.address) return;
+    // 🔧 ANTI-FLASH FIX: Only run once per page mount
+    if (hasCheckedOnMount) {
+      console.log('⏭️ Welcome2: Skipping auto-check (already checked)');
+      return;
+    }
 
-      // 🔧 ANTI-FLASH FIX: Only check once on initial page load
-      // After claim success, user should be redirected by handleActivationComplete
-      // Don't auto-redirect on wallet reconnect to prevent flash/loop
-      if (hasCheckedOnMount) {
-        console.log('⏭️ Welcome2: Skipping auto-check (already checked on mount)');
+    const checkMembershipStatus = async () => {
+      if (!account?.address) {
+        console.log('⏭️ Welcome2: No account address, skipping check');
         return;
       }
 
+      console.log('🔍 Welcome2 page: First-time checking membership status for:', account.address);
       setIsCheckingMembership(true);
+
       try {
-        console.log('🔍 Welcome2 page: Checking membership status for:', account.address);
         const membershipResult = await authService.isActivatedMember(account.address);
         console.log('📊 Welcome2 page: Membership result:', JSON.stringify(membershipResult, null, 2));
-
-        // Mark as checked
-        setHasCheckedOnMount(true);
 
         // ULTRA-STRICT CHECK: Only redirect if ALL conditions are met
         const memberData = membershipResult.memberData;
@@ -146,22 +145,31 @@ export default function Welcome2() {
 
         if (shouldRedirect) {
           console.log('✅ Welcome2 page: User has claimed NFT (Level', currentLevel, ') - redirecting to dashboard');
-          setLocation('/dashboard');
-          return;
+          // Small delay to prevent flash
+          setTimeout(() => {
+            setLocation('/dashboard');
+          }, 100);
+        } else {
+          console.log('🎯 Welcome2 page: User has NOT claimed NFT yet - showing PayEmbed claim interface');
         }
-
-        console.log('🎯 Welcome2 page: User has NOT claimed NFT yet - showing PayEmbed claim interface');
       } catch (error) {
         console.warn('⚠️ Welcome2 page: Failed to check membership status:', error);
-        setHasCheckedOnMount(true); // Mark as checked even on error
         // Continue showing welcome page on error - let user try to claim
       } finally {
+        // Mark as checked AFTER the check completes
+        setHasCheckedOnMount(true);
         setIsCheckingMembership(false);
+        console.log('✓ Welcome2: Marked as checked (won\'t auto-check again)');
       }
     };
 
-    checkMembershipStatus();
-  }, [account?.address, setLocation, hasCheckedOnMount]);
+    // Small delay to avoid flash on mount
+    const timer = setTimeout(() => {
+      checkMembershipStatus();
+    }, 50);
+
+    return () => clearTimeout(timer);
+  }, [account?.address, setLocation]);
 
   const handleActivationComplete = () => {
     console.log('✅ Level 1 NFT claim and activation completed (PayEmbed) - redirecting to dashboard');
