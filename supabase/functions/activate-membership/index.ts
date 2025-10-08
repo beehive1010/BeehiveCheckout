@@ -42,7 +42,7 @@ serve(async (req) => {
         },
         global: {
           headers: {
-            'x-statement-timeout': '30000' // 30 second timeout for matrix triggers
+            'x-statement-timeout': '180000' // 180 second (3 minutes) timeout for activation with matrix triggers
           }
         }
       }

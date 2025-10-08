@@ -348,7 +348,7 @@ function Web3ContextProvider({ children }: { children: React.ReactNode }) {
         sessionStorage.removeItem('ActiveMember-chain-id');
         
         // Redirect to landing page if not already there and not on admin/public pages
-        const publicPages = ['/', '/hiveworld', '/register', '/welcome'];
+        const publicPages = ['/', '/hiveworld', '/register', '/welcome', '/welcome2'];
         const isPublicPage = publicPages.includes(location) || location.startsWith('/hiveworld/');
         
         if (!location.startsWith('/admin/') && !isPublicPage) {
@@ -443,7 +443,7 @@ function Web3ContextProvider({ children }: { children: React.ReactNode }) {
             setIsMember(false);
 
             // Auto-redirect to landing page when wallet disconnects (except admin and public pages)
-            const publicPages = ['/', '/hiveworld', '/register', '/welcome'];
+            const publicPages = ['/', '/hiveworld', '/register', '/welcome', '/welcome2'];
             const isPublicPage = publicPages.includes(location) || location.startsWith('/hiveworld/');
 
             if (wasConnected && !location.startsWith('/admin/') && !isPublicPage) {
