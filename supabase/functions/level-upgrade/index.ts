@@ -1,5 +1,6 @@
 import {serve} from "https://deno.land/std@0.168.0/http/server.ts"
 import {createClient} from 'https://esm.sh/@supabase/supabase-js@2'
+import { verifyNFTClaimTransaction, isValidTransactionHash } from '../_shared/verifyTransaction.ts'
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -404,6 +405,33 @@ async function processLevelUpgradeWithRewards(
     mintTxHash,
     nftPrice
   });
+
+  // Step 0: Verify blockchain transaction (if provided)
+  if (mintTxHash && mintTxHash !== 'simulation' && !mintTxHash.startsWith('test_')) {
+    console.log(`🔍 Verifying Level ${targetLevel} upgrade transaction: ${mintTxHash}`);
+
+    // Validate transaction hash format
+    if (!isValidTransactionHash(mintTxHash)) {
+      console.error('❌ Invalid transaction hash format:', mintTxHash);
+      throw new Error('Invalid transaction hash format');
+    }
+
+    // Verify transaction on blockchain
+    const verificationResult = await verifyNFTClaimTransaction(
+      mintTxHash,
+      walletAddress,
+      targetLevel
+    );
+
+    if (!verificationResult.valid) {
+      console.error('❌ Transaction verification failed:', verificationResult.error);
+      throw new Error(`Transaction verification failed: ${verificationResult.error}`);
+    }
+
+    console.log('✅ Transaction verified successfully:', verificationResult.details);
+  } else if (mintTxHash) {
+    console.log('⚠️ Skipping verification for test/simulation transaction');
+  }
 
   // Step 1: Update membership table with new level
   console.log('📝 Updating membership table...');
