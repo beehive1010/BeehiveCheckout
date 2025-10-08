@@ -145,148 +145,35 @@ function Web3ContextProvider({ children }: { children: React.ReactNode }) {
     }
   };
 
-  // Check membership status with proper dual auth routing
-  const checkMembershipStatus = async () => {
+  // Simplified routing - no longer checks membership here, just handles basic auth routing
+  const checkBasicAuthRouting = async () => {
     try {
       // Handle different authentication states
       if (!account?.address && !isSupabaseAuthenticated) {
         console.log('❌ No wallet and no Supabase auth - staying on current page');
         return;
       }
-      
+
       if (account?.address && !isSupabaseAuthenticated) {
-        console.log('🔗 Wallet connected but no Supabase auth - redirecting to authentication');
-        setLocation('/auth'); // Redirect to Supabase Auth page
+        console.log('🔗 Wallet connected but no Supabase auth - need authentication');
+        // Only redirect if not already on allowed pages
+        const allowedPages = ['/auth', '/welcome', '/welcome2', '/register', '/'];
+        const isOnAllowedPage = allowedPages.some(page => location === page || location.startsWith(page + '/'));
+        if (!isOnAllowedPage) {
+          setLocation('/auth');
+        }
         return;
       }
-      
+
       if (!account?.address && isSupabaseAuthenticated) {
         console.log('🔐 Supabase authenticated but no wallet - need to connect wallet');
-        // Stay on current page and show wallet connection prompt
         return;
       }
 
-      // Both wallet and Supabase auth are connected
-      if (account?.address && isSupabaseAuthenticated) {
-        console.log('✅ Both wallet and Supabase authenticated - checking membership');
-        
-        try {
-          // Check if user is a member - only members can access dashboard
-          const result = await authService.getUser(account.address); // PRESERVE CASE
-          
-          if (result.data && !result.error) {
-            // Quick member activation check using activate-membership Edge Function
-            let isActiveMember = result.data.isMember || false;
-            let canAccessReferrals = result.data.canAccessReferrals || false;
-            
-            // If auth function doesn't show member status, check members table directly
-            if (!isActiveMember) {
-              try {
-                const memberResponse = await fetch('https://cvqibjcbfrwsgkvthccp.supabase.co/functions/v1/activate-membership', {
-                  method: 'POST',
-                  headers: {
-                    'Authorization': `Bearer ${import.meta.env.VITE_SUPABASE_ANON_KEY}`,
-                    'apikey': import.meta.env.VITE_SUPABASE_ANON_KEY,
-                    'Content-Type': 'application/json',
-                    'x-wallet-address': account.address,
-                  },
-                  body: JSON.stringify({
-                    action: 'check-activation-status'
-                  })
-                });
-
-                if (memberResponse.ok) {
-                  const memberResult = await memberResponse.json();
-                  if (memberResult.success && memberResult.member) {
-                    isActiveMember = true;
-                    canAccessReferrals = true;
-                    console.log('🔍 Web3Context: Found activated member via member-info check');
-                  }
-                }
-              } catch (memberError) {
-                console.warn('⚠️ Web3Context: Member check failed:', memberError);
-              }
-            }
-            setIsMember(isActiveMember);
-            
-            // Route based on membership status  
-            if (isActiveMember) {
-              console.log('✅ User is a member, redirecting to dashboard');
-              console.log(`🔗 Referral access: ${canAccessReferrals ? 'Enabled' : 'Blocked (pending ActiveMember)'}`);
-              setLocation('/dashboard');
-            } else {
-              console.log('⏳ User authenticated but not a member, redirecting to welcome');
-              setLocation('/welcome');
-            }
-          } else if (!result.data && !result.error) {
-            // User doesn't exist yet - redirect to registration page  
-            console.log('👤 User not found, redirecting to registration...');
-            setIsMember(false);
-            setLocation('/register');
-          } else {
-            console.log('❌ Failed to get user data, redirecting to welcome');
-            setLocation('/welcome');
-          }
-        } catch (error: any) {
-          console.error('Error checking membership status:', error);
-          
-          // Handle account expired error (410)
-          if (error.status === 410 || error.message?.includes('Account expired')) {
-            console.log('⏰ Account expired, user cleanup completed');
-            
-            // Parse error response for cleanup information
-            let errorData;
-            try {
-              if (typeof error.message === 'string' && error.message.includes('{')) {
-                const jsonStart = error.message.indexOf('{');
-                errorData = JSON.parse(error.message.substring(jsonStart));
-              } else if (error.response?.data) {
-                errorData = error.response.data;
-              }
-            } catch (parseError) {
-              console.warn('Could not parse error response:', parseError);
-            }
-            
-            // Show cleanup message if available
-            if (errorData?.message) {
-              console.log('📋 Cleanup message:', errorData.message);
-            }
-            
-            // Clear any local state and redirect to registration
-            setIsSupabaseAuthenticated(false);
-            setSupabaseUser(null);
-            localStorage.removeItem('supabase-wallet-session');
-            setLocation('/');
-            return;
-          }
-          
-          // Handle authentication errors
-          if (error.status === 401 || 
-              error.message?.includes('Authentication') || 
-              error.message?.includes('session') ||
-              error.message?.includes('sign in')) {
-            console.log('🔓 Authentication error, redirecting to sign in');
-            setIsSupabaseAuthenticated(false);
-            setSupabaseUser(null);
-            setLocation('/auth');
-            return;
-          }
-          
-          // If user doesn't exist or needs registration, redirect to registration page
-          if (error.message?.includes('not found') || 
-              error.message?.includes('404') ||
-              error.message?.includes('REGISTRATION REQUIRED') ||
-              error.message?.includes('User not found in database')) {
-            console.log('👤 User needs registration, redirecting to registration...');
-            setIsMember(false);
-            setLocation('/register');
-          } else {
-            setLocation('/welcome');
-          }
-        }
-      }
+      // Both connected - let pages handle their own routing based on useWallet data
+      console.log('✅ Both wallet and Supabase authenticated');
     } catch (error) {
-      console.error('Failed to check membership status:', error);
+      console.error('Failed to check basic auth routing:', error);
     }
   };
 
@@ -481,31 +368,20 @@ function Web3ContextProvider({ children }: { children: React.ReactNode }) {
     };
   }, [account?.address, activeChain?.id, isConnected, location]); // 简化依赖，移除setLocation和wallet
 
-  // Check membership status when both wallet and Supabase auth are ready
+  // Check basic auth routing when wallet and Supabase auth change
   useEffect(() => {
     let isMounted = true;
-    let checkTimeout: NodeJS.Timeout;
-    const currentAddress = account?.address;
 
     const runCheck = async () => {
-      // 等待1500ms后再检查，让其他状态稳定下来
-      checkTimeout = setTimeout(async () => {
-        if (isConnected && isSupabaseAuthenticated && currentAddress && isMounted) {
-          // 再次验证地址没有变化
-          if (account?.address === currentAddress) {
-            await checkMembershipStatus();
-          }
-        }
-      }, 1500); // 1.5秒延迟，避免与Welcome页面的检查冲突
+      if (isMounted) {
+        await checkBasicAuthRouting();
+      }
     };
 
     runCheck();
 
     return () => {
       isMounted = false;
-      if (checkTimeout) {
-        clearTimeout(checkTimeout);
-      }
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isConnected, isSupabaseAuthenticated, account?.address]);
@@ -533,7 +409,7 @@ function Web3ContextProvider({ children }: { children: React.ReactNode }) {
     isMember,
     referrerWallet,
     recordWalletConnection,
-    checkMembershipStatus,
+    checkMembershipStatus: checkBasicAuthRouting, // Renamed for clarity
     signOut,
     gasSponsorship,
     checkGasSponsorshipEligibility,

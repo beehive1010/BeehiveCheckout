@@ -96,8 +96,7 @@ export default function Welcome2() {
     loadReferrerInfo();
   }, [referrerWallet]);
 
-  // Check if user is already an activated member and redirect to dashboard
-  // EXACT SAME ULTRA-STRICT VALIDATION AS Welcome.tsx
+  // Use useWallet data to redirect if user is already activated
   // 🔧 FIX: Only check on initial mount, not on every wallet reconnect
   useEffect(() => {
     // 🔧 ANTI-FLASH FIX: Only run once per page mount
