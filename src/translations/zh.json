@@ -2392,11 +2392,11 @@
       "loadTreeDataFailed": "加载矩阵树数据失败"
     },
     "navigation": {
-      "education": "Education",
-      "features": "Features",
+      "education": "教育",
+      "features": "功能",
       "getStarted": "开始",
-      "home": "Home",
-      "howItWorks": "How It Works"
+      "home": "首页",
+      "howItWorks": "运作方式"
     }
   },
   "wallet": {
@@ -2883,20 +2883,20 @@
     }
   },
   "footer": {
-    "backToTop": "返回 to Top",
+    "backToTop": "返回顶部",
     "brand": {
-      "tagline": "Building the future of Web3 membership and education"
+      "tagline": "构建 Web3 会员和教育的未来"
     },
     "copyright": {
-      "blockchain": "Powered by blockchain technology",
-      "rights": "All rights reserved"
+      "blockchain": "由区块链技术提供支持",
+      "rights": "保留所有权利"
     },
     "newsletter": {
-      "button": "Subscribe",
-      "description": "Subscribe to our newsletter for the latest updates and announcements",
-      "disclaimer": "We respect your privacy and will never share your email",
-      "placeholder": "输入您的电子邮件 address",
-      "title": "Stay Updated"
+      "button": "订阅",
+      "description": "订阅我们的新闻通讯以获取最新更新和公告",
+      "disclaimer": "我们尊重您的隐私，绝不会分享您的电子邮件",
+      "placeholder": "输入您的电子邮件地址",
+      "title": "保持更新"
     }
   },
   "guard": {

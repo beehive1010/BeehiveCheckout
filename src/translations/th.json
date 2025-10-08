@@ -863,16 +863,16 @@
     "status": "Status",
     "support": "Support",
     "terms": "Terms of Service",
-    "backToTop": "Back to Top",
+    "backToTop": "กลับไปด้านบน",
     "brand": {
-      "tagline": "Building the future of Web3 membership and education"
+      "tagline": "สร้างอนาคตของสมาชิกและการศึกษา Web3"
     },
     "newsletter": {
-      "button": "Subscribe",
-      "description": "Subscribe to our newsletter for the latest updates and announcements",
-      "disclaimer": "We respect your privacy and will never share your email",
-      "placeholder": "Enter your email address",
-      "title": "Stay Updated"
+      "button": "สมัครรับข้อมูล",
+      "description": "สมัครรับจดหมายข่าวของเราเพื่อรับข้อมูลอัปเดตและประกาศล่าสุด",
+      "disclaimer": "เราเคารพความเป็นส่วนตัวของคุณและจะไม่แบ่งปันอีเมลของคุณ",
+      "placeholder": "ป้อนที่อยู่อีเมลของคุณ",
+      "title": "รับข้อมูลล่าสุด"
     }
   },
   "header": {
@@ -966,9 +966,9 @@
       "subtitle": "Join thousands of members earning passive income"
     },
     "ctaStats": {
-      "earningPotential": "Earning Potential",
-      "matrixSystem": "Matrix System",
-      "membershipLevels": "Membership Levels"
+      "earningPotential": "ศักยภาพการสร้างรายได้",
+      "matrixSystem": "ระบบเมทริกซ์",
+      "membershipLevels": "ระดับสมาชิก"
     },
     "features": {
       "education": {
@@ -1015,24 +1015,24 @@
     },
     "howItWorks": {
       "step1": {
-        "description": "Connect your Web3 wallet to get started",
-        "title": "Connect Wallet"
+        "description": "เชื่อมต่อกระเป๋า Web3 ของคุณเพื่อเริ่มต้น",
+        "title": "เชื่อมต่อกระเป๋า"
       },
       "step2": {
-        "description": "Complete registration and activate Level 1 membership",
-        "title": "Register & Activate"
+        "description": "ลงทะเบียนให้เสร็จสมบูรณ์และเปิดใช้งานสมาชิกระดับ 1",
+        "title": "ลงทะเบียนและเปิดใช้งาน"
       },
       "step3": {
-        "description": "Access platform features and start earning rewards",
-        "title": "Learn & Earn"
+        "description": "เข้าถึงคุณสมบัติของแพลตฟอร์มและเริ่มรับรางวัล",
+        "title": "เรียนรู้และรับรางวัล"
       },
-      "subtitle": "Get started in just three simple steps and unlock the power of Web3 membership",
-      "title": "How It Works"
+      "subtitle": "เริ่มต้นได้ในเพียงสามขั้นตอนง่ายๆ และปลดล็อกพลังของสมาชิก Web3",
+      "title": "วิธีการทำงาน"
     },
     "matrix": {
-      "explainButton": "Matrix Explained",
-      "explainDescription": "Discover how our matrix system works and how you can earn rewards",
-      "explainTitle": "Learn the 3×3 Matrix"
+      "explainButton": "คำอธิบายเมทริกซ์",
+      "explainDescription": "ค้นพบว่าระบบเมทริกซ์ของเราทำงานอย่างไรและคุณสามารถรับรางวัลได้อย่างไร",
+      "explainTitle": "เรียนรู้เมทริกซ์ 3×3"
     },
     "platformFeatures": {
       "autoPlacement": "Auto-placement System",
