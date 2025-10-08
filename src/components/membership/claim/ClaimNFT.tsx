@@ -44,7 +44,7 @@ export function ClaimStarNFT({ nftType, address }: ClaimStarNFTProps) {
         queryKey: ['nft-config'],
         queryFn: async () => {
             const { data, error } = await supabase
-                .from('nft_config')
+                .from('nconfig')
                 .select('*')
                 .in('nft_type', ['Nova', 'Orbit', 'Stellar', 'Polaris'])
                 .order('token_id');
