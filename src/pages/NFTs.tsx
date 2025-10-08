@@ -180,7 +180,7 @@ export default function NFTs() {
           id: 'mock-1',
           title: 'Premium DeFi Analytics Dashboard',
           description: 'Access advanced analytics and insights for your DeFi portfolio with real-time tracking.',
-          imageUrl: 'https://via.placeholder.com/400x300/4F46E5/FFFFFF?text=DeFi+Analytics',
+          imageUrl: 'https://images.unsplash.com/photo-1639762681485-074b7f938ba0?w=400',
           priceUSDT: 99.99,
           priceBCC: 150,
           category: 'defi',
@@ -213,7 +213,7 @@ export default function NFTs() {
           id: 'mock-2',
           title: 'Gaming NFT Collection',
           description: 'Exclusive gaming NFTs that unlock special abilities and rewards in our Web3 game ecosystem.',
-          imageUrl: 'https://via.placeholder.com/400x300/EC4899/FFFFFF?text=Gaming+NFT',
+          imageUrl: 'https://images.unsplash.com/photo-1614680376593-902f74cf0d41?w=400',
           priceUSDT: 49.99,
           priceBCC: 75,
           category: 'gaming',
@@ -269,7 +269,7 @@ export default function NFTs() {
           id: 'merchant-1',
           title: 'Professional Web Development Service',
           description: 'Full-stack web development service including React, Node.js, and database integration.',
-          imageUrl: 'https://via.placeholder.com/400x300/10B981/FFFFFF?text=Web+Development',
+          imageUrl: 'https://images.unsplash.com/photo-1498050108023-c5249f4df085?w=400',
           priceUSDT: 199.99,
           priceBCC: 300,
           category: 'development',
@@ -299,7 +299,7 @@ export default function NFTs() {
           id: 'merchant-2',
           title: 'Digital Marketing Consultation',
           description: 'Strategic digital marketing consultation to boost your Web3 project visibility and growth.',
-          imageUrl: 'https://via.placeholder.com/400x300/F59E0B/FFFFFF?text=Marketing',
+          imageUrl: 'https://images.unsplash.com/photo-1460925895917-afdab827c52f?w=400',
           priceUSDT: 149.99,
           priceBCC: 225,
           category: 'consulting',
@@ -689,7 +689,7 @@ export default function NFTs() {
                       src={nft.imageUrl}
                       alt={nft.title}
                       className="w-full h-48 object-cover rounded-lg mb-3"
-                      fallback="https://via.placeholder.com/400x300/e2e8f0/64748b?text=Advertisement+NFT"
+                      fallback="https://images.unsplash.com/photo-1639762681485-074b7f938ba0?w=400"
                     />
                     <Badge className="w-fit bg-blue-500/20 text-blue-400 border-blue-500/30">
                       <HybridTranslation
@@ -812,7 +812,7 @@ export default function NFTs() {
                       src={nft.imageUrl}
                       alt={nft.title}
                       className="w-full h-48 object-cover rounded-lg mb-3"
-                      fallback="https://via.placeholder.com/400x300/9333ea/e9d5ff?text=Merchant+NFT"
+                      fallback="https://images.unsplash.com/photo-1542751371-adc38448a05e?w=400"
                     />
                     <div className="flex items-center justify-between">
                       <Badge className="bg-purple-500/20 text-purple-400 border-purple-500/30">
@@ -945,7 +945,7 @@ export default function NFTs() {
                         src={nft.imageUrl}
                         alt={nft.title}
                         className="w-full h-48 object-cover rounded-lg mb-3"
-                        fallback="https://via.placeholder.com/400x300/10b981/dcfce7?text=My+NFT"
+                        fallback="https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?w=400"
                       />
                       <div className="flex items-center justify-between">
                         <Badge className={`${

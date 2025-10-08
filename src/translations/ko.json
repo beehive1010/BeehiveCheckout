@@ -819,8 +819,8 @@
     "contact": "문의하기",
     "cookies": "쿠키 정책",
     "copyright": {
-      "blockchain": "Powered by blockchain technology",
-      "rights": "All rights reserved"
+      "blockchain": "블록체인 기술로 구동",
+      "rights": "모든 권리 보유"
     },
     "description": "블록체인 기반 보상이 있는 Web3 멤버십 및 학습 플랫폼.",
     "documentation": "문서",
@@ -3117,11 +3117,11 @@
       "loadTreeDataFailed": "加載矩阵树數據失敗"
     },
     "navigation": {
-      "education": "Education",
-      "features": "Features",
-      "getStarted": "Get Started",
-      "home": "Home",
-      "howItWorks": "How It Works"
+      "education": "교육",
+      "features": "기능",
+      "getStarted": "시작하기",
+      "home": "홈",
+      "howItWorks": "작동 방식"
     }
   },
   "auth": {

@@ -743,8 +743,8 @@
     "contact": "お問い合わせ",
     "cookies": "Cookieポリシー",
     "copyright": {
-      "blockchain": "Powered by blockchain technology",
-      "rights": "All rights reserved"
+      "blockchain": "ブロックチェーン技術で動作",
+      "rights": "全著作権所有"
     },
     "description": "ブロックチェーン報酬付きのWeb3メンバーシップ＆学習プラットフォーム。",
     "documentation": "ドキュメント",
@@ -755,16 +755,16 @@
     "status": "ステータス",
     "support": "サポート",
     "terms": "利用規約",
-    "backToTop": "Back to Top",
+    "backToTop": "トップに戻る",
     "brand": {
-      "tagline": "Building the future of Web3 membership and education"
+      "tagline": "Web3メンバーシップと教育の未来を構築"
     },
     "newsletter": {
-      "button": "Subscribe",
-      "description": "Subscribe to our newsletter for the latest updates and announcements",
-      "disclaimer": "We respect your privacy and will never share your email",
-      "placeholder": "Enter your email address",
-      "title": "Stay Updated"
+      "button": "購読する",
+      "description": "最新の更新情報とお知らせを受け取るためにニュースレターを購読してください",
+      "disclaimer": "お客様のプライバシーを尊重し、メールアドレスを共有することはありません",
+      "placeholder": "メールアドレスを入力",
+      "title": "最新情報を入手"
     }
   },
   "header": {
@@ -3071,11 +3071,11 @@
       "loadTreeDataFailed": "加載矩阵树數據失敗"
     },
     "navigation": {
-      "education": "Education",
-      "features": "Features",
-      "getStarted": "Get Started",
-      "home": "Home",
-      "howItWorks": "How It Works"
+      "education": "教育",
+      "features": "機能",
+      "getStarted": "始める",
+      "home": "ホーム",
+      "howItWorks": "仕組み"
     }
   },
   "ads": {

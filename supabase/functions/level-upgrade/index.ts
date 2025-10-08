@@ -782,8 +782,9 @@ async function processLevelUpgrade(
     }
 
     // 7. Get final results from triggered functions
-    await new Promise(resolve => setTimeout(resolve, 2000)) // Wait for triggers to complete
-    
+    // ✅ Reduced wait time from 2000ms to 500ms - triggers complete quickly, verification is optional
+    await new Promise(resolve => setTimeout(resolve, 500))
+
     // Check user balance changes
     const { data: balanceData } = await supabase
       .from('user_balances')
