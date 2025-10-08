@@ -39,6 +39,7 @@ import SupabaseAuth from "@/pages/SupabaseAuth";
 import AuthCallback from "@/pages/AuthCallback";
 import AdminNFTsPage from "@/pages/AdminNFTs";
 import TestUpgradeMembership from "@/pages/TestUpgradeMembership";
+import TestPayEmbedClaim from "@/pages/TestPayEmbedClaim";
 // Archived: MultiChainClaimDemo and CheckoutTest moved to _archive/
 // import PhotoUploadDemo from "@/pages/PhotoUploadDemo";
 
@@ -440,6 +441,9 @@ function Router() {
             <TestUpgradeMembership />
           </MemberGuard>
         )} />
+
+        {/* Test: PayEmbed-style Claim Flow */}
+        <Route path="/test-payembed-claim" component={TestPayEmbedClaim} />
 
         {/* Photo Upload Demo - Temporarily disabled */}
         {/* <Route path="/photo-upload-demo" component={() => (
