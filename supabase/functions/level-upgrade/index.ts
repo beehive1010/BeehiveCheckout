@@ -655,34 +655,10 @@ async function processLevelUpgrade(
     // 6.2. Note: Pending rewards will be handled by member level update triggers  
     console.log(`🎁 Pending rewards will be processed by database triggers...`)
 
-    // 6.3. Trigger BCC release for Level upgrade
-    let bccReleaseResult = null;
-    try {
-      console.log(`🔓 Unlocking BCC for Level ${targetLevel} upgrade...`);
-      const bccResponse = await fetch(`${Deno.env.get('SUPABASE_URL')}/functions/v1/bcc-release-system`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')}`
-        },
-        body: JSON.stringify({
-          action: 'process_level_unlock',
-          walletAddress: walletAddress,
-          targetLevel: targetLevel
-        })
-      });
-
-      if (bccResponse.ok) {
-        bccReleaseResult = await bccResponse.json();
-        console.log(`✅ BCC release completed:`, bccReleaseResult);
-      } else {
-        console.warn(`⚠️ BCC release failed with status ${bccResponse.status}`);
-        const errorText = await bccResponse.text();
-        console.warn(`BCC release error:`, errorText);
-      }
-    } catch (bccError) {
-      console.warn('⚠️ BCC release error (non-critical):', bccError);
-    }
+    // 6.3. BCC release is handled automatically by database trigger
+    // The trigger_level_upgrade_rewards trigger calls release_bcc_on_level_upgrade()
+    // when members.current_level is updated
+    console.log(`✅ BCC release will be handled by database trigger (release_bcc_on_level_upgrade)`);
 
     // 6.4. Trigger Layer Rewards for Level Upgrade (Level 2-19)
     // Layer rewards are only triggered for upgrades from Level 2 onwards
