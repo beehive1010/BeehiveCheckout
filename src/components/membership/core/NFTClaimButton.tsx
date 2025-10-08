@@ -13,6 +13,7 @@ import { claimTo } from 'thirdweb/extensions/erc1155';
 import { approve, balanceOf as erc20BalanceOf, allowance } from 'thirdweb/extensions/erc20';
 import { useToast } from '../../../hooks/use-toast';
 import { client } from '../../../lib/thirdwebClient';
+import { supabase } from '../../../lib/supabase';
 
 // Contract addresses (Updated 2025-10-08)
 const USDT_CONTRACT = '0xFd086bC7CD5C481DCC9C85ebE478A1C0b69FCbb9'; // Arbitrum Mainnet USDT (Official)
@@ -245,10 +246,38 @@ export function useNFTClaim() {
           const errorText = await activateResponse.text();
           console.error('❌ Activation API call failed:', errorText);
 
+          // ✅ FIX: Record to claim_sync_queue for automatic retry
+          let queuedSuccessfully = false;
+          try {
+            const { data: queueData, error: queueError } = await supabase
+              .from('claim_sync_queue')
+              .insert({
+                wallet_address: account.address,
+                level: level,
+                tx_hash: claimTxResult.transactionHash,
+                status: 'pending',
+                source: activationEndpoint === 'level-upgrade' ? 'level_upgrade' : 'activate_membership',
+                error_message: errorText.substring(0, 500), // Limit error message length
+                created_at: new Date().toISOString(),
+              });
+
+            if (queueError) {
+              console.error('❌ Failed to add to sync queue:', queueError);
+            } else {
+              console.log('✅ Added to claim_sync_queue for automatic retry:', queueData);
+              queuedSuccessfully = true;
+            }
+          } catch (queueInsertError) {
+            console.error('❌ Queue insert exception:', queueInsertError);
+          }
+
+          // ✅ FIX: User-friendly message with automatic retry info
           toast({
-            title: '⚠️ NFT Claimed but Activation Failed',
-            description: 'NFT claimed successfully, but database activation failed. Please contact support with your transaction hash.',
-            variant: 'destructive',
+            title: '⚠️ Activation Processing',
+            description: queuedSuccessfully
+              ? 'Your NFT has been claimed successfully! The activation is being processed and will complete automatically within 5 minutes. You can check your status in the dashboard.'
+              : 'NFT claimed successfully, but database activation failed. Please contact support with your transaction hash: ' + claimTxResult.transactionHash.substring(0, 10) + '...',
+            variant: queuedSuccessfully ? 'default' : 'destructive',
             duration: 10000,
           });
 
@@ -258,7 +287,8 @@ export function useNFTClaim() {
             success: false,
             txHash: claimTxResult.transactionHash,
             error: `Activation failed: ${errorText}`,
-            nftClaimed: true // NFT was claimed but activation failed
+            nftClaimed: true, // NFT was claimed but activation failed
+            queuedForRetry: queuedSuccessfully // Whether successfully added to queue
           };
         } else {
           const activateResult = await activateResponse.json();
