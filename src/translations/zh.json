@@ -2004,47 +2004,63 @@
     }
   },
   "nfts": {
+    "title": "NFT市场",
+    "subtitle": "发现并收集独特的数字资产",
+    "stats": {
+      "advertisement": "广告NFT",
+      "merchant": "商户NFT",
+      "myNfts": "我的NFT",
+      "bccBalance": "BCC余额",
+      "owned": "已拥有"
+    },
     "advertisement": {
       "title": "广告NFT",
-      "subtitle": "发现并购买广告机会",
-      "purchase": "购买NFT",
-      "category": "分类",
-      "impressions": "展示次数",
-      "available": "可用",
-      "soldOut": "已售完",
-      "insufficient": "BCC不足",
-      "views": "Views"
+      "subtitle": "通过NFT广告推广您的品牌",
+      "views": "浏览量",
+      "noAvailable": "暂无可用的广告NFT"
     },
     "merchant": {
       "title": "商户NFT",
-      "subtitle": "探索独特的商户产品",
-      "supply": "供应量",
+      "subtitle": "来自商户的数字商品和服务",
+      "soldOut": "已售罄",
       "available": "可用",
-      "creator": "创作者"
-    },
-    "common": {
-      "purchase": "使用BCC购买",
-      "purchasing": "处理中...",
-      "price": "价格",
-      "description": "描述",
-      "metadata": "详情",
-      "viewDetails": "查看详情"
+      "left": "剩余",
+      "noAvailable": "暂无可用的商户NFT"
     },
     "myCollection": {
-      "title": "My Collection",
-      "subtitle": "NFTs you own",
-      "empty": "You don't own any NFTs yet"
+      "title": "我的收藏",
+      "subtitle": "您拥有的NFT",
+      "empty": "您还没有任何NFT",
+      "owned": "已拥有",
+      "purchased": "购买时间",
+      "paid": "支付",
+      "type": "类型",
+      "accessService": "访问服务",
+      "browseAds": "浏览广告",
+      "browseServices": "浏览服务"
     },
     "purchase": {
-      "button": "Purchase",
-      "purchasing": "Purchasing..."
+      "button": "购买",
+      "purchasing": "购买中...",
+      "walletRequired": "需要钱包",
+      "connectWallet": "请连接您的钱包以购买NFT",
+      "insufficientBcc": "BCC余额不足",
+      "needBcc": "您需要 {amount} BCC，但仅有 {current} BCC",
+      "success": "购买成功",
+      "successDesc": "成功购买",
+      "failed": "购买失败",
+      "failedDesc": "无法完成购买"
     },
-    "stats": {
-      "advertisement": "Advertisement NFTs",
-      "merchant": "Merchant NFTs"
+    "errors": {
+      "loadFailed": "加载NFT失败",
+      "loadPurchasesFailed": "加载您的购买记录失败"
     },
-    "subtitle": "Discover and collect unique digital assets",
-    "title": "NFT Marketplace"
+    "loading": "加载NFT中...",
+    "tabs": {
+      "ads": "广告",
+      "merchant": "商户",
+      "mine": "我的"
+    }
   },
   "membershipSystem": {
     "matrix": {

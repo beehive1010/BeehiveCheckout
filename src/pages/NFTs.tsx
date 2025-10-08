@@ -594,17 +594,17 @@ export default function NFTs() {
             <div className="text-center lg:text-right">
               <div className="flex items-center gap-2 text-sm text-muted-foreground mb-1">
                 <Package className="w-4 h-4" />
-                <span>My NFTs</span>
+                <span>{t('nfts.stats.myNfts')}</span>
               </div>
               <div className="text-lg font-bold text-honey">
-                {totalNFTsOwned} Owned
+                {totalNFTsOwned} {t('nfts.stats.owned')}
               </div>
             </div>
-            
+
             <div className="text-center lg:text-right">
               <div className="flex items-center gap-2 text-sm text-muted-foreground mb-1">
                 <ShoppingCart className="w-4 h-4" />
-                <span>BCC Balance</span>
+                <span>{t('nfts.stats.bccBalance')}</span>
               </div>
               <div className="text-lg font-bold text-green-400">
                 {((directBCCBalance !== null ? directBCCBalance : bccBalance?.transferable) || 0).toFixed(2)} BCC
@@ -618,7 +618,7 @@ export default function NFTs() {
       {loading && (
         <div className="flex items-center justify-center py-12">
           <Loader2 className="w-8 h-8 animate-spin text-honey" />
-          <span className="ml-2 text-muted-foreground">Loading NFTs...</span>
+          <span className="ml-2 text-muted-foreground">{t('nfts.loading')}</span>
         </div>
       )}
 
@@ -627,37 +627,37 @@ export default function NFTs() {
         <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
           <div className="border-b border-border">
             <TabsList className="grid grid-cols-3 w-full max-w-2xl mx-auto bg-background border border-border rounded-xl p-1">
-              <TabsTrigger 
-                value="advertisement-nfts" 
+              <TabsTrigger
+                value="advertisement-nfts"
                 className="flex items-center gap-2 data-[state=active]:bg-honey data-[state=active]:text-secondary font-medium"
               >
                 <Megaphone className="w-4 h-4" />
                 <span className="hidden sm:inline">{t('nfts.stats.advertisement')}</span>
-                <span className="sm:hidden">Ads</span>
+                <span className="sm:hidden">{t('nfts.tabs.ads')}</span>
                 <Badge variant="secondary" className="ml-1 bg-blue-500/20 text-blue-400 text-xs">
                   {advertisementNFTs.length}
                 </Badge>
               </TabsTrigger>
-              
-              <TabsTrigger 
-                value="merchant-nfts" 
+
+              <TabsTrigger
+                value="merchant-nfts"
                 className="flex items-center gap-2 data-[state=active]:bg-honey data-[state=active]:text-secondary font-medium"
               >
                 <Palette className="w-4 h-4" />
                 <span className="hidden sm:inline">{t('nfts.stats.merchant')}</span>
-                <span className="sm:hidden">Merchant</span>
+                <span className="sm:hidden">{t('nfts.tabs.merchant')}</span>
                 <Badge variant="secondary" className="ml-1 bg-purple-500/20 text-purple-400 text-xs">
                   {merchantNFTs.length}
                 </Badge>
               </TabsTrigger>
-              
-              <TabsTrigger 
-                value="my-collection" 
+
+              <TabsTrigger
+                value="my-collection"
                 className="flex items-center gap-2 data-[state=active]:bg-honey data-[state=active]:text-secondary font-medium"
               >
                 <Star className="w-4 h-4" />
-                <span className="hidden sm:inline">My NFTs</span>
-                <span className="sm:hidden">Mine</span>
+                <span className="hidden sm:inline">{t('nfts.stats.myNfts')}</span>
+                <span className="sm:hidden">{t('nfts.tabs.mine')}</span>
                 <Badge variant="secondary" className="ml-1 bg-green-500/20 text-green-400 text-xs">
                   {totalNFTsOwned}
                 </Badge>
@@ -783,7 +783,7 @@ export default function NFTs() {
             {advertisementNFTs.length === 0 && !loading && (
               <div className="text-center py-12">
                 <Megaphone className="w-16 h-16 text-blue-400/30 mx-auto mb-4" />
-                <p className="text-muted-foreground">No advertisement NFTs available</p>
+                <p className="text-muted-foreground">{t('nfts.advertisement.noAvailable')}</p>
               </div>
             )}
           </TabsContent>
@@ -830,7 +830,7 @@ export default function NFTs() {
                       </Badge>
                       {nft.supplyTotal && (
                         <Badge variant="outline" className="text-xs">
-                          {nft.supplyAvailable}/{nft.supplyTotal} left
+                          {nft.supplyAvailable}/{nft.supplyTotal} {t('nfts.merchant.left')}
                         </Badge>
                       )}
                     </div>
@@ -873,7 +873,7 @@ export default function NFTs() {
                       {nft.supplyTotal && (
                         <div className="text-center">
                           <div className="text-sm font-medium text-foreground">{nft.supplyAvailable || 0}</div>
-                          <div className="text-xs text-muted-foreground">Available</div>
+                          <div className="text-xs text-muted-foreground">{t('nfts.merchant.available')}</div>
                         </div>
                       )}
                     </div>
@@ -908,7 +908,7 @@ export default function NFTs() {
             {merchantNFTs.length === 0 && !loading && (
               <div className="text-center py-12">
                 <Palette className="w-16 h-16 text-purple-400/30 mx-auto mb-4" />
-                <p className="text-muted-foreground">No merchant NFTs available</p>
+                <p className="text-muted-foreground">{t('nfts.merchant.noAvailable')}</p>
               </div>
             )}
           </TabsContent>
@@ -966,7 +966,7 @@ export default function NFTs() {
                           />
                         </Badge>
                         <Badge className="bg-green-500/20 text-green-400 border-green-500/30">
-                          Owned
+                          {t('nfts.myCollection.owned')}
                         </Badge>
                       </div>
                       <CardTitle className="text-lg text-foreground">
@@ -987,21 +987,21 @@ export default function NFTs() {
                     
                     <CardContent className="relative space-y-4">
                       <p className="text-sm text-muted-foreground line-clamp-2">{getTranslatedContent(nft, 'description')}</p>
-                      
+
                       <div className="text-xs text-muted-foreground space-y-1">
-                        <div>Purchased: {new Date(purchase.purchased_at).toLocaleDateString()}</div>
-                        <div>Paid: {purchase.price_usdt || 0} USDT</div>
-                        <div>Type: {purchase.nft_type}</div>
+                        <div>{t('nfts.myCollection.purchased')}: {new Date(purchase.purchased_at).toLocaleDateString()}</div>
+                        <div>{t('nfts.myCollection.paid')}: {purchase.price_usdt || 0} USDT</div>
+                        <div>{t('nfts.myCollection.type')}: {purchase.nft_type}</div>
                       </div>
 
                       {isAdNFT && (nft as AdvertisementNFT).click_url && (
-                        <Button 
-                          variant="outline" 
+                        <Button
+                          variant="outline"
                           onClick={() => window.open((nft as AdvertisementNFT).click_url, '_blank')}
                           className="w-full border-green-500/30 text-green-400 hover:bg-green-500/10"
                         >
                           <Eye className="mr-2 h-4 w-4" />
-                          Access Service
+                          {t('nfts.myCollection.accessService')}
                         </Button>
                       )}
                     </CardContent>
@@ -1022,14 +1022,14 @@ export default function NFTs() {
                     onClick={() => setActiveTab('advertisement-nfts')}
                     className="border-blue-400/30 text-blue-400 hover:bg-blue-400/10"
                   >
-                    Browse Ads
+                    {t('nfts.myCollection.browseAds')}
                   </Button>
                   <Button
                     variant="outline"
                     onClick={() => setActiveTab('merchant-nfts')}
                     className="border-purple-400/30 text-purple-400 hover:bg-purple-400/10"
                   >
-                    Browse Services
+                    {t('nfts.myCollection.browseServices')}
                   </Button>
                 </div>
               </div>

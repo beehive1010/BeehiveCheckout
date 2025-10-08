@@ -296,7 +296,7 @@ export default function USDTWithdrawal() {
                     <span>{info.icon}</span>
                     <span>{info.name}</span>
                     <Badge variant="outline" className="ml-auto">
-                      {info.fee} USDT fee
+                      {info.fee === 0 ? 'FREE' : `${info.fee} USDT fee`}
                     </Badge>
                     {info.native && (
                       <Badge className="bg-honey text-black">Native</Badge>
@@ -352,7 +352,9 @@ export default function USDTWithdrawal() {
               </div>
               <div className="flex justify-between">
                 <span>{t('withdrawal.network_fee')}:</span>
-                <span>-{fee.toFixed(2)} USDT</span>
+                <span className={fee === 0 ? 'text-green-600 font-semibold' : ''}>
+                  {fee === 0 ? 'FREE ✨' : `-${fee.toFixed(2)} USDT`}
+                </span>
               </div>
               <div className="flex justify-between font-semibold border-t pt-1">
                 <span>{t('withdrawal.you_receive')}:</span>

@@ -2122,25 +2122,58 @@
     "subtitle": "Discover and collect unique digital assets",
     "stats": {
       "advertisement": "Advertisement NFTs",
-      "merchant": "Merchant NFTs"
+      "merchant": "Merchant NFTs",
+      "myNfts": "My NFTs",
+      "bccBalance": "BCC Balance",
+      "owned": "Owned"
     },
     "advertisement": {
       "title": "Advertisement NFTs",
       "subtitle": "Promote your brand with NFT advertising",
-      "views": "Views"
+      "views": "Views",
+      "noAvailable": "No advertisement NFTs available"
     },
     "merchant": {
       "title": "Merchant NFTs",
-      "subtitle": "Digital goods and services from merchants"
+      "subtitle": "Digital goods and services from merchants",
+      "soldOut": "Sold Out",
+      "available": "Available",
+      "left": "left",
+      "noAvailable": "No merchant NFTs available"
     },
     "myCollection": {
       "title": "My Collection",
       "subtitle": "NFTs you own",
-      "empty": "You don't own any NFTs yet"
+      "empty": "You don't own any NFTs yet",
+      "owned": "Owned",
+      "purchased": "Purchased",
+      "paid": "Paid",
+      "type": "Type",
+      "accessService": "Access Service",
+      "browseAds": "Browse Ads",
+      "browseServices": "Browse Services"
     },
     "purchase": {
       "button": "Purchase",
-      "purchasing": "Purchasing..."
+      "purchasing": "Purchasing...",
+      "walletRequired": "Wallet Required",
+      "connectWallet": "Please connect your wallet to purchase NFTs",
+      "insufficientBcc": "Insufficient BCC Balance",
+      "needBcc": "You need {amount} BCC but only have {current} BCC",
+      "success": "Purchase Successful",
+      "successDesc": "Successfully purchased",
+      "failed": "Purchase Failed",
+      "failedDesc": "Failed to complete purchase"
+    },
+    "errors": {
+      "loadFailed": "Failed to load NFTs",
+      "loadPurchasesFailed": "Failed to load your purchases"
+    },
+    "loading": "Loading NFTs...",
+    "tabs": {
+      "ads": "Ads",
+      "merchant": "Merchant",
+      "mine": "Mine"
     }
   },
   "discover": {
