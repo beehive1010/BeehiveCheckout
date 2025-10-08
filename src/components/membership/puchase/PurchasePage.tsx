@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect } from 'react';
-import { useTranslation } from 'react-i18next';
+import { useI18n } from '../../../contexts/I18nContext';
 import { PayEmbed } from "thirdweb/react";
 import { FiArrowLeft } from "react-icons/fi";
 import type { PayEmbedProps } from "thirdweb/react";
@@ -17,7 +17,7 @@ export function PurchasePage({
                                  isProcessing,
                                  onClose
                              }: PurchasePageProps) {
-    const { t } = useTranslation();
+    const { t } = useI18n();
 
     // 处理返回
     const handleBack = () => {

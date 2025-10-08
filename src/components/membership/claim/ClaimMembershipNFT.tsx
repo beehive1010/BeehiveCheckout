@@ -1,4 +1,4 @@
-hai/**
+/**
  * Membership NFT Claim Component
  *
  * Based on the StarNFT claim flow:
