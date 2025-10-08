@@ -39,7 +39,7 @@ export const WithdrawRewards: React.FC<WithdrawRewardsProps> = ({ walletAddress 
       const { data, error } = await supabase
         .from('layer_rewards')
         .select('*')
-        .eq('reward_recipient_wallet', walletAddress)
+        .ilike('reward_recipient_wallet', walletAddress)
         .in('status', ['claimable', 'pending'])
         .order('created_at', { ascending: false });
 
@@ -57,7 +57,7 @@ export const WithdrawRewards: React.FC<WithdrawRewardsProps> = ({ walletAddress 
       const { data, error } = await supabase
         .from('user_balances')
         .select('reward_balance, total_withdrawn, available_balance')
-        .eq('wallet_address', walletAddress)
+        .ilike('wallet_address', walletAddress)
         .single();
 
       if (error) throw error;

@@ -640,7 +640,12 @@ export default function Dashboard() {
                 </div>
               </div>
               <Button
-                onClick={() => setLocation('/tokens')}
+                onClick={() => {
+                  toast({
+                    title: t('dashboard.comingSoon'),
+                    description: t('dashboard.bccTopUpComingSoon'),
+                  });
+                }}
                 className={`w-full bg-gradient-to-r from-honey to-amber-400 hover:from-honey/90 hover:to-amber-500 text-black font-bold shadow-lg hover:shadow-xl transition-all duration-300 ${
                   isMobile ? 'h-9 text-sm' : isDesktop ? 'h-12 text-base' : 'h-10 text-sm'
                 }`}

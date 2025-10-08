@@ -274,7 +274,9 @@
   "dashboard": {
     "bccBalance": "Baki BCC",
     "bccLocked": "BCC Terkunci",
+    "bccTopUpComingSoon": "Ciri tambah nilai BCC akan datang tidak lama lagi!",
     "buildNetwork": "Mari bina rangkaian sarang anda bersama",
+    "comingSoon": "Akan Datang",
     "claimRewards": "Tuntut Ganjaran",
     "copyLink": "Salin Pautan",
     "directReferrals": "Rujukan Langsung",
