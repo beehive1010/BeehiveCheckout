@@ -10,10 +10,13 @@ export async function getDirectReferralCount(referrerWallet: string): Promise<nu
 
     // Primary: Query referrals table directly by referrer_wallet
     // This counts actual direct referrals, not matrix layer 1 placements
+    // Must filter by is_direct_referral=true to match direct_referral_sequence view
+    // Use ilike for case-insensitive matching (addresses may not be lowercase in DB)
     const { count, error } = await supabase
       .from('referrals')
       .select('*', { count: 'exact', head: true })
-      .eq('referrer_wallet', referrerWallet.toLowerCase());
+      .ilike('referrer_wallet', referrerWallet)
+      .eq('is_direct_referral', true);
 
     if (error) {
       console.error('❌ referrals table query failed:', error);
@@ -80,14 +83,18 @@ export async function getDirectReferralDetails(referrerWallet: string): Promise<
     console.log(`🔍 Fetching detailed referral info for: ${referrerWallet}`);
     
     // Primary: Get referral data from referrals table (direct referrals tracking)
+    // Must filter by is_direct_referral=true to match direct_referral_sequence view
+    // Use ilike for case-insensitive matching (addresses may not be lowercase in DB)
     const { data: referralData, error: referralError } = await supabase
       .from('referrals')
       .select(`
         member_wallet,
         referrer_wallet,
-        placed_at
+        placed_at,
+        is_direct_referral
       `)
-      .eq('referrer_wallet', referrerWallet.toLowerCase())
+      .ilike('referrer_wallet', referrerWallet)
+      .eq('is_direct_referral', true)
       .order('placed_at', { ascending: false });
 
     if (referralError) {
@@ -101,6 +108,8 @@ export async function getDirectReferralDetails(referrerWallet: string): Promise<
     }
 
     // Get user details from users table for display names
+    // Note: .in() is case-sensitive, but since we're getting from referralData which came from DB,
+    // the case should already match. If issues occur, we may need to use individual queries with ilike.
     const walletAddresses = referralData.map(r => r.member_wallet);
     const { data: usersData } = await supabase
       .from('users')
