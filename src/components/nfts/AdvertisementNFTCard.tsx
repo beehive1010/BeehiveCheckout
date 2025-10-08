@@ -12,6 +12,7 @@ import { nftsApi } from '../../api/nfts/nfts.api';
 import { supabase } from '../../lib/supabase';
 import { ShoppingCart, Eye, ExternalLink, Zap, Loader2 } from 'lucide-react';
 import { IconCode, IconWallet, IconFlame } from '@tabler/icons-react';
+import { HybridTranslation } from '../shared/HybridTranslation';
 
 export interface AdvertisementNFT {
   id: string;
@@ -30,6 +31,13 @@ export interface AdvertisementNFT {
   metadata: any;
   createdAt: string;
   type: 'advertisement';
+  // 多语言支持
+  language?: string;
+  translations?: Record<string, {
+    title?: string;
+    description?: string;
+    category?: string;
+  }>;
 }
 
 interface AdvertisementNFTCardProps {
@@ -175,7 +183,17 @@ export default function AdvertisementNFTCard({ nft, onPurchase, className = '' }
           <Badge variant="secondary" className={`bg-black/70 text-white border-0 ${getCategoryColor(nft.category)}`}>
             <div className="flex items-center gap-1">
               {getCategoryIcon(nft.category)}
-              <span className="text-xs capitalize">{nft.category}</span>
+              <HybridTranslation
+                content={{
+                  text: nft.category,
+                  language: nft.language,
+                  translations: nft.translations ? Object.fromEntries(
+                    Object.entries(nft.translations).map(([lang, trans]) => [lang, trans.category || nft.category])
+                  ) : {}
+                }}
+                autoTranslate={true}
+                contentStyle="text-xs capitalize"
+              />
             </div>
           </Badge>
         </div>
@@ -196,45 +214,65 @@ export default function AdvertisementNFTCard({ nft, onPurchase, className = '' }
             <DialogContent className="sm:max-w-md">
               <DialogHeader>
                 <DialogTitle className="text-blue-400">
-                  <MultilingualText
-                    text={nft.title}
-                    language={nft.language}
-                    translations={nft.translations ? Object.fromEntries(
-                      Object.entries(nft.translations).map(([lang, trans]) => [lang, trans.title || nft.title])
-                    ) : {}}
+                  <HybridTranslation
+                    content={{
+                      text: nft.title,
+                      language: nft.language,
+                      translations: nft.translations ? Object.fromEntries(
+                        Object.entries(nft.translations).map(([lang, trans]) => [lang, trans.title || nft.title])
+                      ) : {}
+                    }}
                     autoTranslate={true}
                   />
                 </DialogTitle>
                 <DialogDescription>
-                  by <MultilingualText
-                    text={nft.serviceName}
-                    language={nft.language}
-                    translations={nft.translations ? Object.fromEntries(
-                      Object.entries(nft.translations).map(([lang, trans]) => [lang, trans.serviceName || nft.serviceName])
-                    ) : {}}
-                    autoTranslate={true}
-                  />
+                  {nft.category} Advertisement
                 </DialogDescription>
               </DialogHeader>
               <div className="space-y-4">
                 <img src={nft.imageUrl} alt={nft.title} className="w-full h-48 object-cover rounded-lg" />
                 <p className="text-sm text-muted-foreground">
-                  <MultilingualText
-                    text={nft.description}
-                    language={nft.language}
-                    translations={nft.translations ? Object.fromEntries(
-                      Object.entries(nft.translations).map(([lang, trans]) => [lang, trans.description || nft.description])
-                    ) : {}}
+                  <HybridTranslation
+                    content={{
+                      text: nft.description,
+                      language: nft.language,
+                      translations: nft.translations ? Object.fromEntries(
+                        Object.entries(nft.translations).map(([lang, trans]) => [lang, trans.description || nft.description])
+                      ) : {}
+                    }}
                     autoTranslate={true}
+                    contentStyle="text-sm text-muted-foreground"
                   />
                 </p>
+
+                {/* Metadata display */}
+                {nft.metadata && Object.keys(nft.metadata).length > 0 && (
+                  <div className="bg-blue-500/5 rounded-lg p-3 space-y-2">
+                    <h4 className="text-sm font-medium text-blue-400">Advertisement Details:</h4>
+                    <div className="text-xs text-muted-foreground space-y-1">
+                      {nft.impressionsTarget && (
+                        <div>Target Impressions: {nft.impressionsTarget.toLocaleString()}</div>
+                      )}
+                      {nft.impressionsCurrent !== null && (
+                        <div>Current Impressions: {nft.impressionsCurrent.toLocaleString()}</div>
+                      )}
+                      {nft.clickUrl && (
+                        <div className="truncate">Click URL: {nft.clickUrl}</div>
+                      )}
+                    </div>
+                  </div>
+                )}
+
                 <div className="flex items-center justify-between">
-                  <Badge className="bg-blue-500/20 text-blue-400 border-blue-500/30">
-                    {nft.priceBCC} BCC
-                  </Badge>
-                  <span className="text-sm text-muted-foreground">
-                    {availableCount}/{nft.totalSupply} available
-                  </span>
+                  <div className="space-y-1">
+                    <div className="text-lg font-bold text-blue-400">{nft.priceBCC} BCC</div>
+                    <div className="text-xs text-muted-foreground">${nft.priceUSDT} USDT</div>
+                  </div>
+                  {nft.impressionsTarget && (
+                    <span className="text-sm text-muted-foreground">
+                      {((nft.impressionsCurrent || 0) / nft.impressionsTarget * 100).toFixed(0)}% viewed
+                    </span>
+                  )}
                 </div>
               </div>
             </DialogContent>

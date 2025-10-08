@@ -11,6 +11,7 @@ import { nftsApi } from '../../api/nfts/nfts.api';
 import { supabase } from '../../lib/supabase';
 import { ShoppingCart, Eye, Package, Star, Zap, Loader2 } from 'lucide-react';
 import { IconBriefcase, IconPalette, IconCode, IconSchool } from '@tabler/icons-react';
+import { HybridTranslation } from '../shared/HybridTranslation';
 
 export interface MerchantNFT {
   id: string;
@@ -26,6 +27,13 @@ export interface MerchantNFT {
   metadata: any;
   createdAt: string;
   type: 'merchant';
+  // 多语言支持
+  language?: string;
+  translations?: Record<string, {
+    title?: string;
+    description?: string;
+    category?: string;
+  }>;
 }
 
 interface MerchantNFTCardProps {
