@@ -2,6 +2,7 @@ import { serve } from "https://deno.land/std@0.168.0/http/server.ts"
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
 import { createThirdwebClient, getContract, readContract } from 'https://esm.sh/thirdweb@5'
 import { arbitrum } from 'https://esm.sh/thirdweb@5/chains'
+import { verifyNFTClaimTransaction, isValidTransactionHash } from '../_shared/verifyTransaction.ts'
 
 // Correct database interface definition matching the actual database schema
 interface MemberInfo {
@@ -634,7 +635,51 @@ serve(async (req) => {
     // Matrix placement was already done in Step 5
     let matrixResult = referralRecord;
 
-    // Step 6: Process USDC transfer for Level 1 activation
+    // Step 6: Verify blockchain transaction (if provided)
+    if (level === 1 && transactionHash) {
+      // ✅ FIX: Verify transaction on blockchain before processing
+      console.log(`🔍 Verifying NFT claim transaction: ${transactionHash}`);
+
+      // Validate transaction hash format
+      if (!isValidTransactionHash(transactionHash)) {
+        console.error('❌ Invalid transaction hash format:', transactionHash);
+        return new Response(JSON.stringify({
+          success: false,
+          error: 'Invalid transaction hash format',
+          message: 'Please provide a valid Ethereum transaction hash',
+        }), {
+          status: 400,
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+        });
+      }
+
+      // Verify transaction on blockchain (skip for test/simulation)
+      if (transactionHash !== 'simulation' && !transactionHash.startsWith('test_')) {
+        const verificationResult = await verifyNFTClaimTransaction(
+          transactionHash,
+          walletAddress,
+          1 // Level 1
+        );
+
+        if (!verificationResult.valid) {
+          console.error('❌ Transaction verification failed:', verificationResult.error);
+          return new Response(JSON.stringify({
+            success: false,
+            error: `Transaction verification failed: ${verificationResult.error}`,
+            message: 'Please ensure you have successfully claimed the NFT on-chain with the correct transaction.',
+          }), {
+            status: 400,
+            headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+          });
+        }
+
+        console.log('✅ Transaction verified successfully:', verificationResult.details);
+      } else {
+        console.log('⚠️ Skipping verification for test/simulation transaction');
+      }
+    }
+
+    // Step 7: Process USDC transfer for Level 1 activation
     let usdcTransferResult = null;
     if (level === 1 && transactionHash) {
       try {
@@ -674,7 +719,7 @@ serve(async (req) => {
       }
     }
 
-    // Step 7: Process layer reward for Level 1 activation (direct referral to upline)
+    // Step 8: Process layer reward for Level 1 activation (direct referral to upline)
     let layerRewardResult = null;
     if (level === 1 && normalizedReferrerWallet && normalizedReferrerWallet !== '0x479ABda60F8c62a7C3fba411ab948a8BE0E616Ab') {
       try {
