@@ -49,29 +49,29 @@ export const multilingualNFTsApi = {
         });
       }
 
-      // 转换为前端期望的格式 (使用下划线命名)
+      // 转换为前端期望的格式 (使用驼峰命名)
       const formattedNFTs = filteredNFTs.map(nft => ({
         id: nft.id,
         title: nft.title,
         description: nft.description,
-        image_url: nft.image_url,
-        price_usdt: Number(nft.price_usdt),
-        price_bcc: Number(nft.price_bcc),
+        imageUrl: nft.image_url,
+        priceUSDT: Number(nft.price_usdt),
+        priceBCC: Number(nft.price_bcc),
         category: nft.category,
-        advertiser_wallet: nft.advertiser_wallet,
-        click_url: nft.click_url,
-        impressions_target: nft.impressions_target,
-        impressions_current: nft.impressions_current,
-        is_active: nft.is_active,
-        starts_at: nft.starts_at,
-        ends_at: nft.ends_at,
+        advertiserWallet: nft.advertiser_wallet,
+        clickUrl: nft.click_url,
+        impressionsTarget: nft.impressions_target,
+        impressionsCurrent: nft.impressions_current,
+        isActive: nft.is_active,
+        startsAt: nft.starts_at,
+        endsAt: nft.ends_at,
         metadata: nft.metadata,
         language: nft.language,
-        language_code: nft.language,
+        languageCode: nft.language,
         translations: nft.translations,
-        available_languages: nft.available_languages,
-        created_at: nft.created_at,
-        updated_at: nft.updated_at || nft.created_at,
+        availableLanguages: nft.available_languages,
+        createdAt: nft.created_at,
+        updatedAt: nft.updated_at || nft.created_at,
         type: 'advertisement'
       }));
 
@@ -143,26 +143,26 @@ export const multilingualNFTsApi = {
         });
       }
 
-      // 转换为前端期望的格式 (使用下划线命名)
+      // 转换为前端期望的格式 (使用驼峰命名)
       const formattedNFTs = filteredNFTs.map(nft => ({
         id: nft.id,
         title: nft.title,
         description: nft.description,
-        image_url: nft.image_url,
-        price_usdt: Number(nft.price_usdt),
-        price_bcc: Number(nft.price_bcc),
+        imageUrl: nft.image_url,
+        priceUSDT: Number(nft.price_usdt),
+        priceBCC: Number(nft.price_bcc),
         category: nft.category,
-        supply_total: nft.supply_total,
-        supply_available: nft.supply_available,
-        creator_wallet: nft.creator_wallet,
-        is_active: nft.is_active,
+        supplyTotal: nft.supply_total,
+        supplyAvailable: nft.supply_available,
+        creatorWallet: nft.creator_wallet,
+        isActive: nft.is_active,
         metadata: nft.metadata,
         language: nft.language,
-        language_code: nft.language,
+        languageCode: nft.language,
         translations: nft.translations,
-        available_languages: nft.available_languages,
-        created_at: nft.created_at,
-        updated_at: nft.updated_at || nft.created_at,
+        availableLanguages: nft.available_languages,
+        createdAt: nft.created_at,
+        updatedAt: nft.updated_at || nft.created_at,
         type: 'merchant',
         // 计算销售状态
         soldOut: nft.supply_available === 0,
