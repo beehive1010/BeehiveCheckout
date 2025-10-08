@@ -35,15 +35,20 @@ export default function Membership() {
   useEffect(() => {
     const fetchUserReferrer = async () => {
       if (!walletAddress) return;
-      
+
       try {
         const { supabase } = await import('../lib/supabase');
-        const { data: memberData } = await supabase
+        const { data: memberData, error } = await supabase
           .from('members')
           .select('referrer_wallet')
           .eq('wallet_address', walletAddress.toLowerCase())
-          .single();
-        
+          .maybeSingle(); // ✅ 使用 maybeSingle() 替代 single()
+
+        if (error) {
+          console.warn('Failed to fetch user referrer:', error);
+          return;
+        }
+
         if (memberData?.referrer_wallet) {
           setUserReferrer(memberData.referrer_wallet);
         }
@@ -85,13 +90,13 @@ export default function Membership() {
           .eq('wallet_address', walletAddress!.toLowerCase())
           .order('nft_level', { ascending: false })
           .limit(1)
-          .single();
-        
+          .maybeSingle(); // ✅ 使用 maybeSingle() 替代 single()
+
         if (error) {
           console.error('Failed to fetch next unlock level:', error);
           return null;
         }
-        
+
         return data?.unlock_membership_level || null;
       } catch (error) {
         console.error('Failed to fetch next unlock level:', error);
@@ -347,6 +352,24 @@ export default function Membership() {
       </div>
 
       {/* Direct NFT Claim Section - Using Dynamic ERC5115ClaimComponent */}
+      {(() => {
+        // 🔍 调试日志
+        const shouldShow = walletAddress && currentLevel > 0 && currentLevel < 19 && userReferrer;
+        console.log('🔍 Membership Upgrade Section Debug:', {
+          walletAddress: walletAddress ? `${walletAddress.substring(0, 10)}...` : 'null',
+          currentLevel,
+          userReferrer: userReferrer ? `${userReferrer.substring(0, 10)}...` : 'null',
+          directReferralsCount,
+          shouldShow,
+          conditions: {
+            hasWallet: !!walletAddress,
+            levelAboveZero: currentLevel > 0,
+            levelBelowMax: currentLevel < 19,
+            hasReferrer: !!userReferrer
+          }
+        });
+        return null;
+      })()}
       {walletAddress && currentLevel > 0 && currentLevel < 19 && userReferrer && (
         <div className="mb-12">
           <div className="text-center mb-6">

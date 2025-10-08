@@ -19,7 +19,7 @@ const corsHeaders = {
   'Access-Control-Allow-Methods': 'POST, OPTIONS',
 }
 
-console.log(`🚀 Fixed membership activation function with correct database schema!`)
+console.log(`🚀 Fixed membership activation function with correct database schema! [v2.0-idempotency-fix]`)
 
 serve(async (req) => {
   // Handle CORS
@@ -290,6 +290,10 @@ serve(async (req) => {
       .ilike('wallet_address', walletAddress)
       .maybeSingle();
 
+    console.log(`🔍 Idempotency check results:`);
+    console.log(`  - existingMembership:`, existingMembership ? 'EXISTS ✅' : 'NOT FOUND ❌');
+    console.log(`  - existingMember:`, existingMember ? 'EXISTS ✅' : 'NOT FOUND ❌');
+
     // If both membership and members exist, return already activated
     if (existingMembership && existingMember) {
       console.log(`⚠️ Level ${level} membership already claimed for: ${walletAddress}`);
@@ -352,6 +356,15 @@ serve(async (req) => {
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
         status: 200
       });
+    }
+
+    // ✅ CRITICAL FIX: If membership exists but members doesn't,
+    // this means previous activation failed during members creation (timeout)
+    // Need to continue and create members record + trigger all related records
+    if (existingMembership && !existingMember) {
+      console.log(`🔧 Found existing membership but missing members record -补充创建 members and related records`);
+      // Don't return here - continue to normal flow to create members record
+      // This will trigger all the database triggers (referrals, user_balances, matrix_referrals, etc.)
     }
 
     // Log if there was an error checking membership (but continue if just no rows found)
@@ -450,35 +463,43 @@ serve(async (req) => {
     }
 
     // Step 4: Record new membership claim (only after NFT ownership is verified)
-    // membership table has: id, wallet_address, nft_level, claim_price, claimed_at, is_member, unlock_membership_level
-    const membershipData = {
-      wallet_address: walletAddress, // 保持原始大小写
-      nft_level: level,
-      is_member: true,
-      claimed_at: new Date().toISOString()
-    };
+    // ✅ SKIP if membership already exists (partial activation scenario)
+    let membership = existingMembership;
 
-    const { data: membership, error: membershipError } = await supabase
-      .from('membership')
-      .insert(membershipData)
-      .select()
-      .single();
+    if (!existingMembership) {
+      // membership table has: id, wallet_address, nft_level, claim_price, claimed_at, is_member, unlock_membership_level
+      const membershipData = {
+        wallet_address: walletAddress, // 保持原始大小写
+        nft_level: level,
+        is_member: true,
+        claimed_at: new Date().toISOString()
+      };
 
-    if (membershipError) {
-      console.error('❌ Failed to create membership record:', membershipError);
-      return new Response(JSON.stringify({
-        success: false,
-        error: `Failed to create membership record: ${membershipError.message}`,
-        detail: membershipError
-      }), {
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-        status: 500
-      });
+      const { data: newMembership, error: membershipError } = await supabase
+        .from('membership')
+        .insert(membershipData)
+        .select()
+        .single();
+
+      if (membershipError) {
+        console.error('❌ Failed to create membership record:', membershipError);
+        return new Response(JSON.stringify({
+          success: false,
+          error: `Failed to create membership record: ${membershipError.message}`,
+          detail: membershipError
+        }), {
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+          status: 500
+        });
+      }
+
+      membership = newMembership;
+      console.log(`✅ Membership record created successfully: ${membership.wallet_address}`);
+    } else {
+      console.log(`✅ Using existing membership record: ${membership.wallet_address}`);
     }
 
-    console.log(`✅ Membership record created successfully: ${membership.wallet_address}`);
-
-    // Step 4: Now that membership is created, create members record
+    // Step 5: Now that membership is created/exists, create members record
     let memberRecord = null;
     try {
       console.log(`👥 Creating members record for: ${walletAddress}`);
