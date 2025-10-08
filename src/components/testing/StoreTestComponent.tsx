@@ -87,7 +87,7 @@ export function StoreTestComponent() {
           <p><strong>Address:</strong> {walletConnection.walletAddress || "Not connected"}</p>
           <p><strong>Loading:</strong> 
             <Badge variant={walletConnection.isLoading ? "destructive" : "outline"}>
-              {walletConnection.isLoading ? "Loading..." : "Ready"}
+              {walletConnection.isLoading ? "Loading.tsx..." : "Ready"}
             </Badge>
           </p>
         </CardContent>
@@ -108,7 +108,7 @@ export function StoreTestComponent() {
           <p><strong>Email:</strong> {userData.userData?.email || "Not set"}</p>
           <p><strong>Error:</strong> {userData.error || "None"}</p>
           <Button onClick={handleTestUserData} disabled={loadingStates.userLoading}>
-            {loadingStates.userLoading ? "Loading..." : "Test Load User Data"}
+            {loadingStates.userLoading ? "Loading.tsx..." : "Test Load User Data"}
           </Button>
         </CardContent>
       </Card>
@@ -137,12 +137,12 @@ export function StoreTestComponent() {
             </Badge>
           </p>
           <Button onClick={handleTestMembershipData} disabled={loadingStates.membershipLoading}>
-            {loadingStates.membershipLoading ? "Loading..." : "Test Load Membership Data"}
+            {loadingStates.membershipLoading ? "Loading.tsx..." : "Test Load Membership Data"}
           </Button>
         </CardContent>
       </Card>
       
-      {/* Loading States */}
+      {/* Loading.tsx States */}
       <Card>
         <CardHeader>
           <CardTitle>⏳ Loading States</CardTitle>

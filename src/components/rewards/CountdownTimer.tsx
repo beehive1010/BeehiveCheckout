@@ -193,7 +193,7 @@ export function CountdownTimer({
     );
   }
 
-  // Loading state
+  // Loading.tsx state
   if (!timeRemaining) {
     return (
       <Card className={`${className}`}>

@@ -51,7 +51,7 @@ const MatrixLayerStatsView: React.FC<MatrixLayerStatsViewProps> = ({
     setError(null);
 
     try {
-      console.log('🔍 Loading matrix layer stats for:', walletAddress);
+      console.log('🔍 Loading.tsx matrix layer stats for:', walletAddress);
       
       // Use direct database view query instead of edge function
       console.log('📊 Using direct database query for matrix stats');

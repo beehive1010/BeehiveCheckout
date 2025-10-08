@@ -481,7 +481,7 @@ export function FeeCalculatorDisplay({
         </Card>
       )}
 
-      {/* Loading State */}
+      {/* Loading.tsx State */}
       {isCalculating && (
         <Card className="border-blue-500/20 bg-blue-500/5">
           <CardContent className="pt-6">

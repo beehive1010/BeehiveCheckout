@@ -153,7 +153,7 @@ export const HoverCard: React.FC<{
   );
 };
 
-// Loading state transition
+// Loading.tsx state transition
 export const LoadingTransition: React.FC<{
   isLoading: boolean;
   children: React.ReactNode;

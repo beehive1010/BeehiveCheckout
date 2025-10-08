@@ -61,7 +61,7 @@ interface NFTState {
   merchantNFTs: MerchantNFT[];
   myPurchases: NFTPurchase[];
   
-  // Loading states
+  // Loading.tsx states
   isLoading: boolean;
   isProcessing: boolean;
   currentStep: string;
@@ -137,7 +137,7 @@ export const useNFTStore = create<NFTState>()(
         setError(null);
         
         try {
-          console.log('📢 Loading advertisement NFTs...');
+          console.log('📢 Loading.tsx advertisement NFTs...');
           // Optimized query with selective fields and limit
           const { data, error } = await supabase
             .from('advertisement_nfts')
@@ -176,7 +176,7 @@ export const useNFTStore = create<NFTState>()(
         setError(null);
         
         try {
-          console.log('🛍️ Loading merchant NFTs...');
+          console.log('🛍️ Loading.tsx merchant NFTs...');
           // Optimized query with selective fields and limit
           const { data, error } = await supabase
             .from('merchant_nfts')
@@ -213,7 +213,7 @@ export const useNFTStore = create<NFTState>()(
         setError(null);
         
         try {
-          console.log('💳 Loading purchases for:', walletAddress);
+          console.log('💳 Loading.tsx purchases for:', walletAddress);
           // Optimized query with selective fields and limit
           const { data, error } = await supabase
             .from('nft_purchases')

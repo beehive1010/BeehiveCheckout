@@ -220,7 +220,7 @@ export function WelcomePage() {
         } catch (error) {
             console.error('Error checking user status:', error);
             toast({
-                title: t('welcome.errorLoading') || 'Error Loading',
+                title: t('welcome.errorLoading') || 'Error Loading.tsx',
                 description: t('welcome.pleaseRefresh') || 'Please refresh the page',
                 variant: 'destructive',
             });

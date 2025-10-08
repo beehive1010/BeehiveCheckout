@@ -63,7 +63,7 @@ export default function Registration() {
     email: ''
   });
   
-  // Loading state for user existence check
+  // Loading.tsx state for user existence check
   const [isCheckingExistingUser, setIsCheckingExistingUser] = useState(true);
   
   // Get referrer from URL parameters and localStorage

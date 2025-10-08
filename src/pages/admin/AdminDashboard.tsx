@@ -65,7 +65,7 @@ export default function AdminDashboard() {
 
   const loadDashboardStats = async () => {
     try {
-      console.log('🔍 Loading dashboard stats...');
+      console.log('🔍 Loading.tsx dashboard stats...');
       console.log('Environment vars:', {
         url: import.meta.env.VITE_SUPABASE_URL,
         key: import.meta.env.VITE_SUPABASE_ANON_KEY ? 'Set' : 'Missing'

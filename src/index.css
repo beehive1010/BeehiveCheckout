@@ -372,7 +372,7 @@ button {
   backdrop-filter: blur(4px);
 }
 
-/* Loading skeleton */
+/* Loading.tsx skeleton */
 .skeleton {
   background: linear-gradient(90deg, var(--bee-gray) 25%, var(--bee-light) 50%, var(--bee-gray) 75%);
   background-size: 200% 100%;

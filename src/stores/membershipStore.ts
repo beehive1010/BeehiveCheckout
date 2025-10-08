@@ -139,7 +139,7 @@ export const useMembershipStore = create<MembershipState>()(
           setError(null);
           
           try {
-            console.log('📊 Loading membership data for:', walletAddress);
+            console.log('📊 Loading.tsx membership data for:', walletAddress);
             
             // Use Edge Function for member info
             const memberResponse = await fetch(`${import.meta.env.VITE_API_BASE}/member-info`, {
@@ -175,7 +175,7 @@ export const useMembershipStore = create<MembershipState>()(
           const { setError } = get();
           
           try {
-            console.log('📈 Loading membership history for:', walletAddress);
+            console.log('📈 Loading.tsx membership history for:', walletAddress);
             // This would need proper API implementation
             // For now, mock empty history
             set({ 
@@ -193,7 +193,7 @@ export const useMembershipStore = create<MembershipState>()(
           const { setError } = get();
           
           try {
-            console.log('👥 Loading referral stats for:', walletAddress);
+            console.log('👥 Loading.tsx referral stats for:', walletAddress);
             // This would need proper API implementation
             // For now, mock data
             set({ 

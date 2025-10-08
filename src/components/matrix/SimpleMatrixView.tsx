@@ -242,7 +242,7 @@ const SimpleMatrixView: React.FC<SimpleMatrixViewProps> = ({ walletAddress, root
       </CardHeader>
       
       <CardContent className="space-y-6">
-        {/* Loading State */}
+        {/* Loading.tsx State */}
         {loading && (
           <div className="text-center py-8">
             <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-honey mx-auto mb-2"></div>

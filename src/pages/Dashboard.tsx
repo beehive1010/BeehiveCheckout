@@ -267,7 +267,7 @@ export default function Dashboard() {
       return;
     }
 
-    console.log('🔄 Loading dashboard data for:', walletAddress);
+    console.log('🔄 Loading.tsx dashboard data for:', walletAddress);
     setError(null);
     setLoading(true);
 
@@ -493,7 +493,7 @@ export default function Dashboard() {
 
         {/* Status Bar and Refresh */}
         <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 sm:gap-4">
-          {/* Loading State */}
+          {/* Loading.tsx State */}
           {(loadingState.balance || loadingState.matrix || loadingState.rewards) && (
             <div className="flex items-center gap-2 sm:gap-3 p-3 bg-honey/5 border border-honey/20 rounded-xl flex-1">
               <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-honey flex-shrink-0"></div>

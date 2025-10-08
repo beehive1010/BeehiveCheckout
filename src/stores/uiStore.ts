@@ -110,7 +110,7 @@ export const useUIStore = create<UIState>()(
     (set, get) => ({
       ...defaultState,
       
-      // Loading states
+      // Loading.tsx states
       setLoading: (isLoading) => {
         set({ isLoading });
       },

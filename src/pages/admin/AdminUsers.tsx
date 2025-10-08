@@ -270,7 +270,7 @@ export default function AdminUsers() {
     },
   });
 
-  // Loading states
+  // Loading.tsx states
   const isLoading = createMutation.isPending || updateUserMutation.isPending || deleteMutation.isPending || bulkImportMutation.isPending;
 
   // Utility functions

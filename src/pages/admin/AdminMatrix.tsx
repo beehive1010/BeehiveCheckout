@@ -83,7 +83,7 @@ export default function AdminMatrix() {
   const loadMembersData = async () => {
     setLoading(true);
     try {
-      console.log('🔍 Loading members data...');
+      console.log('🔍 Loading.tsx members data...');
       
       // 获取所有会员信息，包括用户名
       const { data: membersData, error: membersError } = await supabase
@@ -133,7 +133,7 @@ export default function AdminMatrix() {
   // 加载矩阵数据
   const loadMatrixData = async () => {
     try {
-      console.log('🔍 Loading matrix data...');
+      console.log('🔍 Loading.tsx matrix data...');
       
       // 获取所有矩阵关系
       const { data: matrixData, error: matrixError } = await supabase

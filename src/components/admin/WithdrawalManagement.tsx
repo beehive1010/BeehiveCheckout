@@ -154,7 +154,7 @@ export const WithdrawalManagement: React.FC = () => {
     } catch (error) {
       console.error('Failed to load withdrawal data:', error);
       toast({
-        title: "Error Loading Withdrawals",
+        title: "Error Loading.tsx Withdrawals",
         description: "Failed to fetch withdrawal data",
         variant: "destructive"
       });

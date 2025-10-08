@@ -194,7 +194,7 @@ export const ServerWalletPanel: React.FC = () => {
     } catch (error) {
       console.error('Failed to load wallet balances:', error);
       toast({
-        title: "Error Loading Balances",
+        title: "Error Loading.tsx Balances",
         description: "Failed to fetch server wallet balances",
         variant: "destructive"
       });

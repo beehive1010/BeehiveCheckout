@@ -311,7 +311,7 @@ export function AdminDashboard() {
   if (statsLoading || !adminStats) {
     return (
       <div className="min-h-screen bg-background">
-        {/* Loading skeleton */}
+        {/* Loading.tsx skeleton */}
         <div className="flex">
           {/* Sidebar skeleton */}
           <div className="hidden lg:flex w-64 bg-muted/30 h-screen">

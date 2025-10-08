@@ -274,7 +274,7 @@ export const TransactionHistory: React.FC<TransactionHistoryProps> = ({
       </CardHeader>
 
       <CardContent className="space-y-6">
-        {/* Loading State */}
+        {/* Loading.tsx State */}
         {isLoading && (
           <div className="text-center py-8">
             <LoadingSpinner size="large" />

@@ -46,7 +46,7 @@ export function MatrixNetworkStatsV2({ walletAddress }: MatrixNetworkStatsV2Prop
     setError(null);
 
     try {
-      console.log('🚀 Loading matrix stats directly from Supabase for:', walletAddress);
+      console.log('🚀 Loading.tsx matrix stats directly from Supabase for:', walletAddress);
       
       // Import supabase client 
       const { supabase } = await import('../../lib/supabaseClient');

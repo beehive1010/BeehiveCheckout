@@ -187,7 +187,7 @@ export function useWalletV2() {
       error: walletState.error
     },
     
-    // Loading states
+    // Loading.tsx states
     isUserLoading: walletState.isLoading,
     isCheckingRegistration,
     isNewUser,

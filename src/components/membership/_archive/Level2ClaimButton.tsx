@@ -61,7 +61,7 @@ export function Level2ClaimButton({ onSuccess, className = '' }: Level2ClaimButt
     
     setIsLoadingReferrals(true);
     try {
-      console.log('🔍 Loading direct referrals for Level 2 eligibility check...');
+      console.log('🔍 Loading.tsx direct referrals for Level 2 eligibility check...');
       
       // Get current user's member info
       const { data: currentUser, error: userError } = await supabase

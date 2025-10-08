@@ -36,9 +36,9 @@ export async function importWithRetry<T = unknown>(
       if (error instanceof Error) {
         const isChunkLoadError = 
           error.message.includes('Failed to fetch dynamically imported module') ||
-          error.message.includes('Loading chunk') ||
+          error.message.includes('Loading.tsx chunk') ||
           error.message.includes('eth_getTransactionCount') ||
-          error.message.includes('Loading CSS chunk');
+          error.message.includes('Loading.tsx CSS chunk');
 
         if (isChunkLoadError) {
           console.log(`🔄 Retrying module import (attempt ${attempt}/${maxRetries})...`);
@@ -108,7 +108,7 @@ export function setupGlobalChunkErrorHandler(): void {
     
     if (error instanceof Error) {
       const isChunkError = 
-        error.message.includes('Loading chunk') ||
+        error.message.includes('Loading.tsx chunk') ||
         error.message.includes('Failed to fetch dynamically imported module') ||
         error.message.includes('eth_getTransactionCount');
         

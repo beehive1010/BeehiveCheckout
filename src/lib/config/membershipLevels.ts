@@ -270,7 +270,7 @@ export const validateLevel = (level: number): boolean => {
  */
 export async function getMembershipLevelsWithDynamicPricing(): Promise<MembershipLevel[]> {
   try {
-    console.log('🔄 Loading membership levels with dynamic pricing from database...');
+    console.log('🔄 Loading.tsx membership levels with dynamic pricing from database...');
     
     const dbLevels = await getMembershipLevelsFromDB();
     const dbLevelMap = new Map(dbLevels.map(level => [level.level, level]));

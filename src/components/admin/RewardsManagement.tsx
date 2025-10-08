@@ -163,7 +163,7 @@ export const RewardsManagement: React.FC = () => {
     } catch (error) {
       console.error('Failed to load reward data:', error);
       toast({
-        title: "Error Loading Rewards",
+        title: "Error Loading.tsx Rewards",
         description: "Failed to fetch reward data",
         variant: "destructive"
       });

@@ -150,7 +150,7 @@ export const useUserStore = create<UserState>()(
           setError(null);
           
           try {
-            console.log('📊 Loading user data for:', walletAddress);
+            console.log('📊 Loading.tsx user data for:', walletAddress);
             
             // Use Auth Edge Function to get user data (users table)
             const userResponse = await fetch(`${import.meta.env.VITE_API_BASE}/auth`, {
@@ -186,7 +186,7 @@ export const useUserStore = create<UserState>()(
           const { setError } = get();
           
           try {
-            console.log('💰 Loading balances for:', walletAddress);
+            console.log('💰 Loading.tsx balances for:', walletAddress);
             // This would need to be implemented with proper balance API
             // For now, use mock data
             const mockBalances: UserBalances = {

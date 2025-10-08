@@ -539,10 +539,10 @@ export function LevelUpgradeButton({ onSuccess, targetLevel, className = '' }: L
           </Badge>
         </div>
         <CardTitle className="text-2xl text-blue-400 mb-2">
-          {isLoading ? 'Loading...' : `Upgrade to ${getLevelName(upgradeLevel)}`}
+          {isLoading ? 'Loading.tsx...' : `Upgrade to ${getLevelName(upgradeLevel)}`}
         </CardTitle>
         <p className="text-muted-foreground">
-          {isLoading ? 'Loading upgrade info...' : 
+          {isLoading ? 'Loading.tsx upgrade info...' :
            currentUserLevel > 0 ? 
            `Current Level: ${currentUserLevel} | Next: ${getLevelName(upgradeLevel)}` :
            'Sequential level upgrade system'
@@ -566,7 +566,7 @@ export function LevelUpgradeButton({ onSuccess, targetLevel, className = '' }: L
               {isLoading ? '...' : `${formatPrice(levelInfo.priceInUSDT)} USDT`}
             </h3>
             <p className="text-xs text-muted-foreground">
-              {isLoading ? 'Loading...' : `${getLevelName(upgradeLevel)} Price`}
+              {isLoading ? 'Loading.tsx...' : `${getLevelName(upgradeLevel)} Price`}
             </p>
           </div>
           <div className="text-center p-4 bg-gradient-to-br from-blue-500/10 to-blue-500/5 rounded-lg border border-blue-500/20">
