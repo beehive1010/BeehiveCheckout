@@ -86,7 +86,7 @@ const TOKEN_ADDRESSES = {
 const WITHDRAWAL_FEES = {
   1: 15.0,      // Ethereum - higher gas fees
   137: 1.0,     // Polygon - low fees
-  42161: 2.0,   // Arbitrum - moderate fees
+  42161: 0.0,   // Arbitrum - FREE ✨ (native chain)
   10: 1.5,      // Optimism - low-moderate fees
   56: 1.0,      // BSC - low fees
   8453: 1.5     // Base - low-moderate fees
@@ -763,8 +763,8 @@ export const WithdrawRewardsV2: React.FC<WithdrawRewardsV2Props> = ({ walletAddr
             <div>
               <h4 className="text-sm font-medium text-orange-400 mb-1">Cross-Chain Withdrawal Information</h4>
               <p className="text-xs text-muted-foreground">
-                Withdrawals are processed using our secure server wallet through thirdweb. 
-                Gas fees vary by network: Ethereum (~$15), Arbitrum (~$2), Polygon (~$1), BSC (~$1), Base (~$1.5), Optimism (~$1.5).
+                Withdrawals are processed using our secure server wallet through thirdweb.
+                Gas fees vary by network: Ethereum (~$15), Arbitrum (FREE ✨), Polygon (~$1), BSC (~$1), Base (~$1.5), Optimism (~$1.5).
                 The system automatically detects your connected wallet and network.
               </p>
             </div>

@@ -480,7 +480,21 @@ class TranslationService {
 
   private generateCacheKey(text: string, targetLanguage: string, sourceLanguage: string): string {
     const content = `${text}_${sourceLanguage}_${targetLanguage}`;
-    return btoa(content).replace(/[^a-zA-Z0-9]/g, '').substring(0, 64);
+    // 使用 encodeURIComponent 而不是 btoa 来支持 Unicode 字符（如中文）
+    try {
+      // 方案1: 使用 btoa + unescape/encodeURIComponent 处理 Unicode
+      const base64 = btoa(unescape(encodeURIComponent(content)));
+      return base64.replace(/[^a-zA-Z0-9]/g, '').substring(0, 64);
+    } catch (e) {
+      // 方案2: 如果 btoa 失败，使用简单的哈希
+      let hash = 0;
+      for (let i = 0; i < content.length; i++) {
+        const char = content.charCodeAt(i);
+        hash = ((hash << 5) - hash) + char;
+        hash = hash & hash; // Convert to 32bit integer
+      }
+      return Math.abs(hash).toString(36).substring(0, 64);
+    }
   }
 
   // 智能选择最佳翻译提供商 (专门针对只有DeepL的情况)
