@@ -73,7 +73,7 @@ class MultilingualService {
       console.log(`🎯 获取广告NFT列表 (${language})`);
 
       let query = supabase
-        .from('advertisement_nfts_multilingual')
+        .from('advertisement_nfts')
         .select('*');
 
       // 应用过滤器
@@ -94,40 +94,36 @@ class MultilingualService {
 
       if (error) throw error;
 
-      // 处理多语言内容
+      // 处理多语言内容 - advertisement_nfts表已经包含所有字段
       const processedData = data?.map(item => {
-        const translation = item.translations[language] || item.translations['en'] || {};
-
-        // 检测内容的实际语言（基于translations结构）
-        // 如果只有'en'键且内容包含中文字符，说明这是中文内容被错误标记为英文
-        const hasOnlyEnTranslation = Object.keys(item.translations).length === 1 && item.translations['en'];
-        const titleIsChinese = /[\u4e00-\u9fff]/.test(translation.title || '');
-        const actualLanguage = (hasOnlyEnTranslation && titleIsChinese) ? 'zh' : language;
+        // 检测内容的实际语言
+        const titleIsChinese = /[\u4e00-\u9fff]/.test(item.title || '');
+        const actualLanguage = titleIsChinese ? 'zh' : 'en';
 
         return {
           id: item.id,
-          title: translation.title || `NFT ${item.id.slice(0, 8)}`,
-          description: translation.description || 'No description available',
+          title: item.title || `NFT ${item.id.slice(0, 8)}`,
+          description: item.description || 'No description available',
           image_url: item.image_url,
           price_usdt: item.price_usdt,
           price_bcc: item.price_bcc,
           category: item.category,
           advertiser_wallet: item.advertiser_wallet,
-          click_url: translation.click_url || item.click_url,
+          click_url: item.click_url,
           impressions_target: item.impressions_target,
           impressions_current: item.impressions_current,
           is_active: item.is_active,
           starts_at: item.starts_at,
           ends_at: item.ends_at,
           metadata: item.metadata,
-          language: actualLanguage,  // 使用实际语言，不是请求的语言
-          available_languages: Object.keys(item.translations),
-          translations: item.translations,  // 保留完整的translations对象供前端使用
+          language: actualLanguage,
+          available_languages: ['en', 'zh'],
+          translations: {},  // 可以扩展支持实际的翻译表
           created_at: item.created_at
         };
       }) || [];
 
-      console.log(`✅ 返回 ${processedData.length} 个广告NFT`);
+      console.log(`✅ 返回 ${processedData.length} 个广告NFT (包含图片URL)`);
       return processedData;
     } catch (error) {
       console.error('获取广告NFT失败:', error);

@@ -88,21 +88,22 @@ export default function Welcome() {
   useEffect(() => {
     let isMounted = true;
     let timeoutId: NodeJS.Timeout;
+    const currentAddress = account?.address;
 
     const checkMembershipStatus = async () => {
-      if (!account?.address) return;
+      if (!currentAddress) return;
 
-      // 防抖: 等待500ms后再检查，避免频繁触发
+      // 防抖: 等待1000ms后再检查，避免频繁触发
       timeoutId = setTimeout(async () => {
-        if (!isMounted) return;
+        if (!isMounted || account?.address !== currentAddress) return; // 验证地址没有变化
 
         setIsCheckingMembership(true);
         try {
-          console.log('🔍 Welcome page: Checking membership status for:', account.address);
-          const membershipResult = await authService.isActivatedMember(account.address);
+          console.log('🔍 Welcome page: Checking membership status for:', currentAddress);
+          const membershipResult = await authService.isActivatedMember(currentAddress);
           console.log('📊 Welcome page: Membership result:', JSON.stringify(membershipResult, null, 2));
 
-          if (!isMounted) return; // 检查组件是否还挂载
+          if (!isMounted || account?.address !== currentAddress) return; // 再次检查
 
           // ULTRA-STRICT CHECK: Only redirect if ALL conditions are met
           const memberData = membershipResult.memberData;
@@ -128,7 +129,7 @@ export default function Welcome() {
           console.log('  - activationTime:', activationTime, '→', hasActivationTime ? '✅' : '❌');
           console.log('  - shouldRedirect:', shouldRedirect);
 
-          if (shouldRedirect && isMounted) {
+          if (shouldRedirect && isMounted && account?.address === currentAddress) {
             console.log('✅ Welcome page: User has claimed NFT (Level', currentLevel, ') - redirecting to dashboard');
             setLocation('/dashboard');
             return;
@@ -139,11 +140,11 @@ export default function Welcome() {
           console.warn('⚠️ Welcome page: Failed to check membership status:', error);
           // Continue showing welcome page on error - let user try to claim
         } finally {
-          if (isMounted) {
+          if (isMounted && account?.address === currentAddress) {
             setIsCheckingMembership(false);
           }
         }
-      }, 500); // 500ms 防抖延迟
+      }, 1000); // 增加到1000ms防抖延迟
     };
 
     checkMembershipStatus();
@@ -155,7 +156,7 @@ export default function Welcome() {
         clearTimeout(timeoutId);
       }
     };
-  }, [account?.address, setLocation]);
+  }, [account?.address]); // 移除 setLocation 依赖
 
   const handleActivationComplete = () => {
     console.log('✅ Level 1 NFT claim and activation completed - redirecting to dashboard');

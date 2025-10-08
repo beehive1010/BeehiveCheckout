@@ -45,12 +45,12 @@ export function useWallet() {
       try {
         // 保持原始大小写格式进行查询，但使用case-insensitive比较
         const { exists } = await authService.userExists(walletAddress!);
-        
+
         if (!exists) {
           console.log('👤 New user - needs registration');
-          return { 
-            isRegistered: false, 
-            hasNFT: false, 
+          return {
+            isRegistered: false,
+            hasNFT: false,
             isActivated: false,
             isMember: false,
             membershipLevel: 0,
@@ -61,18 +61,18 @@ export function useWallet() {
         // Check if user is an activated member and get membership info
         // 确保authService使用case-insensitive查询
         const { isActivated, memberData } = await authService.isActivatedMember(walletAddress!);
-        
+
         // Get user data with original case format
         const { data: userData } = await authService.getUser(walletAddress!);
-        
+
         // Special handling for admin123_new user (0xa212A85f7434A5EBAa5b468971EC3972cE72a544)
         const isAdminUser = walletAddress!.toLowerCase() === '0xa212a85f7434a5ebaa5b468971ec3972ce72a544';
-        
+
         // Get the correct membership level from members table
         let membershipLevel = 0;
         let finalIsActivated = isActivated;
         let finalMemberData = memberData;
-        
+
         if (isAdminUser) {
           // Use real data from database for admin user
           finalIsActivated = true;
@@ -87,7 +87,7 @@ export function useWallet() {
           membershipLevel = memberData.current_level || 1;
           console.log('📊 Member level from members table:', membershipLevel);
         }
-        
+
         const userStatus = {
           isRegistered: true,
           hasNFT: finalIsActivated,
@@ -104,38 +104,43 @@ export function useWallet() {
           },
           memberData: finalMemberData // Include member data for additional info
         };
-        
+
         console.log('📊 User status (Direct Supabase):', userStatus.userFlow, userStatus);
         return userStatus;
-        
+
       } catch (error: any) {
         console.error('❌ User status check error:', error);
-        
+
         // If error indicates user needs registration, return registration flow
-        if (error.message?.includes('REGISTRATION REQUIRED') || 
+        if (error.message?.includes('REGISTRATION REQUIRED') ||
             error.message?.includes('User not found in database') ||
             error.message?.includes('not found') ||
             error.message?.includes('404')) {
           console.log('👤 Error indicates user needs registration');
-          return { 
-            isRegistered: false, 
-            hasNFT: false, 
+          return {
+            isRegistered: false,
+            hasNFT: false,
             isActivated: false,
             isMember: false,
             membershipLevel: 0,
             userFlow: 'registration' as const
           };
         }
-        
+
         throw error;
       }
     },
-    staleTime: 5000,
+    staleTime: 30000, // 增加到30秒，减少不必要的刷新
     refetchInterval: (query) => {
-      // Only refetch if user is registered
-      return query.state.data?.isRegistered ? 10000 : false;
+      // 只有在注册但未激活的情况下才定期刷新，激活后不需要刷新
+      if (query.state.data?.isRegistered && !query.state.data?.isActivated) {
+        return 15000; // 15秒刷新一次
+      }
+      return false; // 其他情况不自动刷新
     },
     refetchIntervalInBackground: false,
+    refetchOnWindowFocus: false, // 禁用窗口焦点时刷新
+    refetchOnMount: false, // 禁用挂载时刷新，使用缓存数据
   });
   
   const { data: userStatus, isLoading: isUserLoading, error: userError } = userQuery;

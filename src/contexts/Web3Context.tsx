@@ -381,31 +381,36 @@ function Web3ContextProvider({ children }: { children: React.ReactNode }) {
   // Handle wallet connection and record it
   useEffect(() => {
     let disconnectTimer: NodeJS.Timeout | null = null;
+    let isMounted = true;
+    const currentAddress = account?.address;
+    const currentLocation = location;
 
     const handleWalletConnection = async () => {
-      if (account?.address) {
+      if (currentAddress) {
         // Clear any pending disconnect timer
         if (disconnectTimer) {
           clearTimeout(disconnectTimer);
           disconnectTimer = null;
         }
 
+        if (!isMounted) return;
+
         setIsConnected(true);
-        setWalletAddress(account.address);
+        setWalletAddress(currentAddress);
 
         // Store wallet data
         const wasAddress = sessionStorage.getItem('wallet-address');
         const wasChainId = sessionStorage.getItem('ActiveMember-chain-id');
 
-        sessionStorage.setItem('wallet-address', account.address);
+        sessionStorage.setItem('wallet-address', currentAddress);
         if (activeChain?.id !== undefined && activeChain.id !== null) {
           sessionStorage.setItem('ActiveMember-chain-id', activeChain.id.toString());
         }
 
         // Only log if it's a new connection or chain switch
-        if (wasAddress !== account.address) {
+        if (wasAddress !== currentAddress) {
           console.log('🔗 Wallet connected:', {
-            address: account.address,
+            address: currentAddress,
             walletId: wallet?.id,
             chainId: activeChain?.id
           });
@@ -417,17 +422,17 @@ function Web3ContextProvider({ children }: { children: React.ReactNode }) {
         }
 
         // Check if we need Supabase authentication
-        if (!isSupabaseAuthenticated) {
+        if (!isSupabaseAuthenticated && isMounted) {
           console.log('🔗 Wallet connected but no Supabase auth - need authentication');
           // Only redirect if not already on auth/welcome/registration pages
           const allowedPages = ['/auth', '/welcome', '/welcome2', '/register', '/'];
-          const isOnAllowedPage = allowedPages.some(page => location === page || location.startsWith(page + '/'));
+          const isOnAllowedPage = allowedPages.some(page => currentLocation === page || currentLocation.startsWith(page + '/'));
 
           if (!isOnAllowedPage) {
-            console.log('  Redirecting to authentication from:', location);
+            console.log('  Redirecting to authentication from:', currentLocation);
             setLocation('/auth');
           } else {
-            console.log('  Already on allowed page:', location, '- no redirect needed');
+            console.log('  Already on allowed page:', currentLocation, '- no redirect needed');
           }
         }
 
@@ -437,6 +442,8 @@ function Web3ContextProvider({ children }: { children: React.ReactNode }) {
         const wasConnected = isConnected;
 
         disconnectTimer = setTimeout(() => {
+          if (!isMounted) return;
+
           // Double-check account is still null after delay
           if (!account?.address) {
             setIsConnected(false);
@@ -450,16 +457,16 @@ function Web3ContextProvider({ children }: { children: React.ReactNode }) {
 
             // Auto-redirect to landing page when wallet disconnects (except admin and public pages)
             const publicPages = ['/', '/hiveworld', '/register', '/welcome', '/welcome2'];
-            const isPublicPage = publicPages.includes(location) || location.startsWith('/hiveworld/');
+            const isPublicPage = publicPages.includes(currentLocation) || currentLocation.startsWith('/hiveworld/');
 
-            if (wasConnected && !location.startsWith('/admin/') && !isPublicPage) {
+            if (wasConnected && !currentLocation.startsWith('/admin/') && !isPublicPage && isMounted) {
               console.log('🔄 Wallet disconnected, redirecting to landing page');
               setLocation('/');
             }
 
             console.log('🔗 Wallet disconnected');
           }
-        }, 300); // 300ms delay to confirm it's a real disconnect
+        }, 500); // 增加到500ms延迟
       }
     };
 
@@ -467,26 +474,38 @@ function Web3ContextProvider({ children }: { children: React.ReactNode }) {
 
     // Cleanup timeout on unmount
     return () => {
+      isMounted = false;
       if (disconnectTimer) {
         clearTimeout(disconnectTimer);
       }
     };
-  }, [account, wallet, activeChain, isConnected, location, setLocation]);
+  }, [account?.address, activeChain?.id, isConnected, location]); // 简化依赖，移除setLocation和wallet
 
   // Check membership status when both wallet and Supabase auth are ready
   useEffect(() => {
     let isMounted = true;
+    let checkTimeout: NodeJS.Timeout;
+    const currentAddress = account?.address;
 
     const runCheck = async () => {
-      if (isConnected && isSupabaseAuthenticated && account?.address && isMounted) {
-        await checkMembershipStatus();
-      }
+      // 等待1500ms后再检查，让其他状态稳定下来
+      checkTimeout = setTimeout(async () => {
+        if (isConnected && isSupabaseAuthenticated && currentAddress && isMounted) {
+          // 再次验证地址没有变化
+          if (account?.address === currentAddress) {
+            await checkMembershipStatus();
+          }
+        }
+      }, 1500); // 1.5秒延迟，避免与Welcome页面的检查冲突
     };
 
     runCheck();
 
     return () => {
       isMounted = false;
+      if (checkTimeout) {
+        clearTimeout(checkTimeout);
+      }
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isConnected, isSupabaseAuthenticated, account?.address]);
