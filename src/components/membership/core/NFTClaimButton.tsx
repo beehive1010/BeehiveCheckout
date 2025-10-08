@@ -232,11 +232,12 @@ export function useNFTClaim() {
             'x-wallet-address': account.address,
           },
           body: JSON.stringify({
+            action: activationEndpoint === 'level-upgrade' ? 'upgrade_level' : undefined,  // ✅ Add action for level-upgrade
             walletAddress: account.address,        // ✅ Match Edge Function parameter name
             level,
             transactionHash: claimTxResult.transactionHash,  // ✅ Match Edge Function parameter name
             paymentAmount: priceUSDT,
-            ...activationPayload,  // Contains referrerWallet
+            ...activationPayload,  // Contains targetLevel, network, etc.
           }),
         });
 
