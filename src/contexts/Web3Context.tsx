@@ -418,10 +418,16 @@ function Web3ContextProvider({ children }: { children: React.ReactNode }) {
 
         // Check if we need Supabase authentication
         if (!isSupabaseAuthenticated) {
-          console.log('🔗 Wallet connected but no Supabase auth - redirecting to authentication');
-          // Only redirect if not already on auth page
-          if (location !== '/auth') {
+          console.log('🔗 Wallet connected but no Supabase auth - need authentication');
+          // Only redirect if not already on auth/welcome/registration pages
+          const allowedPages = ['/auth', '/welcome', '/welcome2', '/register', '/'];
+          const isOnAllowedPage = allowedPages.some(page => location === page || location.startsWith(page + '/'));
+
+          if (!isOnAllowedPage) {
+            console.log('  Redirecting to authentication from:', location);
             setLocation('/auth');
+          } else {
+            console.log('  Already on allowed page:', location, '- no redirect needed');
           }
         }
 

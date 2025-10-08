@@ -86,55 +86,75 @@ export default function Welcome() {
 
   // Check if user is already an activated member and redirect to dashboard
   useEffect(() => {
+    let isMounted = true;
+    let timeoutId: NodeJS.Timeout;
+
     const checkMembershipStatus = async () => {
       if (!account?.address) return;
 
-      setIsCheckingMembership(true);
-      try {
-        console.log('🔍 Welcome page: Checking membership status for:', account.address);
-        const membershipResult = await authService.isActivatedMember(account.address);
-        console.log('📊 Welcome page: Membership result:', JSON.stringify(membershipResult, null, 2));
+      // 防抖: 等待500ms后再检查，避免频繁触发
+      timeoutId = setTimeout(async () => {
+        if (!isMounted) return;
 
-        // ULTRA-STRICT CHECK: Only redirect if ALL conditions are met
-        const memberData = membershipResult.memberData;
-        const currentLevel = memberData?.current_level || 0;
-        const activationSequence = memberData?.activation_sequence || 0;
-        const activationTime = memberData?.activation_time;
+        setIsCheckingMembership(true);
+        try {
+          console.log('🔍 Welcome page: Checking membership status for:', account.address);
+          const membershipResult = await authService.isActivatedMember(account.address);
+          console.log('📊 Welcome page: Membership result:', JSON.stringify(membershipResult, null, 2));
 
-        // User MUST have:
-        // 1. current_level >= 1 (has NFT)
-        // 2. activation_sequence > 0 (went through activation process)
-        // 3. activation_time exists (timestamp of activation)
-        const hasValidLevel = currentLevel >= 1;
-        const hasValidSequence = activationSequence > 0;
-        const hasActivationTime = !!activationTime;
+          if (!isMounted) return; // 检查组件是否还挂载
 
-        // ALL three conditions must be true to redirect
-        const shouldRedirect = hasValidLevel && hasValidSequence && hasActivationTime;
+          // ULTRA-STRICT CHECK: Only redirect if ALL conditions are met
+          const memberData = membershipResult.memberData;
+          const currentLevel = memberData?.current_level || 0;
+          const activationSequence = memberData?.activation_sequence || 0;
+          const activationTime = memberData?.activation_time;
 
-        console.log('📊 Welcome page: Ultra-strict activation check:');
-        console.log('  - memberData:', memberData);
-        console.log('  - currentLevel:', currentLevel, '→', hasValidLevel ? '✅' : '❌');
-        console.log('  - activationSequence:', activationSequence, '→', hasValidSequence ? '✅' : '❌');
-        console.log('  - activationTime:', activationTime, '→', hasActivationTime ? '✅' : '❌');
-        console.log('  - shouldRedirect:', shouldRedirect);
+          // User MUST have:
+          // 1. current_level >= 1 (has NFT)
+          // 2. activation_sequence > 0 (went through activation process)
+          // 3. activation_time exists (timestamp of activation)
+          const hasValidLevel = currentLevel >= 1;
+          const hasValidSequence = activationSequence > 0;
+          const hasActivationTime = !!activationTime;
 
-        if (shouldRedirect) {
-          console.log('✅ Welcome page: User has claimed NFT (Level', currentLevel, ') - redirecting to dashboard');
-          setLocation('/dashboard');
-          return;
+          // ALL three conditions must be true to redirect
+          const shouldRedirect = hasValidLevel && hasValidSequence && hasActivationTime;
+
+          console.log('📊 Welcome page: Ultra-strict activation check:');
+          console.log('  - memberData:', memberData);
+          console.log('  - currentLevel:', currentLevel, '→', hasValidLevel ? '✅' : '❌');
+          console.log('  - activationSequence:', activationSequence, '→', hasValidSequence ? '✅' : '❌');
+          console.log('  - activationTime:', activationTime, '→', hasActivationTime ? '✅' : '❌');
+          console.log('  - shouldRedirect:', shouldRedirect);
+
+          if (shouldRedirect && isMounted) {
+            console.log('✅ Welcome page: User has claimed NFT (Level', currentLevel, ') - redirecting to dashboard');
+            setLocation('/dashboard');
+            return;
+          }
+
+          console.log('🎯 Welcome page: User has NOT claimed NFT yet - showing claim interface');
+        } catch (error) {
+          console.warn('⚠️ Welcome page: Failed to check membership status:', error);
+          // Continue showing welcome page on error - let user try to claim
+        } finally {
+          if (isMounted) {
+            setIsCheckingMembership(false);
+          }
         }
-
-        console.log('🎯 Welcome page: User has NOT claimed NFT yet - showing claim interface');
-      } catch (error) {
-        console.warn('⚠️ Welcome page: Failed to check membership status:', error);
-        // Continue showing welcome page on error - let user try to claim
-      } finally {
-        setIsCheckingMembership(false);
-      }
+      }, 500); // 500ms 防抖延迟
     };
 
     checkMembershipStatus();
+
+    // 清理函数
+    return () => {
+      isMounted = false;
+      if (timeoutId) {
+        clearTimeout(timeoutId);
+      }
+    };
   }, [account?.address, setLocation]);
 
   const handleActivationComplete = () => {
