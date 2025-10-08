@@ -14,7 +14,7 @@ interface AuthCallbackState {
 export const AuthCallback: React.FC = () => {
   const { t } = useI18n()
   const [location, setLocation] = useLocation()
-  const { walletAddress, checkMembershipStatus } = useWeb3()
+  const { walletAddress } = useWeb3()
   const [state, setState] = useState<AuthCallbackState>({
     loading: true,
     error: null,
@@ -48,15 +48,15 @@ export const AuthCallback: React.FC = () => {
         console.log('✅ Supabase OAuth successful:', session.user.email)
         
         setState({ loading: false, error: null, success: true })
-        
-        // Wait a moment then trigger membership check
-        setTimeout(async () => {
+
+        // Wait a moment then redirect - let Web3Context handle routing
+        setTimeout(() => {
           if (walletAddress) {
-            // Both wallet and Supabase auth complete - check membership
-            await checkMembershipStatus()
+            // Both wallet and Supabase auth complete - go to welcome/dashboard based on membership
+            setLocation('/welcome')
           } else {
             // Supabase auth complete, need wallet - redirect to connect wallet
-            setLocation('/') // Or wherever wallet connection happens
+            setLocation('/')
           }
         }, 1500)
       } else {

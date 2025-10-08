@@ -97,78 +97,38 @@ export default function Welcome2() {
   }, [referrerWallet]);
 
   // Use useWallet data to redirect if user is already activated
-  // 🔧 FIX: Only check on initial mount, not on every wallet reconnect
   useEffect(() => {
-    // 🔧 ANTI-FLASH FIX: Only run once per page mount
-    if (hasCheckedOnMount) {
-      console.log('⏭️ Welcome2: Skipping auto-check (already checked)');
+    let isMounted = true;
+    let redirectTimeout: NodeJS.Timeout;
+
+    // Wait for userStatus to load
+    if (isUserLoading) {
+      setIsCheckingMembership(true);
       return;
     }
 
-    const checkMembershipStatus = async () => {
-      if (!account?.address) {
-        console.log('⏭️ Welcome2: No account address, skipping check');
-        return;
-      }
+    setIsCheckingMembership(false);
 
-      console.log('🔍 Welcome2 page: First-time checking membership status for:', account.address);
-      setIsCheckingMembership(true);
-
-      try {
-        const membershipResult = await authService.isActivatedMember(account.address);
-        console.log('📊 Welcome2 page: Membership result:', JSON.stringify(membershipResult, null, 2));
-
-        // ULTRA-STRICT CHECK: Only redirect if ALL conditions are met
-        const memberData = membershipResult.memberData;
-        const currentLevel = memberData?.current_level || 0;
-        const activationSequence = memberData?.activation_sequence || 0;
-        const activationTime = memberData?.activation_time;
-
-        // User MUST have:
-        // 1. current_level >= 1 (has NFT)
-        // 2. activation_sequence > 0 (went through activation process)
-        // 3. activation_time exists (timestamp of activation)
-        const hasValidLevel = currentLevel >= 1;
-        const hasValidSequence = activationSequence > 0;
-        const hasActivationTime = !!activationTime;
-
-        // ALL three conditions must be true to redirect
-        const shouldRedirect = hasValidLevel && hasValidSequence && hasActivationTime;
-
-        console.log('📊 Welcome2 page: Ultra-strict activation check:');
-        console.log('  - memberData:', memberData);
-        console.log('  - currentLevel:', currentLevel, '→', hasValidLevel ? '✅' : '❌');
-        console.log('  - activationSequence:', activationSequence, '→', hasValidSequence ? '✅' : '❌');
-        console.log('  - activationTime:', activationTime, '→', hasActivationTime ? '✅' : '❌');
-        console.log('  - shouldRedirect:', shouldRedirect);
-
-        if (shouldRedirect) {
-          console.log('✅ Welcome2 page: User has claimed NFT (Level', currentLevel, ') - redirecting to dashboard');
-          // Small delay to prevent flash
-          setTimeout(() => {
-            setLocation('/dashboard');
-          }, 100);
-        } else {
-          console.log('🎯 Welcome2 page: User has NOT claimed NFT yet - showing PayEmbed claim interface');
+    // Only redirect if user is fully activated
+    if (userStatus?.isActivated && userStatus?.membershipLevel >= 1) {
+      // Wait 500ms before redirecting to ensure data is stable
+      redirectTimeout = setTimeout(() => {
+        if (isMounted) {
+          console.log('✅ Welcome2: User already activated (Level', userStatus.membershipLevel, ') - redirecting to dashboard');
+          setLocation('/dashboard');
         }
-      } catch (error) {
-        console.warn('⚠️ Welcome2 page: Failed to check membership status:', error);
-        // Continue showing welcome page on error - let user try to claim
-      } finally {
-        // Mark as checked AFTER the check completes
-        setHasCheckedOnMount(true);
-        setIsCheckingMembership(false);
-        console.log('✓ Welcome2: Marked as checked (won\'t auto-check again)');
+      }, 500);
+    } else {
+      console.log('🎯 Welcome2: User not activated yet - showing PayEmbed claim interface');
+    }
+
+    return () => {
+      isMounted = false;
+      if (redirectTimeout) {
+        clearTimeout(redirectTimeout);
       }
     };
-
-    // Small delay to avoid flash on mount
-    const timer = setTimeout(() => {
-      checkMembershipStatus();
-    }, 50);
-
-    return () => clearTimeout(timer);
-  }, [account?.address, setLocation]);
+  }, [userStatus, isUserLoading, setLocation]);
 
   const handleActivationComplete = () => {
     console.log('✅ Level 1 NFT claim and activation completed (PayEmbed) - redirecting to dashboard');
@@ -180,7 +140,7 @@ export default function Welcome2() {
     }, 2000); // 2 second delay for thorough processing
   };
 
-  // Handle manual status refresh
+  // Handle manual status refresh - only use useWallet refresh
   const handleRefreshStatus = async () => {
     if (!account?.address) return;
 
@@ -191,35 +151,21 @@ export default function Welcome2() {
       // Force refresh user data from useWallet
       refreshUserData();
 
-      // Also check membership status again
-      const membershipResult = await authService.isActivatedMember(account.address);
-      console.log('📊 Manual refresh: Updated membership result:', membershipResult);
-
-      // Use ultra-strict validation (same as auto-check)
-      const memberData = membershipResult.memberData;
-      const currentLevel = memberData?.current_level || 0;
-      const activationSequence = memberData?.activation_sequence || 0;
-      const activationTime = memberData?.activation_time;
-
-      const hasValidLevel = currentLevel >= 1;
-      const hasValidSequence = activationSequence > 0;
-      const hasActivationTime = !!activationTime;
-      const shouldRedirect = hasValidLevel && hasValidSequence && hasActivationTime;
-
-      if (shouldRedirect) {
-        console.log('✅ Manual refresh: User is now activated - redirecting to dashboard');
-        setTimeout(() => {
+      // Wait for refresh to complete
+      setTimeout(() => {
+        if (userStatus?.isActivated) {
+          console.log('✅ Manual refresh: User is now activated - redirecting to dashboard');
           setLocation('/dashboard');
-        }, 1000);
-      } else {
-        console.log('ℹ️ Manual refresh: User status updated but still not activated');
-        // Show toast to inform user
-        toast({
-          title: '🔄 Status Updated',
-          description: 'Your status has been refreshed',
-          duration: 3000,
-        });
-      }
+        } else {
+          console.log('ℹ️ Manual refresh: User status updated but still not activated');
+          toast({
+            title: '🔄 Status Updated',
+            description: 'Your status has been refreshed',
+            duration: 3000,
+          });
+        }
+        setIsRefreshing(false);
+      }, 2000);
     } catch (error) {
       console.error('❌ Manual refresh error:', error);
       toast({
@@ -228,11 +174,7 @@ export default function Welcome2() {
         variant: 'destructive',
         duration: 3000,
       });
-    } finally {
-      // Reset refreshing state after delay
-      setTimeout(() => {
-        setIsRefreshing(false);
-      }, 2000);
+      setIsRefreshing(false);
     }
   };
 
