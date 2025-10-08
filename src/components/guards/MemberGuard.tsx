@@ -3,9 +3,8 @@ import { useLocation } from 'wouter';
 import { Card, CardContent, CardHeader, CardTitle } from '../ui/card';
 import { Button } from '../ui/button';
 import { Badge } from '../ui/badge';
-import { Loader2, Shield, Crown, Users, AlertTriangle, Wallet } from 'lucide-react';
+import { Loader2, Crown, AlertTriangle, Wallet } from 'lucide-react';
 import { useWallet } from '../../hooks/useWallet';
-import { authService } from '../../lib/supabase-unified';
 import { useI18n } from '../../contexts/I18nContext';
 import RegistrationModal from '../modals/RegistrationModal';
 import { referralService } from '../../api/landing/referral.client';
@@ -26,140 +25,53 @@ interface UserStatus {
   needsActivation: boolean;
 }
 
-export function MemberGuard({ 
-  children, 
+export function MemberGuard({
+  children,
   requireLevel = 1,
   requireActivation = true,
   fallbackComponent: FallbackComponent,
   redirectTo
 }: MemberGuardProps) {
-  const { isConnected, walletAddress } = useWallet();
+  // Use useWallet hook directly - no duplicate checks!
+  const { isConnected, walletAddress, userStatus: walletUserStatus, isUserLoading, isNewUser } = useWallet();
   const { t } = useI18n();
   const [, setLocation] = useLocation();
-  const [isLoading, setIsLoading] = useState(true);
-  const [userStatus, setUserStatus] = useState<UserStatus | null>(null);
-  const [error, setError] = useState<string | null>(null);
   const [showRegistrationModal, setShowRegistrationModal] = useState(false);
   const [referrerWallet, setReferrerWallet] = useState<string | undefined>();
 
-  // Check user status when wallet connection changes
+  // Get referrer on mount
   useEffect(() => {
-    if (isConnected && walletAddress) {
-      checkUserStatus();
-    } else {
-      // Wallet disconnected - redirect to landing page
-      if (!isConnected && !walletAddress) {
-        setLocation('/');
-      }
-      setUserStatus(null);
-      setIsLoading(false);
+    const storedReferrer = referralService.getReferrerWallet();
+    setReferrerWallet(storedReferrer || undefined);
+  }, []);
+
+  // Handle new users - show registration modal
+  useEffect(() => {
+    if (isNewUser && !isUserLoading) {
+      setShowRegistrationModal(true);
     }
-  }, [isConnected, walletAddress]);
+  }, [isNewUser, isUserLoading]);
 
-  const checkUserStatus = async () => {
-    if (!walletAddress) return;
+  // Handle redirects for unactivated users
+  useEffect(() => {
+    if (!isUserLoading && walletUserStatus) {
+      const isActivated = walletUserStatus.isActivated;
 
-    const startTime = performance.now();
-    console.log('⏱️ MemberGuard: Starting user status check for wallet:', walletAddress);
-    
-    setIsLoading(true);
-    setError(null);
-
-    try {
-      // Get referrer from stored referral link
-      const storedReferrer = referralService.getReferrerWallet();
-      setReferrerWallet(storedReferrer || undefined);
-
-      // Check if user exists in database
-      const { exists } = await authService.userExists(walletAddress);
-      
-      if (!exists) {
-        // Show registration modal for new users
-        setShowRegistrationModal(true);
-        setUserStatus({
-          isRegistered: false,
-          isActivated: false,
-          membershipLevel: 0,
-          needsRegistration: true,
-          needsActivation: false,
-        });
-        setIsLoading(false);
-        return;
-      }
-
-      // Use useWallet hook's authentication logic to avoid conflicts
-      let isActivated = false;
-      let membershipLevel = 0;
-      
-      // Special handling for admin user (same as useWallet.ts)
-      const isAdminUser = walletAddress.toLowerCase() === '0xa212a85f7434a5ebaa5b468971ec3972ce72a544';
-      
-      if (isAdminUser) {
-        // Apply admin user override
-        isActivated = true;
-        membershipLevel = 1;
-        console.log('🛡️ MemberGuard: Applied admin user override - activated with Level 1');
-      } else {
-        // Regular user authentication logic
-        try {
-          console.log('🛡️ MemberGuard: Checking membership status using authService.isActivatedMember');
-          const membershipResult = await authService.isActivatedMember(walletAddress);
-          console.log('🛡️ MemberGuard: Membership result:', membershipResult);
-          
-          // Use the same logic as Welcome page - check both isActivated and current_level
-          const hasLevel = membershipResult.memberData?.current_level >= 1;
-          isActivated = membershipResult.isActivated || hasLevel;
-          membershipLevel = membershipResult.memberData?.current_level || 0;
-          
-          console.log('🛡️ MemberGuard: Final status', { 
-            isActivated, 
-            membershipLevel,
-            apiActivated: membershipResult.isActivated,
-            hasLevel,
-            currentLevel: membershipResult.memberData?.current_level
-          });
-        } catch (error) {
-          console.warn('🛡️ MemberGuard: Membership check failed:', error);
-          // Fallback to non-activated state
-          isActivated = false;
-          membershipLevel = 0;
-        }
-      }
-
-      setUserStatus({
-        isRegistered: true,
-        isActivated,
-        membershipLevel,
-        needsRegistration: false,
-        needsActivation: !isActivated,
-      });
-
-      // Auto-redirect non-activated users to welcome page if they try to access protected content
+      // Auto-redirect non-activated users to welcome page
       if (requireActivation && !isActivated && redirectTo) {
-        console.log(`🛡️ MemberGuard: Redirecting unactivated user from ${window.location.pathname} to ${redirectTo}`);
-        console.log(`🛡️ MemberGuard: Redirect reason - requireActivation: ${requireActivation}, isActivated: ${isActivated}`);
+        console.log(`🛡️ MemberGuard: Redirecting unactivated user to ${redirectTo}`);
         setLocation(redirectTo);
-        return;
       }
-
-    } catch (err) {
-      console.error('MemberGuard user status check error:', err);
-      setError(err instanceof Error ? err.message : 'Failed to verify access');
-    } finally {
-      const totalTime = performance.now() - startTime;
-      console.log(`⏱️ MemberGuard: User status check completed in ${totalTime.toFixed(2)}ms`);
-      setIsLoading(false);
     }
-  };
+  }, [isUserLoading, walletUserStatus, requireActivation, redirectTo]);
 
   const handleRegistrationComplete = () => {
     setShowRegistrationModal(false);
-    // Refresh user status after registration
-    checkUserStatus();
+    // useWallet will automatically refresh
   };
 
   // Show loading state
-  if (isLoading) {
+  if (isUserLoading) {
     return (
       <div className="min-h-[50vh] flex items-center justify-center">
         <Card className="w-full max-w-md">
@@ -198,7 +110,7 @@ export function MemberGuard({
             <p className="text-sm text-muted-foreground">
               {t('guard.connectWalletToContinue')}
             </p>
-            <Button 
+            <Button
               onClick={() => setLocation('/')}
               className="w-full bg-honey hover:bg-honey/90"
             >
@@ -210,36 +122,8 @@ export function MemberGuard({
     );
   }
 
-  // Handle API errors
-  if (error) {
-    return (
-      <div className="min-h-[50vh] flex items-center justify-center">
-        <Card className="w-full max-w-md border-destructive/20">
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2 text-destructive">
-              <AlertTriangle className="h-5 w-5" />
-              {t('guard.accessError')}
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <p className="text-sm text-muted-foreground">
-              {error}
-            </p>
-            <Button 
-              onClick={checkUserStatus}
-              variant="outline"
-              className="w-full"
-            >
-              {t('guard.tryAgain')}
-            </Button>
-          </CardContent>
-        </Card>
-      </div>
-    );
-  }
-
   // Handle insufficient membership level for activated users
-  if (userStatus && userStatus.isActivated && userStatus.membershipLevel < requireLevel) {
+  if (walletUserStatus && walletUserStatus.isActivated && walletUserStatus.membershipLevel < requireLevel) {
     if (FallbackComponent) {
       return <FallbackComponent />;
     }
@@ -257,7 +141,7 @@ export function MemberGuard({
             <div className="space-y-2">
               <div className="flex justify-between items-center">
                 <span className="text-sm">{t('guard.currentLevel')}:</span>
-                <Badge variant="outline">{userStatus.membershipLevel}</Badge>
+                <Badge variant="outline">{walletUserStatus.membershipLevel}</Badge>
               </div>
               <div className="flex justify-between items-center">
                 <span className="text-sm">{t('guard.requiredLevel')}:</span>
@@ -267,7 +151,7 @@ export function MemberGuard({
             <p className="text-sm text-muted-foreground">
               {t('guard.levelRequiredMessage')} {requireLevel}
             </p>
-            <Button 
+            <Button
               onClick={() => setLocation('/me')}
               className="w-full bg-honey hover:bg-honey/90 text-black"
             >
@@ -280,7 +164,7 @@ export function MemberGuard({
   }
 
   // Handle non-activated users who need membership activation
-  if (requireActivation && userStatus && !userStatus.isActivated) {
+  if (requireActivation && walletUserStatus && !walletUserStatus.isActivated) {
     return (
       <div className="min-h-[50vh] flex items-center justify-center">
         <Card className="w-full max-w-md">

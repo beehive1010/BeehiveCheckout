@@ -136,36 +136,30 @@ export default function Welcome() {
   };
 
 
-  // Handle manual status refresh
+  // Handle manual status refresh - only use useWallet refresh
   const handleRefreshStatus = async () => {
     if (!account?.address) return;
-    
+
     setIsRefreshing(true);
     console.log('🔄 Manual refresh: Updating user status...');
-    
+
     try {
       // Force refresh user data from useWallet
       refreshUserData();
-      
-      // Also check membership status again
-      const membershipResult = await authService.isActivatedMember(account.address);
-      console.log('📊 Manual refresh: Updated membership result:', membershipResult);
-      
-      if (membershipResult.isActivated && membershipResult.memberData?.current_level >= 1) {
-        console.log('✅ Manual refresh: User is now activated - redirecting to dashboard');
-        setTimeout(() => {
-          setLocation('/dashboard');
-        }, 1000);
-      } else {
-        console.log('ℹ️ Manual refresh: User status updated but still not activated');
-      }
-    } catch (error) {
-      console.error('❌ Manual refresh error:', error);
-    } finally {
-      // Reset refreshing state after delay
+
+      // Wait for refresh to complete
       setTimeout(() => {
+        if (userStatus?.isActivated) {
+          console.log('✅ Manual refresh: User is now activated - redirecting to dashboard');
+          setLocation('/dashboard');
+        } else {
+          console.log('ℹ️ Manual refresh: User status updated but still not activated');
+        }
         setIsRefreshing(false);
       }, 2000);
+    } catch (error) {
+      console.error('❌ Manual refresh error:', error);
+      setIsRefreshing(false);
     }
   };
 
