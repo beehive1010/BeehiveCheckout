@@ -100,10 +100,17 @@ export default function Dashboard() {
 
       if (result.success && result.balance) {
         const balance = result.balance;
+        console.log('💰 Balance fields:', {
+          reward_balance: balance.reward_balance,
+          available_balance: balance.available_balance,
+          bcc_transferable: balance.bcc_transferable,
+          bcc_locked: balance.bcc_locked
+        });
         return {
           bccTotal: balance.bcc_transferable || 0,
           bccLocked: balance.bcc_locked || 0,
-          bccTransferable: balance.bcc_transferable || 0
+          bccTransferable: balance.bcc_transferable || 0,
+          availableBalance: balance.reward_balance || balance.available_balance || 0 // 可提现余额
         };
       }
 
@@ -111,7 +118,8 @@ export default function Dashboard() {
       return {
         bccTotal: 500, // 显示可用余额
         bccLocked: 10350,
-        bccTransferable: 500
+        bccTransferable: 500,
+        availableBalance: 0
       };
     } catch (error) {
       console.error('❌ Balance load error:', error);
@@ -302,7 +310,7 @@ export default function Dashboard() {
         maxLayer: results.matrix?.maxLayer || 0,
         totalRewards: results.rewards?.totalRewards || 0,
         pendingRewards: results.rewards?.totalPending || 0,
-        claimableRewards: results.rewards?.totalAvailable || 0,
+        claimableRewards: results.balance?.availableBalance || 0, // ✅ 使用 user_balances.available_balance
         lastUpdated: new Date().toISOString()
       };
 
