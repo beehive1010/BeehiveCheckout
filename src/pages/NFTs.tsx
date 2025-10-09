@@ -11,6 +11,7 @@ import {HybridTranslation} from '../components/shared/HybridTranslation';
 import {useToast} from '../hooks/use-toast';
 import {Eye, Loader2, Megaphone, Package, Palette, ShoppingCart, Star} from 'lucide-react';
 import {orderService, supabase} from '../lib/supabaseClient';
+import {multilingualNFTsApi} from '../api/nfts/multilingual-nfts.api';
 
 // Stable Image component to prevent flickering
 const StableImage = React.memo(({ src, alt, className, fallback }: {
@@ -164,7 +165,6 @@ export default function NFTs() {
   const fetchAdvertisementNFTs = useCallback(async () => {
     try {
       console.log(`🔍 开始获取广告NFT数据 (语言: ${language})`);
-      const { multilingualNFTsApi } = await import('../api/nfts/multilingual-nfts.api');
       const data = await multilingualNFTsApi.getAdvertisementNFTs(language, {
         is_active: true,
         limit: 50
@@ -172,80 +172,13 @@ export default function NFTs() {
       console.log(`📦 获取到 ${data.length} 个广告NFT`, data);
       setAdvertisementNFTs(data);
     } catch (error) {
-      console.error('Error fetching multilingual advertisement NFTs:', error);
-      // 创建示例数据用于测试翻译功能
-      console.log('🧪 使用示例数据测试翻译功能...');
-      const mockData: AdvertisementNFT[] = [
-        {
-          id: 'mock-1',
-          title: 'Premium DeFi Analytics Dashboard',
-          description: 'Access advanced analytics and insights for your DeFi portfolio with real-time tracking.',
-          imageUrl: 'https://images.unsplash.com/photo-1639762681485-074b7f938ba0?w=400',
-          priceUSDT: 99.99,
-          priceBCC: 150,
-          category: 'defi',
-          advertiserWallet: null,
-          clickUrl: 'https://example.com',
-          impressionsTarget: 10000,
-          impressionsCurrent: 2345,
-          isActive: true,
-          startsAt: new Date().toISOString(),
-          endsAt: null,
-          metadata: {},
-          createdAt: new Date().toISOString(),
-          updatedAt: new Date().toISOString(),
-          language: 'en',
-          translations: {
-            'zh': { 
-              title: 'DeFi分析仪表板高级版', 
-              description: '获得DeFi投资组合的高级分析和洞察，提供实时跟踪功能。',
-              category: 'DeFi'
-            },
-            'ja': { 
-              title: 'プレミアムDeFi分析ダッシュボード', 
-              description: 'リアルタイム追跡機能付きのDeFiポートフォリオ向け高度な分析と洞察にアクセス。',
-              category: 'DeFi'
-            }
-          },
-          availableLanguages: ['en', 'zh', 'ja']
-        },
-        {
-          id: 'mock-2',
-          title: 'Gaming NFT Collection',
-          description: 'Exclusive gaming NFTs that unlock special abilities and rewards in our Web3 game ecosystem.',
-          imageUrl: 'https://images.unsplash.com/photo-1614680376593-902f74cf0d41?w=400',
-          priceUSDT: 49.99,
-          priceBCC: 75,
-          category: 'gaming',
-          advertiserWallet: null,
-          clickUrl: 'https://example.com/gaming',
-          impressionsTarget: 5000,
-          impressionsCurrent: 1234,
-          isActive: true,
-          startsAt: new Date().toISOString(),
-          endsAt: null,
-          metadata: {},
-          createdAt: new Date().toISOString(),
-          updatedAt: new Date().toISOString(),
-          language: 'en',
-          translations: {
-            'zh': { 
-              title: '游戏NFT收藏品', 
-              description: '独家游戏NFT，在我们的Web3游戏生态系统中解锁特殊能力和奖励。',
-              category: '游戏'
-            },
-            'ko': { 
-              title: '게임 NFT 컬렉션', 
-              description: 'Web3 게임 생태계에서 특별한 능력과 보상을 해제하는 독점 게임 NFT.',
-              category: '게임'
-            }
-          },
-          availableLanguages: ['en', 'zh', 'ko']
-        }
-      ];
-      
-      setAdvertisementNFTs(mockData);
-      console.log(`✅ 使用 ${mockData.length} 个测试NFT数据`);
+      console.error('❌ Error fetching advertisement NFTs:', error);
+      toast({
+        title: t('nfts.errors.loadFailed'),
+        description: 'Failed to load advertisement NFTs',
+        variant: 'destructive'
+      });
+      setAdvertisementNFTs([]);
     }
   }, [language, toast, t]);
 
@@ -253,7 +186,6 @@ export default function NFTs() {
   const fetchMerchantNFTs = useCallback(async () => {
     try {
       console.log(`🔍 开始获取商户NFT数据 (语言: ${language})`);
-      const { multilingualNFTsApi } = await import('../api/nfts/multilingual-nfts.api');
       const data = await multilingualNFTsApi.getMerchantNFTs(language, {
         is_active: true,
         limit: 50
@@ -261,74 +193,13 @@ export default function NFTs() {
       console.log(`📦 获取到 ${data.length} 个商户NFT`, data);
       setMerchantNFTs(data);
     } catch (error) {
-      console.error('Error fetching multilingual merchant NFTs:', error);
-      // 创建示例数据用于测试翻译功能
-      console.log('🧪 使用商户示例数据测试翻译功能...');
-      const mockData: MerchantNFT[] = [
-        {
-          id: 'merchant-1',
-          title: 'Professional Web Development Service',
-          description: 'Full-stack web development service including React, Node.js, and database integration.',
-          imageUrl: 'https://images.unsplash.com/photo-1498050108023-c5249f4df085?w=400',
-          priceUSDT: 199.99,
-          priceBCC: 300,
-          category: 'development',
-          supplyTotal: 10,
-          supplyAvailable: 7,
-          isActive: true,
-          creatorWallet: null,
-          metadata: { duration: '2-4 weeks', includes: ['Frontend', 'Backend', 'Database'] },
-          createdAt: new Date().toISOString(),
-          updatedAt: new Date().toISOString(),
-          language: 'en',
-          translations: {
-            'zh': { 
-              title: '专业网站开发服务', 
-              description: '全栈网站开发服务，包括React、Node.js和数据库集成。',
-              category: '开发'
-            },
-            'th': { 
-              title: 'บริการพัฒนาเว็บไซต์มืออาชีพ', 
-              description: 'บริการพัฒนาเว็บไซต์แบบ full-stack รวมถึง React, Node.js และการเชื่อมต่อฐานข้อมูล',
-              category: 'การพัฒนา'
-            }
-          },
-          availableLanguages: ['en', 'zh', 'th']
-        },
-        {
-          id: 'merchant-2',
-          title: 'Digital Marketing Consultation',
-          description: 'Strategic digital marketing consultation to boost your Web3 project visibility and growth.',
-          imageUrl: 'https://images.unsplash.com/photo-1460925895917-afdab827c52f?w=400',
-          priceUSDT: 149.99,
-          priceBCC: 225,
-          category: 'consulting',
-          supplyTotal: 5,
-          supplyAvailable: 3,
-          isActive: true,
-          creatorWallet: null,
-          metadata: { duration: '1-2 weeks', includes: ['Strategy', 'Campaign', 'Analytics'] },
-          createdAt: new Date().toISOString(),
-          updatedAt: new Date().toISOString(),
-          language: 'en',
-          translations: {
-            'zh': { 
-              title: '数字营销咨询', 
-              description: '战略性数字营销咨询，提升您的Web3项目可见度和增长。',
-              category: '咨询'
-            },
-            'ms': { 
-              title: 'Perundingan Pemasaran Digital', 
-              description: 'Perundingan pemasaran digital strategik untuk meningkatkan keterlihatan dan pertumbuhan projek Web3 anda.',
-              category: 'Perundingan'
-            }
-          },
-          availableLanguages: ['en', 'zh', 'ms']
-        }
-      ];
-      
-      setMerchantNFTs(mockData);
-      console.log(`✅ 使用 ${mockData.length} 个测试商户NFT数据`);
+      console.error('❌ Error fetching merchant NFTs:', error);
+      toast({
+        title: t('nfts.errors.loadFailed'),
+        description: 'Failed to load merchant NFTs',
+        variant: 'destructive'
+      });
+      setMerchantNFTs([]);
     }
   }, [language, toast, t]);
 

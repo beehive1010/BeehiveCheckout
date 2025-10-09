@@ -156,13 +156,46 @@ export default function MembershipPurchase() {
         duration: 5000,
       });
 
+      // ✅ FIX: Try immediate verification first (may succeed even if transaction not indexed yet)
+      console.log('🚀 Attempting immediate activation...');
+      try {
+        const immediateVerification = await verifyActivation(info.status.transactionHash, 0);
+        if (immediateVerification) {
+          toast({
+            title: '🎉 Membership Activated!',
+            description: `Level ${level} successfully activated`,
+            duration: 5000,
+          });
+
+          setTimeout(() => {
+            setLocation('/dashboard');
+          }, 2000);
+
+          return;
+        }
+      } catch (immediateError) {
+        console.log('⚠️ Immediate verification failed, falling back to polling:', immediateError);
+      }
+
       // Poll transaction status using Thirdweb API
       const pollStatus = async (
         txHash: string,
         attempts = 0
       ): Promise<boolean> => {
         if (attempts >= VERIFICATION_CONFIG.MAX_RETRIES) {
-          console.log('⏰ Max retries reached');
+          console.log('⏰ Max retries reached, trying final activation attempt...');
+
+          // ✅ FIX: Final attempt - call verifyActivation even if status check failed
+          try {
+            const finalVerification = await verifyActivation(txHash);
+            if (finalVerification) {
+              console.log('✅ Final verification succeeded!');
+              return true;
+            }
+          } catch (finalError) {
+            console.error('❌ Final verification failed:', finalError);
+          }
+
           return false;
         }
 
@@ -179,6 +212,7 @@ export default function MembershipPurchase() {
 
           console.log('📊 Transaction status:', status);
 
+          // ✅ FIX: Handle all status types properly
           if ('status' in status) {
             if (status.status === 'COMPLETED') {
               console.log('✅ Transaction completed, verifying activation...');
@@ -201,7 +235,30 @@ export default function MembershipPurchase() {
             } else if (status.status === 'FAILED') {
               console.error('❌ Transaction failed:', status.failureMessage);
               throw new Error(status.failureMessage || 'Transaction failed');
+            } else if (status.status === 'NOT_FOUND') {
+              console.log('⚠️ Transaction not indexed yet, trying direct verification...');
+
+              // ✅ FIX: Try direct verification even if transaction not found in Thirdweb index
+              try {
+                const directVerification = await verifyActivation(txHash);
+                if (directVerification) {
+                  toast({
+                    title: '🎉 Membership Activated!',
+                    description: `Level ${level} successfully activated`,
+                    duration: 5000,
+                  });
+
+                  setTimeout(() => {
+                    setLocation('/dashboard');
+                  }, 2000);
+
+                  return true;
+                }
+              } catch (directError) {
+                console.log('⚠️ Direct verification failed, will retry:', directError);
+              }
             }
+            // status === 'PENDING' - continue polling
           }
 
           // Continue polling
