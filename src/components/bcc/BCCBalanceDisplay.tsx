@@ -33,10 +33,17 @@ export const BCCBalanceDisplay: React.FC<BCCBalanceProps> = ({ walletAddress }) 
         .from('user_balances')
         .select('bcc_balance, bcc_locked, bcc_total_unlocked, bcc_used, last_updated')
         .ilike('wallet_address', walletAddress)
-        .single();
+        .maybeSingle();
 
       if (error) throw error;
-      return data;
+      // Return default values if no record exists
+      return data || {
+        bcc_balance: 0,
+        bcc_locked: 0,
+        bcc_total_unlocked: 0,
+        bcc_used: 0,
+        last_updated: new Date().toISOString()
+      };
     },
     enabled: !!walletAddress,
     refetchInterval: 5000,
