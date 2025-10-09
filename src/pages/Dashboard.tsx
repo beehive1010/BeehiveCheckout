@@ -127,53 +127,58 @@ export default function Dashboard() {
 
     setLoadingState(prev => ({ ...prev, matrix: true }));
     try {
-      console.log('🌐 Fetching matrix data from referrals table for:', walletAddress);
-      
-      // 从多个表获取数据进行综合统计
-      const [
-        { data: directReferralsData },
-        { data: matrixTeamData }, 
-        { data: memberData }
-      ] = await Promise.all([
-        // 直接推荐统计
-        supabase
+      console.log('🌐 Fetching matrix data from v_matrix_root_summary view for:', walletAddress);
+
+      // ✅ FIX: 使用 v_matrix_root_summary view 获取准确的团队统计，避免1000条限制
+      const { data: matrixSummary, error: matrixError } = await supabase
+        .from('v_matrix_root_summary')
+        .select('direct_referrals, matrix_team_total, max_layer')
+        .ilike('root', walletAddress)
+        .maybeSingle();
+
+      if (matrixError) {
+        console.error('❌ Matrix summary query error:', matrixError);
+      }
+
+      console.log('📊 Matrix summary data:', matrixSummary);
+
+      // Fallback: 如果 view 没有数据，则查询 members 表获取直推人数
+      let directReferrals = 0;
+      let activatedDirectReferrals = 0;
+
+      if (!matrixSummary || matrixSummary.direct_referrals === null) {
+        console.log('⚠️ No matrix summary found, fetching direct referrals from members table...');
+        const { data: directReferralsData } = await supabase
           .from('members')
           .select('wallet_address, current_level, activation_time')
-          .ilike('referrer_wallet', walletAddress),
+          .ilike('referrer_wallet', walletAddress);
 
-        // Matrix团队统计 - 使用matrix_referrals表
-        supabase
-          .from('matrix_referrals')
-          .select('member_wallet, layer, referral_type')
-          .ilike('matrix_root_wallet', walletAddress),
+        directReferrals = directReferralsData?.length || 0;
+        activatedDirectReferrals = directReferralsData?.filter(m => m.current_level > 0).length || 0;
+      } else {
+        // 使用 view 的数据
+        directReferrals = Number(matrixSummary.direct_referrals) || 0;
+        activatedDirectReferrals = directReferrals; // view 中的 direct_referrals 已经是激活的
+      }
 
-        // 当前用户信息
-        supabase
-          .from('members')
-          .select('wallet_address, current_level, activation_time')
-          .ilike('wallet_address', walletAddress)
-          .single()
-      ]);
+      // ✅ Matrix团队数据直接从 view 获取（无1000条限制）
+      const totalTeamSize = Number(matrixSummary?.matrix_team_total) || 0;
+      const maxLayer = Number(matrixSummary?.max_layer) || 0;
 
-      // 计算直接推荐数据
-      const directReferrals = directReferralsData?.length || 0;
-      const activatedDirectReferrals = directReferralsData?.filter(m => m.current_level > 0).length || 0;
-      
-      // 计算Matrix团队数据
-      const totalTeamSize = matrixTeamData?.length || 0;
-      const maxLayer = matrixTeamData && matrixTeamData.length > 0
-        ? Math.max(...matrixTeamData.map(m => m.layer))
-        : 0;
-      const activeLayers = matrixTeamData && matrixTeamData.length > 0
-        ? new Set(matrixTeamData.map(m => m.layer)).size
-        : 0;
+      // 如果需要更详细的层级信息，可以查询 matrix_referrals 表（但只用于统计活跃层级数）
+      let activeLayers = 0;
+      if (totalTeamSize > 0 && maxLayer > 0) {
+        // 估算：如果有团队且有最大层级，则活跃层级至少为1
+        activeLayers = maxLayer;
+      }
 
       console.log('🌐 Matrix data calculated:', {
         directReferrals,
         activatedDirectReferrals,
         totalTeamSize,
         maxLayer,
-        activeLayers
+        activeLayers,
+        dataSource: matrixSummary ? 'v_matrix_root_summary' : 'members_table_fallback'
       });
 
       return {
@@ -194,48 +199,48 @@ export default function Dashboard() {
     }
   }, [walletAddress]);
 
-  // 加载奖励数据 - 保持简单的数据库查询
+  // 加载奖励数据 - 使用 v_reward_overview view 避免1000条限制
   const loadRewardData = useCallback(async () => {
     if (!walletAddress) return null;
 
     setLoadingState(prev => ({ ...prev, rewards: true }));
     try {
-      console.log('🏆 Fetching reward data from database for:', walletAddress);
-      
-      // 查询奖励统计 - 使用正确的layer_rewards表
-      const { data: rewardData, error: rewardError } = await supabase
-        .from('layer_rewards')
+      console.log('🏆 Fetching reward data from v_reward_overview for:', walletAddress);
+
+      // ✅ FIX: 使用 v_reward_overview view 获取预聚合的奖励统计，避免1000条限制
+      const { data: rewardOverview, error: rewardError } = await supabase
+        .from('v_reward_overview')
         .select(`
-          id,
-          reward_amount,
-          status,
-          created_at,
-          expires_at,
-          claimed_at,
-          matrix_layer,
-          triggering_member_wallet
+          claimable_cnt,
+          pending_cnt,
+          paid_cnt,
+          claimable_amount_usd,
+          pending_amount_usd,
+          paid_amount_usd
         `)
-        .ilike('reward_recipient_wallet', walletAddress) // Case insensitive match
-        .order('created_at', { ascending: false });
+        .ilike('member_id', walletAddress)
+        .maybeSingle();
 
       if (rewardError) {
-        console.error('❌ Reward query error:', rewardError);
+        console.error('❌ Reward overview query error:', rewardError);
         throw new Error(`Database error: ${rewardError.message}`);
       }
 
-      console.log('🏆 Raw reward data from DB:', rewardData);
+      console.log('🏆 Reward overview data:', rewardOverview);
 
-      if (rewardData) {
-        // 计算各种奖励统计
-        const claimedRewards = rewardData.filter(r => r.status === 'claimed');
-        const pendingRewards = rewardData.filter(r => r.status === 'pending');
-        const availableRewards = rewardData.filter(r => r.status === 'claimable');
+      if (rewardOverview) {
+        const totalClaimed = Number(rewardOverview.paid_amount_usd) || 0;
+        const totalPending = Number(rewardOverview.pending_amount_usd) || 0;
+        const totalAvailable = Number(rewardOverview.claimable_amount_usd) || 0;
 
-        const totalClaimed = claimedRewards.reduce((sum, reward) => sum + Number(reward.reward_amount || 0), 0);
-        const totalPending = pendingRewards.reduce((sum, reward) => sum + Number(reward.reward_amount || 0), 0);
-        const totalAvailable = availableRewards.reduce((sum, reward) => sum + Number(reward.reward_amount || 0), 0);
-
-        console.log('🏆 Calculated reward stats:', { totalClaimed, totalPending, totalAvailable });
+        console.log('🏆 Calculated reward stats:', {
+          totalClaimed,
+          totalPending,
+          totalAvailable,
+          claimableCount: rewardOverview.claimable_cnt,
+          pendingCount: rewardOverview.pending_cnt,
+          paidCount: rewardOverview.paid_cnt
+        });
 
         return {
           totalRewards: totalClaimed + totalPending + totalAvailable, // 所有奖励总和

@@ -100,12 +100,14 @@ export default function Rewards() {
       const stats = Array.isArray(statsData) ? statsData[0] : statsData;
       console.log('Rewards stats:', stats);
 
-      // Get all rewards for history
+      // ✅ FIX: Get recent rewards for history (limit to 500 to avoid 1000 row default limit)
+      // For users with >500 rewards, consider implementing pagination
       const { data: rewardsData, error: rewardsError } = await supabase
         .from('layer_rewards')
         .select('*')
         .ilike('reward_recipient_wallet', memberWalletAddress)
-        .order('created_at', { ascending: false });
+        .order('created_at', { ascending: false })
+        .limit(500);
 
       if (rewardsError) {
         console.error('Rewards data error:', rewardsError);
