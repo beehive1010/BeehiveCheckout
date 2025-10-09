@@ -2956,46 +2956,62 @@
     }
   },
   "nfts": {
+    "title": "NFTマーケットプレイス",
+    "subtitle": "ユニークなデジタル資産を発見・収集",
+    "stats": {
+      "advertisement": "広告NFT",
+      "merchant": "マーチャントNFT",
+      "myNfts": "マイNFT",
+      "bccBalance": "BCC残高",
+      "owned": "所有"
+    },
     "advertisement": {
-      "title": "廣告NFT",
-      "subtitle": "發現并購買廣告機会",
-      "purchase": "購買NFT",
-      "category": "分類",
-      "impressions": "展示次數",
-      "available": "可用",
-      "soldOut": "已售完",
-      "insufficient": "BCC不足",
-      "views": "Views"
+      "title": "広告NFT",
+      "subtitle": "NFT広告でブランドを宣伝",
+      "views": "閲覧数",
+      "noAvailable": "利用可能な広告NFTはありません"
     },
     "merchant": {
-      "title": "商戶NFT",
-      "subtitle": "探索獨特的商戶產品",
-      "supply": "供應量",
-      "available": "可用",
-      "creator": "創作者"
-    },
-    "common": {
-      "purchase": "使用BCC購買",
-      "purchasing": "處理中...",
-      "price": "價格",
-      "description": "描述",
-      "metadata": "詳情",
-      "viewDetails": "查看詳情"
-    },
-    "title": "NFT Marketplace",
-    "subtitle": "Discover and collect unique digital assets",
-    "stats": {
-      "advertisement": "Advertisement NFTs",
-      "merchant": "Merchant NFTs"
+      "title": "マーチャントNFT",
+      "subtitle": "マーチャントからのデジタル商品とサービス",
+      "soldOut": "売り切れ",
+      "available": "利用可能",
+      "left": "残り",
+      "noAvailable": "利用可能なマーチャントNFTはありません"
     },
     "myCollection": {
-      "title": "My Collection",
-      "subtitle": "NFTs you own",
-      "empty": "You don't own any NFTs yet"
+      "title": "マイコレクション",
+      "subtitle": "所有しているNFT",
+      "empty": "まだNFTを所有していません",
+      "owned": "所有済み",
+      "purchased": "購入日",
+      "paid": "支払額",
+      "type": "タイプ",
+      "accessService": "サービスにアクセス",
+      "browseAds": "広告を閲覧",
+      "browseServices": "サービスを閲覧"
     },
     "purchase": {
-      "button": "Purchase",
-      "purchasing": "Purchasing..."
+      "button": "購入",
+      "purchasing": "購入中...",
+      "walletRequired": "ウォレットが必要",
+      "connectWallet": "NFTを購入するにはウォレットを接続してください",
+      "insufficientBcc": "BCC残高不足",
+      "needBcc": "{amount} BCCが必要ですが、{current} BCCしかありません",
+      "success": "購入成功",
+      "successDesc": "正常に購入しました",
+      "failed": "購入失敗",
+      "failedDesc": "購入を完了できませんでした"
+    },
+    "errors": {
+      "loadFailed": "NFTの読み込みに失敗しました",
+      "loadPurchasesFailed": "購入記録の読み込みに失敗しました"
+    },
+    "loading": "NFTを読み込み中...",
+    "tabs": {
+      "ads": "広告",
+      "merchant": "マーチャント",
+      "mine": "マイ"
     }
   },
   "matrix": {

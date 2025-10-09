@@ -91,7 +91,7 @@ serve(async (req)=>{
             56: 1.0,
             8453: 1.5 // Base - low-moderate fees
         };
-        const fee = WITHDRAWAL_FEES[targetChainId] || 2.0;
+        const fee = WITHDRAWAL_FEES[targetChainId] ?? 2.0;
         const netAmount = withdrawalAmount - fee;
         console.log(`💰 Fee calculation: ${withdrawalAmount} - ${fee} = ${netAmount}`);
         await logger.logInfo('fee-calculated', 'wallet_operations', {

@@ -3002,46 +3002,62 @@
     }
   },
   "nfts": {
+    "title": "NFT 마켓플레이스",
+    "subtitle": "독특한 디지털 자산 발견 및 수집",
+    "stats": {
+      "advertisement": "광고 NFT",
+      "merchant": "상점 NFT",
+      "myNfts": "내 NFT",
+      "bccBalance": "BCC 잔액",
+      "owned": "소유"
+    },
     "advertisement": {
-      "title": "廣告NFT",
-      "subtitle": "發現并購買廣告機会",
-      "purchase": "購買NFT",
-      "category": "分類",
-      "impressions": "展示次數",
-      "available": "可用",
-      "soldOut": "已售完",
-      "insufficient": "BCC不足",
-      "views": "Views"
+      "title": "광고 NFT",
+      "subtitle": "NFT 광고로 브랜드 홍보",
+      "views": "조회수",
+      "noAvailable": "사용 가능한 광고 NFT가 없습니다"
     },
     "merchant": {
-      "title": "商戶NFT",
-      "subtitle": "探索獨特的商戶產品",
-      "supply": "供應量",
-      "available": "可用",
-      "creator": "創作者"
-    },
-    "common": {
-      "purchase": "使用BCC購買",
-      "purchasing": "處理中...",
-      "price": "價格",
-      "description": "描述",
-      "metadata": "詳情",
-      "viewDetails": "查看詳情"
-    },
-    "title": "NFT Marketplace",
-    "subtitle": "Discover and collect unique digital assets",
-    "stats": {
-      "advertisement": "Advertisement NFTs",
-      "merchant": "Merchant NFTs"
+      "title": "상점 NFT",
+      "subtitle": "상점의 디지털 상품 및 서비스",
+      "soldOut": "품절",
+      "available": "사용 가능",
+      "left": "남음",
+      "noAvailable": "사용 가능한 상점 NFT가 없습니다"
     },
     "myCollection": {
-      "title": "My Collection",
-      "subtitle": "NFTs you own",
-      "empty": "You don't own any NFTs yet"
+      "title": "내 컬렉션",
+      "subtitle": "소유한 NFT",
+      "empty": "아직 NFT를 소유하고 있지 않습니다",
+      "owned": "소유됨",
+      "purchased": "구매일",
+      "paid": "지불액",
+      "type": "유형",
+      "accessService": "서비스 액세스",
+      "browseAds": "광고 탐색",
+      "browseServices": "서비스 탐색"
     },
     "purchase": {
-      "button": "Purchase",
-      "purchasing": "Purchasing..."
+      "button": "구매",
+      "purchasing": "구매 중...",
+      "walletRequired": "지갑 필요",
+      "connectWallet": "NFT를 구매하려면 지갑을 연결하세요",
+      "insufficientBcc": "BCC 잔액 부족",
+      "needBcc": "{amount} BCC가 필요하지만 {current} BCC만 있습니다",
+      "success": "구매 성공",
+      "successDesc": "성공적으로 구매했습니다",
+      "failed": "구매 실패",
+      "failedDesc": "구매를 완료할 수 없습니다"
+    },
+    "errors": {
+      "loadFailed": "NFT 로드 실패",
+      "loadPurchasesFailed": "구매 기록 로드 실패"
+    },
+    "loading": "NFT 로딩 중...",
+    "tabs": {
+      "ads": "광고",
+      "merchant": "상점",
+      "mine": "내 것"
     }
   },
   "matrix": {

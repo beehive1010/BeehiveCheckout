@@ -106,7 +106,8 @@ const getTokenInfo = (chainId: number, tokenType: 'usdt' | 'testUSDT' = 'usdt') 
 };
 
 const getWithdrawalFee = (chainId: number) => {
-  return WITHDRAWAL_FEES[chainId as keyof typeof WITHDRAWAL_FEES] || 2.0;
+  const fee = WITHDRAWAL_FEES[chainId as keyof typeof WITHDRAWAL_FEES];
+  return fee !== undefined ? fee : 2.0;
 };
 
 export const WithdrawRewardsV2: React.FC<WithdrawRewardsV2Props> = ({ walletAddress }) => {
