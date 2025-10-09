@@ -10,7 +10,7 @@ import { useActiveAccount } from 'thirdweb/react';
 import { useLocation } from 'wouter';
 import { PurchasePage } from '../components/membership/puchase/PurchasePage';
 import { claimTo } from 'thirdweb/extensions/erc1155';
-import { client } from '../lib/thirdwebClient';
+import { client } from '../lib/web3/client';
 import { getBuyWithCryptoStatus, getContract } from 'thirdweb';
 import { arbitrum } from 'thirdweb/chains';
 import { useToast } from '../hooks/use-toast';

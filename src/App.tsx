@@ -25,10 +25,8 @@ import Referrals from "@/pages/Referrals";
 import Rewards from "@/pages/Rewards";
 import Discover from "@/pages/Discover";
 import NotificationsPage from "@/pages/NotificationsPage";
-import MatrixTestPage from "@/pages/MatrixTestPage";
-import NFTTestPage from "@/components/nfts/NFTTestPage";
 
-// Additional pages  
+// Additional pages
 import Registration from "@/pages/Registration";
 import MatrixExplanation from "@/pages/MatrixExplanation";
 import Welcome from "@/pages/Welcome";
@@ -38,8 +36,8 @@ import TokenPurchase from "@/pages/TokenPurchase";
 import SupabaseAuth from "@/pages/SupabaseAuth";
 import AuthCallback from "@/pages/AuthCallback";
 import AdminNFTsPage from "@/pages/AdminNFTs";
-import TestUpgradeMembership from "@/pages/TestUpgradeMembership";
-import TestPayEmbedClaim from "@/pages/TestPayEmbedClaim";
+// import TestUpgradeMembership from "@/pages/TestUpgradeMembership";
+// import TestPayEmbedClaim from "@/pages/TestPayEmbedClaim";
 import MembershipPurchase from "@/pages/MembershipPurchase";
 import Welcome2 from "@/pages/Welcome2";
 import Membership2 from "@/pages/Membership2";
@@ -418,35 +416,13 @@ function Router() {
             <NFTCenter />
           </MemberGuard>
         )} />
-        <Route path="/member-matrix-test" component={() => (
-          <MemberGuard requireActivation={true} redirectTo="/welcome">
-            <MatrixTestPage />
-          </MemberGuard>
-        )} />
-        <Route path="/member-nft-test" component={() => (
-          <MemberGuard requireActivation={true} redirectTo="/welcome">
-            <div className="min-h-screen bg-background p-4">
-              <NFTTestPage />
-            </div>
-          </MemberGuard>
-        )} />
         <Route path="/admin-nft-manager" component={AdminNFTManager} />
         <Route path="/admin" component={AdminNFTsPage} />
         
         {/* Public routes - No authentication required */}
         <Route path="/matrix-explanation" component={MatrixExplanation} />
-        <Route path="/matrix-test" component={MatrixTestPage} />
 
         {/* Archived routes - MultiChainClaimDemo and CheckoutTest removed */}
-
-        <Route path="/testUpgradeMembership" component={() => (
-          <MemberGuard requireActivation={true} redirectTo="/welcome">
-            <TestUpgradeMembership />
-          </MemberGuard>
-        )} />
-
-        {/* Test: PayEmbed-style Claim Flow */}
-        <Route path="/test-payembed-claim" component={TestPayEmbedClaim} />
 
         {/* Membership Purchase Page (PayEmbed) */}
         <Route path="/membership-purchase" component={MembershipPurchase} />

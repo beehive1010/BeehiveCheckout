@@ -1,38 +1,50 @@
-'use client';
-
 import { useState } from "react";
-import { useTranslation } from "react-i18next";
+import { useI18n } from "@/contexts/I18nContext";
+import { useLocation } from "wouter";
 import { FiLoader } from 'react-icons/fi';
 import { toast } from "react-hot-toast";
 import { useActiveAccount, useSendTransaction, useReadContract } from "thirdweb/react";
-import { useRouter } from 'next/navigation';
 import { defineChain, getContract } from "thirdweb";
-import { client } from "@/utils/thirdweb/client";
+import { client } from "@/lib/web3/client";
 import { parseUnits } from "viem";
 import { claimTo } from "thirdweb/extensions/erc1155";
-import { optimism } from "thirdweb/chains";
+import { arbitrum } from "thirdweb/chains";
 import { getApprovalForTransaction } from "thirdweb/extensions/erc20";
 import { supabase } from "@/lib/supabase";
 
-// 合约地址
-const USDC_CONTRACT = "0x0b2C639c533813f4Aa9D7837CAf62653d097Ff85";  // Optimism USDC
-const STAR_NFT_CONTRACTS = {
-    DEMO: "0x2aFA062e70C5040e17BEb1827f16d74BF7111dA8",
-    PROD: "0x31FF15aAA5CBD8Af46838c30dF141e20e1E244fe"
-} as const;
+// Arbitrum 合约地址
+const USDT_CONTRACT = "0xFd086bC7CD5C481DCC9C85ebE478A1C0b69FCbb9";  // Arbitrum USDT
+const MEMBERSHIP_NFT_CONTRACT = "0x018F516B0d1E77Cc5947226Abc2E864B167C7E29";  // Arbitrum Membership NFT
 
-// NFT 类型定义
-type NFTType = 'Nova' | 'Orbit' | 'Stellar' | 'Polaris';
+// NFT 类型定义 (Level 1-19)
+type NFTType = 'LEVEL1' | 'LEVEL2' | 'LEVEL3' | 'LEVEL4' | 'LEVEL5' | 'LEVEL6' |
+               'LEVEL7' | 'LEVEL8' | 'LEVEL9' | 'LEVEL10' | 'LEVEL11' | 'LEVEL12' |
+               'LEVEL13' | 'LEVEL14' | 'LEVEL15' | 'LEVEL16' | 'LEVEL17' | 'LEVEL18' | 'LEVEL19';
 
-// NFT 价格配置
+// NFT 价格配置 (Level 1: 130, Level 2: 150, Level 3+: 每级增加50 USDT)
 const NFT_PRICES: Record<NFTType, number> = {
-    'Nova': 500,
-    'Orbit': 1000,
-    'Stellar': 3000,
-    'Polaris': 7000
+    'LEVEL1': 130,
+    'LEVEL2': 150,
+    'LEVEL3': 200,
+    'LEVEL4': 250,
+    'LEVEL5': 300,
+    'LEVEL6': 350,
+    'LEVEL7': 400,
+    'LEVEL8': 450,
+    'LEVEL9': 500,
+    'LEVEL10': 550,
+    'LEVEL11': 600,
+    'LEVEL12': 650,
+    'LEVEL13': 700,
+    'LEVEL14': 750,
+    'LEVEL15': 800,
+    'LEVEL16': 850,
+    'LEVEL17': 900,
+    'LEVEL18': 950,
+    'LEVEL19': 1000
 };
 
-interface ClaimStarNFTButtonProps {
+interface ClaimMembershipButtonProps {
     walletAddress: string;
     tokenId: number;
     nftType: NFTType;
@@ -40,41 +52,36 @@ interface ClaimStarNFTButtonProps {
     onSuccess?: () => void;
     onError?: (error: Error) => void;
     disabled?: boolean;
-    isDemo?: boolean;
 }
 
-export function ClaimStarNFTButton({
+export function ClaimMembershipButton({
                                        walletAddress,
                                        tokenId,
                                        nftType,
                                        style,
                                        onSuccess,
                                        onError,
-                                       disabled,
-                                       isDemo = false
-                                   }: ClaimStarNFTButtonProps) {
-    const { t } = useTranslation();
+                                       disabled
+                                   }: ClaimMembershipButtonProps) {
+    const { t } = useI18n();
     const account = useActiveAccount();
-    const router = useRouter();
+    const [, setLocation] = useLocation();
     const [isProcessing, setIsProcessing] = useState(false);
     const [isApproving, setIsApproving] = useState(false);
     const { mutateAsync: sendTransaction } = useSendTransaction();
 
-    // 获取正确的合约地址
-    const contractAddress = isDemo ? STAR_NFT_CONTRACTS.DEMO : STAR_NFT_CONTRACTS.PROD;
-
-    // 获取合约实例
+    // 获取 Membership NFT 合约实例 (Arbitrum)
     const contract = getContract({
         client,
-        chain: defineChain(optimism),
-        address: contractAddress,
+        chain: defineChain(arbitrum),
+        address: MEMBERSHIP_NFT_CONTRACT,
     });
 
-    // 获取 USDC 合约实例用于检查授权
-    const USDCContract = getContract({
+    // 获取 USDT 合约实例用于检查授权 (Arbitrum)
+    const USDTContract = getContract({
         client,
-        chain: defineChain(optimism),
-        address: USDC_CONTRACT,
+        chain: defineChain(arbitrum),
+        address: USDT_CONTRACT,
         abi: [{
             name: "allowance",
             type: "function",
@@ -89,9 +96,9 @@ export function ClaimStarNFTButton({
 
     // 检查授权额度
     const { data: allowance } = useReadContract({
-        contract: USDCContract,
+        contract: USDTContract,
         method: "allowance",
-        params: [account?.address ?? '', contractAddress]
+        params: [account?.address ?? '', MEMBERSHIP_NFT_CONTRACT]
     });
 
     const handleClick = async () => {
@@ -105,24 +112,42 @@ export function ClaimStarNFTButton({
         try {
             setIsProcessing(true);
 
-            // 检查NFT是否已经被认领
-            const { data: claimedData } = await supabase
-                .from('star_nft_claimed')
-                .select('id')
+            // 提取目标等级 (例如 'LEVEL1' -> 1)
+            const targetLevel = parseInt(nftType.replace('LEVEL', ''));
+
+            // Token ID 映射: Level 1-19 -> tokenId 1-19 (相同)
+            const nftTokenId = targetLevel;
+
+            // 检查会员当前等级（从 members 表）
+            const { data: memberData, error: memberError } = await supabase
+                .from('members')
+                .select('current_level, wallet_address')
                 .eq('wallet_address', walletAddress.toLowerCase())
-                .eq('token_id', tokenId)
                 .single();
 
-            if (claimedData) {
-                toast.error(t("starNFT.claim.alreadyClaimed"));
+            if (memberError) {
+                toast.error(t("membership.memberNotFound"));
+                console.error('Member check error:', memberError);
                 return;
             }
 
-            // 构建 claim 交易
+            // 检查是否已经拥有此等级或更高等级
+            if (memberData && memberData.current_level >= targetLevel) {
+                toast.error(t("membership.alreadyOwned"));
+                return;
+            }
+
+            // 检查是否按顺序升级（不能跳级）
+            if (memberData && memberData.current_level < targetLevel - 1) {
+                toast.error(t("membership.mustUpgradeSequentially"));
+                return;
+            }
+
+            // 构建 claim 交易 (使用映射后的 tokenId)
             const claimTransaction = claimTo({
                 contract,
                 quantity: BigInt(1),
-                tokenId: BigInt(tokenId),
+                tokenId: BigInt(nftTokenId),
                 to: walletAddress,
             });
 
@@ -173,18 +198,18 @@ export function ClaimStarNFTButton({
 
             // 构建查询参数
             const searchParams = new URLSearchParams();
-            searchParams.set('type', 'star');
-            searchParams.set('tokenId', tokenId.toString());
+            searchParams.set('type', 'membership');
+            searchParams.set('tokenId', nftTokenId.toString());  // tokenId 1-19
             searchParams.set('nftType', nftType);
-            searchParams.set('isDemo', isDemo.toString());
+            searchParams.set('level', targetLevel.toString());
             searchParams.set('price', NFT_PRICES[nftType].toString());
 
             // 跳转到购买页面
-            router.push(`/purchase?${searchParams.toString()}`);
+            setLocation(`/purchase?${searchParams.toString()}`);
 
         } catch (error) {
             console.error('Claim error:', error);
-            toast.error(t("starNFT.claim.error"));
+            toast.error(t("membership.claim.error"));
             if (error instanceof Error) {
                 onError?.(error);
             }
@@ -198,10 +223,10 @@ export function ClaimStarNFTButton({
             onClick={handleClick}
             disabled={!account || isProcessing || disabled}
             className="w-full py-4 px-6 rounded-xl text-white font-medium
-        bg-gradient-to-r from-purple-600 to-purple-700 hover:from-purple-700 hover:to-purple-800
+        bg-gradient-to-r from-yellow-500 to-amber-600 hover:from-yellow-600 hover:to-amber-700
         transition-colors duration-200
-        shadow-lg shadow-purple-500/20
-        border border-purple-400/30 backdrop-blur-sm
+        shadow-lg shadow-amber-500/20
+        border border-amber-400/30 backdrop-blur-sm
         disabled:opacity-50 disabled:cursor-not-allowed"
             style={style}
         >
@@ -213,8 +238,8 @@ export function ClaimStarNFTButton({
                     </>
                 ) : (
                     <>
-                        <span>{t('starNFT.buttons.claim')}</span>
-                        <span className="text-xl">⭐</span>
+                        <span>{t('membership.buttons.claim')}</span>
+                        <span className="text-xl">🐝</span>
                     </>
                 )}
             </div>

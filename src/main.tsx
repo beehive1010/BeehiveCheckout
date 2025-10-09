@@ -5,7 +5,6 @@ import App from "./App";
 import "./index.css";
 // 导入测试工具（在控制台中可用）
 import "./utils/testDeepL";
-import "./utils/quickTest";
 
 // Enhanced error handling for deployment stability
 const renderApp = () => {
