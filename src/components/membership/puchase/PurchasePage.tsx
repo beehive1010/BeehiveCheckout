@@ -99,4 +99,4 @@ export function PurchasePage({
 }
 
 // 导出类型定义
-export type { PurchasePageProps };xiu
+export type { PurchasePageProps };
