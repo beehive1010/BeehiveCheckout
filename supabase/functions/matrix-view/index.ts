@@ -206,18 +206,49 @@ serve(async (req: Request) => {
 
       console.log(`📊 v_matrix_layers returned ${layerData?.length || 0} layers`)
 
-      // Convert view data to position counts format
+      // Get L/M/R breakdown from matrix_referrals for layers with data
       const positionCounts: any = {}
+
+      // Initialize from view data
       layerData?.forEach((row: any) => {
         positionCounts[row.layer] = {
           total: row.filled || 0,
-          L: 0,  // View doesn't have L/M/R breakdown, but we have total
+          L: 0,
           M: 0,
           R: 0
         }
       })
 
-      console.log(`📊 Position counts by layer:`, positionCounts)
+      // Query matrix_referrals for position details only for layers with data
+      const layersToQuery = layerData?.map(d => d.layer) || []
+
+      if (layersToQuery.length > 0) {
+        const { data: positionsData, error: posError } = await supabase
+          .from('matrix_referrals')
+          .select('layer, position')
+          .eq('matrix_root_wallet', walletAddress)
+          .in('layer', layersToQuery)
+
+        if (!posError && positionsData) {
+          // Count L/M/R positions for each layer
+          positionsData.forEach((item: any) => {
+            const layer = item.layer
+            if (positionCounts[layer]) {
+              const pos = item.position
+              // Check last character of position string
+              if (pos === 'L' || pos?.endsWith('.L')) {
+                positionCounts[layer].L++
+              } else if (pos === 'M' || pos?.endsWith('.M')) {
+                positionCounts[layer].M++
+              } else if (pos === 'R' || pos?.endsWith('.R')) {
+                positionCounts[layer].R++
+              }
+            }
+          })
+        }
+      }
+
+      console.log(`📊 Position counts by layer with L/M/R:`, positionCounts)
 
       // Get actual direct referrals count from members table (users who have this wallet as referrer)
       const { count: actualDirectReferrals, error: directRefError } = await supabase

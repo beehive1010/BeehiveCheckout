@@ -165,7 +165,7 @@ const ComprehensiveMemberDashboard: React.FC = () => {
       // Get balance data from user_balances table
       const { data: balanceData, error: balanceError } = await supabase
         .from('user_balances')
-        .select('bcc_transferable, bcc_restricted, bcc_locked, total_usdt_earned')
+        .select('bcc_balance, bcc_locked, total_earned, available_balance')
         .ilike('wallet_address', walletAddress!)
         .maybeSingle();
 
@@ -182,10 +182,10 @@ const ComprehensiveMemberDashboard: React.FC = () => {
       }
 
       setBalanceInfo({
-        usdc: balanceData?.total_usdt_earned || 0,
-        bccTransferable: balanceData?.bcc_transferable || 0,
+        usdc: balanceData?.available_balance || 0,
+        bccTransferable: balanceData?.bcc_balance || 0,
         bccLocked: balanceData?.bcc_locked || 0,
-        totalEarned: balanceData?.total_usdt_earned || 0
+        totalEarned: balanceData?.total_earned || 0
       });
     } catch (error) {
       console.error('Failed to load balance info:', error);
