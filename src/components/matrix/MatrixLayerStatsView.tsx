@@ -56,39 +56,33 @@ const MatrixLayerStatsView: React.FC<MatrixLayerStatsViewProps> = ({
       // Use direct database view query instead of edge function
       console.log('📊 Using direct database query for matrix stats');
 
-      // Get matrix layer statistics directly from matrix_referrals_tree_view
-      const { data: matrixData, error: matrixError } = await supabase
-        .from('matrix_referrals_tree_view')
-        .select('matrix_layer, matrix_position, member_wallet, referral_type')
-        .eq('matrix_root_wallet', walletAddress);
+      // Use v_matrix_layers view for efficient aggregated statistics (no row limit)
+      const { data: layerData, error: matrixError } = await supabase
+        .from('v_matrix_layers')
+        .select('layer, capacity, filled, spillovers, directs')
+        .eq('root', walletAddress)
+        .order('layer');
 
       if (matrixError) {
         throw new Error(`Database error: ${matrixError.message}`);
       }
 
-      console.log('📊 Matrix data from database:', matrixData);
-      console.log('📊 Total records found:', matrixData?.length || 0);
+      console.log('📊 Matrix layer data from v_matrix_layers:', layerData);
+      console.log('📊 Total layers found:', layerData?.length || 0);
 
-      // Calculate layer statistics from raw data
+      // Convert view data to layer counts format
       const layerCounts: Record<number, { L: number, M: number, R: number, active: number }> = {};
 
-      matrixData?.forEach(member => {
-        const layer = member.matrix_layer;
-        if (!layerCounts[layer]) {
-          layerCounts[layer] = { L: 0, M: 0, R: 0, active: 0 };
-        }
-
-        // Count positions - support both simple positions (L, M, R) and complex positions (L.L, L.M, etc.)
-        const position = member.matrix_position;
-        if (position === 'L' || position?.endsWith('.L')) layerCounts[layer].L++;
-        else if (position === 'M' || position?.endsWith('.M')) layerCounts[layer].M++;
-        else if (position === 'R' || position?.endsWith('.R')) layerCounts[layer].R++;
-
-        // Count ActiveMember members (assume all are ActiveMember since they're in the matrix)
-        layerCounts[layer].active++;
+      layerData?.forEach(row => {
+        layerCounts[row.layer] = {
+          L: 0,  // View doesn't have L/M/R breakdown
+          M: 0,
+          R: 0,
+          active: row.filled || 0  // Use filled count as active members
+        };
       });
 
-      console.log('📊 Layer counts calculated:', layerCounts);
+      console.log('📊 Layer counts from view:', layerCounts);
       
       // Generate layer stats for all 19 layers
       const layer_stats = [];

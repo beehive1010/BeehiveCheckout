@@ -170,104 +170,50 @@ serve(async (req: Request) => {
     }
 
     if (action === 'get-layer-stats') {
-      // Get layer statistics using matrix_layers_view and referrals_stats_view
+      // Get layer statistics directly from matrix_referrals table
       console.log(`📊 Getting layer statistics for wallet: ${walletAddress}`)
-      
-      // Try to get enhanced stats from referrals_stats_view (with fallback if view doesn't exist)
-      let statsData = null;
+
+      // Get team size stats from referrals_stats_view (has correct total_referrals)
+      let totalTeamSize = 0;
       try {
-        const { data: enhancedStats, error: statsError } = await supabase
+        const { data: teamStats, error: teamError } = await supabase
           .from('referrals_stats_view')
-          .select(`
-            wallet_address,
-            username,
-            direct_referrals_count,
-            activated_referrals_count,
-            total_team_size,
-            max_layer,
-            active_layers,
-            total_activated_members,
-            total_network_size,
-            has_matrix_team
-          `)
-          .eq('wallet_address', walletAddress)
-          .single();
+          .select('total_referrals, unique_members')
+          .eq('referrer_wallet', walletAddress)
+          .maybeSingle();
 
-        if (!statsError) {
-          statsData = enhancedStats;
-          console.log('📊 Enhanced stats data from view:', statsData);
+        if (!teamError && teamStats) {
+          totalTeamSize = teamStats.total_referrals || teamStats.unique_members || 0;
+          console.log('📊 Team size from referrals_stats_view:', totalTeamSize);
         }
       } catch (error) {
-        console.log('⚠️ referrals_stats_view not available, will calculate manually');
+        console.log('⚠️ referrals_stats_view query failed:', error);
       }
 
-      // Try to get matrix layers data from matrix_layer_details (with fallback if view doesn't exist)
-      let matrixData = null;
-      let matrixError = null;
+      // Use v_matrix_layers view for efficient aggregated statistics
+      console.log(`📊 Using v_matrix_layers view for layer statistics`)
 
-      try {
-        const result = await supabase
-          .from('matrix_layer_details')
-          .select(`
-            layer,
-            filled_slots,
-            empty_slots,
-            max_slots,
-            left_members,
-            middle_members,
-            right_members,
-            activated_members,
-            completion_rate,
-            activation_rate,
-            layer_status,
-            is_balanced
-          `)
-          .eq('matrix_root_wallet', walletAddress)
-          .order('layer');
+      const { data: layerData, error: layerDataError } = await supabase
+        .from('v_matrix_layers')
+        .select('layer, capacity, filled, spillovers, directs')
+        .eq('root', walletAddress)
+        .order('layer')
 
-        matrixData = result.data;
-        matrixError = result.error;
-
-        if (!matrixError && matrixData) {
-          console.log('📊 Matrix layer data from matrix_layer_details:', matrixData.length, 'layers');
-        }
-      } catch (error) {
-        console.log('⚠️ matrix_layer_details not available, using fallback calculation');
-        matrixError = error;
-        matrixData = null;
+      if (layerDataError) {
+        console.error('❌ Error querying v_matrix_layers:', layerDataError)
+        throw layerDataError
       }
 
-      if (matrixError) {
-        console.error('Error fetching matrix data:', matrixError)
-        console.log('Using direct table calculation as fallback...')
-        // Continue with empty data - will be calculated from member positions
-        matrixData = [];
-      }
+      console.log(`📊 v_matrix_layers returned ${layerData?.length || 0} layers`)
 
-      console.log(`📊 Matrix layer data for ${walletAddress}:`, matrixData)
-      console.log(`📊 Matrix layer data retrieved: ${matrixData?.length || 0} layers`)
-
-      // Use matrix_referrals table directly for accurate layer statistics
-      const { data: membersData, error: membersError } = await supabase
-        .from('matrix_referrals')
-        .select('layer, position')
-        .eq('matrix_root_wallet', walletAddress)
-
-      console.log(`📊 Direct referrals query result for ${walletAddress}:`, { 
-        memberCount: membersData?.length || 0,
-        error: membersError,
-        sampleData: membersData?.slice(0, 5)
-      })
-
-      // Count positions by layer using actual matrix_referrals data
+      // Convert view data to position counts format
       const positionCounts: any = {}
-      membersData?.forEach(member => {
-        if (!positionCounts[member.layer]) {
-          positionCounts[member.layer] = { total: 0 }
-        }
-        // Count all positions in this layer
-        if (member.position) {
-          positionCounts[member.layer].total++
+      layerData?.forEach((row: any) => {
+        positionCounts[row.layer] = {
+          total: row.filled || 0,
+          L: 0,  // View doesn't have L/M/R breakdown, but we have total
+          M: 0,
+          R: 0
         }
       })
 
@@ -281,83 +227,49 @@ serve(async (req: Request) => {
 
       console.log(`📊 Actual direct referrals from members table:`, actualDirectReferrals)
 
-      // Transform data from matrix_layer_details (optimized)
+      // Build complete stats for all 19 layers
       const completeStats = []
-      
+
       // Initialize all 19 layers
       for (let layer = 1; layer <= 19; layer++) {
-        const layerData = matrixData?.find((l: any) => l.layer === layer)
-        const posData = positionCounts[layer] || { total: 0 }
-        
-        if (layerData) {
-          // Use data directly from matrix_layer_view (already calculated)
-          const totalMembers = layerData.filled_slots || 0;
-          const maxCapacity = layerData.max_slots || Math.pow(3, layer);
-          const fillPercentage = layerData.completion_rate || 0;
-          const activationRate = layerData.activation_rate || 0;
-          
-          console.log(`🔍 Layer ${layer} from matrix_layer_details:`, {
-            totalMembers,
-            maxCapacity,
-            fillPercentage,
-            activationRate,
-            leftMembers: layerData.left_members,
-            middleMembers: layerData.middle_members,
-            rightMembers: layerData.right_members,
-            layer_status: layerData.layer_status,
-            is_balanced: layerData.is_balanced
-          });
-          
-          completeStats.push({
-            layer: layerData.layer,
-            totalMembers: totalMembers,
-            leftMembers: layerData.left_members || 0,
-            middleMembers: layerData.middle_members || 0,
-            rightMembers: layerData.right_members || 0,
-            maxCapacity: maxCapacity,
-            fillPercentage: fillPercentage,
-            activeMembers: layerData.activated_members || 0,
-            completedPercentage: fillPercentage, // Use completion_rate as fill percentage
-            emptySlots: layerData.empty_slots || 0,
-            activationRate: activationRate,
-            layerStatus: layerData.layer_status || 'empty',
-            isBalanced: layerData.is_balanced || false
-          })
-        } else {
-          // Layer not in matrix_layer_details - use correct matrix calculation
-          // Layer 1 = 3 positions (L,M,R), Layer 2 = 9 positions, Layer 3 = 27 positions, etc.
-          const maxCapacity = Math.pow(3, layer);
-          const totalMembers = posData.total || 0;
-          const calculatedPercentage = maxCapacity > 0 ? (totalMembers / maxCapacity) * 100 : 0;
-          const safePercentage = Math.min(Math.max(calculatedPercentage, 0), 100);
-          
-          console.log(`🔍 Layer ${layer} fallback calculation:`, {
-            totalMembers,
-            maxCapacity,
-            calculatedPercentage,
-            safePercentage,
-            positions: posData
-          });
-          
-          completeStats.push({
-            layer,
-            totalMembers: totalMembers,
-            leftMembers: 0,   // We'll calculate these separately if needed
-            middleMembers: 0,
-            rightMembers: 0,
-            maxCapacity,
-            fillPercentage: safePercentage,
-            activeMembers: totalMembers,
-            completedPercentage: safePercentage,
-            emptySlots: Math.max(maxCapacity - totalMembers, 0),
-            activationRate: totalMembers > 0 ? 100 : 0,
-            layerStatus: totalMembers > 0 ? 'active' : 'empty',
-            isBalanced: true // We'll calculate this properly later if needed
-          })
-        }
+        const posData = positionCounts[layer] || { total: 0, L: 0, M: 0, R: 0 }
+        const maxCapacity = Math.pow(3, layer);
+        const totalMembers = posData.total || 0;
+        const calculatedPercentage = maxCapacity > 0 ? (totalMembers / maxCapacity) * 100 : 0;
+        const safePercentage = Math.min(Math.max(calculatedPercentage, 0), 100);
+
+        console.log(`🔍 Layer ${layer} calculation:`, {
+          totalMembers,
+          leftMembers: posData.L,
+          middleMembers: posData.M,
+          rightMembers: posData.R,
+          maxCapacity,
+          fillPercentage: safePercentage
+        });
+
+        completeStats.push({
+          layer,
+          totalMembers: totalMembers,
+          leftMembers: posData.L,
+          middleMembers: posData.M,
+          rightMembers: posData.R,
+          maxCapacity,
+          fillPercentage: safePercentage,
+          activeMembers: totalMembers,
+          completedPercentage: safePercentage,
+          emptySlots: Math.max(maxCapacity - totalMembers, 0),
+          activationRate: totalMembers > 0 ? 100 : 0,
+          layerStatus: totalMembers >= maxCapacity ? 'completed' : totalMembers > 0 ? 'active' : 'empty',
+          isBalanced: Math.abs(posData.L - posData.M) <= 1 && Math.abs(posData.M - posData.R) <= 1
+        })
       }
 
       console.log(`✅ Generated statistics for ${completeStats.length} layers`)
+
+      // Calculate summary statistics
+      const totalMatrixMembers = completeStats.reduce((sum, stat) => sum + stat.totalMembers, 0);
+      const maxLayer = Math.max(...completeStats.filter(s => s.totalMembers > 0).map(s => s.layer), 0);
+      const layersWithData = completeStats.filter(s => s.totalMembers > 0).length;
 
       return new Response(JSON.stringify({
         success: true,
@@ -366,27 +278,26 @@ serve(async (req: Request) => {
           layer_stats: completeStats,
           summary: {
             // Matrix layer statistics
-            total_members: completeStats.reduce((sum, stat) => sum + stat.totalMembers, 0),
-            total_active: completeStats.reduce((sum, stat) => sum + stat.activeMembers, 0),
-            deepest_layer: Math.max(...completeStats.filter(s => s.totalMembers > 0).map(s => s.layer), 0),
-            max_layer: Math.max(...completeStats.filter(s => s.totalMembers > 0).map(s => s.layer), 0),
-            layers_with_data: completeStats.filter(s => s.totalMembers > 0).length,
+            total_members: totalMatrixMembers,
+            total_active: totalMatrixMembers, // All members in matrix are active
+            deepest_layer: maxLayer,
+            max_layer: maxLayer,
+            layers_with_data: layersWithData,
 
-            // Enhanced referral statistics (from improved referrals_stats_view)
-            // Use actual direct referrals count from members table instead of matrix layer 1
-            direct_referrals: actualDirectReferrals || 0,
+            // Referral statistics - use actual counts from database
+            direct_referrals: actualDirectReferrals || 0,  // From members.referrer_wallet
             activated_referrals: actualDirectReferrals || 0,  // All members in members table are activated
-            total_team_size: statsData?.total_team_size || completeStats.reduce((sum, stat) => sum + stat.totalMembers, 0),
-            total_network_size: statsData?.total_network_size || 0,
-            active_layers: statsData?.active_layers || 0,
-            total_activated_members: statsData?.total_activated_members || 0,
-            has_matrix_team: statsData?.has_matrix_team || false,
+            total_team_size: totalTeamSize || totalMatrixMembers,  // From referrals_stats_view or matrix total
+            total_network_size: totalMatrixMembers,
+            active_layers: layersWithData,
+            total_activated_members: totalMatrixMembers,
+            has_matrix_team: totalMatrixMembers > 0,
 
             // Computed metrics
-            network_strength: (completeStats.reduce((sum, stat) => sum + stat.totalMembers, 0) * 5) + (actualDirectReferrals || 0) * 10,
+            network_strength: (totalMatrixMembers * 5) + (actualDirectReferrals || 0) * 10,
 
             // Legacy aliases for backward compatibility
-            total_members_alias: completeStats.reduce((sum, stat) => sum + stat.totalMembers, 0)
+            total_members_alias: totalMatrixMembers
           }
         }
       }), {
