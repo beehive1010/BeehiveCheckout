@@ -84,40 +84,32 @@ const MatrixLayerStatsView: React.FC<MatrixLayerStatsViewProps> = ({
         };
       });
 
-      // Now get L/M/R breakdown by querying positions
-      // Group query by layer to avoid hitting limits
-      const layersWithData = layerData?.map(d => d.layer) || [];
+      // Get L/M/R breakdown from v_matrix_layer_positions view (efficient aggregation)
+      const { data: positionStats, error: posError } = await supabase
+        .from('v_matrix_layer_positions')
+        .select('layer, left_count, middle_count, right_count')
+        .eq('root', walletAddress);
 
-      if (layersWithData.length > 0) {
-        const { data: positionsData, error: posError } = await supabase
-          .from('matrix_referrals')
-          .select('layer, position')
-          .eq('matrix_root_wallet', walletAddress)
-          .in('layer', layersWithData);
-
-        if (!posError && positionsData) {
-          // Count L/M/R positions for each layer
-          positionsData.forEach(item => {
-            const layer = item.layer;
-            if (layerCounts[layer]) {
-              const pos = item.position;
-              // Check last character of position string
-              if (pos === 'L' || pos?.endsWith('.L')) layerCounts[layer].L++;
-              else if (pos === 'M' || pos?.endsWith('.M')) layerCounts[layer].M++;
-              else if (pos === 'R' || pos?.endsWith('.R')) layerCounts[layer].R++;
-            }
-          });
-        }
+      if (!posError && positionStats) {
+        // Update L/M/R counts from position stats view
+        positionStats.forEach(stat => {
+          if (layerCounts[stat.layer]) {
+            layerCounts[stat.layer].L = stat.left_count || 0;
+            layerCounts[stat.layer].M = stat.middle_count || 0;
+            layerCounts[stat.layer].R = stat.right_count || 0;
+          }
+        });
       }
 
       console.log('📊 Layer counts with L/M/R breakdown:', layerCounts);
-      
+
       // Generate layer stats for all 19 layers
+      // IMPORTANT: Always generate all 19 layers, even if view doesn't return them
       const layer_stats = [];
       for (let layer = 1; layer <= 19; layer++) {
         const counts = layerCounts[layer] || { L: 0, M: 0, R: 0, active: 0 };
+        // Total members is sum of L+M+R, not from view (view might not have this layer)
         const totalMembers = counts.L + counts.M + counts.R;
-        // For matrix layers, capacity grows exponentially
         const maxCapacity = Math.pow(3, layer);
         const fillPercentage = maxCapacity > 0 ? (totalMembers / maxCapacity) * 100 : 0;
 
@@ -136,6 +128,8 @@ const MatrixLayerStatsView: React.FC<MatrixLayerStatsViewProps> = ({
           isBalanced: Math.abs(counts.L - counts.M) <= 1 && Math.abs(counts.M - counts.R) <= 1
         });
       }
+
+      console.log('📊 Generated stats for all 19 layers:', layer_stats.length);
       
       // Debug: Check specific Layer 2 data
       const layer2Data = layer_stats?.find((layer: any) => layer.layer === 2);
