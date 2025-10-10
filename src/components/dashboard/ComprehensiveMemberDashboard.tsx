@@ -24,6 +24,7 @@ import {
 } from 'lucide-react';
 import { useWallet } from '@/hooks/useWallet';
 import { supabase } from '../../lib/supabase';
+import { callEdgeFunction } from '../../lib/supabaseClient';
 import { toast } from 'react-hot-toast';
 import { useI18n } from '@/contexts/I18nContext';
 import { WelcomeLevel1ClaimButton } from '../membership/WelcomeLevel1ClaimButton';
@@ -126,7 +127,7 @@ const ComprehensiveMemberDashboard: React.FC = () => {
       // Get member data from database
       const { data: memberData, error: memberError } = await supabase
         .from('members')
-        .select('current_level, levels_owned, activation_rank, tier_level')
+        .select('current_level, activation_sequence')
         .ilike('wallet_address', walletAddress!)
         .maybeSingle();
 
@@ -141,17 +142,17 @@ const ComprehensiveMemberDashboard: React.FC = () => {
         .select('*', { count: 'exact', head: true })
         .ilike('referrer_wallet', walletAddress!);
 
-      // Get total downline from direct referrals (fallback since matrix placements table doesn't exist)
+      // Get total team size from matrix
       const { count: totalDownline } = await supabase
-        .from('users')
+        .from('referrals')
         .select('*', { count: 'exact', head: true })
-        .ilike('referrer_wallet', walletAddress!);
+        .ilike('matrix_root_wallet', walletAddress!);
 
       setMemberStats({
         currentLevel: memberData?.current_level || 0,
-        levelsOwned: memberData?.levels_owned || [],
-        activationRank: memberData?.activation_rank || 0,
-        tier: memberData?.tier_level || 1,
+        levelsOwned: memberData?.current_level ? [memberData.current_level] : [],
+        activationRank: memberData?.activation_sequence || 0,
+        tier: 1, // Default tier
         directReferrals: directReferrals || 0,
         totalDownline: totalDownline || 0
       });
