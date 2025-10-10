@@ -42,9 +42,9 @@ export function useUserReferralStats() {
     queryFn: async () => {
       if (!walletAddress) throw new Error('No wallet address');
       
-      // Get direct referrals count using referrals table (direct referrals)
+      // Get direct referrals count from members table (users who have this wallet as referrer)
       const { count: directReferrals } = await supabase
-        .from('referrals')
+        .from('members')
         .select('*', { count: 'exact', head: true })
         .ilike('referrer_wallet', walletAddress);
 

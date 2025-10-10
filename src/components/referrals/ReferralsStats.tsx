@@ -81,12 +81,11 @@ export default function ReferralsStats({ walletAddress, className }: ReferralsSt
         return data;
       } catch (error) {
         console.error('❌ Failed to fetch referrer stats:', error);
-        // Fallback to simple direct count from referrals table
+        // Fallback to simple direct count from members table
         const { count: directReferralsCount, error: directError } = await supabase
-          .from('referrals')
+          .from('members')
           .select('*', { count: 'exact', head: true })
-          .eq('referrer_wallet', walletAddress)
-          .eq('matrix_layer', 1); // Only count direct referrals (Layer 1)
+          .ilike('referrer_wallet', walletAddress);
         
         if (directError) throw directError;
         
