@@ -273,7 +273,8 @@ export function useLayeredMatrix(currentViewWallet: string, targetLayer: number 
             .eq('parent_wallet', currentViewWallet);
 
         } else {
-          // 正常模式：使用原有的tree view查询
+          // 正常模式：使用 matrix_referrals 表（view 没有 position filter 功能）
+          // 但是要注意：对于小范围查询（特定层级），直接查询不会超过限制
           let positionFilter = ['L', 'M', 'R'];
           if (targetLayer === 2) {
             positionFilter = ['L.L', 'L.M', 'L.R', 'M.L', 'M.M', 'M.R', 'R.L', 'R.M', 'R.R'];
@@ -282,26 +283,24 @@ export function useLayeredMatrix(currentViewWallet: string, targetLayer: number 
           }
 
           query = supabase
-            .from('matrix_referrals_tree_view')
+            .from('matrix_referrals')
             .select(`
               member_wallet,
               matrix_root_wallet,
-              matrix_layer,
-              matrix_position,
+              layer,
+              position,
               referral_type,
-              placed_at
+              created_at
             `)
             .eq('matrix_root_wallet', matrixRootWallet)
-            .eq('matrix_layer', targetLayer);
+            .eq('layer', targetLayer);
 
           if (positionFilter) {
-            query = query.in('matrix_position', positionFilter);
+            query = query.in('position', positionFilter);
           }
         }
 
-        const { data: matrixData, error: matrixError } = await query.order(
-          isDrillDown && targetLayer === 1 ? 'position' : 'matrix_position'
-        );
+        const { data: matrixData, error: matrixError } = await query.order('position');
 
         if (matrixError) {
           console.error('❌ Error fetching matrix data:', matrixError);
@@ -310,13 +309,13 @@ export function useLayeredMatrix(currentViewWallet: string, targetLayer: number 
 
         console.log(`📊 Matrix layer ${targetLayer} data for current view ${currentViewWallet}:`, matrixData);
 
-        // 标准化数据格式（drill-down模式的字段名不同）
+        // 标准化数据格式（统一使用 position 和 created_at）
         const normalizedData = matrixData?.map((item: any) => ({
           member_wallet: item.member_wallet,
           matrix_root_wallet: item.matrix_root_wallet,
-          matrix_position: isDrillDown && targetLayer === 1 ? item.position : item.matrix_position,
+          matrix_position: item.position,
           referral_type: item.referral_type,
-          placed_at: isDrillDown && targetLayer === 1 ? item.created_at : item.placed_at
+          placed_at: item.created_at
         })) || [];
 
         console.log(`📊 Normalized matrix data:`, normalizedData);
