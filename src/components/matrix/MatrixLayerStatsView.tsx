@@ -70,19 +70,47 @@ const MatrixLayerStatsView: React.FC<MatrixLayerStatsViewProps> = ({
       console.log('📊 Matrix layer data from v_matrix_layers:', layerData);
       console.log('📊 Total layers found:', layerData?.length || 0);
 
-      // Convert view data to layer counts format
+      // Get L/M/R position breakdown from matrix_referrals for each layer
+      // We'll query in batches for efficiency
       const layerCounts: Record<number, { L: number, M: number, R: number, active: number }> = {};
 
+      // Initialize counts from view data
       layerData?.forEach(row => {
         layerCounts[row.layer] = {
-          L: 0,  // View doesn't have L/M/R breakdown
+          L: 0,
           M: 0,
           R: 0,
-          active: row.filled || 0  // Use filled count as active members
+          active: row.filled || 0
         };
       });
 
-      console.log('📊 Layer counts from view:', layerCounts);
+      // Now get L/M/R breakdown by querying positions
+      // Group query by layer to avoid hitting limits
+      const layersWithData = layerData?.map(d => d.layer) || [];
+
+      if (layersWithData.length > 0) {
+        const { data: positionsData, error: posError } = await supabase
+          .from('matrix_referrals')
+          .select('layer, position')
+          .eq('matrix_root_wallet', walletAddress)
+          .in('layer', layersWithData);
+
+        if (!posError && positionsData) {
+          // Count L/M/R positions for each layer
+          positionsData.forEach(item => {
+            const layer = item.layer;
+            if (layerCounts[layer]) {
+              const pos = item.position;
+              // Check last character of position string
+              if (pos === 'L' || pos?.endsWith('.L')) layerCounts[layer].L++;
+              else if (pos === 'M' || pos?.endsWith('.M')) layerCounts[layer].M++;
+              else if (pos === 'R' || pos?.endsWith('.R')) layerCounts[layer].R++;
+            }
+          });
+        }
+      }
+
+      console.log('📊 Layer counts with L/M/R breakdown:', layerCounts);
       
       // Generate layer stats for all 19 layers
       const layer_stats = [];
