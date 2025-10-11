@@ -43,7 +43,7 @@ export default function Dashboard() {
   const [, setLocation] = useLocation();
 
   // Maintenance mode - disable navigation to referrals and rewards
-  const MAINTENANCE_MODE = true; // Set to false to enable navigation
+  const MAINTENANCE_MODE = false; // Set to false to enable navigation
 
   const [data, setData] = useState<SimpleDashboardData>({
     bccBalance: 0,
