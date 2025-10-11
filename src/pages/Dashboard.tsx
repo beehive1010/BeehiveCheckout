@@ -720,7 +720,14 @@ export default function Dashboard() {
                 }`}>{t('dashboard.maxLayer')}: <span className="font-bold text-blue-400">{data.maxLayer}</span></p>
               </div>
               <Button
-                onClick={() => setLocation('/referrals')}
+                onClick={() => {
+                  toast({
+                    title: "System Maintenance",
+                    description: "Data verification and upgrade in progress. Referrals page will be available shortly.",
+                    duration: 5000,
+                  });
+                  // setLocation('/referrals'); // Temporarily disabled during maintenance
+                }}
                 className={`w-full bg-gradient-to-r from-blue-500 to-indigo-500 hover:from-blue-600 hover:to-indigo-600 text-white font-bold shadow-lg hover:shadow-xl transition-all duration-300 ${
                   isMobile ? 'h-9 text-sm' : isDesktop ? 'h-12 text-base' : 'h-10 text-sm'
                 }`}
@@ -779,7 +786,14 @@ export default function Dashboard() {
                 }`}>{t('dashboard.ready')}</Badge>}
               </div>
               <Button
-                onClick={() => setLocation('/rewards')}
+                onClick={() => {
+                  toast({
+                    title: "System Maintenance",
+                    description: "Data verification and upgrade in progress. Rewards page will be available shortly.",
+                    duration: 5000,
+                  });
+                  // setLocation('/rewards'); // Temporarily disabled during maintenance
+                }}
                 className={`w-full bg-gradient-to-r from-emerald-500 to-green-500 hover:from-emerald-600 hover:to-green-600 text-white font-bold shadow-lg hover:shadow-xl transition-all duration-300 ${
                   isMobile ? 'h-9 text-sm' : isDesktop ? 'h-12 text-base' : 'h-10 text-sm'
                 }`}
