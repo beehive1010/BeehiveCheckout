@@ -290,10 +290,16 @@ export function useLayeredMatrix(currentViewWallet: string, targetLayer: number 
               layer,
               position,
               referral_type,
-              created_at
+              created_at,
+              parent_wallet
             `)
             .eq('matrix_root_wallet', matrixRootWallet)
             .eq('layer', targetLayer);
+
+          // For Layer 1, we only want direct children of the root
+          if (targetLayer === 1) {
+            query = query.eq('parent_wallet', matrixRootWallet);
+          }
 
           if (positionFilter) {
             query = query.in('position', positionFilter);

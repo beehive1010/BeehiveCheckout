@@ -81,26 +81,47 @@ export default function ReferralsStats({ walletAddress, className }: ReferralsSt
         return data;
       } catch (error) {
         console.error('❌ Failed to fetch referrer stats:', error);
-        // Fallback to simple direct count from members table
-        const { count: directReferralsCount, error: directError } = await supabase
-          .from('members')
-          .select('*', { count: 'exact', head: true })
-          .ilike('referrer_wallet', walletAddress);
-        
-        if (directError) throw directError;
-        
+        // Fallback to views instead of direct table queries
+
+        // Use referrals_stats_view for referral counts
+        const { data: referralStats } = await supabase
+          .from('referrals_stats_view')
+          .select('*')
+          .ilike('referrer_wallet', walletAddress)
+          .maybeSingle();
+
+        // Use v_matrix_overview for matrix statistics
+        const { data: matrixOverview } = await supabase
+          .from('v_matrix_overview')
+          .select('*')
+          .ilike('wallet_address', walletAddress)
+          .maybeSingle();
+
+        // Use v_matrix_layers for layer 1 stats
+        const { data: layer1Stats } = await supabase
+          .from('v_matrix_layers')
+          .select('*')
+          .ilike('root', walletAddress)
+          .eq('layer', 1)
+          .maybeSingle();
+
+        const directReferralsCount = referralStats?.direct_referrals || 0;
+        const totalTeamSize = matrixOverview?.total_members || 0;
+        const maxDepth = matrixOverview?.deepest_layer || 0;
+        const layer1Filled = layer1Stats?.filled || 0;
+
         return {
           referrer: walletAddress,
           referrer_name: '',
-          total_direct_referrals: directReferralsCount || 0,
-          activated_referrals: directReferralsCount || 0,
-          total_team_size: directReferralsCount || 0,
-          activated_members: directReferralsCount || 0,
-          max_depth: directReferralsCount > 0 ? 1 : 0,
-          network_strength: (directReferralsCount || 0) * 10,
-          highest_referral_level: 1,
-          level2_upgrade_eligible: (directReferralsCount || 0) >= 3,
-          layer1_filled: directReferralsCount || 0,
+          total_direct_referrals: directReferralsCount,
+          activated_referrals: directReferralsCount,
+          total_team_size: totalTeamSize,
+          activated_members: matrixOverview?.active_members || 0,
+          max_depth: maxDepth,
+          network_strength: directReferralsCount * 10,
+          highest_referral_level: maxDepth,
+          level2_upgrade_eligible: directReferralsCount >= 3,
+          layer1_filled: layer1Filled,
           layer1_max: 3
         };
       }

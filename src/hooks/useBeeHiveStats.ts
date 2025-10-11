@@ -41,32 +41,31 @@ export function useUserReferralStats() {
     queryKey: ['/api/stats/user-referrals', walletAddress],
     queryFn: async () => {
       if (!walletAddress) throw new Error('No wallet address');
-      
-      // Get direct referrals count from members table (users who have this wallet as referrer)
-      const { count: directReferrals } = await supabase
-        .from('members')
-        .select('*', { count: 'exact', head: true })
-        .ilike('referrer_wallet', walletAddress);
 
-      // Get total team count from referrals table (all matrix members under this root)
-      const { count: totalTeam } = await supabase
-        .from('referrals')
-        .select('*', { count: 'exact', head: true })
-        .ilike('matrix_root_wallet', walletAddress);
+      // Use referrals_stats_view for referral statistics
+      const { data: referralStats } = await supabase
+        .from('referrals_stats_view')
+        .select('*')
+        .ilike('referrer_wallet', walletAddress)
+        .maybeSingle();
+
+      // Use v_matrix_overview for matrix statistics
+      const { data: matrixOverview } = await supabase
+        .from('v_matrix_overview')
+        .select('*')
+        .ilike('wallet_address', walletAddress)
+        .maybeSingle();
 
       // Get member's current level and info using canonical view
       const { data: memberData, error: memberError } = await supabase
         .from('v_member_overview')
-        .select('current_level, wallet_address')
+        .select('current_level, wallet_address, is_active')
         .ilike('wallet_address', walletAddress)
-        .maybeSingle() as { data: { current_level: number; wallet_address: string } | null; error: any };
+        .maybeSingle();
 
       if (memberError) {
         console.error('Error fetching member data:', memberError);
       }
-
-      // activation_sequence is not available in v_member_overview, set default
-      const activationSequence = 1; // Can be fetched separately if needed
 
       // Get reward statistics from canonical view
       const { data: rewardOverview } = await supabase
@@ -75,58 +74,42 @@ export function useUserReferralStats() {
         .ilike('member_id', walletAddress)
         .maybeSingle();
 
-      // Calculate total earnings from paid rewards count (need actual amount - use layer_rewards for details)
-      const { data: claimedRewardsData } = await supabase
-        .from('layer_rewards')
-        .select('reward_amount')
-        .ilike('reward_recipient_wallet', walletAddress)
-        .eq('status', 'claimed');
+      // Use rewards_stats_view for total earnings
+      const { data: rewardStats } = await supabase
+        .from('rewards_stats_view')
+        .select('*')
+        .ilike('wallet_address', walletAddress)
+        .maybeSingle();
 
-      const totalEarnings = claimedRewardsData?.reduce((sum, reward) => sum + (Number(reward.reward_amount) || 0), 0) || 0;
+      const totalEarnings = rewardStats?.total_claimed || 0;
 
-      // Get recent referrals with activation status - use referrals table directly
+      // Use v_direct_referrals for recent referrals
       const { data: recentReferralsData } = await supabase
-        .from('referrals')
-        .select(`
-          member_wallet,
-          placed_at,
-          matrix_position,
-          matrix_layer
-        `)
-        .ilike('matrix_root_wallet', walletAddress)
-        .eq('matrix_layer', 1) // Only direct layer 1 members
-        .order('placed_at', { ascending: false })
+        .from('v_direct_referrals')
+        .select('*')
+        .ilike('referrer_wallet', walletAddress)
+        .eq('referral_depth', 1) // Only direct referrals
+        .order('referral_date', { ascending: false })
         .limit(5);
 
-      // Get activation status for recent referrals using canonical view
-      const recentReferrals = await Promise.all(
-        (recentReferralsData || []).map(async (referral) => {
-          const { data: memberData } = await supabase
-            .from('v_member_overview')
-            .select('current_level, is_active')
-            .ilike('wallet_address', referral.member_wallet)
-            .maybeSingle();
-
-          return {
-            walletAddress: referral.member_wallet,
-            joinedAt: referral.placed_at || new Date().toISOString(),
-            activated: memberData?.is_active || false
-          };
-        })
-      );
+      const recentReferrals = (recentReferralsData || []).map((referral) => ({
+        walletAddress: referral.referred_wallet,
+        joinedAt: referral.referral_date || new Date().toISOString(),
+        activated: (referral.referred_level || 0) > 0
+      }));
 
       return {
-        directReferralCount: directReferrals || 0,
-        totalTeamCount: totalTeam || 0,
-        totalReferrals: directReferrals || 0,
+        directReferralCount: referralStats?.direct_referrals || 0,
+        totalTeamCount: matrixOverview?.total_members || 0,
+        totalReferrals: referralStats?.total_referrals || 0,
         totalEarnings: totalEarnings.toString(),
         monthlyEarnings: '0', // TODO: Calculate monthly earnings
         pendingCommissions: (rewardOverview?.pending_cnt || 0).toString(),
         nextPayout: rewardOverview?.next_expiring_at || 'TBD',
         currentLevel: memberData?.current_level || 1,
-        memberActivated: memberData?.current_level ? memberData.current_level > 0 : false,
+        memberActivated: memberData?.is_active || false,
         matrixLevel: memberData?.current_level || 1,
-        positionIndex: activationSequence,
+        positionIndex: 1,
         levelsOwned: [memberData?.current_level || 1],
         downlineMatrix: [], // TODO: Calculate downline matrix stats
         recentReferrals
@@ -147,33 +130,35 @@ export function useUserMatrixStats() {
     queryKey: ['/api/stats/user-matrix', walletAddress],
     queryFn: async () => {
       if (!walletAddress) throw new Error('No wallet address');
-      
-      // Get matrix placements by layer using referrals table directly
-      const { data: matrixData } = await supabase
-        .from('referrals')
-        .select('matrix_layer, matrix_position, member_wallet, referrer_wallet')
-        .eq('matrix_root_wallet', walletAddress)
-        .order('matrix_layer');
 
-      // Group by layer and count
-      const layerStats = matrixData?.reduce((acc, placement) => {
-        const layer = placement.matrix_layer;
-        const position = placement.matrix_position;
-        if (layer !== null && layer !== undefined && position !== null && position !== undefined) {
-          if (!acc[layer]) {
-            acc[layer] = { members: 0, positions: [] };
-          }
-          acc[layer].members++;
-          acc[layer].positions.push(position);
-        }
+      // Use v_matrix_overview for overall statistics
+      const { data: matrixOverview } = await supabase
+        .from('v_matrix_overview')
+        .select('*')
+        .ilike('wallet_address', walletAddress)
+        .maybeSingle();
+
+      // Use v_matrix_layers for layer-by-layer statistics
+      const { data: layerData } = await supabase
+        .from('v_matrix_layers')
+        .select('*')
+        .ilike('root', walletAddress)
+        .order('layer');
+
+      // Transform layer data into the expected format
+      const layerStats = (layerData || []).reduce((acc, layer) => {
+        acc[layer.layer] = {
+          members: layer.filled,
+          positions: [] // positions array not needed from view
+        };
         return acc;
-      }, {} as Record<number, { members: number; positions: string[] }>) || {};
+      }, {} as Record<number, { members: number; positions: string[] }>);
 
       return {
-        totalLayers: Object.keys(layerStats).length,
+        totalLayers: matrixOverview?.deepest_layer || 0,
         layerStats,
-        totalMembers: matrixData?.length || 0,
-        matrixData: matrixData || [] // 原始数据供详细显示
+        totalMembers: matrixOverview?.total_members || 0,
+        matrixData: layerData || [] // Layer data instead of raw matrix data
       };
     },
     enabled: !!walletAddress,
