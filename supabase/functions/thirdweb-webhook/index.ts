@@ -592,13 +592,18 @@ async function handleTransferSingle(supabase: any, data: any) {
 
     console.log(`✅ TransferSingle event logged: ${isMint ? 'MINT' : 'TRANSFER'} of token ${id}`)
 
-    // ❌ DISABLED: Auto-activation moved to frontend flow only
-    // Frontend calls activate-membership directly after NFT claim
-    // Webhook should NOT auto-activate to avoid race conditions and duplicate activations
-    if (isMint && to && (id === '1' || id === '2' || id === '3')) {
-      console.log(`ℹ️ NFT Level ${id} minted to ${to} - activation handled by frontend`)
-      console.log(`ℹ️ Webhook auto-activation disabled to prevent race conditions`)
-      // await autoActivateMembership(supabase, to, id, transactionHash, chainId) // DISABLED
+    // Handle NFT mints differently for Level 1 vs Level 2+
+    if (isMint && to) {
+      const tokenId = parseInt(id)
+
+      if (tokenId === 1) {
+        // Level 1: Frontend handles activation to avoid race conditions
+        console.log(`ℹ️ NFT Level 1 minted to ${to} - activation handled by frontend`)
+      } else if (tokenId >= 2 && tokenId <= 19) {
+        // Level 2-19: Auto-process upgrade via webhook
+        console.log(`🚀 NFT Level ${tokenId} minted to ${to} - auto-processing upgrade via webhook`)
+        await autoProcessLevelUpgrade(supabase, to, tokenId, transactionHash, chainId)
+      }
     }
 
   } catch (error) {
@@ -606,95 +611,102 @@ async function handleTransferSingle(supabase: any, data: any) {
   }
 }
 
-// Auto-activate membership when NFT is minted
-async function autoActivateMembership(
+// Auto-process level upgrade when Level 2-19 NFT is minted on-chain
+async function autoProcessLevelUpgrade(
   supabase: any,
   walletAddress: string,
-  tokenId: string,
+  tokenId: number,
   transactionHash: string,
   chainId: string
 ) {
   try {
-    console.log(`🚀 Auto-activating membership for wallet ${walletAddress}, Level ${tokenId}`)
+    console.log(`🚀 Auto-processing Level ${tokenId} upgrade for wallet ${walletAddress}`)
 
     // Check if user already has membership record for this level
     const { data: existingMembership } = await supabase
       .from('membership')
       .select('*')
       .ilike('wallet_address', walletAddress)
-      .eq('nft_level', parseInt(tokenId))
+      .eq('nft_level', tokenId)
       .maybeSingle()
 
     if (existingMembership) {
-      console.log(`⚠️ Membership already exists for ${walletAddress} Level ${tokenId}, skipping auto-activation`)
+      console.log(`⚠️ Membership already exists for ${walletAddress} Level ${tokenId}, skipping auto-processing`)
       return
     }
 
-    // Check if user is registered in users table
-    const { data: userData } = await supabase
-      .from('users')
-      .select('wallet_address, referrer_wallet')
+    // Check if user is an activated member
+    const { data: memberData } = await supabase
+      .from('members')
+      .select('wallet_address, current_level')
       .ilike('wallet_address', walletAddress)
       .maybeSingle()
 
-    if (!userData) {
-      console.log(`⚠️ User ${walletAddress} not registered in users table, skipping auto-activation`)
-      console.log(`💡 User needs to complete registration first`)
+    if (!memberData) {
+      console.log(`⚠️ Member ${walletAddress} not found in members table, skipping auto-processing`)
+      console.log(`💡 User needs to be an activated member first (Level 1)`)
       return
     }
 
-    // Call activate-membership Edge Function
+    // Get level pricing
+    const levelPricing: Record<number, number> = {
+      2: 150, 3: 200, 4: 250, 5: 300, 6: 350, 7: 400, 8: 450, 9: 500,
+      10: 550, 11: 600, 12: 650, 13: 700, 14: 750, 15: 800, 16: 850, 17: 900, 18: 950, 19: 1000
+    }
+    const nftPrice = levelPricing[tokenId] || 0
+
+    // Call level-upgrade Edge Function to process the upgrade
     const supabaseUrl = Deno.env.get('SUPABASE_URL')
     const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')
 
-    console.log(`📞 Calling activate-membership Edge Function...`)
+    console.log(`📞 Calling level-upgrade Edge Function...`)
 
-    const activateResponse = await fetch(
-      `${supabaseUrl}/functions/v1/activate-membership`,
+    const upgradeResponse = await fetch(
+      `${supabaseUrl}/functions/v1/level-upgrade`,
       {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
           'Authorization': `Bearer ${supabaseServiceKey}`,
-          'x-wallet-address': walletAddress,
         },
         body: JSON.stringify({
-          walletAddress: walletAddress,
-          level: parseInt(tokenId),
-          transactionHash: transactionHash,
-          referrerWallet: userData.referrer_wallet,
-          source: 'webhook_auto_activation'
+          recipientAddress: walletAddress,
+          targetLevel: tokenId,
+          paymentTransactionHash: transactionHash,
+          paymentAmount: nftPrice
         }),
       }
     )
 
-    if (activateResponse.ok) {
-      const result = await activateResponse.json()
-      console.log(`✅ Auto-activation successful for ${walletAddress} Level ${tokenId}:`, result)
+    if (upgradeResponse.ok) {
+      const result = await upgradeResponse.json()
+      console.log(`✅ Auto-upgrade processing successful for ${walletAddress} Level ${tokenId}:`, result)
 
-      // Log successful auto-activation
+      // Log successful auto-upgrade
       await supabase.from('audit_logs').insert({
         user_wallet: walletAddress,
-        action: 'webhook_auto_activation',
+        action: 'webhook_auto_upgrade',
         old_values: {
           transaction_hash: transactionHash,
           chain_id: chainId,
-          token_id: tokenId
+          token_id: tokenId,
+          old_level: memberData.current_level
         },
         new_values: {
-          activation_result: result,
+          upgrade_result: result,
+          new_level: tokenId,
           timestamp: new Date().toISOString()
         }
       })
 
     } else {
-      const errorText = await activateResponse.text()
-      console.error(`❌ Auto-activation failed for ${walletAddress} Level ${tokenId}:`, errorText)
+      const errorText = await upgradeResponse.text()
+      console.error(`❌ Auto-upgrade failed for ${walletAddress} Level ${tokenId}:`, errorText)
 
-      // Log failed auto-activation
+      // Log failed auto-upgrade
       await supabase.from('audit_logs').insert({
         user_wallet: walletAddress,
-        action: 'webhook_auto_activation_failed',
+        action: 'webhook_auto_upgrade_failed',
         old_values: {
           transaction_hash: transactionHash,
           chain_id: chainId,
@@ -708,7 +720,7 @@ async function autoActivateMembership(
     }
 
   } catch (error) {
-    console.error(`❌ Error in autoActivateMembership for ${walletAddress}:`, error)
+    console.error(`❌ Error in autoProcessLevelUpgrade for ${walletAddress}:`, error)
   }
 }
 
