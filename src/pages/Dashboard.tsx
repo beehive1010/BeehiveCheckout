@@ -41,6 +41,10 @@ export default function Dashboard() {
   const { t } = useI18n();
   const { toast } = useToast();
   const [, setLocation] = useLocation();
+
+  // Maintenance mode - disable navigation to referrals and rewards
+  const MAINTENANCE_MODE = true; // Set to false to enable navigation
+
   const [data, setData] = useState<SimpleDashboardData>({
     bccBalance: 0,
     bccLocked: 0,
@@ -720,8 +724,19 @@ export default function Dashboard() {
                 }`}>{t('dashboard.maxLayer')}: <span className="font-bold text-blue-400">{data.maxLayer}</span></p>
               </div>
               <Button
-                onClick={() => setLocation('/referrals')}
-                className={`w-full bg-gradient-to-r from-blue-500 to-indigo-500 hover:from-blue-600 hover:to-indigo-600 text-white font-bold shadow-lg hover:shadow-xl transition-all duration-300 ${
+                onClick={() => {
+                  if (MAINTENANCE_MODE) {
+                    toast({
+                      title: t('dashboard.maintenance.title'),
+                      description: t('dashboard.maintenance.matrixUnavailable'),
+                      variant: "default"
+                    });
+                  } else {
+                    setLocation('/referrals');
+                  }
+                }}
+                disabled={MAINTENANCE_MODE}
+                className={`w-full bg-gradient-to-r from-blue-500 to-indigo-500 hover:from-blue-600 hover:to-indigo-600 text-white font-bold shadow-lg hover:shadow-xl transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed ${
                   isMobile ? 'h-9 text-sm' : isDesktop ? 'h-12 text-base' : 'h-10 text-sm'
                 }`}
               >
@@ -779,8 +794,19 @@ export default function Dashboard() {
                 }`}>{t('dashboard.ready')}</Badge>}
               </div>
               <Button
-                onClick={() => setLocation('/rewards')}
-                className={`w-full bg-gradient-to-r from-emerald-500 to-green-500 hover:from-emerald-600 hover:to-green-600 text-white font-bold shadow-lg hover:shadow-xl transition-all duration-300 ${
+                onClick={() => {
+                  if (MAINTENANCE_MODE) {
+                    toast({
+                      title: t('dashboard.maintenance.title'),
+                      description: t('dashboard.maintenance.rewardsUnavailable'),
+                      variant: "default"
+                    });
+                  } else {
+                    setLocation('/rewards');
+                  }
+                }}
+                disabled={MAINTENANCE_MODE}
+                className={`w-full bg-gradient-to-r from-emerald-500 to-green-500 hover:from-emerald-600 hover:to-green-600 text-white font-bold shadow-lg hover:shadow-xl transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed ${
                   isMobile ? 'h-9 text-sm' : isDesktop ? 'h-12 text-base' : 'h-10 text-sm'
                 }`}
               >

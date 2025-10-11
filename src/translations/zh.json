@@ -678,7 +678,12 @@
     },
     "userAvatar": "User Avatar",
     "userCentre": "User Centre",
-    "verifying": "Verifying NFT ownership..."
+    "verifying": "Verifying NFT ownership...",
+    "maintenance": {
+      "title": "系统维护中",
+      "matrixUnavailable": "矩阵视图暂时不可用。我们正在进行系统维护。",
+      "rewardsUnavailable": "奖励页面暂时不可用。我们正在进行系统维护。"
+    }
   },
   "notifications": {
     "mark_all_read": "标记全部已读",

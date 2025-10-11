@@ -772,7 +772,6 @@
     "loadingData": "Loading",
     "maxLayer": "Max Layer",
     "member": "Member",
-    "membershipLevel": "Membership Level",
     "network": "Network",
     "nftRequired": {
       "accessTasks": "Access Tasks & Marketplace",
@@ -905,7 +904,12 @@
     "verifying": "Verifying NFT ownership...",
     "viewMatrix": "View Matrix",
     "welcomeBack": "Welcome back, {username}!",
-    "welcomeMember": "Welcome back, Member!"
+    "welcomeMember": "Welcome back, Member!",
+    "maintenance": {
+      "title": "Under Maintenance",
+      "matrixUnavailable": "Matrix view is temporarily unavailable. We are performing system maintenance.",
+      "rewardsUnavailable": "Rewards page is temporarily unavailable. We are performing system maintenance."
+    }
   },
   "wallet": {
     "connect": "Connect Wallet",
@@ -3180,7 +3184,6 @@
     "readyToClaim": "Ready to Claim",
     "claiming": "Claiming...",
     "availableIn": "Available in",
-    "rewardsWillAppear": "Rewards will appear here when team members upgrade their memberships",
-    "withdrawal_currency": "Withdrawal Currency"
+    "rewardsWillAppear": "Rewards will appear here when team members upgrade their memberships"
   }
 }
