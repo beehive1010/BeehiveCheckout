@@ -56,10 +56,10 @@ const MatrixLayerStatsView: React.FC<MatrixLayerStatsViewProps> = ({
       // Use direct database view query instead of edge function
       console.log('📊 Using direct database query for matrix stats');
 
-      // Use v_matrix_layers view for efficient aggregated statistics (no row limit)
+      // Use v_matrix_layers_v2 view for efficient aggregated statistics
       const { data: layerData, error: matrixError } = await supabase
-        .from('v_matrix_layers')
-        .select('layer, capacity, filled, spillovers, directs')
+        .from('v_matrix_layers_v2')
+        .select('layer, capacity, filled, spillovers, directs, left_count, middle_count, right_count')
         .eq('root', walletAddress)
         .order('layer');
 
@@ -70,36 +70,18 @@ const MatrixLayerStatsView: React.FC<MatrixLayerStatsViewProps> = ({
       console.log('📊 Matrix layer data from v_matrix_layers:', layerData);
       console.log('📊 Total layers found:', layerData?.length || 0);
 
-      // Get L/M/R position breakdown from matrix_referrals for each layer
-      // We'll query in batches for efficiency
+      // Get L/M/R position breakdown from v_matrix_layers_v2 (already includes these fields)
       const layerCounts: Record<number, { L: number, M: number, R: number, active: number }> = {};
 
-      // Initialize counts from view data
+      // Initialize counts from view data (v2 already has L/M/R counts)
       layerData?.forEach(row => {
         layerCounts[row.layer] = {
-          L: 0,
-          M: 0,
-          R: 0,
+          L: row.left_count || 0,
+          M: row.middle_count || 0,
+          R: row.right_count || 0,
           active: row.filled || 0
         };
       });
-
-      // Get L/M/R breakdown from v_matrix_layer_positions view (efficient aggregation)
-      const { data: positionStats, error: posError } = await supabase
-        .from('v_matrix_layer_positions')
-        .select('layer, left_count, middle_count, right_count')
-        .eq('root', walletAddress);
-
-      if (!posError && positionStats) {
-        // Update L/M/R counts from position stats view
-        positionStats.forEach(stat => {
-          if (layerCounts[stat.layer]) {
-            layerCounts[stat.layer].L = stat.left_count || 0;
-            layerCounts[stat.layer].M = stat.middle_count || 0;
-            layerCounts[stat.layer].R = stat.right_count || 0;
-          }
-        });
-      }
 
       console.log('📊 Layer counts with L/M/R breakdown:', layerCounts);
 

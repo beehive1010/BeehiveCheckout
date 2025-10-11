@@ -9,33 +9,33 @@ export function useMatrixByLevel(matrixRootWallet: string, parentWallet?: string
       if (!matrixRootWallet) throw new Error('No matrix root wallet');
       
       let query = supabase
-        .from('matrix_referrals')
+        .from('matrix_referrals_v2')
         .select(`
-          layer,
-          position,
+          layer_index,
+          slot_index,
+          slot_num_seq,
           member_wallet,
           parent_wallet,
-          parent_depth,
           referral_type,
-          created_at
+          placed_at
         `)
         .eq('matrix_root_wallet', matrixRootWallet);
-      
+
       if (currentLevel === 1) {
         // Level 1: 只显示直接挂在matrix root下的L, M, R
         query = query
-          .eq('layer', 1)
-          .in('position', ['L', 'M', 'R']);
+          .eq('layer_index', 1)
+          .in('slot_index', ['L', 'M', 'R']);
       } else {
         // Level 2+: 显示特定parent下的子成员
         if (!parentWallet) throw new Error('Parent wallet required for level 2+');
-        
+
         query = query
           .eq('parent_wallet', parentWallet)
-          .eq('layer', currentLevel);
+          .eq('layer_index', currentLevel);
       }
-      
-      const { data: membersData, error } = await query.order('position');
+
+      const { data: membersData, error } = await query.order('slot_num_seq');
       
       if (error) {
         console.error('Matrix query error:', error);
@@ -45,22 +45,13 @@ export function useMatrixByLevel(matrixRootWallet: string, parentWallet?: string
       // 组织成3x3格式
       const matrixPositions = ['L', 'M', 'R'];
       const matrix3x3 = matrixPositions.map(position => {
-        let targetPosition = position;
-        
-        // 对于Level 2+，查找对应的子位置
-        if (currentLevel > 1) {
-          // 例如：如果parent在L位置，我们查找L.L, L.M, L.R
-          const parentPosition = getParentPosition(parentWallet!, matrixRootWallet);
-          targetPosition = `${parentPosition}.${position}`;
-        }
-        
-        const member = membersData?.find(m => m.position === targetPosition);
-        
+        const member = membersData?.find(m => m.slot_index === position);
+
         return {
-          position: targetPosition,
+          position: position,
           member: member ? {
             wallet: member.member_wallet,
-            joinedAt: member.created_at,
+            joinedAt: member.placed_at,
             type: member.referral_type,
             canExpand: false // 暂时设为false，后面会在useLayeredMatrix中正确设置
           } : null
@@ -84,24 +75,24 @@ export function useMatrixByLevel(matrixRootWallet: string, parentWallet?: string
 // 检查成员是否有下级
 async function hasChildren(memberWallet: string, matrixRootWallet: string): Promise<boolean> {
   const { count } = await supabase
-    .from('matrix_referrals')
+    .from('matrix_referrals_v2')
     .select('*', { count: 'exact', head: true })
     .eq('matrix_root_wallet', matrixRootWallet)
     .eq('parent_wallet', memberWallet);
-  
+
   return (count || 0) > 0;
 }
 
 // 获取parent的位置信息
 async function getParentPosition(parentWallet: string, matrixRootWallet: string): Promise<string> {
   const { data } = await supabase
-    .from('matrix_referrals')
-    .select('position')
+    .from('matrix_referrals_v2')
+    .select('slot_index')
     .eq('matrix_root_wallet', matrixRootWallet)
     .eq('member_wallet', parentWallet)
     .single();
-  
-  return data?.position || 'L';
+
+  return data?.slot_index || 'L';
 }
 
 // 获取特定成员的下级成员
@@ -119,20 +110,21 @@ export function useMatrixChildren(matrixRootWallet: string, parentWallet: string
 
         // 直接从数据库查询指定parent的下级成员
         console.log('🔍 Looking for children of parent:', parentWallet, 'in matrix root:', matrixRootWallet);
-        
+
         const { data: childrenData, error: childrenError } = await supabase
-          .from('matrix_referrals')
+          .from('matrix_referrals_v2')
           .select(`
-            layer,
-            position,
+            layer_index,
+            slot_index,
+            slot_num_seq,
             member_wallet,
             parent_wallet,
             referral_type,
-            created_at
+            placed_at
           `)
           .eq('matrix_root_wallet', matrixRootWallet)
           .eq('parent_wallet', parentWallet)
-          .order('position');
+          .order('slot_num_seq');
           
         if (childrenError) {
           console.error('❌ Error fetching children:', childrenError);
@@ -147,19 +139,15 @@ export function useMatrixChildren(matrixRootWallet: string, parentWallet: string
         const childPositions = ['L', 'M', 'R'];
         const children3x3 = childPositions.map(pos => {
           // 查找该位置对应的子成员
-          const child = childrenData?.find((c: any) => {
-            const position = c.position || '';
-            // 对于第二层数据，直接匹配position（L, M, R）或者以.L .M .R结尾的
-            return position === pos || position.endsWith(`.${pos}`);
-          });
-          
+          const child = childrenData?.find((c: any) => c.slot_index === pos);
+
           return {
             position: pos,
             member: child ? {
               wallet: child.member_wallet,
-              joinedAt: child.created_at,
+              joinedAt: child.placed_at,
               type: child.referral_type,
-              fullPosition: child.position,
+              fullPosition: child.slot_index,
               hasChildren: false, // TODO: 可以后续查询
               childrenCount: 0
             } : null
@@ -250,7 +238,7 @@ export function useLayeredMatrix(currentViewWallet: string, targetLayer: number 
         console.log('👁️ Current view:', currentViewWallet);
         console.log('🎚️ Target layer:', targetLayer);
 
-        // 方案：使用 matrix_referrals 表直接查询 parent_wallet
+        // 使用 matrix_referrals_v2 表直接查询 parent_wallet
         // 当drill-down时，查询以currentViewWallet为parent的成员
         let query;
 
@@ -259,54 +247,44 @@ export function useLayeredMatrix(currentViewWallet: string, targetLayer: number 
           console.log('🔽 Drill-down mode: Getting children of', currentViewWallet);
 
           query = supabase
-            .from('matrix_referrals')
+            .from('matrix_referrals_v2')
             .select(`
               member_wallet,
               matrix_root_wallet,
-              layer,
-              position,
+              layer_index,
+              slot_index,
+              slot_num_seq,
               referral_type,
-              created_at,
+              placed_at,
               parent_wallet
             `)
             .eq('matrix_root_wallet', matrixRootWallet)
             .eq('parent_wallet', currentViewWallet);
 
         } else {
-          // 正常模式：使用 matrix_referrals 表（view 没有 position filter 功能）
-          // 但是要注意：对于小范围查询（特定层级），直接查询不会超过限制
-          let positionFilter = ['L', 'M', 'R'];
-          if (targetLayer === 2) {
-            positionFilter = ['L.L', 'L.M', 'L.R', 'M.L', 'M.M', 'M.R', 'R.L', 'R.M', 'R.R'];
-          } else if (targetLayer >= 3) {
-            positionFilter = null;
-          }
-
+          // 正常模式：使用 matrix_referrals_v2 表
           query = supabase
-            .from('matrix_referrals')
+            .from('matrix_referrals_v2')
             .select(`
               member_wallet,
               matrix_root_wallet,
-              layer,
-              position,
+              layer_index,
+              slot_index,
+              slot_num_seq,
               referral_type,
-              created_at,
+              placed_at,
               parent_wallet
             `)
             .eq('matrix_root_wallet', matrixRootWallet)
-            .eq('layer', targetLayer);
+            .eq('layer_index', targetLayer);
 
           // For Layer 1, we only want direct children of the root
           if (targetLayer === 1) {
             query = query.eq('parent_wallet', matrixRootWallet);
           }
-
-          if (positionFilter) {
-            query = query.in('position', positionFilter);
-          }
         }
 
-        const { data: matrixData, error: matrixError } = await query.order('position');
+        const { data: matrixData, error: matrixError } = await query.order('slot_num_seq');
 
         if (matrixError) {
           console.error('❌ Error fetching matrix data:', matrixError);
@@ -315,13 +293,13 @@ export function useLayeredMatrix(currentViewWallet: string, targetLayer: number 
 
         console.log(`📊 Matrix layer ${targetLayer} data for current view ${currentViewWallet}:`, matrixData);
 
-        // 标准化数据格式（统一使用 position 和 created_at）
+        // 标准化数据格式（使用 v2 字段）
         const normalizedData = matrixData?.map((item: any) => ({
           member_wallet: item.member_wallet,
           matrix_root_wallet: item.matrix_root_wallet,
-          matrix_position: item.position,
+          matrix_position: item.slot_index,
           referral_type: item.referral_type,
-          placed_at: item.created_at
+          placed_at: item.placed_at
         })) || [];
 
         console.log(`📊 Normalized matrix data:`, normalizedData);
@@ -413,21 +391,19 @@ export function useLayeredMatrix(currentViewWallet: string, targetLayer: number 
 
           try {
             const { data: childrenData } = await supabase
-              .from('matrix_referrals')
-              .select('position')
+              .from('matrix_referrals_v2')
+              .select('slot_index')
               .eq('matrix_root_wallet', matrixRootWallet)
               .eq('parent_wallet', member.member_wallet);
 
             if (childrenData && childrenData.length > 0) {
               // 检查每个位置
               childrenData.forEach((child: any) => {
-                const pos = child.position;
+                const pos = child.slot_index;
                 if (!pos) return;
-                // 提取最后一个位置字母
-                const lastPart = pos.includes('.') ? pos.split('.').pop() : pos;
-                if (lastPart === 'L') hasChildInL = true;
-                if (lastPart === 'M') hasChildInM = true;
-                if (lastPart === 'R') hasChildInR = true;
+                if (pos === 'L') hasChildInL = true;
+                if (pos === 'M') hasChildInM = true;
+                if (pos === 'R') hasChildInR = true;
               });
             }
           } catch (error) {

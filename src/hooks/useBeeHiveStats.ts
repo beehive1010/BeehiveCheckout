@@ -138,9 +138,9 @@ export function useUserMatrixStats() {
         .ilike('wallet_address', walletAddress)
         .maybeSingle();
 
-      // Use v_matrix_layers for layer-by-layer statistics
+      // Use v_matrix_layers_v2 for layer-by-layer statistics
       const { data: layerData } = await supabase
-        .from('v_matrix_layers')
+        .from('v_matrix_layers_v2')
         .select('*')
         .ilike('root', walletAddress)
         .order('layer');
@@ -175,25 +175,26 @@ export function useFullMatrixStructure() {
     queryKey: ['/api/matrix/full-structure', walletAddress],
     queryFn: async () => {
       if (!walletAddress) throw new Error('No wallet address');
-      
-      // 获取完整的19层矩阵结构
+
+      // 获取完整的19层矩阵结构 - use v2 table
       const { data: fullMatrixData } = await supabase
-        .from('referrals')
+        .from('matrix_referrals_v2')
         .select(`
-          matrix_layer,
-          matrix_position,
+          layer_index,
+          slot_index,
+          slot_num_seq,
           member_wallet,
-          referrer_wallet,
-          matrix_activation_sequence,
-          is_spillover_placement,
+          parent_wallet,
+          member_activation_sequence,
+          referral_type,
           placed_at
         `)
         .eq('matrix_root_wallet', walletAddress)
-        .order('matrix_layer, matrix_position');
+        .order('layer_index, slot_num_seq');
 
       // 按层级组织数据
       const matrixByLayers = fullMatrixData?.reduce((acc, member) => {
-        const layer = member.matrix_layer;
+        const layer = member.layer_index;
         if (!acc[layer]) {
           acc[layer] = [];
         }
@@ -208,11 +209,12 @@ export function useFullMatrixStructure() {
         maxCapacity: Math.pow(3, parseInt(layer)), // Layer n可容纳3^n个成员
         fillPercentage: (members.length / Math.pow(3, parseInt(layer))) * 100,
         positions: members.map(m => ({
-          position: m.matrix_position,
+          position: m.slot_index,
+          slot_num: m.slot_num_seq,
           wallet: m.member_wallet,
-          parent: m.referrer_wallet,
+          parent: m.parent_wallet,
           joinedAt: m.placed_at,
-          type: m.is_spillover_placement ? 'spillover' : 'direct'
+          type: m.referral_type
         }))
       }));
 
