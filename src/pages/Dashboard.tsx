@@ -144,7 +144,7 @@ export default function Dashboard() {
       // ✅ FIX: 使用 v_matrix_root_summary view 获取准确的团队统计，避免1000条限制
       const { data: matrixSummary, error: matrixError } = await supabase
         .from('v_matrix_root_summary')
-        .select('direct_referrals, matrix_team_total, max_layer')
+        .select('direct_referrals, total_matrix_members, max_layer')
         .ilike('root', walletAddress)
         .maybeSingle();
 
@@ -174,7 +174,8 @@ export default function Dashboard() {
       }
 
       // ✅ Matrix团队数据直接从 view 获取（无1000条限制）
-      const totalTeamSize = Number(matrixSummary?.matrix_team_total) || 0;
+      // Use total_matrix_members (all layers) instead of matrix_team_total (layers 2+ only)
+      const totalTeamSize = Number(matrixSummary?.total_matrix_members) || 0;
       const maxLayer = Number(matrixSummary?.max_layer) || 0;
 
       // 如果需要更详细的层级信息，可以查询 matrix_referrals 表（但只用于统计活跃层级数）
