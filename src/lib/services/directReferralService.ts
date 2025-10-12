@@ -1,24 +1,24 @@
 import {supabase} from '../supabase';
 
 /**
- * 获取用户的直接推荐人数（基于 direct_referral_sequence view）
- * 只计算通过该用户推荐链接直接注册的用户，不包括矩阵安置的溢出用户
- * 使用专门的 view 以提高性能和准确性
+ * 获取用户的直接推荐人数（基于 v_direct_referrals view）
+ * 只计算通过该用户推荐链接直接注册的用户（referral_depth = 1），不包括矩阵安置的溢出用户
+ * 使用 v_direct_referrals view 以提高性能和准确性
  */
 export async function getDirectReferralCount(referrerWallet: string): Promise<number> {
   try {
     console.log(`🔍 Fetching direct referrals for wallet: ${referrerWallet}`);
 
-    // Use direct_referral_sequence view for better performance
-    // This view already filters for direct referrals only
+    // Use v_direct_referrals view (filters for referral_depth = 1)
+    // This view is based on referrals table which tracks actual referral relationships
     // Use ilike for case-insensitive matching (addresses may not be lowercase in DB)
     const { count, error } = await supabase
-      .from('direct_referral_sequence')
+      .from('v_direct_referrals')
       .select('*', { count: 'exact', head: true })
       .ilike('referrer_wallet', referrerWallet);
 
     if (error) {
-      console.error('❌ direct_referral_sequence view query failed:', error);
+      console.error('❌ v_direct_referrals view query failed:', error);
       return 0;
     }
 
@@ -68,7 +68,7 @@ export async function checkLevel2DirectReferralRequirement(walletAddress: string
 }
 
 /**
- * 获取用户的直推用户详细信息（使用 direct_referral_sequence view）
+ * 获取用户的直推用户详细信息（使用 v_direct_referrals view）
  */
 export async function getDirectReferralDetails(referrerWallet: string): Promise<Array<{
   memberWallet: string;
@@ -82,22 +82,21 @@ export async function getDirectReferralDetails(referrerWallet: string): Promise<
   try {
     console.log(`🔍 Fetching detailed referral info for: ${referrerWallet}`);
 
-    // Use direct_referral_sequence view for better performance
-    // This view already includes referral_number and required_level
+    // Use v_direct_referrals view (filters for referral_depth = 1)
     const { data: referralData, error: referralError } = await supabase
-      .from('direct_referral_sequence')
+      .from('v_direct_referrals')
       .select(`
-        member_wallet,
+        referred_wallet,
         referrer_wallet,
-        placed_at,
-        referral_number,
-        required_level
+        referral_date,
+        referred_level,
+        referred_activation_time
       `)
       .ilike('referrer_wallet', referrerWallet)
-      .order('placed_at', { ascending: false });
+      .order('referral_date', { ascending: false });
 
     if (referralError) {
-      console.error('❌ Error fetching direct_referral_sequence data:', referralError);
+      console.error('❌ Error fetching v_direct_referrals data:', referralError);
       return [];
     }
 
@@ -107,13 +106,13 @@ export async function getDirectReferralDetails(referrerWallet: string): Promise<
     }
 
     // Get user details from users table for display names
-    const walletAddresses = referralData.map(r => r.member_wallet);
+    const walletAddresses = referralData.map(r => r.referred_wallet);
     const { data: usersData } = await supabase
       .from('users')
       .select('wallet_address, username')
       .in('wallet_address', walletAddresses);
 
-    // Get activation status from members table
+    // Get activation sequence from members table
     const { data: membersData } = await supabase
       .from('members')
       .select('wallet_address, current_level, activation_sequence')
@@ -121,19 +120,23 @@ export async function getDirectReferralDetails(referrerWallet: string): Promise<
 
     console.log(`✅ Found ${referralData.length} direct referrals, ${membersData?.length || 0} activated`);
 
-    // Combine data with direct_referral_sequence view as primary source
-    return referralData.map(referral => {
-      const userData = usersData?.find(u => u.wallet_address === referral.member_wallet);
-      const memberData = membersData?.find(m => m.wallet_address === referral.member_wallet);
+    // Combine data with v_direct_referrals view as primary source
+    return referralData.map((referral, index) => {
+      const userData = usersData?.find(u =>
+        u.wallet_address.toLowerCase() === referral.referred_wallet.toLowerCase()
+      );
+      const memberData = membersData?.find(m =>
+        m.wallet_address.toLowerCase() === referral.referred_wallet.toLowerCase()
+      );
 
       return {
-        memberWallet: referral.member_wallet,
+        memberWallet: referral.referred_wallet,
         memberName: userData?.username || 'Unknown',
-        referredAt: referral.placed_at || 'Unknown',
+        referredAt: referral.referral_date || 'Unknown',
         isActivated: !!memberData && memberData.current_level > 0,
-        memberLevel: memberData?.current_level || 0,
+        memberLevel: memberData?.current_level || referral.referred_level || 0,
         activationRank: memberData?.activation_sequence || null,
-        referralNumber: referral.referral_number || 0
+        referralNumber: index + 1 // Sequential numbering based on date order
       };
     });
   } catch (error) {
