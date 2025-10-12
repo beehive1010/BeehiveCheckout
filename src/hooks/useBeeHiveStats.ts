@@ -176,9 +176,9 @@ export function useFullMatrixStructure() {
     queryFn: async () => {
       if (!walletAddress) throw new Error('No wallet address');
 
-      // 获取完整的19层矩阵结构 - use v2 table
+      // 获取完整的19层矩阵结构 - use filtered view to show only direct children per layer
       const { data: fullMatrixData } = await supabase
-        .from('matrix_referrals_v2')
+        .from('v_matrix_direct_children')
         .select(`
           layer_index,
           slot_index,
