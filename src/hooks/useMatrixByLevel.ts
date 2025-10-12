@@ -9,7 +9,7 @@ export function useMatrixByLevel(matrixRootWallet: string, parentWallet?: string
       if (!matrixRootWallet) throw new Error('No matrix root wallet');
       
       let query = supabase
-        .from('matrix_referrals_v2')
+        .from('v_matrix_direct_children')
         .select(`
           layer_index,
           slot_index,
@@ -75,7 +75,7 @@ export function useMatrixByLevel(matrixRootWallet: string, parentWallet?: string
 // 检查成员是否有下级
 async function hasChildren(memberWallet: string, matrixRootWallet: string): Promise<boolean> {
   const { count } = await supabase
-    .from('matrix_referrals_v2')
+    .from('v_matrix_direct_children')
     .select('*', { count: 'exact', head: true })
     .eq('matrix_root_wallet', matrixRootWallet)
     .eq('parent_wallet', memberWallet);
@@ -86,7 +86,7 @@ async function hasChildren(memberWallet: string, matrixRootWallet: string): Prom
 // 获取parent的位置信息
 async function getParentPosition(parentWallet: string, matrixRootWallet: string): Promise<string> {
   const { data } = await supabase
-    .from('matrix_referrals_v2')
+    .from('v_matrix_direct_children')
     .select('slot_index')
     .eq('matrix_root_wallet', matrixRootWallet)
     .eq('member_wallet', parentWallet)
@@ -112,7 +112,7 @@ export function useMatrixChildren(matrixRootWallet: string, parentWallet: string
         console.log('🔍 Looking for children of parent:', parentWallet, 'in matrix root:', matrixRootWallet);
 
         const { data: childrenData, error: childrenError } = await supabase
-          .from('matrix_referrals_v2')
+          .from('v_matrix_direct_children')
           .select(`
             layer_index,
             slot_index,
@@ -247,7 +247,7 @@ export function useLayeredMatrix(currentViewWallet: string, targetLayer: number 
           console.log('🔽 Drill-down mode: Getting children of', currentViewWallet);
 
           query = supabase
-            .from('matrix_referrals_v2')
+            .from('v_matrix_direct_children')
             .select(`
               member_wallet,
               matrix_root_wallet,
@@ -262,76 +262,21 @@ export function useLayeredMatrix(currentViewWallet: string, targetLayer: number 
             .eq('parent_wallet', currentViewWallet);
 
         } else {
-          // 正常模式：使用 matrix_referrals_v2 表
-
-          // For Layer 2+, filter by parent from previous layer to avoid showing all recursive paths
-          if (targetLayer === 2) {
-            // First get Layer 1 members to use as parent filter
-            const { data: layer1Data } = await supabase
-              .from('matrix_referrals_v2')
-              .select('member_wallet')
-              .eq('matrix_root_wallet', matrixRootWallet)
-              .eq('layer_index', 1);
-
-            const layer1Wallets = layer1Data?.map(m => m.member_wallet) || [];
-
-            if (layer1Wallets.length === 0) {
-              // No Layer 1 members, so Layer 2 should be empty
-              query = supabase
-                .from('matrix_referrals_v2')
-                .select(`
-                  member_wallet,
-                  matrix_root_wallet,
-                  layer_index,
-                  slot_index,
-                  slot_num_seq,
-                  referral_type,
-                  placed_at,
-                  parent_wallet
-                `)
-                .eq('matrix_root_wallet', matrixRootWallet)
-                .eq('layer_index', targetLayer)
-                .in('parent_wallet', ['']); // Empty result
-            } else {
-              // Filter Layer 2 by Layer 1 parents only
-              query = supabase
-                .from('matrix_referrals_v2')
-                .select(`
-                  member_wallet,
-                  matrix_root_wallet,
-                  layer_index,
-                  slot_index,
-                  slot_num_seq,
-                  referral_type,
-                  placed_at,
-                  parent_wallet
-                `)
-                .eq('matrix_root_wallet', matrixRootWallet)
-                .eq('layer_index', targetLayer)
-                .in('parent_wallet', layer1Wallets); // Only children of Layer 1 members
-            }
-          } else {
-            // For Layer 1 and Layer 3+
-            query = supabase
-              .from('matrix_referrals_v2')
-              .select(`
-                member_wallet,
-                matrix_root_wallet,
-                layer_index,
-                slot_index,
-                slot_num_seq,
-                referral_type,
-                placed_at,
-                parent_wallet
-              `)
-              .eq('matrix_root_wallet', matrixRootWallet)
-              .eq('layer_index', targetLayer);
-
-            // For Layer 1, we only want direct children of the root
-            if (targetLayer === 1) {
-              query = query.eq('parent_wallet', matrixRootWallet);
-            }
-          }
+          // 正常模式：使用 v_matrix_direct_children view（自动过滤每层只显示上一层的直接子成员）
+          query = supabase
+            .from('v_matrix_direct_children')
+            .select(`
+              member_wallet,
+              matrix_root_wallet,
+              layer_index,
+              slot_index,
+              slot_num_seq,
+              referral_type,
+              placed_at,
+              parent_wallet
+            `)
+            .eq('matrix_root_wallet', matrixRootWallet)
+            .eq('layer_index', targetLayer);
         }
 
         const { data: matrixData, error: matrixError } = await query.order('slot_num_seq');
@@ -441,7 +386,7 @@ export function useLayeredMatrix(currentViewWallet: string, targetLayer: number 
 
           try {
             const { data: childrenData } = await supabase
-              .from('matrix_referrals_v2')
+              .from('v_matrix_direct_children')
               .select('slot_index')
               .eq('matrix_root_wallet', matrixRootWallet)
               .eq('parent_wallet', member.member_wallet);
