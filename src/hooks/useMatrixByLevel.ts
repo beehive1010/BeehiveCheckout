@@ -263,24 +263,74 @@ export function useLayeredMatrix(currentViewWallet: string, targetLayer: number 
 
         } else {
           // 正常模式：使用 matrix_referrals_v2 表
-          query = supabase
-            .from('matrix_referrals_v2')
-            .select(`
-              member_wallet,
-              matrix_root_wallet,
-              layer_index,
-              slot_index,
-              slot_num_seq,
-              referral_type,
-              placed_at,
-              parent_wallet
-            `)
-            .eq('matrix_root_wallet', matrixRootWallet)
-            .eq('layer_index', targetLayer);
 
-          // For Layer 1, we only want direct children of the root
-          if (targetLayer === 1) {
-            query = query.eq('parent_wallet', matrixRootWallet);
+          // For Layer 2+, filter by parent from previous layer to avoid showing all recursive paths
+          if (targetLayer === 2) {
+            // First get Layer 1 members to use as parent filter
+            const { data: layer1Data } = await supabase
+              .from('matrix_referrals_v2')
+              .select('member_wallet')
+              .eq('matrix_root_wallet', matrixRootWallet)
+              .eq('layer_index', 1);
+
+            const layer1Wallets = layer1Data?.map(m => m.member_wallet) || [];
+
+            if (layer1Wallets.length === 0) {
+              // No Layer 1 members, so Layer 2 should be empty
+              query = supabase
+                .from('matrix_referrals_v2')
+                .select(`
+                  member_wallet,
+                  matrix_root_wallet,
+                  layer_index,
+                  slot_index,
+                  slot_num_seq,
+                  referral_type,
+                  placed_at,
+                  parent_wallet
+                `)
+                .eq('matrix_root_wallet', matrixRootWallet)
+                .eq('layer_index', targetLayer)
+                .in('parent_wallet', ['']); // Empty result
+            } else {
+              // Filter Layer 2 by Layer 1 parents only
+              query = supabase
+                .from('matrix_referrals_v2')
+                .select(`
+                  member_wallet,
+                  matrix_root_wallet,
+                  layer_index,
+                  slot_index,
+                  slot_num_seq,
+                  referral_type,
+                  placed_at,
+                  parent_wallet
+                `)
+                .eq('matrix_root_wallet', matrixRootWallet)
+                .eq('layer_index', targetLayer)
+                .in('parent_wallet', layer1Wallets); // Only children of Layer 1 members
+            }
+          } else {
+            // For Layer 1 and Layer 3+
+            query = supabase
+              .from('matrix_referrals_v2')
+              .select(`
+                member_wallet,
+                matrix_root_wallet,
+                layer_index,
+                slot_index,
+                slot_num_seq,
+                referral_type,
+                placed_at,
+                parent_wallet
+              `)
+              .eq('matrix_root_wallet', matrixRootWallet)
+              .eq('layer_index', targetLayer);
+
+            // For Layer 1, we only want direct children of the root
+            if (targetLayer === 1) {
+              query = query.eq('parent_wallet', matrixRootWallet);
+            }
           }
         }
 
