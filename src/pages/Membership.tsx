@@ -357,28 +357,8 @@ export default function Membership() {
       </div>
 
       {/* Direct NFT Claim Section - Using Dynamic ERC5115ClaimComponent */}
-      {(() => {
-        // 🔍 调试日志
-        const shouldShow = !!(walletAddress && currentLevel > 0 && currentLevel < 19 && userReferrer);
-        console.log('🔍 Membership Upgrade Section Debug:', {
-          walletAddress: walletAddress ? `${walletAddress.substring(0, 10)}...` : null,
-          currentLevel,
-          userReferrer: userReferrer || null,
-          userReferrerPreview: userReferrer ? `${userReferrer.substring(0, 10)}...` : null,
-          directReferralsCount,
-          shouldShow,
-          conditions: {
-            hasWallet: !!walletAddress,
-            levelAboveZero: currentLevel > 0,
-            levelBelowMax: currentLevel < 19,
-            hasReferrer: !!userReferrer,
-            userReferrerType: typeof userReferrer,
-            userReferrerValue: userReferrer
-          }
-        });
-        return null;
-      })()}
-      {walletAddress && currentLevel > 0 && currentLevel < 19 && userReferrer && (
+      {/* ✅ FIX: Removed userReferrer requirement - Level 2 only needs direct_referrals >= 3 */}
+      {walletAddress && currentLevel > 0 && currentLevel < 19 && (
         <div className="mb-12">
           <div className="text-center mb-6">
             <h2 className="text-2xl font-bold text-foreground mb-2 flex items-center justify-center gap-2">
