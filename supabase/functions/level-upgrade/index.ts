@@ -993,14 +993,27 @@ async function checkUpgradeRequirements(supabase: any, walletAddress: string, ta
       if (!referralsStatsError && referralsStatsData) {
         directReferrals = referralsStatsData.direct_referrals_count || 0
       } else {
-        console.warn('⚠️ referrals_stats_view query failed, trying referrals fallback:', referralsStatsError)
-        // Fallback to referrals table
-        const { count: fallbackCount } = await supabase
-          .from('referrals')
+        console.warn('⚠️ referrals_stats_view query failed, trying v_direct_referrals fallback:', referralsStatsError)
+        // ✅ FIX: Use v_direct_referrals view (same as frontend) for consistency
+        // This view filters for referral_depth = 1 automatically
+        const { count: fallbackCount, error: fallbackError } = await supabase
+          .from('v_direct_referrals')
           .select('*', { count: 'exact', head: true })
           .ilike('referrer_wallet', walletAddress)
-        
-        directReferrals = fallbackCount || 0
+
+        if (fallbackError) {
+          console.error('❌ v_direct_referrals fallback also failed:', fallbackError)
+          // Final fallback: query referrals table with referral_depth = 1
+          const { count: finalCount } = await supabase
+            .from('referrals')
+            .select('*', { count: 'exact', head: true })
+            .ilike('referrer_wallet', walletAddress)
+            .eq('referral_depth', 1)  // ✅ FIX: Only count direct referrals
+
+          directReferrals = finalCount || 0
+        } else {
+          directReferrals = fallbackCount || 0
+        }
       }
 
       const requiredReferrals = LEVEL_CONFIG.SPECIAL_REQUIREMENTS.LEVEL_2_DIRECT_REFERRALS
@@ -1300,21 +1313,22 @@ async function debugUserStatus(supabase: any, walletAddress: string): Promise<Le
       .ilike('wallet_address', walletAddress)
       .maybeSingle()
 
-    // 2. Get direct referrals count using referrals table
+    // 2. Get direct referrals count using v_direct_referrals view (same as frontend)
     const { count: directReferralsCount, error: referralsError } = await supabase
-      .from('referrals')
+      .from('v_direct_referrals')
       .select('*', { count: 'exact', head: true })
       .ilike('referrer_wallet', walletAddress)
 
-    // Fallback to referrals table if referrals fails
+    // Fallback to referrals table with referral_depth = 1 filter
     let fallbackReferralsCount = 0
     if (referralsError || !directReferralsCount) {
+      console.warn('⚠️ v_direct_referrals query failed in debug, using referrals table fallback');
       const { count: fallbackCount } = await supabase
         .from('referrals')
         .select('*', { count: 'exact', head: true })
         .ilike('referrer_wallet', walletAddress)
-        .eq('is_direct_referral', true)
-      
+        .eq('referral_depth', 1)  // ✅ FIX: Use referral_depth instead of non-existent is_direct_referral column
+
       fallbackReferralsCount = fallbackCount || 0
     }
 

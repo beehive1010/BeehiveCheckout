@@ -468,7 +468,7 @@ export default function RewardHistory({ className, walletAddress }: RewardHistor
                       Layer {reward.matrix_layer} Reward {reward.layer_position ? `(${reward.layer_position})` : ''}
                     </h5>
                     <div className="flex items-center gap-2 text-xs md:text-sm text-muted-foreground">
-                      <span>{new Date(reward.created_at).toLocaleDateString()}</span>
+                      <span>{new Date(reward.created_at).toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' })}</span>
                       <span>•</span>
                       <span>From: {reward.triggering_member?.users?.username || `User${reward.triggering_member_wallet?.slice(-4)}`}</span>
                       {reward.matrix_root_wallet !== reward.reward_recipient_wallet && (
