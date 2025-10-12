@@ -212,54 +212,44 @@ export default function Dashboard() {
     }
   }, [walletAddress]);
 
-  // 加载奖励数据 - 使用 v_reward_overview view 避免1000条限制
+  // 加载奖励数据 - 使用 user_balances 表获取准确的total_earned
   const loadRewardData = useCallback(async () => {
     if (!walletAddress) return null;
 
     setLoadingState(prev => ({ ...prev, rewards: true }));
     try {
-      console.log('🏆 Fetching reward data from v_reward_overview for:', walletAddress);
+      console.log('🏆 Fetching reward data from user_balances for:', walletAddress);
 
-      // ✅ FIX: 使用 v_reward_overview view 获取预聚合的奖励统计，避免1000条限制
-      const { data: rewardOverview, error: rewardError } = await supabase
-        .from('v_reward_overview')
-        .select(`
-          claimable_cnt,
-          pending_cnt,
-          paid_cnt,
-          claimable_amount_usd,
-          pending_amount_usd,
-          paid_amount_usd
-        `)
-        .ilike('member_id', walletAddress)
+      // ✅ FIX: 使用 user_balances 表获取准确的 total_earned (历史累计总收益)
+      const { data: userBalance, error: balanceError } = await supabase
+        .from('user_balances')
+        .select('total_earned, total_withdrawn, available_balance')
+        .ilike('wallet_address', walletAddress)
         .maybeSingle();
 
-      if (rewardError) {
-        console.error('❌ Reward overview query error:', rewardError);
-        throw new Error(`Database error: ${rewardError.message}`);
+      if (balanceError) {
+        console.error('❌ User balance query error:', balanceError);
+        throw new Error(`Database error: ${balanceError.message}`);
       }
 
-      console.log('🏆 Reward overview data:', rewardOverview);
+      console.log('🏆 User balance data:', userBalance);
 
-      if (rewardOverview) {
-        const totalClaimed = Number(rewardOverview.paid_amount_usd) || 0;
-        const totalPending = Number(rewardOverview.pending_amount_usd) || 0;
-        const totalAvailable = Number(rewardOverview.claimable_amount_usd) || 0;
+      if (userBalance) {
+        const totalEarned = Number(userBalance.total_earned) || 0;
+        const totalWithdrawn = Number(userBalance.total_withdrawn) || 0;
+        const availableBalance = Number(userBalance.available_balance) || 0;
 
         console.log('🏆 Calculated reward stats:', {
-          totalClaimed,
-          totalPending,
-          totalAvailable,
-          claimableCount: rewardOverview.claimable_cnt,
-          pendingCount: rewardOverview.pending_cnt,
-          paidCount: rewardOverview.paid_cnt
+          totalEarned,
+          totalWithdrawn,
+          availableBalance
         });
 
         return {
-          totalRewards: totalClaimed + totalPending + totalAvailable, // 所有奖励总和
-          totalClaimed,
-          totalPending,
-          totalAvailable
+          totalRewards: totalEarned, // ✅ 使用 user_balances.total_earned (真正的历史累计总收益)
+          totalClaimed: 0, // 不再需要这个字段
+          totalPending: 0, // 不再需要这个字段
+          totalAvailable: availableBalance // 当前可用余额
         };
       }
 
