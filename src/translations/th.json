@@ -63,7 +63,7 @@
     "soldOut": "Sold Out",
     "status": {
       "active": "ACTIVE",
-    "ActiveMember": "สมาชิกที่ใช้งานอยู่",
+      "ActiveMember": "สมาชิกที่ใช้งานอยู่",
       "burned": "BURNED",
       "claimed": "Ready to Use",
       "serviceActivated": "Service Activated",
@@ -1115,7 +1115,7 @@
     },
     "status": {
       "active": "Active",
-    "ActiveMember": "สมาชิกที่ใช้งานอยู่",
+      "ActiveMember": "สมาชิกที่ใช้งานอยู่",
       "memberSince": "Member since"
     },
     "subtitle": "View your stats, balances, and account details",
@@ -1155,7 +1155,7 @@
       "restricted": "受限",
       "locked": "鎖定",
       "active": "活跃",
-    "ActiveMember": "สมาชิกที่ใช้งานอยู่",
+      "ActiveMember": "สมาชิกที่ใช้งานอยู่",
       "limited": "受限",
       "usage": "用途"
     },
@@ -1392,7 +1392,7 @@
           "layerCount": "19 ชั้น",
           "layer": "ชั้น {layer}",
           "active": "ใช้งาน: {count}",
-    "ActiveMember": "สมาชิกที่ใช้งานอยู่",
+          "ActiveMember": "สมาชิกที่ใช้งานอยู่",
           "fillRate": "อัตราการเติม",
           "complete": "{percent}% สมบูรณ์",
           "layerComplete": "ชั้นสมบูรณ์",
@@ -1424,7 +1424,7 @@
       },
       "visualization": {
         "active": "Active",
-    "ActiveMember": "สมาชิกที่ใช้งานอยู่",
+        "ActiveMember": "สมาชิกที่ใช้งานอยู่",
         "available": "Available",
         "inactive": "Inactive",
         "layerNumber": "Layer {{layer}}",
@@ -1900,7 +1900,7 @@
     },
     "matrixPerformance": {
       "active": "Active",
-    "ActiveMember": "สมาชิกที่ใช้งานอยู่",
+      "ActiveMember": "สมาชิกที่ใช้งานอยู่",
       "currentLevel": "Current Level",
       "level": "Level",
       "matrixRewards": "Matrix Rewards",
@@ -2541,10 +2541,12 @@
     "startEarning": "Start Earning Rewards",
     "start_earning": "Start earning rewards by participating in the platform!",
     "status": {
-      "claimable": "สามารถรับได้",
-      "completed": "Completed",
-      "failed": "Failed",
-      "pending": "Pending"
+      "claimed": "เคลมแล้ว",
+      "claimable": "เคลมได้",
+      "expired": "หมดอายุ",
+      "forfeited": "ริบสิทธิ์",
+      "pending": "รอดำเนินการ",
+      "rolled_up": "โอนย้าย"
     },
     "superRootUpgrade": "Super Root Upgrade",
     "swipeToExplore": "← Swipe to explore more →",
@@ -2576,7 +2578,7 @@
       "autoDistribution": "Auto Distribution",
       "currentPhase": "Current Phase",
       "active": "Active",
-    "ActiveMember": "สมาชิกที่ใช้งานอยู่",
+      "ActiveMember": "สมาชิกที่ใช้งานอยู่",
       "activationProgress": "Activation Progress",
       "phaseRewardPool": "Phase 1 Reward Pool",
       "remaining": "remaining",
@@ -2753,7 +2755,7 @@
       "autoDistribution": "自動分發",
       "currentPhase": "當前阶段",
       "active": "活跃中",
-    "ActiveMember": "สมาชิกที่ใช้งานอยู่",
+      "ActiveMember": "สมาชิกที่ใช้งานอยู่",
       "activationProgress": "激活進度",
       "phaseRewardPool": "阶段一獎勵池",
       "remaining": "剩餘",

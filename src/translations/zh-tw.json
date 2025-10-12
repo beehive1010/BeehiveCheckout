@@ -1143,12 +1143,10 @@
     "status": {
       "claimed": "已領取",
       "claimable": "可領取",
-      "completed": "已完成",
       "expired": "已過期",
-      "failed": "失敗",
       "forfeited": "已沒收",
-      "pending": "待處理",
-      "rolled_up": "已回滾"
+      "pending": "等待中",
+      "rolled_up": "已轉移"
     },
     "superRootUpgrade": "Super Root Upgrade",
     "swipeToExplore": "← Swipe to explore more →",
@@ -1180,7 +1178,7 @@
       "autoDistribution": "Auto Distribution",
       "currentPhase": "Current Phase",
       "active": "Active",
-    "ActiveMember": "活躍成員",
+      "ActiveMember": "活躍成員",
       "activationProgress": "Activation Progress",
       "phaseRewardPool": "Phase 1 Reward Pool",
       "remaining": "remaining",
@@ -1251,7 +1249,7 @@
     },
     "status": {
       "active": "活跃",
-    "ActiveMember": "活躍成員",
+      "ActiveMember": "活躍成員",
       "memberSince": "会員開始于"
     },
     "balances": {
@@ -1304,7 +1302,7 @@
       "restricted": "受限",
       "locked": "鎖定",
       "active": "活跃",
-    "ActiveMember": "活躍成員",
+      "ActiveMember": "活躍成員",
       "limited": "受限",
       "usage": "用途"
     },
@@ -1575,7 +1573,7 @@
       "title": "矩阵表現",
       "status": "狀態",
       "active": "活跃",
-    "ActiveMember": "活躍成員",
+      "ActiveMember": "活躍成員",
       "currentLevel": "當前級別",
       "level": "級別",
       "matrixRewards": "矩阵獎勵",
@@ -1758,7 +1756,7 @@
       "autoDistribution": "自動分發",
       "currentPhase": "當前阶段",
       "active": "活跃中",
-    "ActiveMember": "活躍成員",
+      "ActiveMember": "活躍成員",
       "activationProgress": "激活進度",
       "phaseRewardPool": "阶段一獎勵池",
       "remaining": "剩餘",
@@ -2074,7 +2072,7 @@
           "layerCount": "19層",
           "layer": "第{layer}層",
           "active": "活跃: {count}",
-    "ActiveMember": "活躍成員",
+          "ActiveMember": "活躍成員",
           "fillRate": "填充率",
           "complete": "{percent}% 完成",
           "layerComplete": "層級完成",
@@ -2206,7 +2204,7 @@
       },
       "visualization": {
         "active": "Active",
-    "ActiveMember": "活躍成員",
+        "ActiveMember": "活躍成員",
         "available": "Available",
         "inactive": "Inactive",
         "layerNumber": "Layer {{layer}}",
@@ -2552,7 +2550,7 @@
     "soldOut": "Sold Out",
     "status": {
       "active": "ACTIVE",
-    "ActiveMember": "活躍成員",
+      "ActiveMember": "活躍成員",
       "burned": "BURNED",
       "claimed": "Ready to Use",
       "serviceActivated": "Service Activated",

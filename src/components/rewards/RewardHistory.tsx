@@ -69,11 +69,12 @@ export default function RewardHistory({ className, walletAddress }: RewardHistor
   // Load layer rewards data
   const loadLayerRewards = async () => {
     if (!activeWallet) return;
-    
+
     setLoading(true);
     setError(null);
-    
+
     try {
+      // Only load completed rewards for history (exclude pending and claimable)
       const { data, error } = await supabase
         .from('layer_rewards')
         .select(`
@@ -95,6 +96,7 @@ export default function RewardHistory({ className, walletAddress }: RewardHistor
           roll_up_reason
         `)
         .ilike('reward_recipient_wallet', activeWallet)
+        .in('status', ['claimed', 'expired', 'rolled_up', 'forfeited']) // Only show completed rewards
         .order('created_at', { ascending: false })
         .limit(100);
 
@@ -366,13 +368,11 @@ export default function RewardHistory({ className, walletAddress }: RewardHistor
                 onChange={(e) => setHistoryFilters(prev => ({ ...prev, status: e.target.value }))}
                 className="w-full px-3 py-3 text-sm border border-border rounded-lg bg-background focus:outline-none focus:ring-2 focus:ring-honey/20 focus:border-honey"
               >
-                <option value="">{t('rewards.history.allStatus') || 'All Status'}</option>
-                <option value="pending">{t('rewards.status.pending') || 'Pending'}</option>
-                <option value="claimable">{t('rewards.status.claimable') || 'Claimable'}</option>
-                <option value="claimed">{t('rewards.status.claimed') || 'Claimed'}</option>
-                <option value="expired">{t('rewards.status.expired') || 'Expired'}</option>
-                <option value="rolled_up">{t('rewards.status.rolled_up') || 'Rolled Up'}</option>
-                <option value="forfeited">{t('rewards.status.forfeited') || 'Forfeited'}</option>
+                <option value="">{t('rewards.history.allStatus')}</option>
+                <option value="claimed">{t('rewards.status.claimed')}</option>
+                <option value="expired">{t('rewards.status.expired')}</option>
+                <option value="rolled_up">{t('rewards.status.rolled_up')}</option>
+                <option value="forfeited">{t('rewards.status.forfeited')}</option>
               </select>
 
               {/* Date From */}
@@ -441,12 +441,8 @@ export default function RewardHistory({ className, walletAddress }: RewardHistor
                 <div className="flex items-center gap-3 flex-1 min-w-0">
                   {/* Status Icon */}
                   <div className={`w-8 h-8 md:w-10 md:h-10 rounded-full flex items-center justify-center flex-shrink-0 ${
-                    reward.status === 'claimed' 
+                    reward.status === 'claimed'
                       ? 'bg-gradient-to-br from-honey to-amber-500' :
-                    reward.status === 'claimable' 
-                      ? 'bg-gradient-to-br from-green-500 to-green-600' :
-                    reward.status === 'pending' 
-                      ? 'bg-gradient-to-br from-yellow-500 to-orange-500' :
                     reward.status === 'expired' || reward.status === 'forfeited'
                       ? 'bg-gradient-to-br from-red-500 to-red-600' :
                       'bg-gradient-to-br from-blue-500 to-blue-600'
@@ -455,10 +451,6 @@ export default function RewardHistory({ className, walletAddress }: RewardHistor
                       <svg className="h-4 w-4 md:h-5 md:w-5 text-white" fill="currentColor" viewBox="0 0 20 20">
                         <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
                       </svg>
-                    ) : reward.status === 'claimable' ? (
-                      <Award className="h-4 w-4 md:h-5 md:w-5 text-white" />
-                    ) : reward.status === 'pending' ? (
-                      <Clock className="h-4 w-4 md:h-5 md:w-5 text-white" />
                     ) : reward.status === 'expired' || reward.status === 'forfeited' ? (
                       <svg className="h-4 w-4 md:h-5 md:w-5 text-white" fill="currentColor" viewBox="0 0 20 20">
                         <path fillRule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clipRule="evenodd" />
@@ -494,44 +486,30 @@ export default function RewardHistory({ className, walletAddress }: RewardHistor
                   <div className="text-lg md:text-xl font-bold text-honey dark:text-amber-400">
                     ${Number(reward.reward_amount).toFixed(2)}
                   </div>
-                  <Badge 
-                    variant="outline" 
+                  <Badge
+                    variant="outline"
                     className={`text-xs mt-1 ${
-                      reward.status === 'claimed' 
+                      reward.status === 'claimed'
                         ? 'bg-honey/10 border-honey/30 text-honey dark:text-amber-400' :
-                      reward.status === 'claimable' 
-                        ? 'bg-green-500/10 border-green-500/30 text-green-600 dark:text-green-400' :
-                      reward.status === 'pending' 
-                        ? 'bg-yellow-500/10 border-yellow-500/30 text-yellow-600 dark:text-yellow-400' :
                       reward.status === 'expired' || reward.status === 'forfeited'
                         ? 'bg-red-500/10 border-red-500/30 text-red-600 dark:text-red-400' :
                         'bg-blue-500/10 border-blue-500/30 text-blue-600 dark:text-blue-400'
                     }`}
                   >
-                    {reward.status === 'claimed' ? t('rewards.status.claimed') || 'Claimed' :
-                     reward.status === 'claimable' ? t('rewards.status.claimable') || 'Claimable' :
-                     reward.status === 'pending' ? t('rewards.status.pending') || 'Pending' :
-                     reward.status === 'expired' ? t('rewards.status.expired') || 'Expired' :
-                     reward.status === 'rolled_up' ? t('rewards.status.rolled_up') || 'Rolled Up' :
-                     reward.status === 'forfeited' ? t('rewards.status.forfeited') || 'Forfeited' :
-                     reward.status}
+                    {t(`rewards.status.${reward.status}`)}
                   </Badge>
                 </div>
               </div>
               
               {/* Progress Bar */}
               <div className="w-full bg-muted/50 rounded-full h-1.5">
-                <div 
+                <div
                   className={`h-1.5 rounded-full transition-all duration-500 ${
-                    reward.status === 'claimed' 
+                    reward.status === 'claimed'
                       ? 'bg-gradient-to-r from-honey to-amber-500 w-full' :
-                    reward.status === 'claimable' 
-                      ? 'bg-gradient-to-r from-green-500 to-green-600 w-5/6' :
-                    reward.status === 'pending' 
-                      ? 'bg-gradient-to-r from-yellow-500 to-orange-500 w-2/3' :
                     reward.status === 'expired' || reward.status === 'forfeited'
                       ? 'bg-gradient-to-r from-red-500 to-red-600 w-1/3' :
-                      'bg-gradient-to-r from-blue-500 to-blue-600 w-1/2'
+                      'bg-gradient-to-r from-blue-500 to-blue-600 w-2/3'
                   }`}
                 />
               </div>

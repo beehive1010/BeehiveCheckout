@@ -1183,10 +1183,12 @@
     "startEarning": "Start Earning Rewards",
     "start_earning": "Start earning rewards by participating in the platform!",
     "status": {
+      "claimed": "已领取",
       "claimable": "可领取",
-      "completed": "Completed",
-      "failed": "失败",
-      "pending": "待处理"
+      "expired": "已过期",
+      "forfeited": "已没收",
+      "pending": "等待中",
+      "rolled_up": "已转移"
     },
     "superRootUpgrade": "Super Root Upgrade",
     "swipeToExplore": "← Swipe to explore more →",

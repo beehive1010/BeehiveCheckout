@@ -123,12 +123,14 @@ export default function Rewards() {
       });
 
       // Get pending rewards with expiration times for countdown timers
+      // Filter out expired rewards - only show rewards that are still counting down
       const { data: pendingTimerData, error: pendingError } = await supabase
         .from('layer_rewards')
         .select('*')
         .ilike('reward_recipient_wallet', memberWalletAddress)
         .eq('status', 'pending')
         .not('expires_at', 'is', null)
+        .gt('expires_at', new Date().toISOString()) // Only show non-expired rewards
         .order('expires_at', { ascending: true })
         .limit(3); // Only show top 3 most urgent
 

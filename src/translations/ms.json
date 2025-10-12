@@ -661,7 +661,7 @@
           "layerCount": "19 Lapisan",
           "layer": "Lapisan {layer}",
           "active": "Aktif: {count}",
-    "ActiveMember": "Ahli Aktif",
+          "ActiveMember": "Ahli Aktif",
           "fillRate": "Kadar Pengisian",
           "complete": "{percent}% Selesai",
           "layerComplete": "Lapisan Selesai",
@@ -752,7 +752,7 @@
       },
       "visualization": {
         "active": "Active",
-    "ActiveMember": "Ahli Aktif",
+        "ActiveMember": "Ahli Aktif",
         "available": "Available",
         "inactive": "Inactive",
         "layerNumber": "Layer {{layer}}",
@@ -1351,10 +1351,12 @@
     "startEarning": "Start Earning Rewards",
     "start_earning": "Start earning rewards by participating in the platform!",
     "status": {
+      "claimed": "Telah Dituntut",
       "claimable": "Boleh Dituntut",
-      "completed": "Completed",
-      "failed": "Failed",
-      "pending": "Pending"
+      "expired": "Tamat Tempoh",
+      "forfeited": "Dilucutkan",
+      "pending": "Menunggu",
+      "rolled_up": "Dipindahkan"
     },
     "superRootUpgrade": "Super Root Upgrade",
     "swipeToExplore": "← Swipe to explore more →",
@@ -1386,7 +1388,7 @@
       "autoDistribution": "Auto Distribution",
       "currentPhase": "Current Phase",
       "active": "Active",
-    "ActiveMember": "Ahli Aktif",
+      "ActiveMember": "Ahli Aktif",
       "activationProgress": "Activation Progress",
       "phaseRewardPool": "Phase 1 Reward Pool",
       "remaining": "remaining",
@@ -1631,7 +1633,7 @@
     },
     "status": {
       "active": "活跃",
-    "ActiveMember": "Ahli Aktif",
+      "ActiveMember": "Ahli Aktif",
       "memberSince": "会員開始于"
     },
     "balances": {
@@ -1684,7 +1686,7 @@
       "restricted": "受限",
       "locked": "鎖定",
       "active": "活跃",
-    "ActiveMember": "Ahli Aktif",
+      "ActiveMember": "Ahli Aktif",
       "limited": "受限",
       "usage": "用途"
     },
@@ -1954,7 +1956,7 @@
       "title": "矩阵表現",
       "status": "狀態",
       "active": "活跃",
-    "ActiveMember": "Ahli Aktif",
+      "ActiveMember": "Ahli Aktif",
       "currentLevel": "當前級別",
       "level": "級別",
       "matrixRewards": "矩阵獎勵",
@@ -2137,7 +2139,7 @@
       "autoDistribution": "自動分發",
       "currentPhase": "當前阶段",
       "active": "活跃中",
-    "ActiveMember": "Ahli Aktif",
+      "ActiveMember": "Ahli Aktif",
       "activationProgress": "激活進度",
       "phaseRewardPool": "阶段一獎勵池",
       "remaining": "剩餘",
@@ -2519,7 +2521,7 @@
     "soldOut": "Sold Out",
     "status": {
       "active": "ACTIVE",
-    "ActiveMember": "Ahli Aktif",
+      "ActiveMember": "Ahli Aktif",
       "burned": "BURNED",
       "claimed": "Ready to Use",
       "serviceActivated": "Service Activated",

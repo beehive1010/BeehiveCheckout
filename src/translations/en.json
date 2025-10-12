@@ -1654,9 +1654,13 @@
     "start_earning": "Start earning rewards by participating in the platform!",
     "status": {
       "claimable": "Claimable",
+      "claimed": "Claimed",
       "completed": "Completed",
+      "expired": "Expired",
       "failed": "Failed",
-      "pending": "Pending"
+      "forfeited": "Forfeited",
+      "pending": "Pending",
+      "rolled_up": "Rolled Up"
     },
     "subtitle": "Track and manage your BEEHIVE rewards",
     "superRootUpgrade": "Super Root Upgrade",

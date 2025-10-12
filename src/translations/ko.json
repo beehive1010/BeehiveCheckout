@@ -63,7 +63,7 @@
     "soldOut": "매진",
     "status": {
       "active": "활성",
-    "ActiveMember": "활성 회원",
+      "ActiveMember": "활성 회원",
       "burned": "소각됨",
       "claimed": "사용 준비",
       "serviceActivated": "서비스 활성화됨",
@@ -1100,7 +1100,7 @@
     },
     "status": {
       "active": "활성",
-    "ActiveMember": "활성 회원",
+      "ActiveMember": "활성 회원",
       "memberSince": "멤버 시작일"
     },
     "subtitle": "통계, 잔고, 계정 세부사항 보기",
@@ -1140,7 +1140,7 @@
       "restricted": "受限",
       "locked": "鎖定",
       "active": "活跃",
-    "ActiveMember": "활성 회원",
+      "ActiveMember": "활성 회원",
       "limited": "受限",
       "usage": "用途"
     },
@@ -1434,7 +1434,7 @@
           "layerCount": "19層",
           "layer": "第{layer}層",
           "active": "活跃: {count}",
-    "ActiveMember": "활성 회원",
+          "ActiveMember": "활성 회원",
           "fillRate": "填充率",
           "complete": "{percent}% 完成",
           "layerComplete": "層級完成",
@@ -1466,7 +1466,7 @@
       },
       "visualization": {
         "active": "활성",
-    "ActiveMember": "활성 회원",
+        "ActiveMember": "활성 회원",
         "available": "사용 가능",
         "inactive": "비활성",
         "layerNumber": "레이어 {{layer}}",
@@ -1832,7 +1832,7 @@
       "title": "矩阵表現",
       "status": "狀態",
       "active": "活跃",
-    "ActiveMember": "활성 회원",
+      "ActiveMember": "활성 회원",
       "currentLevel": "當前級別",
       "level": "級別",
       "matrixRewards": "矩阵獎勵",
@@ -2185,7 +2185,7 @@
       "autoDistribution": "自動分發",
       "currentPhase": "當前阶段",
       "active": "活跃中",
-    "ActiveMember": "활성 회원",
+      "ActiveMember": "활성 회원",
       "activationProgress": "激活進度",
       "phaseRewardPool": "阶段一獎勵池",
       "remaining": "剩餘",
@@ -2793,10 +2793,12 @@
     "startEarning": "Start Earning Rewards",
     "start_earning": "Start earning rewards by participating in the platform!",
     "status": {
+      "claimed": "청구 완료",
       "claimable": "청구 가능",
-      "completed": "Completed",
-      "failed": "Failed",
-      "pending": "Pending"
+      "expired": "만료됨",
+      "forfeited": "몰수됨",
+      "pending": "대기 중",
+      "rolled_up": "이전됨"
     },
     "superRootUpgrade": "Super Root Upgrade",
     "swipeToExplore": "← Swipe to explore more →",
@@ -2828,7 +2830,7 @@
       "autoDistribution": "Auto Distribution",
       "currentPhase": "Current Phase",
       "active": "Active",
-    "ActiveMember": "활성 회원",
+      "ActiveMember": "활성 회원",
       "activationProgress": "Activation Progress",
       "phaseRewardPool": "Phase 1 Reward Pool",
       "remaining": "remaining",
