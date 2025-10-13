@@ -616,18 +616,16 @@ serve(async (req) => {
     let matrixResult: any = null;
 
     if (normalizedReferrerWallet && memberRecord) {
-      console.log(`🔗 Starting batch matrix placement for: ${walletAddress} -> ${normalizedReferrerWallet}`);
+      console.log(`🔗 Starting matrix placement for: ${walletAddress} -> ${normalizedReferrerWallet}`);
 
       try {
-        // ✅ Call batch placement function
+        // ✅ Call recursive matrix placement function
         // Recursively finds up to 19 uplines in referral tree
         // Places member in each upline's matrix using BFS
-        // Supports checkpoint/resume if it times out
         const { data: placementResult, error: placementError } = await supabase
-          .rpc('batch_place_member_in_matrices', {
+          .rpc('place_new_member_in_matrix_correct', {
             p_member_wallet: walletAddress,
-            p_referrer_wallet: normalizedReferrerWallet,
-            p_batch_size: 19  // Process all uplines (up to 19 depth in referral tree)
+            p_referrer_wallet: normalizedReferrerWallet
           });
 
         if (placementError) {
@@ -635,36 +633,17 @@ serve(async (req) => {
           matrixResult = {
             success: false,
             error: placementError.message,
-            message: 'Matrix placement failed - will retry on next activation check'
+            message: 'Matrix placement failed'
           };
         } else {
-          console.log(`✅ Batch placement result:`, placementResult);
+          console.log(`✅ Matrix placement result:`, placementResult);
           matrixResult = {
-            success: true,
+            success: placementResult.success,
             ...placementResult,
-            message: placementResult.status === 'completed'
-              ? `Placed in ${placementResult.succeeded} matrices`
-              : `Partial placement: ${placementResult.processed}/${placementResult.total_uplines} processed`
+            message: placementResult.success
+              ? `Placed in ${placementResult.placements_created} matrices (deepest layer: ${placementResult.deepest_layer})`
+              : `Matrix placement failed: ${placementResult.message}`
           };
-
-          // If partial, queue a resume call (non-blocking)
-          if (placementResult.status === 'partial') {
-            console.log('⏳ Partial placement - scheduling resume...');
-
-            // Fire and forget resume call after 2 seconds
-            setTimeout(async () => {
-              try {
-                const { data: resumeResult } = await supabase
-                  .rpc('resume_placement_for_member', {
-                    p_member_wallet: walletAddress,
-                    p_batch_size: 19  // Continue processing remaining uplines
-                  });
-                console.log('✅ Resume placement result:', resumeResult);
-              } catch (resumeErr) {
-                console.error('❌ Resume placement error:', resumeErr);
-              }
-            }, 2000);
-          }
         }
 
       } catch (placementErr: any) {
@@ -672,7 +651,7 @@ serve(async (req) => {
         matrixResult = {
           success: false,
           error: placementErr.message,
-          message: 'Matrix placement exception - check matrix_placement_progress table'
+          message: 'Matrix placement exception'
         };
       }
 
