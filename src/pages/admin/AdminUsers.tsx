@@ -133,29 +133,117 @@ export default function AdminUsers() {
   // Form state for create/edit (unified for both users and members)
   const [formData, setFormData] = useState<any>({});
 
-  // Fetch platform users
+  // Fetch platform users using Supabase client directly
   const { data: platformUsers = [], isLoading: isQueryLoading, refetch } = useQuery({
     queryKey: ['/api/admin/platform-users', { search: searchTerm, level: levelFilter, status: statusFilter }],
     queryFn: async (): Promise<PlatformUser[]> => {
-      const params = new URLSearchParams();
-      if (searchTerm) params.append('search', searchTerm);
-      if (levelFilter !== 'all') params.append('level', levelFilter);
-      if (statusFilter !== 'all') params.append('status', statusFilter);
-      
-      const response = await fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/admin-users?${params}`, {
-        headers: {
-          'Authorization': `Bearer ${localStorage.getItem('admin_token')}`,
-          'x-admin-token': localStorage.getItem('admin_token') || '',
-          'Content-Type': 'application/json',
-        },
-      });
-      
-      if (!response.ok) {
-        throw new Error('Failed to fetch platform users');
+      const { supabase } = await import('../../lib/supabase');
+
+      // Build query
+      let query = supabase
+        .from('users')
+        .select(`
+          wallet_address,
+          username,
+          email,
+          registration_status,
+          referrer_wallet,
+          preferred_language,
+          created_at,
+          updated_at
+        `);
+
+      // Apply search filter
+      if (searchTerm) {
+        query = query.or(`wallet_address.ilike.%${searchTerm}%,username.ilike.%${searchTerm}%,email.ilike.%${searchTerm}%`);
       }
-      
-      const result = await response.json();
-      return result.success ? result.data : [];
+
+      // Fetch users
+      const { data: usersData, error: usersError } = await query.order('created_at', { ascending: false });
+
+      if (usersError) {
+        console.error('Error fetching users:', usersError);
+        throw new Error(`Failed to fetch users: ${usersError.message}`);
+      }
+
+      if (!usersData || usersData.length === 0) {
+        return [];
+      }
+
+      // Fetch member data for these users
+      const walletAddresses = usersData.map(u => u.wallet_address);
+      const { data: membersData } = await supabase
+        .from('members')
+        .select('wallet_address, current_level, levels_owned, member_activated, activation_at, last_upgrade_at')
+        .in('wallet_address', walletAddresses);
+
+      // Fetch balance data
+      const { data: balancesData } = await supabase
+        .from('user_balances')
+        .select('wallet_address, reward_balance, available_balance, withdrawn_amount')
+        .in('wallet_address', walletAddresses);
+
+      // Fetch referral counts
+      const { data: referralsData } = await supabase
+        .from('referrals')
+        .select('referred_wallet')
+        .in('referrer_wallet', walletAddresses);
+
+      // Map everything together
+      const platformUsers: PlatformUser[] = usersData.map(user => {
+        const member = membersData?.find(m => m.wallet_address === user.wallet_address);
+        const balance = balancesData?.find(b => b.wallet_address === user.wallet_address);
+        const referralCount = referralsData?.filter(r => r.referred_wallet === user.wallet_address).length || 0;
+
+        return {
+          walletAddress: user.wallet_address,
+          username: user.username || undefined,
+          email: user.email || undefined,
+          currentLevel: member?.current_level || 0,
+          memberActivated: member?.member_activated || false,
+          registrationStatus: user.registration_status || 'pending',
+          createdAt: user.created_at,
+          lastUpdatedAt: user.updated_at,
+          activationAt: member?.activation_at || undefined,
+          referrerWallet: user.referrer_wallet || undefined,
+          preferredLanguage: user.preferred_language || 'en',
+          levelsOwned: member?.levels_owned || [],
+          activeLevel: member?.current_level || 0,
+          joinedAt: member?.activation_at || undefined,
+          lastUpgradeAt: member?.last_upgrade_at || undefined,
+          transferableBCC: 0,
+          restrictedBCC: 0,
+          totalEarnings: balance?.reward_balance || 0,
+          referralEarnings: 0,
+          levelEarnings: 0,
+          pendingRewards: balance?.available_balance || 0,
+          withdrawnAmount: balance?.withdrawn_amount || 0,
+          directReferralCount: referralCount,
+          totalTeamCount: referralCount,
+          sponsorWallet: user.referrer_wallet || undefined,
+          matrixPosition: 0,
+        };
+      });
+
+      // Apply filters
+      let filtered = platformUsers;
+
+      if (levelFilter !== 'all') {
+        const level = parseInt(levelFilter);
+        filtered = filtered.filter(u => u.currentLevel === level);
+      }
+
+      if (statusFilter === 'activated') {
+        filtered = filtered.filter(u => u.memberActivated);
+      } else if (statusFilter === 'unactivated') {
+        filtered = filtered.filter(u => !u.memberActivated);
+      } else if (statusFilter === 'completed') {
+        filtered = filtered.filter(u => u.registrationStatus === 'completed');
+      } else if (statusFilter === 'pending') {
+        filtered = filtered.filter(u => u.registrationStatus === 'pending');
+      }
+
+      return filtered;
     },
     enabled: hasPermission('users.read'),
   });
