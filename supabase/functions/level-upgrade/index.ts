@@ -725,8 +725,8 @@ async function processLevelUpgrade(
           layerRewardData = result.data;
           layerRewardError = result.error;
         } else {
-          console.log(`🎯 Level ${targetLevel} upgrade - triggering layer rewards to matrix root (19 layers)`);
-          const result = await supabase.rpc('trigger_layer_rewards_on_upgrade', {
+          console.log(`🎯 Level ${targetLevel} upgrade - triggering matrix layer rewards to matrix root`);
+          const result = await supabase.rpc('trigger_matrix_layer_rewards', {
             p_upgrading_member_wallet: walletAddress,
             p_new_level: targetLevel,
             p_nft_price: getNftPrice(targetLevel)

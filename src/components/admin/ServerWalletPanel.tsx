@@ -248,10 +248,11 @@ export const ServerWalletPanel: React.FC = () => {
     // Confirm withdrawal
     const confirmed = window.confirm(
       `Withdraw ${balance.usdt} USDT from ${chain.name} to Admin wallet?\n\n` +
-      `From: ${serverWalletAddress}\n` +
+      `From: Server Wallet\n` +
       `To: ${ADMIN_WALLET_ADDRESS}\n` +
-      `Amount: ${balance.usdt} USDT\n\n` +
-      `This action requires server wallet private key to sign the transaction.`
+      `Amount: ${balance.usdt} USDT\n` +
+      `Chain: ${chain.name}\n\n` +
+      `Fee will be deducted from the amount.`
     );
 
     if (!confirmed) return;
@@ -259,14 +260,14 @@ export const ServerWalletPanel: React.FC = () => {
     try {
       toast({
         title: "Processing Withdrawal",
-        description: "Calling admin withdrawal API...",
+        description: "Initiating transfer to admin wallet...",
       });
 
-      // Call Edge Function to execute withdrawal
+      // Call existing withdrawal Edge Function
       const API_BASE = import.meta.env.VITE_API_BASE_URL ||
         'https://cvqibjcbfrwsgkvthccp.supabase.co/functions/v1';
 
-      const response = await fetch(`${API_BASE}/admin-wallet-withdraw`, {
+      const response = await fetch(`${API_BASE}/withdrawal`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -274,10 +275,14 @@ export const ServerWalletPanel: React.FC = () => {
           'apikey': `${import.meta.env.VITE_SUPABASE_ANON_KEY}`,
         },
         body: JSON.stringify({
-          chainId: chain.id,
-          toAddress: ADMIN_WALLET_ADDRESS,
+          action: 'process-withdrawal',
           amount: usdtAmount,
-          tokenAddress: chain.usdtAddress,
+          recipientAddress: ADMIN_WALLET_ADDRESS,
+          sourceChainId: chainId,
+          targetChainId: chainId,
+          selectedToken: 'USDT',
+          targetTokenSymbol: 'USDT',
+          memberWallet: serverWalletAddress, // Use server wallet as "member" for admin withdrawals
         }),
       });
 
@@ -288,12 +293,40 @@ export const ServerWalletPanel: React.FC = () => {
 
       const result = await response.json();
 
+      // Log admin withdrawal to separate table
+      try {
+        const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
+        const supabaseKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
+
+        await fetch(`${supabaseUrl}/rest/v1/admin_wallet_withdrawals`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'apikey': supabaseKey,
+            'Authorization': `Bearer ${supabaseKey}`,
+            'Prefer': 'return=minimal'
+          },
+          body: JSON.stringify({
+            chain_id: chainId,
+            chain_name: chain.name,
+            from_address: serverWalletAddress,
+            to_address: ADMIN_WALLET_ADDRESS,
+            token_address: chain.usdtAddress,
+            amount: result.net_amount || usdtAmount,
+            transaction_hash: result.transaction_hash || result.send_queue_id || 'pending',
+            status: 'completed'
+          })
+        });
+      } catch (logError) {
+        console.warn('Failed to log admin withdrawal:', logError);
+      }
+
       toast({
         title: "✅ Withdrawal Successful",
-        description: `${usdtAmount} USDT sent to Admin wallet`,
+        description: `${result.net_amount || usdtAmount} USDT sent to Admin wallet`,
       });
 
-      console.log('Withdrawal transaction:', result.transactionHash);
+      console.log('Withdrawal result:', result);
 
       // Refresh balances
       setTimeout(() => {
