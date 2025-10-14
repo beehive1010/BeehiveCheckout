@@ -819,44 +819,11 @@ serve(async (req) => {
       }
     }
 
-    // Step 9: Process layer reward for Level 1 activation (direct referral to upline)
+    // ❌ REMOVED: Step 9 was incorrectly calling trigger_layer_rewards_on_upgrade for Level 1
+    // Level 1 should ONLY use trigger_direct_referral_rewards (Step 6.5)
+    // trigger_layer_rewards_on_upgrade creates layer_rewards (wrong table)
+    // trigger_direct_referral_rewards creates direct_rewards (correct table)
     let layerRewardResult = null;
-    if (level === 1 && normalizedReferrerWallet && normalizedReferrerWallet !== '0x479ABda60F8c62a7C3fba411ab948a8BE0E616Ab') {
-      try {
-        console.log(`💰 Processing layer reward for Level 1 activation...`);
-        console.log(`🎯 Reward will be sent to referrer: ${normalizedReferrerWallet}`);
-        console.log(`🎯 Reward amount: 100 USDC (Level 1 NFT base price)`);
-
-        // Level 1 activation triggers layer_reward (direct referral)
-        const { data: rewardData, error: rewardError } = await supabase.rpc('trigger_layer_rewards_on_upgrade', {
-          p_upgrading_member_wallet: walletAddress,
-          p_new_level: level,
-          p_nft_price: 100 // Level 1 NFT base price without platform fee
-        });
-
-        if (rewardError) {
-          console.warn('⚠️ Layer reward creation failed:', rewardError);
-        } else {
-          console.log(`✅ Layer reward triggered for Level 1 activation:`, rewardData);
-          layerRewardResult = rewardData;
-        }
-
-        // Verify layer reward was created
-        const { data: createdRewards, error: checkError } = await supabase
-          .from('layer_rewards')
-          .select('id, reward_recipient_wallet, reward_amount, status, matrix_layer, recipient_required_level')
-          .ilike('triggering_member_wallet', walletAddress)
-          .eq('triggering_nft_level', level);
-
-        if (!checkError && createdRewards && createdRewards.length > 0) {
-          console.log(`✅ Verified ${createdRewards.length} layer reward(s) created for Level 1:`,
-            createdRewards.map(r => `${r.reward_recipient_wallet}: ${r.reward_amount} USDC (${r.status}, Layer ${r.matrix_layer}, Required Level ${r.recipient_required_level})`));
-        }
-
-      } catch (layerRewardErr) {
-        console.warn('⚠️ Layer reward error (non-critical):', layerRewardErr);
-      }
-    }
 
     // ✅ Verify all database records were created before returning success
     console.log(`🔍 Final verification: Checking all database records...`);

@@ -5,6 +5,7 @@ import { Input } from '../../components/ui/input';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../../components/ui/card';
 import { Label } from '../../components/ui/label';
 import { useToast } from '../../hooks/use-toast';
+import { useAdminAuthContext } from '../../contexts/AdminAuthContext';
 import { motion } from 'framer-motion';
 import HexagonIcon from '../../components/shared/HexagonIcon';
 import { Shield, Lock, User } from 'lucide-react';
@@ -12,8 +13,9 @@ import { Shield, Lock, User } from 'lucide-react';
 export default function AdminLogin() {
   const [, setLocation] = useLocation();
   const { toast } = useToast();
+  const { signInAdmin } = useAdminAuthContext();
   const [credentials, setCredentials] = useState({
-    username: '',
+    email: '',
     password: '',
   });
   const [isLoading, setIsLoading] = useState(false);
@@ -23,38 +25,21 @@ export default function AdminLogin() {
     setIsLoading(true);
 
     try {
-      // Temporary solution: hardcode admin credentials until API is fixed
-      if (credentials.username === 'admin' && credentials.password === 'admin123') {
-        // Simulate successful login
-        const mockAdminData = {
-          sessionToken: 'temp-admin-session-' + Date.now(),
-          admin: {
-            id: 1,
-            username: 'admin',
-            email: 'admin@beehive.com',
-            role: 'super_admin',
-          },
-          expiresAt: new Date(Date.now() + 12 * 60 * 60 * 1000).toISOString(),
-        };
+      // Use AdminAuthContext signInAdmin method
+      await signInAdmin(credentials.email, credentials.password);
 
-        // Store session token and admin info
-        localStorage.setItem('adminSessionToken', mockAdminData.sessionToken);
-        localStorage.setItem('adminUser', JSON.stringify(mockAdminData.admin));
+      toast({
+        title: 'Login Successful',
+        description: `Welcome to Admin Panel!`,
+      });
 
-        toast({
-          title: 'Login Successful',
-          description: `Welcome back, ${mockAdminData.admin.username}!`,
-        });
-
-        // Redirect to admin dashboard
-        setLocation('/admin/dashboard');
-      } else {
-        throw new Error('Invalid credentials. Use admin/admin123');
-      }
+      // AdminAuthContext will handle redirect to /admin/dashboard
     } catch (error: any) {
+      console.error('Admin login error:', error);
+
       toast({
         title: 'Login Failed',
-        description: error.message || 'Invalid credentials',
+        description: error.message || 'Invalid admin credentials',
         variant: 'destructive',
       });
     } finally {
@@ -94,19 +79,19 @@ export default function AdminLogin() {
             <form onSubmit={handleLogin} className="space-y-6">
               <div className="space-y-4">
                 <div>
-                  <Label htmlFor="username" className="text-honey mb-2 flex items-center">
+                  <Label htmlFor="email" className="text-honey mb-2 flex items-center">
                     <User className="w-4 h-4 mr-2" />
-                    Username
+                    Email
                   </Label>
                   <Input
-                    id="username"
-                    type="text"
-                    placeholder="Enter admin username"
-                    value={credentials.username}
-                    onChange={(e) => setCredentials(prev => ({ ...prev, username: e.target.value }))}
+                    id="email"
+                    type="email"
+                    placeholder="Enter admin email"
+                    value={credentials.email}
+                    onChange={(e) => setCredentials(prev => ({ ...prev, email: e.target.value }))}
                     required
                     className="bg-muted border-honey/20 focus:border-honey"
-                    data-testid="input-username"
+                    data-testid="input-email"
                   />
                 </div>
                 
