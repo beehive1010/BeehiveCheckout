@@ -239,10 +239,11 @@ export function ClaimMembershipNFTButton({
 
           // Build direct USDT approve transaction to NFT contract with max amount
           // This allows all future NFT purchases without additional approvals
+          // Note: Pass BigInt directly, not string - approve() expects bigint
           const approvalTransaction = approve({
             contract: usdtContract,
             spender: NFT_CONTRACT,
-            amount: maxUint256.toString(), // Convert to string for proper handling
+            amount: maxUint256, // Use BigInt directly
           });
 
           console.log('  📝 Sending approval transaction to wallet...');
