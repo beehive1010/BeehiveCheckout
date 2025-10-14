@@ -326,20 +326,25 @@ export function useNFTClaim() {
             nftClaimed: true, // NFT was claimed but activation failed
             queuedForRetry: queuedSuccessfully // Whether successfully added to queue
           };
-        } else {
-          const activateResult = await activateResponse.json();
-          console.log('✅ Membership activated:', activateResult);
-
-          // Only call onSuccess if activation was successful
-          if (onSuccess) {
-            onSuccess();
-          }
         }
-      } else {
-        // No activation endpoint, just call onSuccess
+
+        // ✅ If we reach here, activation was successful
+        const activateResult = await activateResponse.json();
+        console.log('✅ Membership activated:', activateResult);
+
+        // Call onSuccess callback after successful activation
         if (onSuccess) {
+          console.log('🎯 Calling onSuccess callback after successful activation');
           onSuccess();
         }
+
+        return { success: true, txHash: claimTxResult.transactionHash };
+      }
+
+      // If no activation endpoint was provided, just call onSuccess
+      if (onSuccess) {
+        console.log('🎯 Calling onSuccess callback (no activation endpoint)');
+        onSuccess();
       }
 
       return { success: true, txHash: claimTxResult.transactionHash };
