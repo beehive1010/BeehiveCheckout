@@ -204,6 +204,7 @@ export function useNFTClaim() {
       // Wait for confirmation with extended timeout for Arbitrum
       setCurrentStep('Waiting for NFT confirmation...');
 
+      let receiptConfirmed = false;
       try {
         await waitForReceipt({
           client,
@@ -211,14 +212,24 @@ export function useNFTClaim() {
           transactionHash: claimTxResult.transactionHash,
           maxBlocksWaitTime: 200, // Increased from 50 to 200 blocks (~50 seconds on Arbitrum)
         });
+        receiptConfirmed = true;
       } catch (receiptError: any) {
         // If waitForReceipt times out, the transaction might still be successful
-        // Continue with activation attempt anyway
+        // Wait additional time for transaction to be mined
         console.warn('⚠️ Receipt wait timeout, but transaction was sent:', claimTxResult.transactionHash);
-        console.warn('  Continuing with activation attempt...');
+        console.warn('  Waiting additional 15 seconds for transaction to confirm...');
+
+        setCurrentStep('Transaction pending, waiting for confirmation...');
+        await new Promise(resolve => setTimeout(resolve, 15000)); // Wait 15 seconds
+
+        console.log('  Proceeding with activation attempt after delay...');
       }
 
-      console.log(`✅ Level ${level} NFT claim confirmed`);
+      if (receiptConfirmed) {
+        console.log(`✅ Level ${level} NFT claim confirmed`);
+      } else {
+        console.log(`⏳ Level ${level} NFT claim transaction sent, proceeding with activation`);
+      }
       console.log('🔗 Transaction hash:', claimTxResult.transactionHash);
 
       // ✅ FIX: Wait additional 5 seconds for Arbitrum node state synchronization
