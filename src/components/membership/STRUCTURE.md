@@ -214,7 +214,6 @@ import { useNFTClaim, NFTClaimConfig } from '@/components/membership/core/NFTCla
 - `src/lib/thirdwebClient.ts` - Web3 client
 
 ### Backend
-- `supabase/functions/mint-and-send-nft/` - Level 1 activation
 - `supabase/functions/level-upgrade/` - Level 2-19 upgrade
 - `supabase/functions/activate-membership/` - Membership activation
 

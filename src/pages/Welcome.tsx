@@ -1,7 +1,8 @@
 import React, {useEffect, useState} from 'react';
-import {ClaimMembershipButton} from '../components/membership/claim/ClaimMembershipButton';
-import {ManualActivationButton} from '../components/membership/claim/ManualActivationButton';
+import {useNFTClaim} from '../components/membership/core/NFTClaimButton';
 import {useLocation} from 'wouter';
+import {Button} from '../components/ui/button';
+import {Loader2, Crown} from 'lucide-react';
 import {referralService} from '../api/landing/referral.client';
 import {authService} from '../lib/supabase';
 import {Card, CardContent} from '../components/ui/card';
@@ -23,6 +24,9 @@ export default function Welcome() {
   const [isCheckingMembership, setIsCheckingMembership] = useState(false);
   const [noReferrerError, setNoReferrerError] = useState(false);
   const [isRefreshing, setIsRefreshing] = useState(false);
+
+  // Use core NFTClaim hook
+  const { claimNFT, isProcessing, currentStep } = useNFTClaim();
 
   // Get referrer from URL params and localStorage with immediate fallback
   useEffect(() => {
@@ -119,21 +123,41 @@ export default function Welcome() {
     };
   }, [userStatus, isUserLoading, setLocation]); // 使用 useWallet 的数据
 
-  const handleActivationComplete = () => {
-    console.log('✅ Level 1 NFT claim and activation completed - redirecting to dashboard');
-    
-    // WelcomeLevel1ClaimButton already handles:
-    // ✅ User registration check/modal
-    // ✅ USDT approval and payment
-    // ✅ NFT minting on blockchain
-    // ✅ Database activation via multiple fallbacks
-    // ✅ Matrix placement and member setup
-    
-    // Add small delay to ensure all processes complete
-    setTimeout(() => {
-      console.log('🔄 Redirecting to dashboard after complete Level 1 activation...');
-      setLocation('/dashboard');
-    }, 2000); // 2 second delay for thorough processing
+  const handleClaim = async () => {
+    if (!account?.address) {
+      return;
+    }
+
+    if (!referrerWallet) {
+      alert('Referrer wallet is required');
+      return;
+    }
+
+    console.log('🎯 Starting Level 1 NFT claim with core hook...');
+
+    const result = await claimNFT({
+      level: 1,
+      priceUSDT: 130,
+      activationEndpoint: 'activate-membership',
+      activationPayload: {
+        referrerWallet: referrerWallet,
+      },
+      onSuccess: () => {
+        console.log('✅ Level 1 NFT claimed and activated successfully!');
+        setTimeout(() => {
+          setLocation('/dashboard');
+        }, 1500);
+      },
+      onError: (error) => {
+        console.error('❌ Claim error:', error);
+      },
+    });
+
+    if (result.success) {
+      console.log('✅ Claim successful, txHash:', result.txHash);
+    } else {
+      console.error('❌ Claim failed:', result.error);
+    }
   };
 
 
@@ -268,24 +292,43 @@ export default function Welcome() {
           </Card>
         </div>
         
-        {/* PayEmbed Purchase Button - Redirects to /purchase page */}
+        {/* Level 1 NFT Claim Button - Using core hook with activate-membership */}
         <div className="max-w-2xl mx-auto">
-          <ClaimMembershipButton
-            walletAddress={account?.address || ''}
-            tokenId={1}
-            nftType="LEVEL1"
-            onSuccess={handleActivationComplete}
-            onError={(error: Error) => console.error('Claim error:', error)}
-          />
-        </div>
+          <Button
+            onClick={handleClaim}
+            disabled={!account?.address || isProcessing || !referrerWallet}
+            className="w-full h-14 bg-gradient-to-r from-honey to-orange-500 hover:from-honey/90 hover:to-orange-500/90 text-white font-semibold text-lg shadow-lg transition-all disabled:opacity-50"
+          >
+            {!account?.address ? (
+              <>
+                <Crown className="mr-2 h-5 w-5" />
+                {t('claim.connectWalletToClaimNFT')}
+              </>
+            ) : isProcessing ? (
+              <>
+                <Loader2 className="mr-2 h-5 w-5 animate-spin" />
+                {currentStep || 'Processing...'}
+              </>
+            ) : (
+              <>
+                <Crown className="mr-2 h-5 w-5" />
+                Claim Level 1 - 130 USDT
+              </>
+            )}
+          </Button>
 
-        {/* Manual Activation Button (for users who already purchased NFT via PayEmbed) */}
-        <div className="max-w-2xl mx-auto mt-6">
-          <ManualActivationButton
-            level={1}
-            onSuccess={handleActivationComplete}
-            className="w-full"
-          />
+          {/* Progress indicator */}
+          {isProcessing && currentStep && (
+            <div className="mt-3 p-3 bg-muted/50 rounded-lg border border-border/50">
+              <div className="flex items-center gap-2 text-sm">
+                <Loader2 className="h-4 w-4 text-honey animate-spin" />
+                <span className="text-muted-foreground">{currentStep}</span>
+              </div>
+              <div className="text-xs text-muted-foreground mt-1">
+                {t('claim.doNotClosePageWarning')}
+              </div>
+            </div>
+          )}
         </div>
 
         <div className="mt-6 text-center text-sm text-muted-foreground space-y-3 max-w-md mx-auto">

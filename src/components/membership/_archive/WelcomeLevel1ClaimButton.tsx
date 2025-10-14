@@ -1,19 +1,19 @@
-cimport {useEffect, useState, useCallback, useRef} from 'react';
+import {useEffect, useState, useCallback, useRef} from 'react';
 import {useActiveAccount, useActiveWalletChain, useSwitchActiveWalletChain} from 'thirdweb/react';
 import {getContract, sendTransaction, waitForReceipt} from 'thirdweb';
 import {arbitrum} from 'thirdweb/chains';
 import {balanceOf, claimTo} from 'thirdweb/extensions/erc1155';
 import {approve, balanceOf as erc20BalanceOf, allowance} from 'thirdweb/extensions/erc20';
-import {Button} from '../ui/button';
-import {Card, CardContent, CardHeader, CardTitle} from '../ui/card';
-import {Badge} from '../ui/badge';
-import {useToast} from '../../hooks/use-toast';
+import {Button} from '../../ui/button';
+import {Card, CardContent, CardHeader, CardTitle} from '../../ui/card';
+import {Badge} from '../../ui/badge';
+import {useToast} from '../../../hooks/use-toast';
 import {Coins, Crown, Gift, Loader2, Zap} from 'lucide-react';
-import {authService} from '../../lib/supabase';
-import {useI18n} from '../../contexts/I18nContext';
-import RegistrationModal from '../modals/RegistrationModal';
-import ErrorBoundary from '../ui/error-boundary';
-import {useMembershipNFT} from '../../hooks/useMembershipNFT';
+import {authService} from '../../../lib/supabase';
+import {useI18n} from '../../../contexts/I18nContext';
+import RegistrationModal from '../../modals/RegistrationModal';
+import ErrorBoundary from '../../ui/error-boundary';
+import {useMembershipNFT} from '../../../hooks/useMembershipNFT';
 
 interface WelcomeLevel1ClaimButtonProps {
   onSuccess?: () => void;
@@ -456,8 +456,8 @@ export function WelcomeLevel1ClaimButton({ onSuccess, referrerWallet, className 
 
       setCurrentStep('Activating membership...');
 
-      // Call mint-and-send-nft to record in database
-      const activateResponse = await fetch(`${API_BASE}/mint-and-send-nft`, {
+      // Call active-membership to record in database
+      const activateResponse = await fetch(`${API_BASE}/activate-membership`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -465,9 +465,9 @@ export function WelcomeLevel1ClaimButton({ onSuccess, referrerWallet, className 
           'x-wallet-address': account.address
         },
         body: JSON.stringify({
-          recipientAddress: account.address,
+          walletAddress: account.address,
           level: 1,
-          paymentTransactionHash: claimTxResult.transactionHash,
+          transactionHash: claimTxResult.transactionHash,
           paymentAmount: LEVEL_1_PRICE_USDT,
           referrerWallet: referrerWallet
         })
