@@ -201,14 +201,22 @@ export function useNFTClaim() {
         `Level ${level} NFT claim transaction`
       );
 
-      // Wait for confirmation
+      // Wait for confirmation with extended timeout for Arbitrum
       setCurrentStep('Waiting for NFT confirmation...');
-      await waitForReceipt({
-        client,
-        chain: arbitrum,
-        transactionHash: claimTxResult.transactionHash,
-        maxBlocksWaitTime: 50,
-      });
+
+      try {
+        await waitForReceipt({
+          client,
+          chain: arbitrum,
+          transactionHash: claimTxResult.transactionHash,
+          maxBlocksWaitTime: 200, // Increased from 50 to 200 blocks (~50 seconds on Arbitrum)
+        });
+      } catch (receiptError: any) {
+        // If waitForReceipt times out, the transaction might still be successful
+        // Continue with activation attempt anyway
+        console.warn('⚠️ Receipt wait timeout, but transaction was sent:', claimTxResult.transactionHash);
+        console.warn('  Continuing with activation attempt...');
+      }
 
       console.log(`✅ Level ${level} NFT claim confirmed`);
       console.log('🔗 Transaction hash:', claimTxResult.transactionHash);

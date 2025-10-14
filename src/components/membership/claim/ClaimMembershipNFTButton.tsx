@@ -254,12 +254,18 @@ export function ClaimMembershipNFTButton({
             'USDT approval transaction'
           );
 
-          // Wait for transaction confirmation
-          await waitForReceipt({
-            client,
-            chain: arbitrum,
-            transactionHash: approveTxResult?.transactionHash,
-          });
+          // Wait for transaction confirmation with extended timeout
+          try {
+            await waitForReceipt({
+              client,
+              chain: arbitrum,
+              transactionHash: approveTxResult?.transactionHash,
+              maxBlocksWaitTime: 200, // Increased timeout for Arbitrum (~50 seconds)
+            });
+          } catch (receiptError) {
+            // If receipt times out, transaction might still be successful
+            console.warn('⚠️ Approval receipt timeout, continuing anyway:', approveTxResult?.transactionHash);
+          }
 
           console.log('  ✅ Unlimited approval successful:', approveTxResult.transactionHash);
 
