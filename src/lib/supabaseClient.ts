@@ -1271,12 +1271,13 @@ export const balanceService = {
     try {
       console.log('🔍 Getting balance for wallet:', walletAddress);
       
-      // Get user balance from user_balances table
+      // Get user balance from v_user_balances view
+      // View automatically handles missing records with default values
       const { data: balanceData, error: balanceError } = await supabase
-        .from('user_balances')
+        .from('v_user_balances')
         .select('*')
         .eq('wallet_address', walletAddress.toLowerCase())
-        .single();
+        .maybeSingle();
 
       if (balanceError && balanceError.code !== 'PGRST116') {
         console.error('❌ Error fetching balance:', balanceError);
