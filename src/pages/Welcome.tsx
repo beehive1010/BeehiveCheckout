@@ -128,6 +128,13 @@ export default function Welcome() {
       return;
     }
 
+    // Check if user is registered first
+    if (!userStatus?.isRegistered) {
+      console.log('⚠️ User not registered - redirecting to registration');
+      setLocation('/register');
+      return;
+    }
+
     if (!referrerWallet) {
       alert('Referrer wallet is required');
       return;
@@ -296,13 +303,18 @@ export default function Welcome() {
         <div className="max-w-2xl mx-auto">
           <Button
             onClick={handleClaim}
-            disabled={!account?.address || isProcessing || !referrerWallet}
+            disabled={!account?.address || !userStatus?.isRegistered || isProcessing || !referrerWallet}
             className="w-full h-14 bg-gradient-to-r from-honey to-orange-500 hover:from-honey/90 hover:to-orange-500/90 text-white font-semibold text-lg shadow-lg transition-all disabled:opacity-50"
           >
             {!account?.address ? (
               <>
                 <Crown className="mr-2 h-5 w-5" />
                 {t('claim.connectWalletToClaimNFT')}
+              </>
+            ) : !userStatus?.isRegistered ? (
+              <>
+                <Crown className="mr-2 h-5 w-5" />
+                {t('welcome.pleaseRegisterFirst') || 'Please Register First'}
               </>
             ) : isProcessing ? (
               <>
