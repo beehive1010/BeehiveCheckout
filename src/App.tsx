@@ -172,8 +172,8 @@ function SmartHomePage() {
         console.log('🔀 SmartHomePage: Redirecting to /register (new user)');
         setLocation('/register');
       } else if (needsNFTClaim) {
-        console.log('🔀 SmartHomePage: Redirecting to /welcome2 (needs NFT claim - PayEmbed version)');
-        setLocation('/welcome2');
+        console.log('🔀 SmartHomePage: Redirecting to /welcome (needs NFT claim)');
+        setLocation('/welcome');
       } else if (isFullyActivated) {
         console.log('🔀 SmartHomePage: Redirecting to /dashboard (fully activated)');
         setLocation('/dashboard');
@@ -436,7 +436,7 @@ function Router() {
 
         {/* Membership2 - PayEmbed Version */}
         <Route path="/membership2" component={() => (
-          <MemberGuard requireActivation={true} redirectTo="/welcome2">
+          <MemberGuard requireActivation={true} redirectTo="/welcome">
             <Membership2 />
           </MemberGuard>
         )} />
