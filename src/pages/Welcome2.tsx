@@ -19,6 +19,7 @@ import ErrorBoundary from '../components/ui/error-boundary';
 import { BeehiveMembershipClaimList } from '../components/membership/claim/BeehiveMembershipClaimList';
 import { motion } from 'framer-motion';
 import { useToast } from '../hooks/use-toast';
+import RegistrationModal from '../components/modals/RegistrationModal';
 
 export default function Welcome2() {
   const { t } = useI18n();
@@ -33,6 +34,7 @@ export default function Welcome2() {
   const [noReferrerError, setNoReferrerError] = useState(false);
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [hasCheckedOnMount, setHasCheckedOnMount] = useState(false);
+  const [showRegistrationModal, setShowRegistrationModal] = useState(false);
 
   // Get referrer from URL params and localStorage with immediate fallback
   // EXACT SAME LOGIC AS Welcome.tsx
@@ -96,6 +98,19 @@ export default function Welcome2() {
     loadReferrerInfo();
   }, [referrerWallet]);
 
+  // Check if user is registered and show registration modal if needed
+  useEffect(() => {
+    if (!account?.address || isUserLoading) {
+      return;
+    }
+
+    // If user is connected but not registered, show registration modal
+    if (!userStatus?.isRegistered) {
+      console.log('⚠️ Welcome2: User not registered - showing registration modal');
+      setShowRegistrationModal(true);
+    }
+  }, [account?.address, userStatus?.isRegistered, isUserLoading]);
+
   // Use useWallet data to redirect if user is already activated
   useEffect(() => {
     let isMounted = true;
@@ -138,6 +153,21 @@ export default function Welcome2() {
       console.log('🔄 Redirecting to dashboard after complete Level 1 activation...');
       setLocation('/dashboard');
     }, 2000); // 2 second delay for thorough processing
+  };
+
+  // Handle registration completion
+  const handleRegistrationComplete = () => {
+    console.log('✅ Welcome2: Registration completed');
+    setShowRegistrationModal(false);
+
+    // Refresh user data to get updated registration status
+    refreshUserData();
+
+    toast({
+      title: '✅ Registration Successful',
+      description: 'You can now proceed to claim your membership!',
+      duration: 3000,
+    });
   };
 
   // Handle manual status refresh - only use useWallet refresh
@@ -339,6 +369,17 @@ export default function Welcome2() {
             </Card>
           </div>
         </div>
+
+        {/* Registration Modal */}
+        {account?.address && (
+          <RegistrationModal
+            isOpen={showRegistrationModal}
+            onClose={() => setShowRegistrationModal(false)}
+            walletAddress={account.address}
+            onRegistrationComplete={handleRegistrationComplete}
+            referrerWallet={referrerWallet || undefined}
+          />
+        )}
       </div>
     </ErrorBoundary>
   );
