@@ -231,19 +231,18 @@ export function ClaimMembershipNFTButton({
         });
 
         try {
-          console.log('🔐 Requesting unlimited USDT approval (one-time)...');
+          console.log('🔐 Requesting USDT approval for current purchase...');
           console.log('⚠️ PLEASE CHECK YOUR WALLET - Approval window should appear now');
           console.log('  Contract:', usdtContract.address);
           console.log('  Spender (NFT Contract):', NFT_CONTRACT);
-          console.log('  Amount:', maxUint256.toString());
+          console.log('  Amount:', price, 'USDT');
 
-          // Build direct USDT approve transaction to NFT contract with max amount
-          // This allows all future NFT purchases without additional approvals
-          // Note: Pass BigInt directly, not string - approve() expects bigint
+          // Build direct USDT approve transaction to NFT contract for the required amount
+          // Note: thirdweb's approve() expects human-readable amount (e.g., 130), not wei
           const approvalTransaction = approve({
             contract: usdtContract,
             spender: NFT_CONTRACT,
-            amount: maxUint256, // Use BigInt directly
+            amount: BigInt(price), // Approve exactly the required amount
           });
 
           console.log('  📝 Sending approval transaction to wallet...');
@@ -266,8 +265,8 @@ export function ClaimMembershipNFTButton({
 
           toast({
             title: '✅ Approval Successful',
-            description: 'You can now purchase all NFT levels without additional approvals',
-            duration: 4000,
+            description: 'USDT approved. Proceeding to purchase...',
+            duration: 3000,
           });
 
           // Wait for approval to be indexed
