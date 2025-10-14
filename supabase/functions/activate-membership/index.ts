@@ -610,9 +610,43 @@ serve(async (req) => {
       }
     }
 
-    // Step 5: Record referral and matrix placement - BATCH PROCESSING
-    // ✅ NEW: Use batch_place_member_in_matrices with checkpointing
+    // Step 5: Create referrals record (direct referral)
     let referralRecord = null;
+
+    if (normalizedReferrerWallet && memberRecord) {
+      console.log(`🔗 Step 5: Creating referrals record...`);
+
+      try {
+        const referralData = {
+          referred_wallet: walletAddress,
+          referrer_wallet: normalizedReferrerWallet,
+          referral_depth: 1, // Direct referral
+          created_at: new Date().toISOString()
+        };
+
+        const { data: referral, error: referralError } = await supabase
+          .from('referrals')
+          .insert(referralData)
+          .select()
+          .single();
+
+        if (referralError) {
+          console.error(`❌ Referral creation failed:`, referralError);
+          // Non-critical, continue
+        } else {
+          console.log(`✅ Referral record created`);
+          referralRecord = referral;
+        }
+      } catch (referralErr) {
+        console.error(`❌ Referral creation exception:`, referralErr);
+        // Non-critical, continue
+      }
+    } else {
+      console.log(`ℹ️ No referrer, skipping referrals record`);
+    }
+
+    // Step 6: Record matrix placement - BATCH PROCESSING
+    // ✅ NEW: Use batch_place_member_in_matrices with checkpointing
     let matrixResult: any = null;
 
     if (normalizedReferrerWallet && memberRecord) {
@@ -663,7 +697,7 @@ serve(async (req) => {
       };
     }
 
-    // Step 6: Verify blockchain transaction (if provided)
+    // Step 7: Verify blockchain transaction (if provided)
     if (level === 1 && transactionHash) {
       // ✅ FIX: Verify transaction on blockchain before processing
       console.log(`🔍 Verifying NFT claim transaction: ${transactionHash}`);
@@ -707,7 +741,7 @@ serve(async (req) => {
       }
     }
 
-    // Step 7: Process USDC transfer for Level 1 activation
+    // Step 8: Process USDC transfer for Level 1 activation
     let usdcTransferResult = null;
     if (level === 1 && transactionHash) {
       try {
@@ -747,7 +781,7 @@ serve(async (req) => {
       }
     }
 
-    // Step 8: Process layer reward for Level 1 activation (direct referral to upline)
+    // Step 9: Process layer reward for Level 1 activation (direct referral to upline)
     let layerRewardResult = null;
     if (level === 1 && normalizedReferrerWallet && normalizedReferrerWallet !== '0x479ABda60F8c62a7C3fba411ab948a8BE0E616Ab') {
       try {
