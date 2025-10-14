@@ -185,6 +185,45 @@ function SmartHomePage() {
   return <LandingPage />;
 }
 
+// Global redirect handler for wallet connection
+function GlobalRedirectHandler() {
+  const {
+    isConnected,
+    isCheckingRegistration,
+    isNewUser,
+    needsNFTClaim,
+    isFullyActivated,
+    userStatus,
+    isUserLoading
+  } = useWallet();
+  const [location, setLocation] = useLocation();
+
+  // Skip redirect for certain pages
+  const skipRedirect = location.startsWith('/admin') ||
+                       location === '/register' ||
+                       location === '/welcome' ||
+                       location === '/matrix-explanation' ||
+                       location === '/auth' ||
+                       location === '/auth/callback';
+
+  React.useEffect(() => {
+    if (skipRedirect || !isConnected || isCheckingRegistration || isUserLoading) {
+      return;
+    }
+
+    // Redirect based on user status
+    if (isNewUser && location !== '/register') {
+      console.log('🔀 GlobalRedirect: Redirecting to /register (new user)');
+      setLocation('/register');
+    } else if (needsNFTClaim && location !== '/welcome') {
+      console.log('🔀 GlobalRedirect: Redirecting to /welcome (needs NFT claim)');
+      setLocation('/welcome');
+    }
+  }, [isConnected, isCheckingRegistration, isUserLoading, isNewUser, needsNFTClaim, location, setLocation, skipRedirect]);
+
+  return null;
+}
+
 function Router() {
   const [location] = useLocation();
   const { t } = useI18n();
@@ -341,6 +380,7 @@ function Router() {
   // Handle regular user routes with RouteGuard
   return (
     <RouteGuard>
+      <GlobalRedirectHandler />
       <Switch>
         {/* Smart home route - automatically routes based on user status */}
         <Route path="/" component={SmartHomePage} />
