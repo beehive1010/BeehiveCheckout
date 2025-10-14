@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Test Admin Login</title>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+</head>
+<body>
+    <h1>Supabase Admin Login Test</h1>
+    <button onclick="testLogin()">Test Login</button>
+    <button onclick="checkSession()">Check Session</button>
+    <button onclick="logout()">Logout</button>
+    <pre id="output"></pre>
+
+    <script>
+        const supabaseUrl = 'https://cvqibjcbfrwsgkvthccp.supabase.co';
+        const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImN2cWliamNiZnJ3c2drdnRoY2NwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTcwNjU0MDUsImV4cCI6MjA3MjY0MTQwNX0.7CfL8CS1dQ8Gua89maSCDkgnMsNb19qp97mJyoJqJjs';
+
+        const supabase = window.supabase.createClient(supabaseUrl, supabaseKey, {
+            auth: {
+                storage: window.localStorage,
+                autoRefreshToken: true,
+                persistSession: true,
+                detectSessionInUrl: true,
+            }
+        });
+
+        function log(message) {
+            const output = document.getElementById('output');
+            output.textContent += message + '\n';
+            console.log(message);
+        }
+
+        async function testLogin() {
+            document.getElementById('output').textContent = '';
+            log('🔐 Testing admin login...');
+
+            try {
+                // Test login
+                const { data, error } = await supabase.auth.signInWithPassword({
+                    email: 'beehive.tech1010@gmail.com',
+                    password: 'Admin@123456',
+                });
+
+                if (error) {
+                    log('❌ Login error: ' + error.message);
+                    return;
+                }
+
+                log('✅ Supabase Auth successful!');
+                log('User ID: ' + data.user.id);
+                log('Email: ' + data.user.email);
+
+                // Check admin record
+                const { data: adminData, error: adminError } = await supabase
+                    .from('admins')
+                    .select('*')
+                    .eq('id', data.user.id)
+                    .eq('is_active', true)
+                    .single();
+
+                if (adminError) {
+                    log('❌ Admin verification failed: ' + adminError.message);
+                    return;
+                }
+
+                log('✅ Admin record found!');
+                log('Admin Level: ' + adminData.admin_level);
+                log('Permissions: ' + JSON.stringify(adminData.permissions));
+                log('Wallet: ' + adminData.wallet_address);
+
+            } catch (err) {
+                log('❌ Error: ' + err.message);
+            }
+        }
+
+        async function checkSession() {
+            document.getElementById('output').textContent = '';
+            log('🔍 Checking session...');
+
+            const { data: { session }, error } = await supabase.auth.getSession();
+
+            if (error) {
+                log('❌ Session error: ' + error.message);
+                return;
+            }
+
+            if (session) {
+                log('✅ Session found!');
+                log('User ID: ' + session.user.id);
+                log('Email: ' + session.user.email);
+                log('Expires at: ' + new Date(session.expires_at * 1000).toLocaleString());
+            } else {
+                log('❌ No active session');
+            }
+        }
+
+        async function logout() {
+            document.getElementById('output').textContent = '';
+            log('🚪 Logging out...');
+
+            const { error } = await supabase.auth.signOut();
+
+            if (error) {
+                log('❌ Logout error: ' + error.message);
+            } else {
+                log('✅ Logged out successfully');
+            }
+        }
+    </script>
+</body>
+</html>
