@@ -18,7 +18,8 @@ import {
   Users,
   X,
   Shield,
-  TrendingUp
+  TrendingUp,
+  Wallet
 } from 'lucide-react';
 import { Button } from '../ui/button';
 import { ScrollArea } from '../ui/scroll-area';
@@ -121,6 +122,13 @@ const navigationItems: NavItem[] = [
     icon: Globe,
     permission: 'discover.read',
     dbTables: ['dapps', 'dapp_categories', 'dapp_reviews', 'user_dapp_interactions'],
+  },
+  {
+    title: 'Server Wallet',
+    href: '/admin/server-wallet',
+    icon: Wallet,
+    permission: 'system.read',
+    dbTables: ['admin_wallet_withdrawals', 'user_balances'],
   },
   {
     title: 'System',
