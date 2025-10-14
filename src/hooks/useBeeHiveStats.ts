@@ -56,6 +56,25 @@ export function useUserReferralStats() {
         .ilike('wallet_address', walletAddress)
         .maybeSingle();
 
+      // Count ALL unique members in matrix organization (not limited to 19 layers)
+      // This includes everyone in the matrix spillover referral organization under this root
+      const { data: uniqueMembersData, error: countError } = await supabase
+        .from('matrix_referrals')
+        .select('member_wallet')
+        .eq('matrix_root_wallet', walletAddress);
+
+      const totalTeamCount = uniqueMembersData ? new Set(uniqueMembersData.map(r => r.member_wallet)).size : 0;
+
+      console.log(`📊 Team Size Calculation for ${walletAddress}:`, {
+        totalRecords: uniqueMembersData?.length || 0,
+        uniqueMembers: totalTeamCount,
+        sampleRecords: uniqueMembersData?.slice(0, 5)
+      });
+
+      if (countError) {
+        console.error('Error counting team members:', countError);
+      }
+
       // Get member's current level and info using canonical view
       const { data: memberData, error: memberError } = await supabase
         .from('v_member_overview')
@@ -100,7 +119,7 @@ export function useUserReferralStats() {
 
       return {
         directReferralCount: referralStats?.direct_referrals || 0,
-        totalTeamCount: matrixOverview?.total_members || 0,
+        totalTeamCount: totalTeamCount || 0, // Use custom count for all layers
         totalReferrals: referralStats?.total_referrals || 0,
         totalEarnings: totalEarnings.toString(),
         monthlyEarnings: '0', // TODO: Calculate monthly earnings
@@ -138,12 +157,20 @@ export function useUserMatrixStats() {
         .ilike('wallet_address', walletAddress)
         .maybeSingle();
 
-      // Use v_matrix_layers_v2 for layer-by-layer statistics
+      // Use v_matrix_layers_v2 for layer-by-layer statistics (all layers)
       const { data: layerData } = await supabase
         .from('v_matrix_layers_v2')
         .select('*')
         .ilike('root', walletAddress)
         .order('layer');
+
+      // Count ALL unique members in matrix tree (no layer limit)
+      const { data: allMembersData } = await supabase
+        .from('matrix_referrals')
+        .select('member_wallet')
+        .eq('matrix_root_wallet', walletAddress);
+
+      const totalMembersAllLayers = allMembersData ? new Set(allMembersData.map(r => r.member_wallet)).size : 0;
 
       // Transform layer data into the expected format
       const layerStats = (layerData || []).reduce((acc, layer) => {
@@ -157,7 +184,7 @@ export function useUserMatrixStats() {
       return {
         totalLayers: matrixOverview?.deepest_layer || 0,
         layerStats,
-        totalMembers: matrixOverview?.total_members || 0,
+        totalMembers: totalMembersAllLayers || 0, // Count all layers, not limited to 19
         matrixData: layerData || [] // Layer data instead of raw matrix data
       };
     },
