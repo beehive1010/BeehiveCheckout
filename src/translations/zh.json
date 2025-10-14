@@ -3454,6 +3454,19 @@
       "title": "购买成功！"
     },
     "supportText": "跨多个区块链的安全支付，即时交付 NFT",
+    "price": "入会价格",
+    "levels": "等级",
+    "potential": "无限潜力",
+    "whatsIncluded": "包含内容",
+    "feature1": "访问 3×3 矩阵推荐系统",
+    "feature2": "从19个层级的网络增长中赚取奖励",
+    "feature3": "每次NFT购买都能获得直接和层级奖励",
+    "feature4": "自动矩阵放置和奖励分配",
+    "nextSteps": "下一步",
+    "step1": "连接您的钱包",
+    "step2": "如需要请完成注册",
+    "step3": "领取您的1级NFT (130 USDT)",
+    "step4": "开始从您的网络中赚取收益",
     "title": "欢迎来到 Beehive 社区"
   }
 }

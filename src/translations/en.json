@@ -3151,6 +3151,19 @@
       "title": "Purchase Successful!"
     },
     "supportText": "Secure payments across multiple blockchains with instant NFT delivery",
+    "price": "Entry Price",
+    "levels": "Levels",
+    "potential": "Unlimited Potential",
+    "whatsIncluded": "What's Included",
+    "feature1": "Access to the 3×3 matrix referral system",
+    "feature2": "Earn rewards from 19 levels of network growth",
+    "feature3": "Direct and layer rewards on every NFT purchase",
+    "feature4": "Automated matrix placement and reward distribution",
+    "nextSteps": "Next Steps",
+    "step1": "Connect your wallet",
+    "step2": "Complete registration if needed",
+    "step3": "Claim your Level 1 NFT (130 USDT)",
+    "step4": "Start earning from your network",
     "title": "Welcome to Beehive Community"
   },
   "withdrawal": {
