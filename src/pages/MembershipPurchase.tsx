@@ -81,12 +81,12 @@ export default function MembershipPurchase() {
       console.log('  🎯 Level:', level);
       console.log('  🔗 Referrer:', referrerWallet);
 
-      // Call payembed-activation Edge Function (new unified activation flow)
+      // Call activate-membership Edge Function (complete activation flow with USDC transfer and layer rewards)
       const API_BASE =
         import.meta.env.VITE_API_BASE_URL ||
         'https://cvqibjcbfrwsgkvthccp.supabase.co/functions/v1';
 
-      const activationUrl = `${API_BASE}/payembed-activation`;
+      const activationUrl = `${API_BASE}/activate-membership`;
       console.log('  🌐 API Endpoint:', activationUrl);
 
       const response = await fetch(activationUrl, {
