@@ -27,14 +27,15 @@ serve(async (req)=>{
         logger = new EdgeFunctionLogger(supabase, 'withdrawal');
         timer = new PerformanceTimer('withdrawal-request', logger);
         const body = await req.json();
-        const { action, amount, recipientAddress, sourceChainId, targetChainId, selectedToken, memberWallet, targetTokenSymbol } = body;
+        const { action, amount, recipientAddress, sourceChainId, targetChainId, selectedToken, memberWallet, targetTokenSymbol, skipBalanceCheck } = body;
         console.log('💰 Withdrawal request:', {
             action,
             amount,
             recipientAddress,
             targetChainId,
             memberWallet,
-            targetTokenSymbol
+            targetTokenSymbol,
+            skipBalanceCheck
         });
         await logger.logInfo('withdrawal-request-started', 'wallet_operations', {
             action,
@@ -108,36 +109,52 @@ serve(async (req)=>{
             });
             throw new Error(`Amount too small. Minimum withdrawal is ${fee + 0.01} USDT (including ${fee} USDT fee)`);
         }
-        // Verify user has sufficient balance
-        console.log(`🔍 Checking balance for wallet: ${memberWallet}`);
-        const { data: userBalance, error: balanceError } = await supabase.from('user_balances').select('reward_balance, available_balance, total_earned').ilike('wallet_address', memberWallet).single();
-        if (balanceError) {
-            console.error('❌ Balance check error:', balanceError);
-            await logger.logDatabaseError('balance-check-failed', balanceError, {
-                memberWallet
-            });
-            throw new Error('Failed to check user balance');
-        }
-        // Use available_balance first, fallback to reward_balance for backward compatibility
-        const currentBalance = userBalance.available_balance || userBalance.reward_balance || 0;
-        if (!userBalance || currentBalance < withdrawalAmount) {
-            console.error(`❌ Insufficient balance: ${currentBalance} < ${withdrawalAmount}`);
-            await logger.logWarning('insufficient-balance', 'wallet_operations', 'Insufficient balance for withdrawal', {
+        // Verify user has sufficient balance (skip for admin withdrawals from server wallet)
+        let userBalance = null;
+        let currentBalance = 0;
+
+        if (skipBalanceCheck === true) {
+            console.log(`⚠️ Skipping balance check for admin withdrawal (skipBalanceCheck=true)`);
+            await logger.logInfo('balance-check-skipped', 'wallet_operations', {
                 memberWallet,
-                requestedAmount: withdrawalAmount,
-                availableBalance: currentBalance,
-                available_balance: userBalance?.available_balance,
-                reward_balance: userBalance?.reward_balance
+                reason: 'admin_withdrawal',
+                skipBalanceCheck
             });
-            throw new Error('Insufficient balance');
+            // Set dummy balance for admin withdrawals - actual balance is on-chain
+            userBalance = { available_balance: withdrawalAmount, reward_balance: 0, total_earned: 0 };
+            currentBalance = withdrawalAmount;
+        } else {
+            console.log(`🔍 Checking balance for wallet: ${memberWallet}`);
+            const { data: balanceData, error: balanceError } = await supabase.from('user_balances').select('reward_balance, available_balance, total_earned').ilike('wallet_address', memberWallet).single();
+            if (balanceError) {
+                console.error('❌ Balance check error:', balanceError);
+                await logger.logDatabaseError('balance-check-failed', balanceError, {
+                    memberWallet
+                });
+                throw new Error('Failed to check user balance');
+            }
+            userBalance = balanceData;
+            // Use available_balance first, fallback to reward_balance for backward compatibility
+            currentBalance = userBalance.available_balance || userBalance.reward_balance || 0;
+            if (!userBalance || currentBalance < withdrawalAmount) {
+                console.error(`❌ Insufficient balance: ${currentBalance} < ${withdrawalAmount}`);
+                await logger.logWarning('insufficient-balance', 'wallet_operations', 'Insufficient balance for withdrawal', {
+                    memberWallet,
+                    requestedAmount: withdrawalAmount,
+                    availableBalance: currentBalance,
+                    available_balance: userBalance?.available_balance,
+                    reward_balance: userBalance?.reward_balance
+                });
+                throw new Error('Insufficient balance');
+            }
+            console.log(`✅ Balance sufficient: ${currentBalance} >= ${withdrawalAmount}`);
+            await logger.logInfo('balance-verified', 'wallet_operations', {
+                memberWallet,
+                rewardBalance: userBalance.reward_balance,
+                withdrawalAmount,
+                netAmount
+            });
         }
-        console.log(`✅ Balance sufficient: ${currentBalance} >= ${withdrawalAmount}`);
-        await logger.logInfo('balance-verified', 'wallet_operations', {
-            memberWallet,
-            rewardBalance: userBalance.reward_balance,
-            withdrawalAmount,
-            netAmount
-        });
         // Multi-token support: Native tokens and ERC20 tokens by chain
         const SUPPORTED_TOKENS = {
             1: {
@@ -554,44 +571,53 @@ serve(async (req)=>{
             });
             throw new Error('Failed to record withdrawal in database');
         }
-        // Update user balance
-        console.log(`💰 Updating user balance for: ${memberWallet}`);
-        const currentAvailableBalance = userBalance.available_balance || userBalance.reward_balance || 0;
-        const { data: currentBalanceData, error: balanceQueryError } = await supabase.from('user_balances').select('total_withdrawn, available_balance, reward_balance').ilike('wallet_address', memberWallet).single();
-        if (balanceQueryError) {
-            console.error('❌ Balance query error:', balanceQueryError);
-            await logger.logDatabaseError('balance-query-error', balanceQueryError, {
-                memberWallet
-            });
-        }
-        const currentWithdrawn = currentBalanceData?.total_withdrawn || 0;
-        const newAvailableBalance = Math.max(0, currentAvailableBalance - withdrawalAmount);
-        const newTotalWithdrawn = currentWithdrawn + withdrawalAmount;
-        console.log(`💰 Balance update: available ${currentAvailableBalance} -> ${newAvailableBalance}, withdrawn ${currentWithdrawn} -> ${newTotalWithdrawn}`);
-        // Update both available_balance and reward_balance for backward compatibility
-        const { error: balanceUpdateError } = await supabase.from('user_balances').update({
-            available_balance: newAvailableBalance,
-            reward_balance: newAvailableBalance,
-            total_withdrawn: newTotalWithdrawn,
-            last_updated: new Date().toISOString()
-        }).ilike('wallet_address', memberWallet);
-        if (balanceUpdateError) {
-            console.error('❌ Balance update error:', balanceUpdateError);
-            await logger.logDatabaseError('balance-update-failed', balanceUpdateError, {
+        // Update user balance (skip for admin withdrawals)
+        if (skipBalanceCheck === true) {
+            console.log(`⚠️ Skipping balance update for admin withdrawal (skipBalanceCheck=true)`);
+            await logger.logInfo('balance-update-skipped', 'wallet_operations', {
                 memberWallet,
+                reason: 'admin_withdrawal',
+                withdrawalAmount
+            });
+        } else {
+            console.log(`💰 Updating user balance for: ${memberWallet}`);
+            const currentAvailableBalance = userBalance.available_balance || userBalance.reward_balance || 0;
+            const { data: currentBalanceData, error: balanceQueryError } = await supabase.from('user_balances').select('total_withdrawn, available_balance, reward_balance').ilike('wallet_address', memberWallet).single();
+            if (balanceQueryError) {
+                console.error('❌ Balance query error:', balanceQueryError);
+                await logger.logDatabaseError('balance-query-error', balanceQueryError, {
+                    memberWallet
+                });
+            }
+            const currentWithdrawn = currentBalanceData?.total_withdrawn || 0;
+            const newAvailableBalance = Math.max(0, currentAvailableBalance - withdrawalAmount);
+            const newTotalWithdrawn = currentWithdrawn + withdrawalAmount;
+            console.log(`💰 Balance update: available ${currentAvailableBalance} -> ${newAvailableBalance}, withdrawn ${currentWithdrawn} -> ${newTotalWithdrawn}`);
+            // Update both available_balance and reward_balance for backward compatibility
+            const { error: balanceUpdateError } = await supabase.from('user_balances').update({
+                available_balance: newAvailableBalance,
+                reward_balance: newAvailableBalance,
+                total_withdrawn: newTotalWithdrawn,
+                last_updated: new Date().toISOString()
+            }).ilike('wallet_address', memberWallet);
+            if (balanceUpdateError) {
+                console.error('❌ Balance update error:', balanceUpdateError);
+                await logger.logDatabaseError('balance-update-failed', balanceUpdateError, {
+                    memberWallet,
+                    newAvailableBalance,
+                    newTotalWithdrawn
+                });
+                throw new Error('Failed to update user balance');
+            }
+            console.log(`✅ Balance updated successfully`);
+            await logger.logInfo('balance-updated', 'wallet_operations', {
+                memberWallet,
+                previousAvailableBalance: currentAvailableBalance,
                 newAvailableBalance,
+                withdrawalAmount,
                 newTotalWithdrawn
             });
-            throw new Error('Failed to update user balance');
         }
-        console.log(`✅ Balance updated successfully`);
-        await logger.logInfo('balance-updated', 'wallet_operations', {
-            memberWallet,
-            previousAvailableBalance: currentAvailableBalance,
-            newAvailableBalance,
-            withdrawalAmount,
-            newTotalWithdrawn
-        });
         console.log('✅ Withdrawal processed successfully:', withdrawalId);
         // Final success response
         const responseData = {

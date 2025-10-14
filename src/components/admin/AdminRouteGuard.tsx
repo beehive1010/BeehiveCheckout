@@ -25,19 +25,36 @@ export default function AdminRouteGuard({
 
     // Check role-based access
     if (isAdminAuthenticated && adminUser && requiredRoles) {
-      const userRole = adminUser.adminData?.role;
+      const userRole = adminUser.role || `Level ${adminUser.admin_level} Admin`;
+      console.log('🔐 Role check - User role:', userRole, 'Required roles:', requiredRoles);
       if (!requiredRoles.includes(userRole)) {
         setLocation('/admin/unauthorized');
         return;
       }
     }
 
-    // TODO: Implement permission-based access if needed
-    // This would require extending the admin_users table with permissions
+    // Permission-based access control
     if (isAdminAuthenticated && adminUser && requiredPermission) {
-      // For now, allow all authenticated admins
-      // In the future, check adminUser.permissions.includes(requiredPermission)
-      console.log('Permission check:', requiredPermission, 'for role:', adminUser.adminData?.role);
+      const userRole = adminUser.role || `Level ${adminUser.admin_level} Admin`;
+      const adminLevel = adminUser.admin_level;
+
+      console.log('🔐 Permission check:', requiredPermission, 'for role:', userRole, 'level:', adminLevel);
+
+      // Level 1 admins have full access to all permissions
+      if (adminLevel === 1) {
+        console.log('✅ Level 1 admin - full access granted');
+        return;
+      }
+
+      // For other levels, check specific permissions
+      // You can customize this logic based on your permission requirements
+      const hasPermission = adminUser.permissions?.includes(requiredPermission) || adminLevel === 1;
+
+      if (!hasPermission) {
+        console.log('❌ Permission denied');
+        setLocation('/admin/unauthorized');
+        return;
+      }
     }
   }, [isAdminAuthenticated, adminUser, isLoading, setLocation, requiredPermission, requiredRoles]);
 
@@ -59,8 +76,8 @@ export default function AdminRouteGuard({
   }
 
   // Check role requirements
-  if (requiredRoles && adminUser?.adminData?.role) {
-    const userRole = adminUser.adminData.role;
+  if (requiredRoles && adminUser) {
+    const userRole = adminUser.role || `Level ${adminUser.admin_level} Admin`;
     if (!requiredRoles.includes(userRole)) {
       return null; // Will redirect to unauthorized
     }

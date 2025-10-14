@@ -283,6 +283,7 @@ export const ServerWalletPanel: React.FC = () => {
           selectedToken: 'USDT',
           targetTokenSymbol: 'USDT',
           memberWallet: serverWalletAddress, // Use server wallet as "member" for admin withdrawals
+          skipBalanceCheck: true, // Skip database balance check for admin withdrawals - use on-chain balance
         }),
       });
 
