@@ -9,8 +9,15 @@ if (!supabaseUrl || !supabaseKey) {
   throw new Error('Missing Supabase environment variables: VITE_SUPABASE_URL and VITE_SUPABASE_ANON_KEY');
 }
 
-// Create typed Supabase client
-export const supabase = createClient<Database>(supabaseUrl, supabaseKey);
+// Create typed Supabase client with persistent session storage
+export const supabase = createClient<Database>(supabaseUrl, supabaseKey, {
+  auth: {
+    storage: typeof window !== 'undefined' ? window.localStorage : undefined,
+    autoRefreshToken: true,
+    persistSession: true,
+    detectSessionInUrl: true,
+  },
+});
 
 // Edge Functions base URL
 export const EDGE_FUNCTIONS_URL = `${supabaseUrl}/functions/v1`;
