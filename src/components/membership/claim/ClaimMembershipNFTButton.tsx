@@ -15,7 +15,7 @@ import { useLocation } from 'wouter';
 import { getContract } from 'thirdweb';
 import { arbitrum } from 'thirdweb/chains';
 import { claimTo } from 'thirdweb/extensions/erc1155';
-import { getApprovalForTransaction } from 'thirdweb/extensions/erc20';
+import { approve } from 'thirdweb/extensions/erc20';
 import { parseUnits } from 'viem';
 import { Button } from '../../ui/button';
 import { useToast } from '../../../hooks/use-toast';
@@ -192,39 +192,26 @@ export function ClaimMembershipNFTButton({
         try {
           console.log('🔐 Requesting USDT approval...');
 
-          // Build claim transaction
-          const claimTransaction = claimTo({
-            contract: nftContract,
-            quantity: BigInt(1),
-            tokenId: BigInt(level),
-            to: account.address,
+          // Build direct USDT approve transaction to NFT contract
+          const approvalTransaction = approve({
+            contract: usdtContract,
+            spender: NFT_CONTRACT,
+            amount: requiredAmount,
           });
 
-          // Get approval transaction
-          const approvalTransaction = await getApprovalForTransaction({
-            transaction: claimTransaction,
-            account: account,
+          console.log('  📝 Approving USDT to NFT contract...');
+          const txResult = await sendTransaction(approvalTransaction);
+          console.log('  ✅ Approval successful:', txResult.transactionHash);
+
+          toast({
+            title: '✅ Approval Successful',
+            description: 'USDT approval confirmed',
+            duration: 3000,
           });
 
-          console.log('  📝 Approval transaction:', approvalTransaction);
-
-          if (approvalTransaction) {
-            console.log('  ✅ Sending approval transaction...');
-            const txResult = await sendTransaction(approvalTransaction);
-            console.log('  ✅ Approval successful:', txResult.transactionHash);
-
-            toast({
-              title: '✅ Approval Successful',
-              description: 'USDT approval confirmed',
-              duration: 3000,
-            });
-
-            // Wait for approval to be indexed
-            await new Promise((resolve) => setTimeout(resolve, 2000));
-            await refetchAllowance();
-          } else {
-            console.log('  ℹ️ No approval needed (already approved)');
-          }
+          // Wait for approval to be indexed
+          await new Promise((resolve) => setTimeout(resolve, 2000));
+          await refetchAllowance();
         } catch (error) {
           console.error('❌ Approval failed:', error);
           setIsApproving(false);
