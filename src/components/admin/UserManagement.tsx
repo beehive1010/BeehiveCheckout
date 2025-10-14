@@ -44,18 +44,13 @@ import {
 import { supabase } from '../../lib/supabase';
 
 interface User {
-  id: string;
   wallet_address: string;
   username?: string;
-  display_name?: string;
   email?: string;
-  referral_code: string;
-  referred_by?: string;
-  nft_level?: number;
-  activated_at?: string;
+  referrer_wallet?: string;
   created_at: string;
-  is_active: boolean;
-  last_login_at?: string;
+  updated_at?: string;
+  role: string;
   total_referrals: number;
   activated_referrals: number;
   total_rewards: number;
@@ -95,12 +90,8 @@ export const UserManagement: React.FC = () => {
       const { data: userStats, error: statsError } = await supabase
         .from('users')
         .select(`
-          id,
           wallet_address,
-          nft_level,
-          activated_at,
-          created_at,
-          is_active
+          created_at
         `);
 
       if (statsError) {
@@ -110,11 +101,18 @@ export const UserManagement: React.FC = () => {
       // Calculate stats
       const now = new Date();
       const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
-      
+
       const totalUsers = userStats?.length || 0;
-      const activeMembers = userStats?.filter(u => u.nft_level && u.nft_level > 0).length || 0;
       const newUsersToday = userStats?.filter(u => new Date(u.created_at) >= today).length || 0;
-      const activationsToday = userStats?.filter(u => u.activated_at && new Date(u.activated_at) >= today).length || 0;
+
+      // Get active members from members table
+      const { data: membersData } = await supabase
+        .from('members')
+        .select('wallet_address, activation_at')
+        .eq('member_activated', true);
+
+      const activeMembers = membersData?.length || 0;
+      const activationsToday = membersData?.filter(m => m.activation_at && new Date(m.activation_at) >= today).length || 0;
 
       setStats({
         totalUsers,
@@ -127,18 +125,13 @@ export const UserManagement: React.FC = () => {
       const { data: usersData, error: usersError } = await supabase
         .from('users')
         .select(`
-          id,
           wallet_address,
           username,
-          display_name,
           email,
-          referral_code,
-          referred_by,
-          nft_level,
-          activated_at,
+          referrer_wallet,
           created_at,
-          is_active,
-          last_login_at
+          updated_at,
+          role
         `)
         .order('created_at', { ascending: false })
         .limit(100);
