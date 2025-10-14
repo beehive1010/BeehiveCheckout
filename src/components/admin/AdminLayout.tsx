@@ -160,8 +160,13 @@ export function AdminLayout({ children }: AdminLayoutProps) {
 
   const hasPermission = (permission?: string): boolean => {
     if (!permission) return true;
-    // For now, grant all permissions to authenticated admin users
-    return !!adminUser;
+    if (!adminUser) return false;
+
+    // Level 1 admins have full access to everything
+    if (adminUser.admin_level === 1) return true;
+
+    // For other levels, check specific permissions array
+    return adminUser.permissions?.includes(permission) || false;
   };
 
   const handleLogout = () => {

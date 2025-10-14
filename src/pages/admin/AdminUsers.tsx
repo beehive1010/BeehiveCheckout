@@ -34,7 +34,7 @@ import {
   Settings,
   ArrowLeft
 } from 'lucide-react';
-import { useAdminAuth } from '../../hooks/useAdminAuth';
+import { useAdminAuthContext } from '../../contexts/AdminAuthContext';
 import { useToast } from '../../hooks/use-toast';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useIsMobile } from '../../hooks/use-mobile';
@@ -100,7 +100,18 @@ const MEMBERSHIP_LEVELS = [
 ];
 
 export default function AdminUsers() {
-  const { hasPermission } = useAdminAuth();
+  const { adminUser, isAdminAuthenticated } = useAdminAuthContext();
+
+  // Permission check function
+  const hasPermission = (permission: string): boolean => {
+    if (!adminUser || !isAdminAuthenticated) return false;
+
+    // Level 1 admins have full access to everything
+    if (adminUser.admin_level === 1) return true;
+
+    // For other levels, check specific permissions array
+    return adminUser.permissions?.includes(permission) || false;
+  };
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const isMobile = useIsMobile();

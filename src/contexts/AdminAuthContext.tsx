@@ -178,6 +178,7 @@ const AdminAuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }
     isLoading,
     signInAdmin,
     signOutAdmin,
+    logout: signOutAdmin, // Alias for compatibility with AdminLayout
   };
 
   return (

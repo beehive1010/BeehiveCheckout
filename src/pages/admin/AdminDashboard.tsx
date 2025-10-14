@@ -42,8 +42,12 @@ export default function AdminDashboard() {
   
   const hasPermission = (permission: string): boolean => {
     if (!adminUser || !isAdminAuthenticated) return false;
-    // For now, grant all permissions to authenticated admin users
-    return true;
+
+    // Level 1 admins have full access to everything
+    if (adminUser.admin_level === 1) return true;
+
+    // For other levels, check specific permissions array
+    return adminUser.permissions?.includes(permission) || false;
   };
   const isMobile = useIsMobile();
   const [stats, setStats] = useState<DashboardStats>({
