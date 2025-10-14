@@ -10,9 +10,9 @@
  */
 
 import { useState, useEffect } from 'react';
-import { useActiveAccount, useSendTransaction, useReadContract, useSendAndConfirmTransaction } from 'thirdweb/react';
+import { useActiveAccount, useReadContract } from 'thirdweb/react';
 import { useLocation } from 'wouter';
-import { getContract } from 'thirdweb';
+import { getContract, sendTransaction, waitForReceipt } from 'thirdweb';
 import { arbitrum } from 'thirdweb/chains';
 import { claimTo } from 'thirdweb/extensions/erc1155';
 import { approve } from 'thirdweb/extensions/erc20';
@@ -63,8 +63,6 @@ export function ClaimMembershipNFTButton({
   const [isCheckingStatus, setIsCheckingStatus] = useState(false);
   const [statusMessage, setStatusMessage] = useState('');
   const [showRegistrationModal, setShowRegistrationModal] = useState(false);
-  const { mutateAsync: sendTransaction } = useSendTransaction();
-  const { mutateAsync: sendAndConfirmTransaction } = useSendAndConfirmTransaction();
 
   // Get contracts
   const nftContract = getContract({
@@ -101,6 +99,48 @@ export function ClaimMembershipNFTButton({
   };
 
   const claimStatus = canClaim();
+
+  // Helper function to send transactions with retry logic (from working WelcomeLevel1ClaimButton)
+  const sendTransactionWithRetry = async (transaction: any, account: any, description: string, maxRetries = 3) => {
+    let lastError: any = null;
+    const baseDelay = 2000;
+
+    for (let attempt = 1; attempt <= maxRetries; attempt++) {
+      try {
+        console.log(`📤 Sending ${description} (attempt ${attempt}/${maxRetries})...`);
+
+        if (attempt > 1) {
+          await new Promise(resolve => setTimeout(resolve, baseDelay * attempt));
+        }
+
+        const result = await sendTransaction({
+          transaction,
+          account,
+        });
+
+        console.log(`✅ ${description} successful on attempt ${attempt}`);
+        return result;
+
+      } catch (error: any) {
+        lastError = error;
+        console.error(`❌ ${description} failed on attempt ${attempt}:`, error.message);
+
+        if (error.message?.includes('User rejected') ||
+            error.message?.includes('user denied') ||
+            error.message?.includes('User cancelled')) {
+          throw new Error('Transaction cancelled by user');
+        }
+
+        if (attempt === maxRetries) {
+          break;
+        }
+
+        console.log(`🔄 Retrying ${description} in ${baseDelay * attempt}ms...`);
+      }
+    }
+
+    throw new Error(`${description} failed after ${maxRetries} attempts: ${lastError?.message || 'Unknown error'}`);
+  };
 
   const handleClaim = async () => {
     if (!account) {
@@ -202,23 +242,26 @@ export function ClaimMembershipNFTButton({
           const approvalTransaction = approve({
             contract: usdtContract,
             spender: NFT_CONTRACT,
-            amount: maxUint256, // Approve maximum amount for convenience
+            amount: maxUint256.toString(), // Convert to string for proper handling
           });
 
           console.log('  📝 Sending approval transaction to wallet...');
-          console.log('  Transaction details:', {
-            to: usdtContract.address,
-            spender: NFT_CONTRACT,
-            amount: maxUint256.toString()
+
+          // Use sendTransactionWithRetry (working pattern from WelcomeLevel1ClaimButton)
+          const approveTxResult = await sendTransactionWithRetry(
+            approvalTransaction,
+            account,
+            'USDT approval transaction'
+          );
+
+          // Wait for transaction confirmation
+          await waitForReceipt({
+            client,
+            chain: arbitrum,
+            transactionHash: approveTxResult?.transactionHash,
           });
 
-          // Use sendAndConfirmTransaction for better error handling and user feedback
-          const txReceipt = await sendAndConfirmTransaction({
-            transaction: approvalTransaction,
-            account: account,
-          });
-
-          console.log('  ✅ Unlimited approval successful:', txReceipt.transactionHash);
+          console.log('  ✅ Unlimited approval successful:', approveTxResult.transactionHash);
 
           toast({
             title: '✅ Approval Successful',
