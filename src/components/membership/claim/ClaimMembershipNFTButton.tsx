@@ -10,7 +10,7 @@
  */
 
 import { useState, useEffect } from 'react';
-import { useActiveAccount, useSendTransaction, useReadContract } from 'thirdweb/react';
+import { useActiveAccount, useSendTransaction, useReadContract, useSendAndConfirmTransaction } from 'thirdweb/react';
 import { useLocation } from 'wouter';
 import { getContract } from 'thirdweb';
 import { arbitrum } from 'thirdweb/chains';
@@ -64,6 +64,7 @@ export function ClaimMembershipNFTButton({
   const [statusMessage, setStatusMessage] = useState('');
   const [showRegistrationModal, setShowRegistrationModal] = useState(false);
   const { mutateAsync: sendTransaction } = useSendTransaction();
+  const { mutateAsync: sendAndConfirmTransaction } = useSendAndConfirmTransaction();
 
   // Get contracts
   const nftContract = getContract({
@@ -185,12 +186,16 @@ export function ClaimMembershipNFTButton({
 
         toast({
           title: '🔐 One-Time Approval Required',
-          description: 'Approve once for all future NFT purchases',
+          description: 'Please check your wallet and approve the transaction',
           duration: 5000,
         });
 
         try {
           console.log('🔐 Requesting unlimited USDT approval (one-time)...');
+          console.log('⚠️ PLEASE CHECK YOUR WALLET - Approval window should appear now');
+          console.log('  Contract:', usdtContract.address);
+          console.log('  Spender (NFT Contract):', NFT_CONTRACT);
+          console.log('  Amount:', maxUint256.toString());
 
           // Build direct USDT approve transaction to NFT contract with max amount
           // This allows all future NFT purchases without additional approvals
@@ -200,9 +205,20 @@ export function ClaimMembershipNFTButton({
             amount: maxUint256, // Approve maximum amount for convenience
           });
 
-          console.log('  📝 Approving unlimited USDT to NFT contract...');
-          const txResult = await sendTransaction(approvalTransaction);
-          console.log('  ✅ Unlimited approval successful:', txResult.transactionHash);
+          console.log('  📝 Sending approval transaction to wallet...');
+          console.log('  Transaction details:', {
+            to: usdtContract.address,
+            spender: NFT_CONTRACT,
+            amount: maxUint256.toString()
+          });
+
+          // Use sendAndConfirmTransaction for better error handling and user feedback
+          const txReceipt = await sendAndConfirmTransaction({
+            transaction: approvalTransaction,
+            account: account,
+          });
+
+          console.log('  ✅ Unlimited approval successful:', txReceipt.transactionHash);
 
           toast({
             title: '✅ Approval Successful',
