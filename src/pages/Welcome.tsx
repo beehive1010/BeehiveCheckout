@@ -2,12 +2,11 @@ import React, {useEffect, useState} from 'react';
 import {useNFTClaim} from '../components/membership/core/NFTClaimButton';
 import {useLocation} from 'wouter';
 import {Button} from '../components/ui/button';
-import {Loader2, Crown} from 'lucide-react';
+import {Loader2, Crown, RefreshCw, User, Users} from 'lucide-react';
 import {referralService} from '../api/landing/referral.client';
 import {authService} from '../lib/supabase';
 import {Card, CardContent} from '../components/ui/card';
 import {Badge} from '../components/ui/badge';
-import {Crown, RefreshCw, User, Users} from 'lucide-react';
 import {useI18n} from '../contexts/I18nContext';
 import {useWallet} from '../hooks/useWallet';
 import {useWeb3} from '../contexts/Web3Context';
@@ -17,7 +16,7 @@ export default function Welcome() {
   const { t } = useI18n();
   const [, setLocation] = useLocation();
   const { account } = useWeb3();
-  const { refreshUserData, userStatus, isUserLoading } = useWallet();
+  const { refreshUserData, userStatus, isUserLoading, walletAddress } = useWallet();
   const [referrerWallet, setReferrerWallet] = useState<string>('');
   const [referrerInfo, setReferrerInfo] = useState<{ username?: string; wallet: string } | null>(null);
   const [isLoadingReferrer, setIsLoadingReferrer] = useState(false);
@@ -103,15 +102,11 @@ export default function Welcome() {
     setIsCheckingMembership(false);
 
     // Priority 1: If connected but not registered, redirect to registration
-    // BUT: Wait longer (2 seconds) to give time for userStatus to refresh after registration
-    // This prevents redirect loop when coming back from /register
-    if (account?.address && !userStatus?.isRegistered) {
-      redirectTimeout = setTimeout(() => {
-        if (isMounted) {
-          console.log('⚠️ Welcome: User not registered - redirecting to /register');
-          setLocation('/register');
-        }
-      }, 2000); // Increased from 500ms to 2000ms to allow userStatus to refresh
+    // Check immediately once userStatus is loaded - no delay needed
+    if (walletAddress && userStatus && !userStatus.isRegistered) {
+      // Immediate redirect - userStatus is already loaded and stable
+      console.log('⚠️ Welcome: User not registered - redirecting to /register');
+      setLocation('/register');
       return;
     }
 
@@ -134,7 +129,7 @@ export default function Welcome() {
         clearTimeout(redirectTimeout);
       }
     };
-  }, [userStatus, isUserLoading, setLocation, account]); // 使用 useWallet 的数据
+  }, [userStatus, isUserLoading, setLocation, walletAddress]); // 使用 useWallet 的数据
 
   const handleClaim = async () => {
     if (!account?.address) {
@@ -183,7 +178,7 @@ export default function Welcome() {
 
   // Handle manual status refresh - only use useWallet refresh
   const handleRefreshStatus = async () => {
-    if (!account?.address) return;
+    if (!walletAddress) return;
 
     setIsRefreshing(true);
     console.log('🔄 Manual refresh: Updating user status...');
