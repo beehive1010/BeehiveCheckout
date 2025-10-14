@@ -697,6 +697,44 @@ serve(async (req) => {
       };
     }
 
+    // Step 6.5: Trigger direct referral rewards for Level 1
+    // ✅ Direct referral reward: 10% of NFT base price to direct referrer
+    let directRewardResult: any = null;
+
+    if (level === 1 && normalizedReferrerWallet && memberRecord) {
+      console.log(`💰 Step 6.5: Triggering direct referral reward for Level 1...`);
+
+      try {
+        const { data: directReward, error: directRewardError } = await supabase
+          .rpc('trigger_direct_referral_rewards', {
+            p_upgrading_member_wallet: walletAddress,
+            p_new_level: 1,
+            p_nft_price: 100  // Base price without platform fee
+          });
+
+        if (directRewardError) {
+          console.error('❌ Direct referral reward creation failed:', directRewardError);
+          directRewardResult = {
+            success: false,
+            error: directRewardError.message
+          };
+        } else {
+          console.log(`✅ Direct referral reward result:`, directReward);
+          directRewardResult = directReward;
+        }
+
+      } catch (directRewardErr: any) {
+        console.error('❌ Direct referral reward exception:', directRewardErr);
+        directRewardResult = {
+          success: false,
+          error: directRewardErr.message
+        };
+      }
+
+    } else {
+      console.log(`ℹ️ Skipping direct referral reward (level: ${level}, referrer: ${normalizedReferrerWallet})`);
+    }
+
     // Step 7: Verify blockchain transaction (if provided)
     if (level === 1 && transactionHash) {
       // ✅ FIX: Verify transaction on blockchain before processing
@@ -892,6 +930,7 @@ serve(async (req) => {
         member: memberRecord,
         referral: referralRecord,
         matrixPlacement: matrixResult,
+        directReward: directRewardResult,
         usdcTransfer: usdcTransferResult,
         layerReward: layerRewardResult,
         transactionHash,
@@ -903,6 +942,7 @@ serve(async (req) => {
           memberRecordCreated: !!memberRecord,
           referralRecorded: !!referralRecord,
           matrixPlaced: !!matrixResult,
+          directRewardCreated: !!directRewardResult,
           usdcTransferInitiated: !!usdcTransferResult,
           layerRewardProcessed: !!layerRewardResult
         },

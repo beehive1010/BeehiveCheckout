@@ -89,7 +89,7 @@ export default function Welcome() {
   }, [referrerWallet]);
 
 
-  // Use useWallet data to redirect if user is already activated
+  // Use useWallet data to redirect if user is already activated OR not registered
   useEffect(() => {
     let isMounted = true;
     let redirectTimeout: NodeJS.Timeout;
@@ -102,7 +102,20 @@ export default function Welcome() {
 
     setIsCheckingMembership(false);
 
-    // Only redirect if user is fully activated
+    // Priority 1: If connected but not registered, redirect to registration
+    // BUT: Wait longer (2 seconds) to give time for userStatus to refresh after registration
+    // This prevents redirect loop when coming back from /register
+    if (account?.address && !userStatus?.isRegistered) {
+      redirectTimeout = setTimeout(() => {
+        if (isMounted) {
+          console.log('⚠️ Welcome: User not registered - redirecting to /register');
+          setLocation('/register');
+        }
+      }, 2000); // Increased from 500ms to 2000ms to allow userStatus to refresh
+      return;
+    }
+
+    // Priority 2: If user is fully activated, redirect to dashboard
     if (userStatus?.isActivated && userStatus?.membershipLevel >= 1) {
       // Wait 500ms before redirecting to ensure data is stable
       redirectTimeout = setTimeout(() => {
@@ -112,7 +125,7 @@ export default function Welcome() {
         }
       }, 500);
     } else {
-      console.log('🎯 Welcome: User not activated yet - showing claim interface');
+      console.log('🎯 Welcome: User registered but not activated yet - showing claim interface');
     }
 
     return () => {
@@ -121,7 +134,7 @@ export default function Welcome() {
         clearTimeout(redirectTimeout);
       }
     };
-  }, [userStatus, isUserLoading, setLocation]); // 使用 useWallet 的数据
+  }, [userStatus, isUserLoading, setLocation, account]); // 使用 useWallet 的数据
 
   const handleClaim = async () => {
     if (!account?.address) {
