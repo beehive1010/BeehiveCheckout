@@ -1,5 +1,5 @@
 import React, {useEffect, useState} from 'react';
-import {MembershipActivationButton} from '../components/membership';
+import {ClaimMembershipButton} from '../components/membership/claim/ClaimMembershipButton';
 import {ManualActivationButton} from '../components/membership/claim/ManualActivationButton';
 import {useLocation} from 'wouter';
 import {referralService} from '../api/landing/referral.client';
@@ -268,15 +268,18 @@ export default function Welcome() {
           </Card>
         </div>
         
+        {/* PayEmbed Purchase Button - Redirects to /purchase page */}
         <div className="max-w-2xl mx-auto">
-          <MembershipActivationButton
-            referrerWallet={referrerWallet}
+          <ClaimMembershipButton
+            walletAddress={account?.address || ''}
+            tokenId={1}
+            nftType="LEVEL1"
             onSuccess={handleActivationComplete}
-            className="w-full"
+            onError={(error: Error) => console.error('Claim error:', error)}
           />
         </div>
 
-        {/* Manual Activation Button (for failed PayEmbed activations) */}
+        {/* Manual Activation Button (for users who already purchased NFT via PayEmbed) */}
         <div className="max-w-2xl mx-auto mt-6">
           <ManualActivationButton
             level={1}
