@@ -123,22 +123,60 @@ export default function Rewards() {
       });
 
       // Get pending rewards with expiration times for countdown timers
-      // Filter out expired rewards - only show rewards that are still counting down
-      const { data: pendingTimerData, error: pendingError } = await supabase
+      // Fetch from BOTH layer_rewards and direct_rewards tables
+
+      // Layer rewards (Level 2-19) - have expires_at directly
+      const { data: pendingLayerRewards, error: layerError } = await supabase
         .from('layer_rewards')
         .select('*')
         .ilike('reward_recipient_wallet', memberWalletAddress)
         .eq('status', 'pending')
         .not('expires_at', 'is', null)
-        .gt('expires_at', new Date().toISOString()) // Only show non-expired rewards
+        .gt('expires_at', new Date().toISOString())
         .order('expires_at', { ascending: true })
-        .limit(3); // Only show top 3 most urgent
+        .limit(3);
 
-      if (pendingError) {
-        console.warn('Pending rewards fetch error:', pendingError);
-      } else {
-        setPendingRewards(pendingTimerData || []);
+      if (layerError) {
+        console.warn('Pending layer rewards fetch error:', layerError);
       }
+
+      // Direct rewards (Level 1) - need to join with reward_timers
+      const { data: pendingDirectRewards, error: directError } = await supabase
+        .from('direct_rewards')
+        .select(`
+          *,
+          reward_timers!inner (
+            expires_at,
+            is_active,
+            is_expired
+          )
+        `)
+        .ilike('reward_recipient_wallet', memberWalletAddress)
+        .eq('status', 'pending')
+        .eq('reward_timers.is_active', true)
+        .eq('reward_timers.is_expired', false)
+        .gt('reward_timers.expires_at', new Date().toISOString())
+        .order('reward_timers.expires_at', { ascending: true })
+        .limit(3);
+
+      if (directError) {
+        console.warn('Pending direct rewards fetch error:', directError);
+      }
+
+      // Combine both arrays and map direct rewards to have expires_at at top level
+      const combinedPendingRewards = [
+        ...(pendingLayerRewards || []),
+        ...(pendingDirectRewards || []).map(dr => ({
+          ...dr,
+          expires_at: dr.reward_timers?.[0]?.expires_at || null
+        }))
+      ].sort((a, b) => {
+        const aTime = new Date(a.expires_at || 0).getTime();
+        const bTime = new Date(b.expires_at || 0).getTime();
+        return aTime - bTime;
+      }).slice(0, 3); // Keep only top 3 most urgent
+
+      setPendingRewards(combinedPendingRewards);
 
       const mappedRewards: RewardsData = {
         total: stats?.total_earned || 0,
