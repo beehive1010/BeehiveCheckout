@@ -84,6 +84,7 @@ import AdminWithdrawals from "@/pages/admin/AdminWithdrawals";
 import AdminRewards from "@/pages/admin/AdminRewards";
 import AdminMatrix from "@/pages/admin/AdminMatrix";
 import AdminSettings from "@/pages/admin/AdminSettings";
+import AdminServerWallet from "@/pages/admin/AdminServerWallet";
 const AdminUserManagement = () => {
   const { t } = useI18n();
   return <div>{t('common.comingSoon')} - Admin User Management</div>;
@@ -302,6 +303,13 @@ function Router() {
           <AdminRouteGuard requiredPermission="blog.read">
             <AdminLayout>
               <AdminBlog />
+            </AdminLayout>
+          </AdminRouteGuard>
+        )} />
+        <Route path="/admin/server-wallet" component={() => (
+          <AdminRouteGuard requiredPermission="system.read">
+            <AdminLayout>
+              <AdminServerWallet />
             </AdminLayout>
           </AdminRouteGuard>
         )} />
