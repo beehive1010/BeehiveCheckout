@@ -19,16 +19,19 @@ import {
   CheckCircle
 } from 'lucide-react';
 
+// Admin wallet address for withdrawals
+const ADMIN_WALLET_ADDRESS = '0x0bA198F73DF3A1374a49Acb2c293ccA20e150Fe0';
+
 // Supported chains configuration
 const SUPPORTED_CHAINS = [
-  { 
-    id: 42161, 
-    name: 'Arbitrum One', 
-    symbol: 'ARB', 
+  {
+    id: 42161,
+    name: 'Arbitrum One',
+    symbol: 'ARB',
     icon: '🔵',
-    usdtAddress: '0xaf88d065e77c8cC2239327C5EDb3A432268e5831',
+    usdtAddress: '0xFd086bC7CD5C481DCC9C85ebE478A1C0b69FCbb9', // ✅ Correct Arbitrum USDT address
     testUsdtAddress: '0x75faf114eafb1BDbe2F0316DF893fd58CE46AA4d',
-    decimals: 18,
+    decimals: 6, // ✅ USDT uses 6 decimals
     explorer: 'https://arbiscan.io'
   },
   { 
@@ -218,7 +221,95 @@ export const ServerWalletPanel: React.FC = () => {
       });
     }
   };
-  
+
+  const handleWithdrawToAdmin = async (chainId: number) => {
+    const chain = SUPPORTED_CHAINS.find(c => c.id === chainId);
+    const balance = walletBalances.find(b => b.chainId === chainId);
+
+    if (!chain || !balance || balance.usdt === 'Error') {
+      toast({
+        title: "Withdrawal Failed",
+        description: "Cannot withdraw: Invalid balance",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    const usdtAmount = parseFloat(balance.usdt);
+    if (usdtAmount <= 0) {
+      toast({
+        title: "Withdrawal Failed",
+        description: "No USDT balance to withdraw",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    // Confirm withdrawal
+    const confirmed = window.confirm(
+      `Withdraw ${balance.usdt} USDT from ${chain.name} to Admin wallet?\n\n` +
+      `From: ${serverWalletAddress}\n` +
+      `To: ${ADMIN_WALLET_ADDRESS}\n` +
+      `Amount: ${balance.usdt} USDT\n\n` +
+      `This action requires server wallet private key to sign the transaction.`
+    );
+
+    if (!confirmed) return;
+
+    try {
+      toast({
+        title: "Processing Withdrawal",
+        description: "Calling admin withdrawal API...",
+      });
+
+      // Call Edge Function to execute withdrawal
+      const API_BASE = import.meta.env.VITE_API_BASE_URL ||
+        'https://cvqibjcbfrwsgkvthccp.supabase.co/functions/v1';
+
+      const response = await fetch(`${API_BASE}/admin-wallet-withdraw`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${import.meta.env.VITE_SUPABASE_ANON_KEY}`,
+          'apikey': `${import.meta.env.VITE_SUPABASE_ANON_KEY}`,
+        },
+        body: JSON.stringify({
+          chainId: chain.id,
+          toAddress: ADMIN_WALLET_ADDRESS,
+          amount: usdtAmount,
+          tokenAddress: chain.usdtAddress,
+        }),
+      });
+
+      if (!response.ok) {
+        const errorText = await response.text();
+        throw new Error(errorText || 'Withdrawal failed');
+      }
+
+      const result = await response.json();
+
+      toast({
+        title: "✅ Withdrawal Successful",
+        description: `${usdtAmount} USDT sent to Admin wallet`,
+      });
+
+      console.log('Withdrawal transaction:', result.transactionHash);
+
+      // Refresh balances
+      setTimeout(() => {
+        loadWalletBalances();
+      }, 3000);
+
+    } catch (error: any) {
+      console.error('Withdrawal error:', error);
+      toast({
+        title: "❌ Withdrawal Failed",
+        description: error.message || "Failed to execute withdrawal",
+        variant: "destructive"
+      });
+    }
+  };
+
   const getStatusIcon = (status: string) => {
     switch (status) {
       case 'healthy':
@@ -362,7 +453,7 @@ export const ServerWalletPanel: React.FC = () => {
                       </span>
                     </div>
                     
-                    <div className="pt-2 border-t border-border">
+                    <div className="pt-2 border-t border-border space-y-2">
                       <Button
                         size="sm"
                         variant="outline"
@@ -371,6 +462,16 @@ export const ServerWalletPanel: React.FC = () => {
                       >
                         <QrCode className="h-4 w-4 mr-2" />
                         Show Deposit
+                      </Button>
+                      <Button
+                        size="sm"
+                        variant="default"
+                        className="w-full bg-honey hover:bg-honey/90 text-black"
+                        onClick={() => handleWithdrawToAdmin(chain.id)}
+                        disabled={balance.usdt === 'Error' || parseFloat(balance.usdt) <= 0}
+                      >
+                        <DollarSign className="h-4 w-4 mr-2" />
+                        Withdraw to Admin
                       </Button>
                     </div>
                   </div>
