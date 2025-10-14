@@ -16,7 +16,7 @@ import { getContract } from 'thirdweb';
 import { arbitrum } from 'thirdweb/chains';
 import { claimTo } from 'thirdweb/extensions/erc1155';
 import { approve } from 'thirdweb/extensions/erc20';
-import { parseUnits } from 'viem';
+import { parseUnits, maxUint256 } from 'viem';
 import { Button } from '../../ui/button';
 import { useToast } from '../../../hooks/use-toast';
 import { useI18n } from '../../../contexts/I18nContext';
@@ -184,29 +184,30 @@ export function ClaimMembershipNFTButton({
         setStatusMessage('Approving USDT...');
 
         toast({
-          title: '🔐 Approval Required',
-          description: 'Please approve USDT spending in your wallet',
+          title: '🔐 One-Time Approval Required',
+          description: 'Approve once for all future NFT purchases',
           duration: 5000,
         });
 
         try {
-          console.log('🔐 Requesting USDT approval...');
+          console.log('🔐 Requesting unlimited USDT approval (one-time)...');
 
-          // Build direct USDT approve transaction to NFT contract
+          // Build direct USDT approve transaction to NFT contract with max amount
+          // This allows all future NFT purchases without additional approvals
           const approvalTransaction = approve({
             contract: usdtContract,
             spender: NFT_CONTRACT,
-            amount: requiredAmount,
+            amount: maxUint256, // Approve maximum amount for convenience
           });
 
-          console.log('  📝 Approving USDT to NFT contract...');
+          console.log('  📝 Approving unlimited USDT to NFT contract...');
           const txResult = await sendTransaction(approvalTransaction);
-          console.log('  ✅ Approval successful:', txResult.transactionHash);
+          console.log('  ✅ Unlimited approval successful:', txResult.transactionHash);
 
           toast({
             title: '✅ Approval Successful',
-            description: 'USDT approval confirmed',
-            duration: 3000,
+            description: 'You can now purchase all NFT levels without additional approvals',
+            duration: 4000,
           });
 
           // Wait for approval to be indexed
