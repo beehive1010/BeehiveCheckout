@@ -25,7 +25,7 @@ const AdminAuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }
         const { data: { session } } = await supabase.auth.getSession();
         
         if (session?.user) {
-          // Verify this is an admin user
+          // Verify this is an admin user (admins table uses id as primary key matching auth.users.id)
           const { data: adminData, error } = await supabase
             .from('admins')
             .select('*')
@@ -37,10 +37,13 @@ const AdminAuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }
             setIsAdminAuthenticated(true);
             setAdminUser({
               ...session.user,
-              role: adminData.role,
+              role: `Level ${adminData.admin_level} Admin`, // Map admin_level to role
+              admin_level: adminData.admin_level,
+              wallet_address: adminData.wallet_address,
+              permissions: adminData.permissions,
               adminData
             });
-            console.log('✅ Admin session restored:', adminData.email);
+            console.log('✅ Admin session restored:', session.user.email, 'Level:', adminData.admin_level);
           } else {
             // Not an admin user or inactive - just reset admin state, don't sign out regular users
             setIsAdminAuthenticated(false);
@@ -65,7 +68,7 @@ const AdminAuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }
         console.log('Admin auth state change:', event);
         
         if (event === 'SIGNED_IN' && session?.user) {
-          // Verify admin user
+          // Verify admin user (admins table uses id as primary key matching auth.users.id)
           const { data: adminData, error } = await supabase
             .from('admins')
             .select('*')
@@ -77,9 +80,15 @@ const AdminAuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }
             setIsAdminAuthenticated(true);
             setAdminUser({
               ...session.user,
-              role: adminData.role,
+              role: `Level ${adminData.admin_level} Admin`, // Map admin_level to role
+              admin_level: adminData.admin_level,
+              wallet_address: adminData.wallet_address,
+              permissions: adminData.permissions,
               adminData
             });
+            console.log('✅ Admin signed in:', session.user.email, 'Level:', adminData.admin_level);
+            // Redirect to admin dashboard on successful sign in
+            setLocation('/admin/dashboard');
           } else {
             // User is not an admin - just reset admin state without signing out
             setIsAdminAuthenticated(false);
@@ -114,7 +123,7 @@ const AdminAuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }
         throw new Error('No user returned from authentication');
       }
 
-      // Verify this is an admin user
+      // Verify this is an admin user (admins table uses id as primary key matching auth.users.id)
       const { data: adminData, error: adminError } = await supabase
         .from('admins')
         .select('*')
@@ -123,6 +132,7 @@ const AdminAuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }
         .single();
 
       if (adminError || !adminData) {
+        console.error('❌ Admin verification failed:', adminError);
         await supabase.auth.signOut();
         throw new Error('Invalid admin credentials or inactive account');
       }
@@ -130,12 +140,15 @@ const AdminAuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }
       setIsAdminAuthenticated(true);
       setAdminUser({
         ...data.user,
-        role: adminData.role,
+        role: `Level ${adminData.admin_level} Admin`, // Map admin_level to role
+        admin_level: adminData.admin_level,
+        wallet_address: adminData.wallet_address,
+        permissions: adminData.permissions,
         adminData
       });
 
-      console.log('✅ Admin signed in:', adminData.email);
-      
+      console.log('✅ Admin signed in:', data.user.email, 'Level:', adminData.admin_level);
+
       // Redirect to admin dashboard
       setLocation('/admin/dashboard');
       
