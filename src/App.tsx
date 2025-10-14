@@ -39,6 +39,7 @@ import AdminNFTsPage from "@/pages/AdminNFTs";
 // import TestUpgradeMembership from "@/pages/TestUpgradeMembership";
 // import TestPayEmbedClaim from "@/pages/TestPayEmbedClaim";
 import MembershipPurchase from "@/pages/MembershipPurchase";
+import ActivateMembership from "@/pages/ActivateMembership";
 import Welcome2 from "@/pages/Welcome2";
 import Membership2 from "@/pages/Membership2";
 // Archived: MultiChainClaimDemo and CheckoutTest moved to _archive/
@@ -426,6 +427,9 @@ function Router() {
 
         {/* Membership Purchase Page (PayEmbed) */}
         <Route path="/membership-purchase" component={MembershipPurchase} />
+
+        {/* Manual Membership Activation (for failed PayEmbed activations) */}
+        <Route path="/activate-membership" component={ActivateMembership} />
 
         {/* Welcome2 - PayEmbed Version */}
         <Route path="/welcome2" component={Welcome2} />

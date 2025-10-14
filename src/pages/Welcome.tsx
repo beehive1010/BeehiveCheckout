@@ -1,5 +1,6 @@
 import React, {useEffect, useState} from 'react';
 import {MembershipActivationButton} from '../components/membership';
+import {ManualActivationButton} from '../components/membership/claim/ManualActivationButton';
 import {useLocation} from 'wouter';
 import {referralService} from '../api/landing/referral.client';
 import {authService} from '../lib/supabase';
@@ -270,6 +271,15 @@ export default function Welcome() {
         <div className="max-w-2xl mx-auto">
           <MembershipActivationButton
             referrerWallet={referrerWallet}
+            onSuccess={handleActivationComplete}
+            className="w-full"
+          />
+        </div>
+
+        {/* Manual Activation Button (for failed PayEmbed activations) */}
+        <div className="max-w-2xl mx-auto mt-6">
+          <ManualActivationButton
+            level={1}
             onSuccess={handleActivationComplete}
             className="w-full"
           />
