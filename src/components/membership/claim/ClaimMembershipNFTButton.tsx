@@ -168,9 +168,85 @@ export function ClaimMembershipNFTButton({
       }
 
       console.log('✅ User is registered:', userStatus);
+      setIsCheckingStatus(false);
 
-      // Step 2: Navigate directly to PayEmbed purchase page
-      // PayEmbed will handle all payment logic (approval, payment, etc.)
+      // Step 2: Check and approve USDT if needed
+      const requiredAmount = parseUnits(price.toString(), 6); // USDT has 6 decimals
+
+      console.log('💰 Checking USDT allowance...');
+      console.log('  Required:', requiredAmount.toString());
+      console.log('  Current allowance:', allowance?.toString());
+
+      if (!allowance || allowance < requiredAmount) {
+        setIsApproving(true);
+        setStatusMessage('Approving USDT...');
+
+        toast({
+          title: '🔐 Approval Required',
+          description: 'Please approve USDT spending in your wallet',
+          duration: 5000,
+        });
+
+        try {
+          console.log('🔐 Requesting USDT approval...');
+
+          // Build claim transaction
+          const claimTransaction = claimTo({
+            contract: nftContract,
+            quantity: BigInt(1),
+            tokenId: BigInt(level),
+            to: account.address,
+          });
+
+          // Get approval transaction
+          const approvalTransaction = await getApprovalForTransaction({
+            transaction: claimTransaction,
+            account: account,
+          });
+
+          console.log('  📝 Approval transaction:', approvalTransaction);
+
+          if (approvalTransaction) {
+            console.log('  ✅ Sending approval transaction...');
+            const txResult = await sendTransaction(approvalTransaction);
+            console.log('  ✅ Approval successful:', txResult.transactionHash);
+
+            toast({
+              title: '✅ Approval Successful',
+              description: 'USDT approval confirmed',
+              duration: 3000,
+            });
+
+            // Wait for approval to be indexed
+            await new Promise((resolve) => setTimeout(resolve, 2000));
+            await refetchAllowance();
+          } else {
+            console.log('  ℹ️ No approval needed (already approved)');
+          }
+        } catch (error) {
+          console.error('❌ Approval failed:', error);
+          setIsApproving(false);
+          setIsProcessing(false);
+
+          toast({
+            title: '❌ Approval Failed',
+            description: error instanceof Error ? error.message : 'User rejected approval',
+            variant: 'destructive',
+            duration: 5000,
+          });
+
+          if (error instanceof Error) {
+            onError?.(error);
+          }
+          return;
+        }
+
+        setIsApproving(false);
+      } else {
+        console.log('✅ Sufficient USDT allowance already approved');
+      }
+
+      // Step 3: Navigate to PayEmbed purchase page
       setStatusMessage('Redirecting to payment...');
 
       const searchParams = new URLSearchParams();
