@@ -11,21 +11,25 @@ import { referralService } from '../api/landing/referral.client';
 import { authService } from '../lib/supabase';
 import { Card, CardContent } from '../components/ui/card';
 import { Badge } from '../components/ui/badge';
-import { Crown, RefreshCw, User, Users, Sparkles, CheckCircle } from 'lucide-react';
+import { Button } from '../components/ui/button';
+import { Crown, RefreshCw, User, Users, Sparkles, CheckCircle, AlertTriangle, Loader2 } from 'lucide-react';
 import { useI18n } from '../contexts/I18nContext';
 import { useWallet } from '../hooks/useWallet';
 import { useWeb3 } from '../contexts/Web3Context';
+import { useActiveWalletChain, useSwitchActiveWalletChain } from 'thirdweb/react';
+import { arbitrum } from '../lib/web3';
 import ErrorBoundary from '../components/ui/error-boundary';
 import { BeehiveMembershipClaimList } from '../components/membership/claim/BeehiveMembershipClaimList';
 import { motion } from 'framer-motion';
 import { useToast } from '../hooks/use-toast';
-import RegistrationModal from '../components/modals/RegistrationModal';
 
 export default function Welcome2() {
   const { t } = useI18n();
   const [, setLocation] = useLocation();
   const { account } = useWeb3();
   const { refreshUserData, userStatus, isUserLoading } = useWallet();
+  const activeChain = useActiveWalletChain();
+  const switchChain = useSwitchActiveWalletChain();
   const { toast } = useToast();
   const [referrerWallet, setReferrerWallet] = useState<string>('');
   const [referrerInfo, setReferrerInfo] = useState<{ username?: string; wallet: string } | null>(null);
@@ -34,7 +38,8 @@ export default function Welcome2() {
   const [noReferrerError, setNoReferrerError] = useState(false);
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [hasCheckedOnMount, setHasCheckedOnMount] = useState(false);
-  const [showRegistrationModal, setShowRegistrationModal] = useState(false);
+  const [isWrongNetwork, setIsWrongNetwork] = useState(false);
+  const [isSwitchingNetwork, setIsSwitchingNetwork] = useState(false);
 
   // Get referrer from URL params and localStorage with immediate fallback
   // EXACT SAME LOGIC AS Welcome.tsx
@@ -98,18 +103,53 @@ export default function Welcome2() {
     loadReferrerInfo();
   }, [referrerWallet]);
 
-  // Check if user is registered and show registration modal if needed
+  // Check network status
   useEffect(() => {
-    if (!account?.address || isUserLoading) {
+    if (activeChain?.id && activeChain.id !== arbitrum.id) {
+      setIsWrongNetwork(true);
+      console.log(`⚠️ Wrong network detected: ${activeChain.id}, should be Arbitrum (${arbitrum.id})`);
+    } else {
+      setIsWrongNetwork(false);
+    }
+  }, [activeChain?.id]);
+
+  // Handle network switching
+  const handleSwitchNetwork = async () => {
+    if (!switchChain) return;
+
+    try {
+      setIsSwitchingNetwork(true);
+      await switchChain(arbitrum);
+      toast({
+        title: t('wallet.networkSwitched') || 'Network Switched',
+        description: t('wallet.networkSwitchedDesc') || 'Successfully switched to Arbitrum',
+        variant: "default",
+      });
+    } catch (error: any) {
+      console.error('Failed to switch network:', error);
+      toast({
+        title: t('wallet.networkSwitchFailed') || 'Network Switch Failed',
+        description: error.message || t('wallet.networkSwitchFailedDesc') || 'Failed to switch network',
+        variant: "destructive",
+      });
+    } finally {
+      setIsSwitchingNetwork(false);
+    }
+  };
+
+  // Check if user is registered and redirect to /register if needed
+  // SAME LOGIC AS Welcome.tsx - redirect instead of modal
+  useEffect(() => {
+    if (isUserLoading) {
       return;
     }
 
-    // If user is connected but not registered, show registration modal
-    if (!userStatus?.isRegistered) {
-      console.log('⚠️ Welcome2: User not registered - showing registration modal');
-      setShowRegistrationModal(true);
+    // If user is connected but not registered, redirect to /register
+    if (account?.address && userStatus && !userStatus.isRegistered) {
+      console.log('⚠️ Welcome2: User not registered - redirecting to /register');
+      setLocation('/register');
     }
-  }, [account?.address, userStatus?.isRegistered, isUserLoading]);
+  }, [account?.address, userStatus, isUserLoading, setLocation]);
 
   // Use useWallet data to redirect if user is already activated
   useEffect(() => {
@@ -153,21 +193,6 @@ export default function Welcome2() {
       console.log('🔄 Redirecting to dashboard after complete Level 1 activation...');
       setLocation('/dashboard');
     }, 2000); // 2 second delay for thorough processing
-  };
-
-  // Handle registration completion
-  const handleRegistrationComplete = () => {
-    console.log('✅ Welcome2: Registration completed');
-    setShowRegistrationModal(false);
-
-    // Refresh user data to get updated registration status
-    refreshUserData();
-
-    toast({
-      title: '✅ Registration Successful',
-      description: 'You can now proceed to claim your membership!',
-      duration: 3000,
-    });
   };
 
   // Handle manual status refresh - only use useWallet refresh
@@ -305,6 +330,41 @@ export default function Welcome2() {
 
           {/* Main Content - PayEmbed Level 1 Claim Component */}
           <div className="max-w-5xl mx-auto px-2 sm:px-0">
+            {/* Wrong Network Warning */}
+            {isWrongNetwork && account?.address && (
+              <div className="mb-6 p-4 bg-yellow-50 border-2 border-yellow-200 rounded-lg">
+                <div className="flex items-center gap-3 mb-3">
+                  <AlertTriangle className="h-5 w-5 text-yellow-600 flex-shrink-0" />
+                  <div className="flex-1">
+                    <p className="font-medium text-yellow-800">
+                      {t('wallet.wrongNetwork') || 'Wrong Network'}
+                    </p>
+                    <p className="text-sm text-yellow-700 mt-1">
+                      {t('wallet.switchToArbitrum') || `You're on ${activeChain?.name || 'another network'}. Please switch to Arbitrum One to claim your NFT.`}
+                    </p>
+                  </div>
+                </div>
+                <Button
+                  onClick={handleSwitchNetwork}
+                  disabled={isSwitchingNetwork}
+                  className="w-full bg-yellow-600 hover:bg-yellow-700 text-white"
+                  size="sm"
+                >
+                  {isSwitchingNetwork ? (
+                    <>
+                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                      {t('wallet.switching') || 'Switching Network...'}
+                    </>
+                  ) : (
+                    <>
+                      <RefreshCw className="mr-2 h-4 w-4" />
+                      {t('wallet.switchToArbitrum') || 'Switch to Arbitrum One'}
+                    </>
+                  )}
+                </Button>
+              </div>
+            )}
+
             <BeehiveMembershipClaimList
               maxLevel={1}
               referrerWallet={referrerWallet || undefined}
@@ -369,17 +429,6 @@ export default function Welcome2() {
             </Card>
           </div>
         </div>
-
-        {/* Registration Modal */}
-        {account?.address && (
-          <RegistrationModal
-            isOpen={showRegistrationModal}
-            onClose={() => setShowRegistrationModal(false)}
-            walletAddress={account.address}
-            onRegistrationComplete={handleRegistrationComplete}
-            referrerWallet={referrerWallet || undefined}
-          />
-        )}
       </div>
     </ErrorBoundary>
   );

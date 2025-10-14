@@ -2,7 +2,7 @@ import React, {useEffect, useState} from 'react';
 import {useNFTClaim} from '../components/membership/core/NFTClaimButton';
 import {useLocation} from 'wouter';
 import {Button} from '../components/ui/button';
-import {Loader2, Crown, RefreshCw, User, Users} from 'lucide-react';
+import {Loader2, Crown, RefreshCw, User, Users, AlertTriangle} from 'lucide-react';
 import {referralService} from '../api/landing/referral.client';
 import {authService} from '../lib/supabase';
 import {Card, CardContent} from '../components/ui/card';
@@ -10,19 +10,27 @@ import {Badge} from '../components/ui/badge';
 import {useI18n} from '../contexts/I18nContext';
 import {useWallet} from '../hooks/useWallet';
 import {useWeb3} from '../contexts/Web3Context';
+import {useActiveWalletChain, useSwitchActiveWalletChain} from 'thirdweb/react';
+import {arbitrum} from '../lib/web3';
 import ErrorBoundary from '../components/ui/error-boundary';
+import {useToast} from '../hooks/use-toast';
 
 export default function Welcome() {
   const { t } = useI18n();
   const [, setLocation] = useLocation();
   const { account } = useWeb3();
   const { refreshUserData, userStatus, isUserLoading, walletAddress } = useWallet();
+  const activeChain = useActiveWalletChain();
+  const switchChain = useSwitchActiveWalletChain();
+  const { toast } = useToast();
   const [referrerWallet, setReferrerWallet] = useState<string>('');
   const [referrerInfo, setReferrerInfo] = useState<{ username?: string; wallet: string } | null>(null);
   const [isLoadingReferrer, setIsLoadingReferrer] = useState(false);
   const [isCheckingMembership, setIsCheckingMembership] = useState(false);
   const [noReferrerError, setNoReferrerError] = useState(false);
   const [isRefreshing, setIsRefreshing] = useState(false);
+  const [isWrongNetwork, setIsWrongNetwork] = useState(false);
+  const [isSwitchingNetwork, setIsSwitchingNetwork] = useState(false);
 
   // Use core NFTClaim hook
   const { claimNFT, isProcessing, currentStep } = useNFTClaim();
@@ -87,6 +95,39 @@ export default function Welcome() {
     loadReferrerInfo();
   }, [referrerWallet]);
 
+  // Check network status
+  useEffect(() => {
+    if (activeChain?.id && activeChain.id !== arbitrum.id) {
+      setIsWrongNetwork(true);
+      console.log(`⚠️ Wrong network detected: ${activeChain.id}, should be Arbitrum (${arbitrum.id})`);
+    } else {
+      setIsWrongNetwork(false);
+    }
+  }, [activeChain?.id]);
+
+  // Handle network switching
+  const handleSwitchNetwork = async () => {
+    if (!switchChain) return;
+
+    try {
+      setIsSwitchingNetwork(true);
+      await switchChain(arbitrum);
+      toast({
+        title: t('wallet.networkSwitched') || 'Network Switched',
+        description: t('wallet.networkSwitchedDesc') || 'Successfully switched to Arbitrum',
+        variant: "default",
+      });
+    } catch (error: any) {
+      console.error('Failed to switch network:', error);
+      toast({
+        title: t('wallet.networkSwitchFailed') || 'Network Switch Failed',
+        description: error.message || t('wallet.networkSwitchFailedDesc') || 'Failed to switch network',
+        variant: "destructive",
+      });
+    } finally {
+      setIsSwitchingNetwork(false);
+    }
+  };
 
   // Use useWallet data to redirect if user is already activated OR not registered
   useEffect(() => {
@@ -306,18 +347,58 @@ export default function Welcome() {
             </CardContent>
           </Card>
         </div>
-        
+
         {/* Level 1 NFT Claim Button - Using core hook with activate-membership */}
         <div className="max-w-2xl mx-auto">
+          {/* Wrong Network Warning */}
+          {isWrongNetwork && account?.address && (
+            <div className="mb-4 p-4 bg-yellow-50 border-2 border-yellow-200 rounded-lg">
+              <div className="flex items-center gap-3 mb-3">
+                <AlertTriangle className="h-5 w-5 text-yellow-600" />
+                <div>
+                  <p className="font-medium text-yellow-800">
+                    {t('wallet.wrongNetwork') || 'Wrong Network'}
+                  </p>
+                  <p className="text-sm text-yellow-700 mt-1">
+                    {t('wallet.switchToArbitrum') || `You're on ${activeChain?.name || 'another network'}. Please switch to Arbitrum One to claim your NFT.`}
+                  </p>
+                </div>
+              </div>
+              <Button
+                onClick={handleSwitchNetwork}
+                disabled={isSwitchingNetwork}
+                className="w-full bg-yellow-600 hover:bg-yellow-700 text-white"
+                size="sm"
+              >
+                {isSwitchingNetwork ? (
+                  <>
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    {t('wallet.switching') || 'Switching Network...'}
+                  </>
+                ) : (
+                  <>
+                    <RefreshCw className="mr-2 h-4 w-4" />
+                    {t('wallet.switchToArbitrum') || 'Switch to Arbitrum One'}
+                  </>
+                )}
+              </Button>
+            </div>
+          )}
+
           <Button
             onClick={handleClaim}
-            disabled={!account?.address || !userStatus?.isRegistered || isProcessing || !referrerWallet}
+            disabled={!account?.address || !userStatus?.isRegistered || isProcessing || !referrerWallet || isWrongNetwork}
             className="w-full h-14 bg-gradient-to-r from-honey to-orange-500 hover:from-honey/90 hover:to-orange-500/90 text-white font-semibold text-lg shadow-lg transition-all disabled:opacity-50"
           >
             {!account?.address ? (
               <>
                 <Crown className="mr-2 h-5 w-5" />
                 {t('claim.connectWalletToClaimNFT')}
+              </>
+            ) : isWrongNetwork ? (
+              <>
+                <AlertTriangle className="mr-2 h-5 w-5" />
+                {t('wallet.wrongNetwork') || 'Switch Network First'}
               </>
             ) : !userStatus?.isRegistered ? (
               <>
