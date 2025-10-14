@@ -148,6 +148,12 @@ function Web3ContextProvider({ children }: { children: React.ReactNode }) {
   // Simplified routing - no longer checks membership here, just handles basic auth routing
   const checkBasicAuthRouting = async () => {
     try {
+      // Skip all auth checks for admin routes - AdminAuthContext handles admin authentication
+      if (location.startsWith('/admin')) {
+        console.log('🔧 Admin route detected - skipping Web3 auth checks');
+        return;
+      }
+
       // Handle different authentication states
       if (!account?.address && !isSupabaseAuthenticated) {
         console.log('❌ No wallet and no Supabase auth - staying on current page');

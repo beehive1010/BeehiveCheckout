@@ -161,13 +161,24 @@ export function useNFTClaim() {
           'USDT approval transaction'
         );
 
-        await waitForReceipt({
-          client,
-          chain: arbitrum,
-          transactionHash: approveTxResult?.transactionHash,
-        });
+        // Wait for approval confirmation with extended timeout and error handling
+        try {
+          await waitForReceipt({
+            client,
+            chain: arbitrum,
+            transactionHash: approveTxResult?.transactionHash,
+            maxBlocksWaitTime: 200, // Extended timeout for Arbitrum (same as claim)
+          });
+          console.log('✅ USDT approval confirmed');
+        } catch (approvalReceiptError: any) {
+          // If waitForReceipt times out, the approval might still be successful
+          console.warn('⚠️ Approval receipt wait timeout, but transaction was sent:', approveTxResult?.transactionHash);
+          console.warn('  Waiting additional 10 seconds for approval to confirm...');
 
-        console.log('✅ USDT approval confirmed');
+          await new Promise(resolve => setTimeout(resolve, 10000)); // Wait 10 seconds
+
+          console.log('  Proceeding with claim attempt after approval delay...');
+        }
 
         toast({
           title: '✅ USDT Approved',

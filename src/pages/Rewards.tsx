@@ -100,12 +100,13 @@ export default function Rewards() {
       const stats = Array.isArray(statsData) ? statsData[0] : statsData;
       console.log('Rewards stats:', stats);
 
-      // ✅ FIX: Get recent rewards for history (limit to 500 to avoid 1000 row default limit)
-      // For users with >500 rewards, consider implementing pagination
+      // ✅ FIX: Get recent rewards for history from unified_rewards_view (includes layer + direct + old direct_referral)
+      // This ensures ALL reward types are displayed in history (Level 1-19)
+      // Limit to 500 to avoid 1000 row default limit. For users with >500 rewards, consider implementing pagination
       const { data: rewardsData, error: rewardsError } = await supabase
-        .from('layer_rewards')
+        .from('unified_rewards_view')
         .select('*')
-        .ilike('reward_recipient_wallet', memberWalletAddress)
+        .ilike('wallet_address', memberWalletAddress)
         .order('created_at', { ascending: false })
         .limit(500);
 
@@ -186,12 +187,16 @@ export default function Rewards() {
         claimable: stats?.total_claimable || 0,
         history: rewardsData?.map((reward) => ({
           id: reward.id,
-          type: reward.status || 'layer_reward',
+          type: reward.source_table || reward.status || 'layer_reward',
           amount: reward.reward_amount || 0,
           currency: 'USDT',
           date: reward.claimed_at || reward.created_at || t('common.unknown'),
           status: reward.status === 'claimed' ? 'completed' : reward.status as 'pending' | 'completed' | 'failed',
-          description: `Layer ${reward.triggering_nft_level} reward`,
+          description: reward.source_table === 'direct_rewards'
+            ? `Direct Reward (Level 1)`
+            : reward.source_table === 'direct_referral_rewards'
+            ? `Legacy Direct Reward (Level 1)`
+            : `Layer ${reward.triggering_nft_level} Reward`,
           layer: reward.triggering_nft_level || 1
         })) || []
       };
