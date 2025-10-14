@@ -35,6 +35,7 @@ const MatrixLayerStatsView: React.FC<MatrixLayerStatsViewProps> = ({
 }) => {
   const { t } = useI18n();
   const [layerStats, setLayerStats] = useState<LayerStatsData[]>([]);
+  const [totalDownlineMembers, setTotalDownlineMembers] = useState<number>(0);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [expanded, setExpanded] = useState(!compact);
@@ -51,10 +52,33 @@ const MatrixLayerStatsView: React.FC<MatrixLayerStatsViewProps> = ({
     setError(null);
 
     try {
-      console.log('🔍 Loading.tsx matrix layer stats for:', walletAddress);
-      
-      // Use direct database view query instead of edge function
-      console.log('📊 Using direct database query for matrix stats');
+      console.log('🔍 Loading matrix layer stats for:', walletAddress);
+
+      // Count ALL downline members via recursive referrer tree (no layer limit)
+      const { data: allMembersData } = await supabase
+        .from('members')
+        .select('wallet_address, referrer_wallet');
+
+      let totalDownline = 0;
+      if (allMembersData) {
+        const downlineSet = new Set<string>();
+        const findDownline = (rootWallet: string) => {
+          allMembersData.forEach(member => {
+            if (member.referrer_wallet?.toLowerCase() === rootWallet.toLowerCase() &&
+                !downlineSet.has(member.wallet_address.toLowerCase())) {
+              downlineSet.add(member.wallet_address.toLowerCase());
+              findDownline(member.wallet_address);
+            }
+          });
+        };
+        findDownline(walletAddress);
+        totalDownline = downlineSet.size;
+      }
+      setTotalDownlineMembers(totalDownline);
+      console.log('📊 Total downline members (all depths):', totalDownline);
+
+      // Use direct database view query for matrix layer stats (19 layers)
+      console.log('📊 Using direct database query for 19-layer matrix stats');
 
       // Use v_matrix_layers_v2 view for efficient aggregated statistics
       const { data: layerData, error: matrixError } = await supabase
@@ -271,7 +295,9 @@ const MatrixLayerStatsView: React.FC<MatrixLayerStatsViewProps> = ({
   };
 
   const renderSummaryStats = () => {
-    const totalMembers = layerStats.reduce((sum, stat) => sum + stat.totalMembers, 0);
+    // totalMembers: 整体下线组织人数（不受19层限制）
+    const totalMembers = totalDownlineMembers;
+    // totalActive: 19层矩阵中的激活成员数
     const totalActive = layerStats.reduce((sum, stat) => sum + stat.activeMembers, 0);
     const layersWithMembers = layerStats.filter(stat => stat.totalMembers > 0).length;
     const layersCompleted = layerStats.filter(stat => {

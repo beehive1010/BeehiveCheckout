@@ -75,40 +75,50 @@ export default function MembershipPurchase() {
         throw new Error('No wallet address');
       }
 
-      console.log(`🔍 Verifying activation (attempt ${retryCount + 1}/${VERIFICATION_CONFIG.MAX_RETRIES})`, {
-        txHash,
-        walletAddress: account.address,
-        level,
-        referrerWallet,
-      });
+      console.log(`🔍 Verifying activation (attempt ${retryCount + 1}/${VERIFICATION_CONFIG.MAX_RETRIES})`);
+      console.log('  📝 Transaction Hash:', txHash);
+      console.log('  💼 Wallet:', account.address);
+      console.log('  🎯 Level:', level);
+      console.log('  🔗 Referrer:', referrerWallet);
 
-      // Call activate-membership Edge Function
+      // Call payembed-activation Edge Function (new unified activation flow)
       const API_BASE =
         import.meta.env.VITE_API_BASE_URL ||
         'https://cvqibjcbfrwsgkvthccp.supabase.co/functions/v1';
 
-      const activationEndpoint =
-        level === 1 ? 'activate-membership' : 'level-upgrade';
+      const activationUrl = `${API_BASE}/payembed-activation`;
+      console.log('  🌐 API Endpoint:', activationUrl);
 
-      const response = await fetch(`${API_BASE}/${activationEndpoint}`, {
+      const response = await fetch(activationUrl, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
           Authorization: `Bearer ${import.meta.env.VITE_SUPABASE_ANON_KEY}`,
+          apikey: `${import.meta.env.VITE_SUPABASE_ANON_KEY}`,
           'x-wallet-address': account.address,
         },
         body: JSON.stringify({
-          walletAddress: account.address,
           level,
           transactionHash: txHash,
-          paymentAmount: parseInt(price!),
           referrerWallet: referrerWallet,
         }),
       });
 
+      console.log('  📡 Response Status:', response.status, response.statusText);
+
       if (!response.ok) {
         const errorText = await response.text();
-        console.error('❌ Activation failed:', errorText);
+        console.error('❌ Activation API Failed!');
+        console.error('  📛 Status:', response.status);
+        console.error('  📄 Response:', errorText);
+
+        // Try to parse as JSON
+        try {
+          const errorJson = JSON.parse(errorText);
+          console.error('  🔍 Error Details:', JSON.stringify(errorJson, null, 2));
+        } catch (e) {
+          // Not JSON, already logged as text
+        }
 
         // Retry logic
         if (retryCount < VERIFICATION_CONFIG.MAX_RETRIES - 1) {
@@ -123,7 +133,16 @@ export default function MembershipPurchase() {
       }
 
       const result = await response.json();
-      console.log('✅ Activation successful:', result);
+      console.log('✅ Activation API Success!');
+      console.log('  📊 Result:', JSON.stringify(result, null, 2));
+
+      if (result.success) {
+        console.log('  🎉 Membership Activated Successfully!');
+        console.log('  💳 Level:', result.data?.level);
+        console.log('  🔢 Activation Sequence:', result.data?.activationSequence);
+      } else if (result.alreadyActivated) {
+        console.log('  ℹ️ Already activated, skipping...');
+      }
 
       return true;
     } catch (error) {
@@ -148,7 +167,12 @@ export default function MembershipPurchase() {
   }) => {
     try {
       setIsProcessing(true);
-      console.log('🎉 Purchase success:', info);
+      console.log('🎉 PayEmbed Purchase Success!');
+      console.log('📋 Purchase Info:', JSON.stringify(info, null, 2));
+      console.log('💼 Wallet Address:', account?.address);
+      console.log('🎯 Level:', level);
+      console.log('💰 Price:', price);
+      console.log('🔗 Referrer:', referrerWallet);
 
       toast({
         title: '⏳ Processing...',

@@ -56,23 +56,47 @@ export function useUserReferralStats() {
         .ilike('wallet_address', walletAddress)
         .maybeSingle();
 
-      // Count ALL unique members in matrix organization (not limited to 19 layers)
-      // This includes everyone in the matrix spillover referral organization under this root
-      const { data: uniqueMembersData, error: countError } = await supabase
-        .from('matrix_referrals')
-        .select('member_wallet')
-        .eq('matrix_root_wallet', walletAddress);
+      // Count ALL team members from members table (recursive downline through referrer_wallet)
+      // This gets ALL descendants regardless of depth (not limited by 19-layer matrix constraint)
+      const { data: allMembersData, error: membersError } = await supabase
+        .from('members')
+        .select('wallet_address, referrer_wallet');
 
-      const totalTeamCount = uniqueMembersData ? new Set(uniqueMembersData.map(r => r.member_wallet)).size : 0;
+      // Build downline tree recursively in JavaScript
+      let totalTeamCount = 0;
+      if (allMembersData && !membersError) {
+        const downlineSet = new Set<string>();
+        const findDownline = (rootWallet: string) => {
+          allMembersData.forEach(member => {
+            if (member.referrer_wallet?.toLowerCase() === rootWallet.toLowerCase() &&
+                !downlineSet.has(member.wallet_address.toLowerCase())) {
+              downlineSet.add(member.wallet_address.toLowerCase());
+              findDownline(member.wallet_address); // Recursive
+            }
+          });
+        };
 
-      console.log(`📊 Team Size Calculation for ${walletAddress}:`, {
-        totalRecords: uniqueMembersData?.length || 0,
-        uniqueMembers: totalTeamCount,
-        sampleRecords: uniqueMembersData?.slice(0, 5)
-      });
+        findDownline(walletAddress);
+        totalTeamCount = downlineSet.size;
 
-      if (countError) {
-        console.error('Error counting team members:', countError);
+        console.log(`📊 Team Size Calculation for ${walletAddress}:`, {
+          method: 'recursive referrer tree',
+          totalTeamCount,
+          totalMembersInDB: allMembersData.length
+        });
+      } else {
+        console.error('Error fetching members for team count:', membersError);
+        // Fallback to matrix_referrals count
+        const { data: matrixData } = await supabase
+          .from('matrix_referrals')
+          .select('member_wallet')
+          .eq('matrix_root_wallet', walletAddress);
+        totalTeamCount = matrixData ? new Set(matrixData.map(r => r.member_wallet)).size : 0;
+
+        console.log(`📊 Team Size Fallback for ${walletAddress}:`, {
+          method: 'matrix_referrals',
+          totalTeamCount
+        });
       }
 
       // Get member's current level and info using canonical view
@@ -164,13 +188,27 @@ export function useUserMatrixStats() {
         .ilike('root', walletAddress)
         .order('layer');
 
-      // Count ALL unique members in matrix tree (no layer limit)
-      const { data: allMembersData } = await supabase
-        .from('matrix_referrals')
-        .select('member_wallet')
-        .eq('matrix_root_wallet', walletAddress);
+      // Count ALL unique members via referrer tree (no layer limit)
+      const { data: allMembersForCount } = await supabase
+        .from('members')
+        .select('wallet_address, referrer_wallet');
 
-      const totalMembersAllLayers = allMembersData ? new Set(allMembersData.map(r => r.member_wallet)).size : 0;
+      // Build downline tree recursively
+      let totalMembersAllLayers = 0;
+      if (allMembersForCount) {
+        const downlineSet = new Set<string>();
+        const findDownline = (rootWallet: string) => {
+          allMembersForCount.forEach(member => {
+            if (member.referrer_wallet?.toLowerCase() === rootWallet.toLowerCase() &&
+                !downlineSet.has(member.wallet_address.toLowerCase())) {
+              downlineSet.add(member.wallet_address.toLowerCase());
+              findDownline(member.wallet_address);
+            }
+          });
+        };
+        findDownline(walletAddress);
+        totalMembersAllLayers = downlineSet.size;
+      }
 
       // Transform layer data into the expected format
       const layerStats = (layerData || []).reduce((acc, layer) => {

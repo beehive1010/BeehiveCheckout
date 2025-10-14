@@ -12,7 +12,7 @@ import { createClient } from '@supabase/supabase-js';
 
 // Configuration
 const THIRDWEB_CLIENT_ID = process.env.VITE_THIRDWEB_CLIENT_ID || 'faf3d69af8af8e613b8755df8a9c2f27';
-const CONTRACT_ADDRESS = '0x56BaBA7BAD14F3fcebBC5Bf6e04F007d6f91f8a1';
+const CONTRACT_ADDRESS = '0x018F516B0d1E77Cc5947226Abc2E864B167C7E29'; // NFT Contract Address
 const SUPABASE_URL = 'https://cvqibjcbfrwsgkvthccp.supabase.co';
 const SUPABASE_ANON_KEY = process.env.VITE_SUPABASE_ANON_KEY || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImN2cWliamNiZnJ3c2drdnRoY2NwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MjczOTY1NzksImV4cCI6MjA0Mjk3MjU3OX0.PHOKn9Cj-hYB7YANuVKXiipJr0yNQ3aHlTWr8bvT5_Q';
 
