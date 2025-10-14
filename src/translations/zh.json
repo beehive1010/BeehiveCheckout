@@ -234,9 +234,15 @@
       "wrongNetwork": "网络错误",
       "wrongNetworkDescription": "您当前在 {networkName}。请切换到 Arbitrum One 以激活您的会员资格。"
     },
+    "alreadyOwned": "已拥有此等级",
     "benefits": "权益",
+    "buttons": {
+      "claim": "领取"
+    },
     "expired": "已过期",
     "level": "等级",
+    "memberNotFound": "未找到会员",
+    "mustUpgradeSequentially": "必须按顺序升级",
     "pending": "待处理",
     "status": "状态",
     "title": "会员",

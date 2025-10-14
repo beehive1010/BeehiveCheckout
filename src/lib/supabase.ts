@@ -1,23 +1,15 @@
-// Supabase client configuration for Beehive Platform - Working functions only
-import {createClient} from '@supabase/supabase-js'
-import type {Database} from '../../types/database.types'
-// Removed temporary stubs - all functions now implemented
+// Supabase client configuration for Beehive Platform
+// This file re-exports from supabaseClient.ts to maintain a single client instance
+// and avoid "Multiple GoTrueClient instances detected" warnings
 
-const supabaseUrl = import.meta.env.VITE_SUPABASE_URL
-const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY
+// Re-export the unified Supabase client instance
+export { supabase, authService, callEdgeFunction, EDGE_FUNCTIONS_URL } from './supabaseClient'
 
-if (!supabaseUrl || !supabaseAnonKey) {
-  throw new Error('Missing Supabase environment variables')
-}
-
-// Create typed Supabase client for database operations
-export const supabase = createClient<Database>(supabaseUrl, supabaseAnonKey)
+// Import supabase for local use in dbFunctions
+import { supabase } from './supabaseClient'
 
 // Legacy export alias for compatibility
-export const supabaseApi = supabase
-
-// Re-export authService from legacy supabaseClient for compatibility
-export { authService } from './supabaseClient'
+export { supabase as supabaseApi } from './supabaseClient'
 
 // Database functions that exist in the current schema
 export const dbFunctions = {

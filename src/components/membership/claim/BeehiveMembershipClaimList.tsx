@@ -198,8 +198,8 @@ export function BeehiveMembershipClaimList({
         )}
       </div>
 
-      {/* Premium Membership Levels Grid - Matching Membership.tsx */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+      {/* Premium Membership Levels Grid - Responsive Mobile Design */}
+      <div className="grid grid-cols-1 sm:grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 md:gap-8">
         <AnimatePresence mode="popLayout">
           {displayedLevels.map((membership, index) => {
             const Icon = membership.icon;
@@ -257,36 +257,36 @@ export function BeehiveMembershipClaimList({
 
                   {/* Owned Badge */}
                   {isOwned && (
-                    <div className="absolute top-4 right-4 z-10">
-                      <Badge className="bg-emerald-500/20 text-emerald-600 dark:text-emerald-400 border-emerald-500/30">
+                    <div className="absolute top-2 right-2 sm:top-4 sm:right-4 z-10">
+                      <Badge className="bg-emerald-500/20 text-emerald-600 dark:text-emerald-400 border-emerald-500/30 text-xs sm:text-sm">
                         <CheckCircle className="h-3 w-3 mr-1" />
                         {t('membership.status.owned')}
                       </Badge>
                     </div>
                   )}
 
-                  <CardHeader className="relative p-8 pb-6">
-                    <div className="flex items-center justify-between mb-4">
-                      <div className="flex items-center gap-4">
+                  <CardHeader className="relative p-4 sm:p-6 md:p-8 pb-3 sm:pb-4 md:pb-6">
+                    <div className="flex items-center justify-between mb-3 sm:mb-4">
+                      <div className="flex items-center gap-2 sm:gap-3 md:gap-4">
                         {/* Icon with Glow */}
                         <div className="relative">
-                          <div className={`absolute inset-0 rounded-2xl transition-all duration-300 ${
+                          <div className={`absolute inset-0 rounded-xl sm:rounded-2xl transition-all duration-300 ${
                             isAvailable
                               ? 'bg-gradient-to-r from-honey/30 to-orange-500/30 blur-md group-hover:blur-lg'
                               : 'bg-gradient-to-r from-gray-300/30 to-gray-400/30 dark:from-gray-600/30 dark:to-gray-700/30 blur-sm group-hover:blur-md'
                           }`}></div>
-                          <div className={`relative p-4 rounded-2xl ${
+                          <div className={`relative p-2 sm:p-3 md:p-4 rounded-xl sm:rounded-2xl ${
                             isAvailable
                               ? 'bg-gradient-to-br from-honey/20 to-orange-500/20'
                               : membership.bgColor
                           } backdrop-blur-sm`}>
-                            <Icon className={`h-8 w-8 ${membership.color} transition-all duration-300 group-hover:scale-110`} />
+                            <Icon className={`h-6 w-6 sm:h-7 sm:w-7 md:h-8 md:w-8 ${membership.color} transition-all duration-300 group-hover:scale-110`} />
                           </div>
                         </div>
 
                         {/* Level Title */}
                         <div>
-                          <CardTitle className={`text-2xl font-bold mb-1 ${
+                          <CardTitle className={`text-xl sm:text-2xl font-bold mb-1 ${
                             isAvailable
                               ? 'bg-gradient-to-r from-honey via-orange-500 to-honey bg-clip-text text-transparent'
                               : 'text-foreground'
@@ -297,40 +297,40 @@ export function BeehiveMembershipClaimList({
                       </div>
 
                       {isLocked && (
-                        <div className="p-2 rounded-full bg-gray-100 dark:bg-gray-800">
-                          <Lock className="h-5 w-5 text-muted-foreground" />
+                        <div className="p-1.5 sm:p-2 rounded-full bg-gray-100 dark:bg-gray-800">
+                          <Lock className="h-4 w-4 sm:h-5 sm:w-5 text-muted-foreground" />
                         </div>
                       )}
                     </div>
 
                     {/* Premium Price Display */}
-                    <div className={`text-center p-6 rounded-2xl ${
+                    <div className={`text-center p-4 sm:p-5 md:p-6 rounded-xl sm:rounded-2xl ${
                       isAvailable
                         ? 'bg-gradient-to-br from-honey/10 via-orange-500/10 to-honey/10 border border-honey/20'
                         : 'bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-800 dark:to-gray-900 border border-gray-200/50 dark:border-gray-700/50'
                     } backdrop-blur-sm transition-all duration-300 group-hover:scale-105`}>
-                      <div className={`text-4xl font-bold mb-2 ${
+                      <div className={`text-3xl sm:text-4xl font-bold mb-1 sm:mb-2 ${
                         isAvailable
                           ? 'bg-gradient-to-r from-honey via-orange-500 to-honey bg-clip-text text-transparent'
                           : 'text-foreground'
                       }`}>
                         ${membership.price}
                       </div>
-                      <p className="text-sm font-medium text-muted-foreground">
+                      <p className="text-xs sm:text-sm font-medium text-muted-foreground">
                         {t('membership.usdcPayment')}
                       </p>
                     </div>
                   </CardHeader>
 
-                  <CardContent className="p-8 pt-4 space-y-6">
+                  <CardContent className="p-4 sm:p-6 md:p-8 pt-3 sm:pt-4 space-y-4 sm:space-y-6">
                     {/* Level 2 Special Requirements */}
                     {membership.level === 2 && currentLevel === 1 && (
-                      <div className="p-4 rounded-2xl border border-honey/20 bg-gradient-to-r from-honey/5 to-orange-500/5">
+                      <div className="p-3 sm:p-4 rounded-xl sm:rounded-2xl border border-honey/20 bg-gradient-to-r from-honey/5 to-orange-500/5">
                         <div className="flex items-center gap-2 mb-2">
                           <Users className="h-4 w-4 text-honey" />
-                          <span className="font-semibold text-honey">{t('membership.directReferralRequirement')}</span>
+                          <span className="font-semibold text-sm sm:text-base text-honey">{t('membership.directReferralRequirement')}</span>
                         </div>
-                        <div className="text-sm text-muted-foreground mb-2">
+                        <div className="text-xs sm:text-sm text-muted-foreground mb-2">
                           {directReferralsCount >= 3 ? (
                             <span className="text-emerald-600 font-medium">
                               ✅ {directReferralsCount}/3+ referrals (Qualified)
@@ -345,15 +345,15 @@ export function BeehiveMembershipClaimList({
                     )}
 
                     {/* Premium Benefits */}
-                    <div className="space-y-4">
-                      <h4 className="font-bold text-lg text-foreground mb-4 flex items-center gap-2">
-                        <Award className="h-5 w-5 text-honey" />
+                    <div className="space-y-3 sm:space-y-4">
+                      <h4 className="font-bold text-base sm:text-lg text-foreground mb-3 sm:mb-4 flex items-center gap-2">
+                        <Award className="h-4 w-4 sm:h-5 sm:w-5 text-honey" />
                         {t('membership.exclusiveBenefits')}
                       </h4>
-                      <ul className="space-y-3">
+                      <ul className="space-y-2 sm:space-y-3">
                         {membership.benefits.slice(0, 4).map((benefit, idx) => (
-                          <li key={idx} className="flex items-start gap-3 text-sm group/benefit">
-                            <div className="p-1 rounded-full bg-emerald-100 dark:bg-emerald-900/30 transition-all duration-200 group-hover/benefit:scale-110">
+                          <li key={idx} className="flex items-start gap-2 sm:gap-3 text-xs sm:text-sm group/benefit">
+                            <div className="p-0.5 sm:p-1 rounded-full bg-emerald-100 dark:bg-emerald-900/30 transition-all duration-200 group-hover/benefit:scale-110 flex-shrink-0 mt-0.5">
                               <CheckCircle className="h-3 w-3 text-emerald-500" />
                             </div>
                             <span className="text-muted-foreground font-medium leading-relaxed">{benefit}</span>
@@ -364,7 +364,7 @@ export function BeehiveMembershipClaimList({
 
                     {/* Premium Action Button */}
                     {!isOwned && (
-                      <div className="pt-6">
+                      <div className="pt-4 sm:pt-6">
                         <ClaimMembershipNFTButton
                           level={membership.level}
                           price={totalPrice}

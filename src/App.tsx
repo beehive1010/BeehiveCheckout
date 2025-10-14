@@ -172,8 +172,8 @@ function SmartHomePage() {
         console.log('🔀 SmartHomePage: Redirecting to /register (new user)');
         setLocation('/register');
       } else if (needsNFTClaim) {
-        console.log('🔀 SmartHomePage: Redirecting to /welcome (needs NFT claim)');
-        setLocation('/welcome');
+        console.log('🔀 SmartHomePage: Redirecting to /welcome2 (needs NFT claim - PayEmbed version)');
+        setLocation('/welcome2');
       } else if (isFullyActivated) {
         console.log('🔀 SmartHomePage: Redirecting to /dashboard (fully activated)');
         setLocation('/dashboard');

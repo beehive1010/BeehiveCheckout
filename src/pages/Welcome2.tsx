@@ -193,79 +193,79 @@ export default function Welcome2() {
   return (
     <ErrorBoundary>
       <div className="min-h-screen bg-gradient-to-br from-black via-gray-900 to-black">
-        <div className="container mx-auto px-4 py-12 max-w-7xl">
-          {/* Hero Section - Matching Beehive Style */}
+        <div className="container mx-auto px-4 sm:px-6 py-6 sm:py-8 md:py-12 max-w-7xl">
+          {/* Hero Section - Responsive Mobile Design */}
           <motion.div
             initial={{ opacity: 0, y: -20 }}
             animate={{ opacity: 1, y: 0 }}
-            className="text-center mb-12"
+            className="text-center mb-8 sm:mb-10 md:mb-12"
           >
-            <div className="flex items-center justify-center gap-3 mb-6">
+            <div className="flex items-center justify-center gap-3 mb-4 sm:mb-6">
               <motion.div
                 animate={{ rotate: 360 }}
                 transition={{ duration: 20, repeat: Infinity, ease: 'linear' }}
               >
-                <Crown className="h-16 w-16 text-honey" />
+                <Crown className="h-12 w-12 sm:h-14 sm:w-14 md:h-16 md:w-16 text-honey" />
               </motion.div>
             </div>
 
-            <h1 className="text-5xl lg:text-6xl font-bold mb-6">
+            <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold mb-4 sm:mb-5 md:mb-6 px-2">
               <span className="bg-gradient-to-r from-honey via-orange-500 to-honey bg-clip-text text-transparent">
                 {t('welcome.title')}
               </span>
             </h1>
 
-            <p className="text-xl text-gray-300 max-w-3xl mx-auto mb-8">
+            <p className="text-base sm:text-lg md:text-xl text-gray-300 max-w-3xl mx-auto mb-6 sm:mb-7 md:mb-8 px-4">
               {t('welcome.subtitle')}
             </p>
 
-            {/* Stats Banner - Matching Welcome.tsx style */}
-            <div className="relative max-w-4xl mx-auto mb-8">
-              <div className="absolute inset-0 bg-gradient-to-r from-honey/20 via-orange-500/20 to-honey/20 rounded-3xl blur-xl"></div>
-              <div className="relative grid grid-cols-1 md:grid-cols-3 gap-6 p-8 bg-gradient-to-br from-gray-900/90 via-gray-800/95 to-gray-900/90 rounded-3xl border border-gray-700/30 backdrop-blur-lg">
+            {/* Stats Banner - Responsive Mobile Design */}
+            <div className="relative max-w-4xl mx-auto mb-6 sm:mb-8 px-2">
+              <div className="absolute inset-0 bg-gradient-to-r from-honey/20 via-orange-500/20 to-honey/20 rounded-2xl sm:rounded-3xl blur-xl"></div>
+              <div className="relative grid grid-cols-3 gap-3 sm:gap-4 md:gap-6 p-4 sm:p-6 md:p-8 bg-gradient-to-br from-gray-900/90 via-gray-800/95 to-gray-900/90 rounded-2xl sm:rounded-3xl border border-gray-700/30 backdrop-blur-lg">
                 <div className="text-center">
-                  <div className="text-4xl font-bold text-honey mb-2">$130</div>
-                  <div className="text-sm text-gray-400">{t('welcome.price')}</div>
+                  <div className="text-2xl sm:text-3xl md:text-4xl font-bold text-honey mb-1 sm:mb-2">$130</div>
+                  <div className="text-xs sm:text-sm text-gray-400">{t('welcome.price')}</div>
                 </div>
                 <div className="text-center">
-                  <div className="text-4xl font-bold text-honey mb-2">19</div>
-                  <div className="text-sm text-gray-400">{t('welcome.levels')}</div>
+                  <div className="text-2xl sm:text-3xl md:text-4xl font-bold text-honey mb-1 sm:mb-2">19</div>
+                  <div className="text-xs sm:text-sm text-gray-400">{t('welcome.levels')}</div>
                 </div>
                 <div className="text-center">
-                  <div className="text-4xl font-bold text-honey mb-2">∞</div>
-                  <div className="text-sm text-gray-400">{t('welcome.potential')}</div>
+                  <div className="text-2xl sm:text-3xl md:text-4xl font-bold text-honey mb-1 sm:mb-2">∞</div>
+                  <div className="text-xs sm:text-sm text-gray-400">{t('welcome.potential')}</div>
                 </div>
               </div>
             </div>
 
-            {/* Status Badges - Matching Beehive style */}
-            <div className="flex items-center justify-center gap-4 flex-wrap mb-8">
+            {/* Status Badges - Responsive Mobile Design */}
+            <div className="flex items-center justify-center gap-2 sm:gap-3 md:gap-4 flex-wrap mb-6 sm:mb-8 px-2">
               {account && (
-                <Badge className="bg-emerald-500/20 text-emerald-400 border-emerald-500/30 px-4 py-2">
-                  <CheckCircle className="h-4 w-4 mr-2" />
+                <Badge className="bg-emerald-500/20 text-emerald-400 border-emerald-500/30 px-2 sm:px-3 md:px-4 py-1.5 sm:py-2 text-xs sm:text-sm">
+                  <CheckCircle className="h-3 w-3 sm:h-4 sm:w-4 mr-1 sm:mr-2" />
                   {t('wallet.connected')}
                 </Badge>
               )}
               {userStatus?.isRegistered && (
-                <Badge className="bg-blue-500/20 text-blue-400 border-blue-500/30 px-4 py-2">
-                  <CheckCircle className="h-4 w-4 mr-2" />
+                <Badge className="bg-blue-500/20 text-blue-400 border-blue-500/30 px-2 sm:px-3 md:px-4 py-1.5 sm:py-2 text-xs sm:text-sm">
+                  <CheckCircle className="h-3 w-3 sm:h-4 sm:w-4 mr-1 sm:mr-2" />
                   {t('auth.registered')}
                 </Badge>
               )}
               {referrerWallet && (
-                <Badge className="bg-purple-500/20 text-purple-400 border-purple-500/30 px-4 py-2">
-                  <Sparkles className="h-4 w-4 mr-2" />
-                  {t('referral.referrer')}: {referrerInfo?.username || `${referrerWallet.substring(0, 8)}...`}
+                <Badge className="bg-purple-500/20 text-purple-400 border-purple-500/30 px-2 sm:px-3 md:px-4 py-1.5 sm:py-2 text-xs sm:text-sm max-w-full truncate">
+                  <Sparkles className="h-3 w-3 sm:h-4 sm:w-4 mr-1 sm:mr-2 flex-shrink-0" />
+                  <span className="truncate">{t('referral.referrer')}: {referrerInfo?.username || `${referrerWallet.substring(0, 6)}...`}</span>
                 </Badge>
               )}
             </div>
 
-            {/* Refresh Button - Matching Welcome.tsx */}
+            {/* Refresh Button - Responsive Mobile Design */}
             <div className="flex justify-center">
               <button
                 onClick={handleRefreshStatus}
                 disabled={isRefreshing || !account}
-                className="inline-flex items-center gap-2 px-4 py-2 bg-gray-800/50 hover:bg-gray-700/50 text-gray-300 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed border border-gray-700"
+                className="inline-flex items-center gap-2 px-3 sm:px-4 py-2 text-sm sm:text-base bg-gray-800/50 hover:bg-gray-700/50 text-gray-300 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed border border-gray-700"
               >
                 <RefreshCw className={`h-4 w-4 ${isRefreshing ? 'animate-spin' : ''}`} />
                 {isRefreshing ? t('common.refreshing') : t('common.refresh')}
@@ -274,7 +274,7 @@ export default function Welcome2() {
           </motion.div>
 
           {/* Main Content - PayEmbed Level 1 Claim Component */}
-          <div className="max-w-5xl mx-auto">
+          <div className="max-w-5xl mx-auto px-2 sm:px-0">
             <BeehiveMembershipClaimList
               maxLevel={1}
               referrerWallet={referrerWallet || undefined}
@@ -282,30 +282,30 @@ export default function Welcome2() {
             />
           </div>
 
-          {/* Information Cards - Matching Welcome.tsx style */}
-          <div className="max-w-5xl mx-auto mt-12 grid grid-cols-1 md:grid-cols-2 gap-6">
+          {/* Information Cards - Responsive Mobile Design */}
+          <div className="max-w-5xl mx-auto mt-8 sm:mt-10 md:mt-12 grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6 px-2 sm:px-0">
             <Card className="bg-gradient-to-br from-gray-900/90 to-gray-800/90 border-gray-700/30">
-              <CardContent className="p-6">
-                <h3 className="text-lg font-semibold mb-4 text-honey flex items-center gap-2">
-                  <Users className="h-5 w-5" />
+              <CardContent className="p-4 sm:p-5 md:p-6">
+                <h3 className="text-base sm:text-lg font-semibold mb-3 sm:mb-4 text-honey flex items-center gap-2">
+                  <Users className="h-4 w-4 sm:h-5 sm:w-5" />
                   {t('welcome.whatsIncluded')}
                 </h3>
-                <ul className="space-y-2 text-gray-300 text-sm">
+                <ul className="space-y-2 text-gray-300 text-xs sm:text-sm">
                   <li className="flex items-center gap-2">
-                    <CheckCircle className="h-4 w-4 text-emerald-500" />
-                    {t('welcome.feature1')}
+                    <CheckCircle className="h-3 w-3 sm:h-4 sm:w-4 text-emerald-500 flex-shrink-0" />
+                    <span>{t('welcome.feature1')}</span>
                   </li>
                   <li className="flex items-center gap-2">
-                    <CheckCircle className="h-4 w-4 text-emerald-500" />
-                    {t('welcome.feature2')}
+                    <CheckCircle className="h-3 w-3 sm:h-4 sm:w-4 text-emerald-500 flex-shrink-0" />
+                    <span>{t('welcome.feature2')}</span>
                   </li>
                   <li className="flex items-center gap-2">
-                    <CheckCircle className="h-4 w-4 text-emerald-500" />
-                    {t('welcome.feature3')}
+                    <CheckCircle className="h-3 w-3 sm:h-4 sm:w-4 text-emerald-500 flex-shrink-0" />
+                    <span>{t('welcome.feature3')}</span>
                   </li>
                   <li className="flex items-center gap-2">
-                    <CheckCircle className="h-4 w-4 text-emerald-500" />
-                    {t('welcome.feature4')}
+                    <CheckCircle className="h-3 w-3 sm:h-4 sm:w-4 text-emerald-500 flex-shrink-0" />
+                    <span>{t('welcome.feature4')}</span>
                   </li>
                 </ul>
               </CardContent>
