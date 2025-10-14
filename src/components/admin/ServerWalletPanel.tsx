@@ -98,106 +98,61 @@ export const ServerWalletPanel: React.FC = () => {
   const loadWalletBalances = async () => {
     try {
       setIsLoading(true);
-      const balances: WalletBalance[] = [];
-      
-      for (const chain of SUPPORTED_CHAINS) {
-        try {
-          // Use thirdweb client to get balances
-          const { createThirdwebClient } = await import('thirdweb');
-          const { getContract, readContract } = await import('thirdweb');
-          const { defineChain } = await import('thirdweb/chains');
-          const { getWalletBalance } = await import('thirdweb/wallets');
-          
-          const client = createThirdwebClient({
-            clientId: import.meta.env.VITE_THIRDWEB_CLIENT_ID!,
-          });
-          
-          const chainDef = defineChain(chain.id);
-          
-          // Get native token balance
-          let nativeBalance = '0';
-          try {
-            const balance = await getWalletBalance({
-              client,
-              chain: chainDef,
-              address: serverWalletAddress!,
-            });
-            nativeBalance = balance.displayValue;
-          } catch (error) {
-            console.warn(`Failed to get native balance for ${chain.name}:`, error);
-          }
-          
-          // Get USDT balance
-          let usdtBalance = '0';
-          try {
-            const usdtContract = getContract({
-              client,
-              chain: chainDef,
-              address: chain.usdtAddress,
-            });
-            
-            const balance = await readContract({
-              contract: usdtContract,
-              method: "function balanceOf(address) view returns (uint256)",
-              params: [serverWalletAddress!]
-            });
-            
-            usdtBalance = (Number(balance) / Math.pow(10, chain.decimals)).toFixed(6);
-          } catch (error) {
-            console.warn(`Failed to get USDT balance for ${chain.name}:`, error);
-          }
-          
-          // Get Test USDT balance (only for Arbitrum)
-          let testUsdtBalance;
-          if (chain.testUsdtAddress) {
-            try {
-              const testUsdtContract = getContract({
-                client,
-                chain: chainDef,
-                address: chain.testUsdtAddress,
-              });
-              
-              const balance = await readContract({
-                contract: testUsdtContract,
-                method: "function balanceOf(address) view returns (uint256)",
-                params: [serverWalletAddress!]
-              });
-              
-              testUsdtBalance = (Number(balance) / Math.pow(10, 18)).toFixed(6); // Test USDT is 18 decimals
-            } catch (error) {
-              console.warn(`Failed to get Test USDT balance for ${chain.name}:`, error);
-            }
-          }
-          
-          const walletBalance: WalletBalance = {
-            chain: chain.name,
-            chainId: chain.id,
-            usdt: usdtBalance,
-            testUsdt: testUsdtBalance,
-            native: nativeBalance,
-            lastUpdated: new Date().toLocaleString(),
-            status: parseFloat(usdtBalance) > 100 ? 'healthy' : parseFloat(usdtBalance) > 10 ? 'warning' : 'error'
-          };
-          
-          balances.push(walletBalance);
-        } catch (error) {
-          console.error(`Failed to load balance for ${chain.name}:`, error);
-          balances.push({
-            chain: chain.name,
-            chainId: chain.id,
-            usdt: 'Error',
-            native: 'Error',
-            lastUpdated: new Date().toLocaleString(),
-            status: 'error'
-          });
-        }
+
+      // Call get-balances Edge Function
+      const API_BASE = import.meta.env.VITE_API_BASE_URL ||
+        'https://cvqibjcbfrwsgkvthccp.supabase.co/functions/v1';
+
+      const response = await fetch(`${API_BASE}/get-balances?address=${serverWalletAddress}`, {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${import.meta.env.VITE_SUPABASE_ANON_KEY}`,
+          'apikey': `${import.meta.env.VITE_SUPABASE_ANON_KEY}`,
+        },
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to fetch balances from API');
       }
-      
+
+      const data = await response.json();
+
+      if (!data.success) {
+        throw new Error(data.error || 'Failed to fetch balances');
+      }
+
+      // Transform API response to match WalletBalance interface
+      const balances: WalletBalance[] = data.balances.map((b: any) => ({
+        chain: b.chain,
+        chainId: b.chainId,
+        usdt: b.usdt,
+        testUsdt: b.testUsdt,
+        native: b.native,
+        lastUpdated: new Date(b.lastUpdated).toLocaleString(),
+        status: b.status
+      }));
+
       setWalletBalances(balances);
+
+      console.log('✅ Loaded balances from API:', balances);
     } catch (error) {
       console.error('Failed to load wallet balances:', error);
+
+      // Fallback: show error state for all chains
+      const errorBalances: WalletBalance[] = SUPPORTED_CHAINS.map(chain => ({
+        chain: chain.name,
+        chainId: chain.id,
+        usdt: 'Error',
+        native: 'Error',
+        lastUpdated: new Date().toLocaleString(),
+        status: 'error'
+      }));
+
+      setWalletBalances(errorBalances);
+
       toast({
-        title: "Error Loading.tsx Balances",
+        title: "Error Loading Balances",
         description: "Failed to fetch server wallet balances",
         variant: "destructive"
       });

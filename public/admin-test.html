@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Login Test</title>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <style>
+        body { font-family: Arial, sans-serif; max-width: 800px; margin: 50px auto; padding: 20px; }
+        .status { padding: 10px; margin: 10px 0; border-radius: 5px; }
+        .success { background: #d4edda; color: #155724; }
+        .error { background: #f8d7da; color: #721c24; }
+        .info { background: #d1ecf1; color: #0c5460; }
+        button { padding: 10px 20px; margin: 5px; cursor: pointer; }
+        pre { background: #f4f4f4; padding: 10px; border-radius: 5px; overflow-x: auto; }
+        input { padding: 8px; margin: 5px 0; width: 300px; }
+        .form-group { margin: 15px 0; }
+    </style>
+</head>
+<body>
+    <h1>🔐 Admin Login Test</h1>
+
+    <div class="form-group">
+        <label>Email:</label><br>
+        <input type="email" id="email" value="beehive.tech1010@gmail.com">
+    </div>
+
+    <div class="form-group">
+        <label>Password:</label><br>
+        <input type="password" id="password" value="Admin@123456">
+    </div>
+
+    <button onclick="testLogin()">🔐 Test Login</button>
+    <button onclick="checkSession()">🔍 Check Session</button>
+    <button onclick="testUsersQuery()">👥 Test Users Query</button>
+    <button onclick="testMembersQuery()">🏅 Test Members Query</button>
+    <button onclick="clearAll()">🗑️ Clear All</button>
+    <button onclick="logout()">🚪 Logout</button>
+
+    <div id="output"></div>
+
+    <script>
+        const supabaseUrl = 'https://cvqibjcbfrwsgkvthccp.supabase.co';
+        const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImN2cWliamNiZnJ3c2drdnRoY2NwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTcwNjU0MDUsImV4cCI6MjA3MjY0MTQwNX0.7CfL8CS1dQ8Gua89maSCDkgnMsNb19qp97mJyoJqJjs';
+
+        const supabase = window.supabase.createClient(supabaseUrl, supabaseKey, {
+            auth: {
+                storage: window.localStorage,
+                autoRefreshToken: true,
+                persistSession: true,
+                detectSessionInUrl: true,
+            }
+        });
+
+        function log(message, type = 'info') {
+            const output = document.getElementById('output');
+            const div = document.createElement('div');
+            div.className = `status ${type}`;
+            div.innerHTML = message;
+            output.insertBefore(div, output.firstChild);
+        }
+
+        async function testLogin() {
+            const email = document.getElementById('email').value;
+            const password = document.getElementById('password').value;
+
+            log('🔐 Testing login...', 'info');
+
+            try {
+                const { data, error } = await supabase.auth.signInWithPassword({ email, password });
+
+                if (error) {
+                    log(`❌ Login failed: ${error.message}`, 'error');
+                    log(`<pre>${JSON.stringify(error, null, 2)}</pre>`, 'error');
+                    return;
+                }
+
+                log('✅ Supabase Auth successful!', 'success');
+                log(`User ID: ${data.user.id}<br>Email: ${data.user.email}`, 'success');
+
+                // Check admin record
+                const { data: adminData, error: adminError } = await supabase
+                    .from('admins')
+                    .select('*')
+                    .eq('id', data.user.id)
+                    .eq('is_active', true)
+                    .single();
+
+                if (adminError) {
+                    log(`❌ Admin verification failed: ${adminError.message}`, 'error');
+                    return;
+                }
+
+                log('✅ Admin verified!', 'success');
+                log(`<pre>Admin Level: ${adminData.admin_level}\nPermissions: ${JSON.stringify(adminData.permissions, null, 2)}</pre>`, 'success');
+
+            } catch (err) {
+                log(`❌ Error: ${err.message}`, 'error');
+            }
+        }
+
+        async function checkSession() {
+            log('🔍 Checking session...', 'info');
+
+            const { data: { session }, error } = await supabase.auth.getSession();
+
+            if (error) {
+                log(`❌ Session error: ${error.message}`, 'error');
+                return;
+            }
+
+            if (session) {
+                log('✅ Session found!', 'success');
+                log(`<pre>${JSON.stringify({
+                    user_id: session.user.id,
+                    email: session.user.email,
+                    expires_at: new Date(session.expires_at * 1000).toLocaleString()
+                }, null, 2)}</pre>`, 'success');
+            } else {
+                log('❌ No active session', 'error');
+            }
+        }
+
+        async function testUsersQuery() {
+            log('👥 Testing users query...', 'info');
+
+            const { data, error } = await supabase
+                .from('users')
+                .select('wallet_address, username, email, created_at')
+                .limit(10);
+
+            if (error) {
+                log(`❌ Users query failed: ${error.message}`, 'error');
+                log(`<pre>${JSON.stringify(error, null, 2)}</pre>`, 'error');
+                return;
+            }
+
+            log(`✅ Found ${data.length} users`, 'success');
+            log(`<pre>${JSON.stringify(data, null, 2)}</pre>`, 'success');
+        }
+
+        async function testMembersQuery() {
+            log('🏅 Testing members query...', 'info');
+
+            const { data, error } = await supabase
+                .from('members')
+                .select('wallet_address, current_level, member_activated')
+                .limit(10);
+
+            if (error) {
+                log(`❌ Members query failed: ${error.message}`, 'error');
+                log(`<pre>${JSON.stringify(error, null, 2)}</pre>`, 'error');
+                return;
+            }
+
+            log(`✅ Found ${data.length} members`, 'success');
+            log(`<pre>${JSON.stringify(data, null, 2)}</pre>`, 'success');
+        }
+
+        async function clearAll() {
+            localStorage.clear();
+            sessionStorage.clear();
+            document.getElementById('output').innerHTML = '';
+            log('✅ All storage cleared', 'success');
+        }
+
+        async function logout() {
+            await supabase.auth.signOut();
+            log('✅ Logged out', 'success');
+        }
+
+        // Check session on load
+        window.addEventListener('load', () => {
+            log('📱 Page loaded - checking session...', 'info');
+            checkSession();
+        });
+    </script>
+</body>
+</html>

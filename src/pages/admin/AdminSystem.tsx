@@ -29,6 +29,7 @@ import {
 import { useAdminAuth } from '../../hooks/useAdminAuth';
 import { useToast } from '../../hooks/use-toast';
 import { useIsMobile } from '../../hooks/use-mobile';
+import { DataIntegrityChecker } from '../../components/admin/DataIntegrityChecker';
 
 interface SystemMetric {
   id: string;
@@ -544,6 +545,7 @@ export default function AdminSystem() {
           <TabsTrigger value="services">Services</TabsTrigger>
           <TabsTrigger value="databases">Databases</TabsTrigger>
           <TabsTrigger value="logs">Error Logs</TabsTrigger>
+          <TabsTrigger value="integrity">Data Integrity</TabsTrigger>
         </TabsList>
 
         <TabsContent value="metrics">
@@ -786,6 +788,10 @@ export default function AdminSystem() {
               </div>
             </CardContent>
           </Card>
+        </TabsContent>
+
+        <TabsContent value="integrity">
+          <DataIntegrityChecker />
         </TabsContent>
       </Tabs>
     </div>
