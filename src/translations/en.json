@@ -510,6 +510,7 @@
     "no_wallet_address": "No wallet address",
     "pageNotFound": "Page Not Found",
     "pending": "Pending",
+    "processing": "Processing...",
     "refresh": "Refresh",
     "retry": "Retry",
     "safe": "Safe",
@@ -1929,13 +1930,19 @@
       "wrongNetwork": "Wrong Network",
       "wrongNetworkDescription": "You're on {networkName}. Switch to Arbitrum One to activate your membership."
     },
+    "alreadyOwned": "Already owned this level",
     "benefits": "Benefits",
+    "buttons": {
+      "claim": "Claim"
+    },
     "claiming": {
       "processing": "Processing claim for ${price}...",
       "started": "Claiming Level {level}",
       "success": "Level {level} Claimed!",
       "successDescription": "Successfully claimed Level {level} membership for ${price}"
     },
+    "memberNotFound": "Member not found",
+    "mustUpgradeSequentially": "Must upgrade sequentially",
     "currentDirectReferrals": "Current Direct Referrals",
     "currentLevel": "Current Level",
     "currentReferrals": "Current referrals: {count}",

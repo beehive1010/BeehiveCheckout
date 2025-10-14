@@ -23,6 +23,7 @@ import { useI18n } from '../../../contexts/I18nContext';
 import { client } from '../../../lib/thirdwebClient';
 import { Loader2, Crown, Zap, AlertCircle, CheckCircle, Users } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
+import RegistrationModal from '../../modals/RegistrationModal';
 
 // Contracts (Updated 2025-10-08)
 const USDT_CONTRACT = '0xFd086bC7CD5C481DCC9C85ebE478A1C0b69FCbb9'; // Official Arbitrum USDT
@@ -61,6 +62,7 @@ export function ClaimMembershipNFTButton({
   const [isApproving, setIsApproving] = useState(false);
   const [isCheckingStatus, setIsCheckingStatus] = useState(false);
   const [statusMessage, setStatusMessage] = useState('');
+  const [showRegistrationModal, setShowRegistrationModal] = useState(false);
   const { mutateAsync: sendTransaction } = useSendTransaction();
 
   // Get contracts
@@ -152,15 +154,16 @@ export function ClaimMembershipNFTButton({
 
       if (!userStatus.isRegistered) {
         setIsCheckingStatus(false);
+        console.log('❌ User not registered - showing registration modal');
         toast({
           title: '⚠️ Registration Required',
           description: 'Please register before claiming membership NFTs',
-          variant: 'destructive',
+          duration: 3000,
         });
 
-        setTimeout(() => {
-          setLocation('/register');
-        }, 2000);
+        // Show registration modal instead of redirecting
+        setShowRegistrationModal(true);
+        setIsProcessing(false);
         return;
       }
 
@@ -207,6 +210,19 @@ export function ClaimMembershipNFTButton({
       setIsCheckingStatus(false);
       setStatusMessage('');
     }
+  };
+
+  // Handle registration completion
+  const handleRegistrationComplete = () => {
+    console.log('✅ Registration completed');
+    setShowRegistrationModal(false);
+
+    // After registration, retry claim flow
+    toast({
+      title: '✅ Registration Successful',
+      description: 'Please click Claim again to continue',
+      duration: 3000,
+    });
   };
 
   // Get button content based on state
@@ -309,6 +325,17 @@ export function ClaimMembershipNFTButton({
           {getButtonContent()}
         </span>
       </Button>
+
+      {/* Registration Modal */}
+      {account?.address && (
+        <RegistrationModal
+          isOpen={showRegistrationModal}
+          onClose={() => setShowRegistrationModal(false)}
+          walletAddress={account.address}
+          onRegistrationComplete={handleRegistrationComplete}
+          referrerWallet={referrerWallet}
+        />
+      )}
     </div>
   );
 }

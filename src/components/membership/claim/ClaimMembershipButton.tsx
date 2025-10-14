@@ -123,23 +123,27 @@ export function ClaimMembershipButton({
                 .from('members')
                 .select('current_level, wallet_address')
                 .eq('wallet_address', walletAddress.toLowerCase())
-                .single();
+                .maybeSingle(); // Use maybeSingle() to allow no record (first purchase)
 
-            if (memberError) {
-                toast.error(t("membership.memberNotFound"));
+            // If there's an error OTHER than "no rows returned", show error
+            if (memberError && memberError.code !== 'PGRST116') {
+                toast.error(t("membership.memberNotFound") || "Member check failed");
                 console.error('Member check error:', memberError);
                 return;
             }
 
+            // Get current level (0 if no record = first purchase)
+            const currentMemberLevel = memberData?.current_level || 0;
+
             // 检查是否已经拥有此等级或更高等级
-            if (memberData && memberData.current_level >= targetLevel) {
-                toast.error(t("membership.alreadyOwned"));
+            if (currentMemberLevel >= targetLevel) {
+                toast.error(t("membership.alreadyOwned") || "Already owned this level");
                 return;
             }
 
             // 检查是否按顺序升级（不能跳级）
-            if (memberData && memberData.current_level < targetLevel - 1) {
-                toast.error(t("membership.mustUpgradeSequentially"));
+            if (currentMemberLevel < targetLevel - 1) {
+                toast.error(t("membership.mustUpgradeSequentially") || "Must upgrade sequentially");
                 return;
             }
 
