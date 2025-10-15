@@ -93,6 +93,9 @@ serve(async (req) => {
       case 'fix_missing_layer_rewards':
         result = await fixMissingLayerRewards(supabaseClient);
         break;
+      case 'fix_balance_sync':
+        result = await fixBalanceSync(supabaseClient);
+        break;
       default:
         result = {
           success: false,
@@ -2049,6 +2052,148 @@ async function fixMemberData(supabase: any, options: any): Promise<SystemFixResu
     return {
       success: false,
       error: `Member data fix failed: ${error.message}`
+    };
+  }
+}
+
+/**
+ * Fix unsynced balances by recalculating from rewards
+ */
+async function fixBalanceSync(supabase: any): Promise<SystemFixResult> {
+  try {
+    console.log('🔧 Starting balance sync fix...');
+
+    let fixedCount = 0;
+    const summary: string[] = [];
+
+    // Get all direct_rewards
+    const { data: directRewards, error: drError } = await supabase
+      .from('direct_rewards')
+      .select('reward_recipient_wallet, reward_amount, status');
+
+    if (drError) throw drError;
+
+    // Get all layer_rewards
+    const { data: layerRewards, error: lrError } = await supabase
+      .from('layer_rewards')
+      .select('reward_recipient_wallet, reward_amount, status');
+
+    if (lrError) throw lrError;
+
+    // Calculate total rewards per wallet
+    const rewardsByWallet = new Map<string, number>();
+
+    [...directRewards, ...layerRewards].forEach(reward => {
+      if (reward.status === 'claimable' || reward.status === 'claimed') {
+        const wallet = reward.reward_recipient_wallet.toLowerCase();
+        rewardsByWallet.set(
+          wallet,
+          (rewardsByWallet.get(wallet) || 0) + parseFloat(reward.reward_amount)
+        );
+      }
+    });
+
+    console.log(`📊 Found ${rewardsByWallet.size} wallets with rewards`);
+
+    // Get all user_balances
+    const { data: balances, error: balError } = await supabase
+      .from('user_balances')
+      .select('wallet_address, total_earned, total_withdrawn');
+
+    if (balError) throw balError;
+
+    const balancesByWallet = new Map<string, any>();
+    balances.forEach(b => {
+      balancesByWallet.set(b.wallet_address.toLowerCase(), {
+        total_earned: parseFloat(b.total_earned || 0),
+        total_withdrawn: parseFloat(b.total_withdrawn || 0)
+      });
+    });
+
+    // Find and fix wallets with missing balance
+    for (const [wallet, shouldHave] of rewardsByWallet.entries()) {
+      const currentBalance = balancesByWallet.get(wallet);
+      const actualEarned = currentBalance?.total_earned || 0;
+      const withdrawn = currentBalance?.total_withdrawn || 0;
+      const difference = shouldHave - actualEarned;
+
+      if (Math.abs(difference) > 0.01) { // More than 1 cent difference
+        console.log(`🔧 Fixing ${wallet}: ${actualEarned} → ${shouldHave} (diff: ${difference})`);
+
+        if (!currentBalance) {
+          // Create new balance record
+          const { error: insertError } = await supabase
+            .from('user_balances')
+            .insert({
+              wallet_address: wallet,
+              total_earned: shouldHave,
+              reward_balance: shouldHave,
+              available_balance: shouldHave,
+              total_withdrawn: 0,
+              last_updated: new Date().toISOString()
+            });
+
+          if (insertError) {
+            console.error(`❌ Failed to create balance for ${wallet}:`, insertError);
+            summary.push(`❌ Failed to create balance for ${wallet.slice(0, 10)}...`);
+          } else {
+            fixedCount++;
+            summary.push(`✅ Created balance for ${wallet.slice(0, 10)}... with $${shouldHave.toFixed(2)}`);
+          }
+        } else {
+          // Update existing balance
+          const newAvailable = shouldHave - withdrawn;
+
+          const { error: updateError } = await supabase
+            .from('user_balances')
+            .update({
+              total_earned: shouldHave,
+              reward_balance: shouldHave - withdrawn,
+              available_balance: newAvailable,
+              last_updated: new Date().toISOString()
+            })
+            .eq('wallet_address', wallet);
+
+          if (updateError) {
+            console.error(`❌ Failed to update balance for ${wallet}:`, updateError);
+            summary.push(`❌ Failed to update balance for ${wallet.slice(0, 10)}...`);
+          } else {
+            fixedCount++;
+            summary.push(`✅ Updated ${wallet.slice(0, 10)}... from $${actualEarned.toFixed(2)} to $${shouldHave.toFixed(2)} (diff: ${difference > 0 ? '+' : ''}$${difference.toFixed(2)})`);
+          }
+        }
+      }
+    }
+
+    if (fixedCount === 0) {
+      return {
+        success: true,
+        data: {
+          fixed: 0,
+          details: `✅ All ${rewardsByWallet.size} wallets already have correct balances. No fixes needed.`,
+          summary: ['All balances are correctly synced']
+        }
+      };
+    }
+
+    return {
+      success: true,
+      data: {
+        fixed: fixedCount,
+        details: `✅ Fixed ${fixedCount} wallet balances out of ${rewardsByWallet.size} total wallets`,
+        summary: summary.slice(0, 20), // Show first 20
+        breakdown: {
+          total_wallets_checked: rewardsByWallet.size,
+          wallets_fixed: fixedCount,
+          all_fixes: summary
+        }
+      }
+    };
+
+  } catch (error) {
+    return {
+      success: false,
+      error: `Balance sync fix failed: ${error.message}`
     };
   }
 }

@@ -164,6 +164,13 @@ export function DataIntegrityChecker() {
       canFix: true
     },
     {
+      id: 'balance_sync',
+      name: 'Rewards → Balances Sync',
+      icon: DollarSign,
+      checkType: 'balance_sync_check',
+      canFix: true
+    },
+    {
       id: 'rollup_integrity',
       name: 'Rollup Integrity',
       icon: RefreshCw,
@@ -267,9 +274,10 @@ export function DataIntegrityChecker() {
         setCurrentTask(`Fixing ${category.name}...`);
 
         try {
+          const fixType = getFixType(category.checkType);
           const { data, error } = await supabase.functions.invoke('admin-system-fix', {
             body: {
-              checkType: category.checkType,
+              checkType: fixType,
               options: { processTimers: true }
             }
           });
@@ -310,14 +318,31 @@ export function DataIntegrityChecker() {
     }
   };
 
+  // Map check type to fix type
+  const getFixType = (checkType: string): string => {
+    // Most check types can be used directly as fix types
+    // Special mappings where they differ
+    const mapping: Record<string, string> = {
+      'balance_sync_check': 'fix_balance_sync',
+      'reward_system_check': 'reward_system_fix',
+      'reward_timer_check': 'reward_timer_fix',
+      'level_validation_check': 'level_validation_fix',
+      'member_balance_check': 'member_balance_fix',
+      'rollup_integrity_check': 'rollup_integrity_fix',
+      'matrix_position_conflicts': 'matrix_position_conflicts_fix',
+    };
+    return mapping[checkType] || checkType;
+  };
+
   const fixSingleCategory = async (category: CheckCategory) => {
     setIsFixing(true);
     setCurrentTask(`Fixing ${category.name}...`);
 
     try {
+      const fixType = getFixType(category.checkType);
       const { data, error } = await supabase.functions.invoke('admin-system-fix', {
         body: {
-          checkType: category.checkType,
+          checkType: fixType,
           options: { processTimers: true }
         }
       });

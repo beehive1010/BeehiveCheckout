@@ -90,6 +90,9 @@ serve(async (req) => {
       case 'fix_missing_layer_rewards':
         result = await checkMissingLayerRewards(supabaseClient);
         break;
+      case 'balance_sync_check':
+        result = await checkBalanceSync(supabaseClient);
+        break;
       default:
         result = {
           success: false,
@@ -99,9 +102,9 @@ serve(async (req) => {
 
     return new Response(
       JSON.stringify(result),
-      { 
+      {
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-        status: result.success ? 200 : 400
+        status: 200  // Always return 200 for successful check execution, result.success indicates check outcome
       }
     )
 
@@ -1044,6 +1047,163 @@ async function checkDataConsistency(supabase: any): Promise<SystemCheckResult> {
     return {
       success: false,
       error: `Data consistency check failed: ${error.message}`
+    };
+  }
+}
+
+/**
+ * Check if all claimable/claimed rewards are synced to user_balances
+ */
+async function checkBalanceSync(supabase: any): Promise<SystemCheckResult> {
+  try {
+    console.log('🔍 Checking balance sync with rewards...');
+
+    // Query to find wallets with unsynced rewards
+    const { data: unsyncedWallets, error } = await supabase.rpc('check_unsynced_balances');
+
+    if (error) {
+      // If RPC doesn't exist, do manual check
+      console.log('⚠️ RPC not found, doing manual check...');
+
+      // Get all direct_rewards by wallet
+      const { data: directRewards, error: drError } = await supabase
+        .from('direct_rewards')
+        .select('reward_recipient_wallet, reward_amount, status');
+
+      if (drError) throw drError;
+
+      // Get all layer_rewards by wallet
+      const { data: layerRewards, error: lrError } = await supabase
+        .from('layer_rewards')
+        .select('reward_recipient_wallet, reward_amount, status');
+
+      if (lrError) throw lrError;
+
+      // Calculate total rewards per wallet
+      const rewardsByWallet = new Map<string, number>();
+
+      [...directRewards, ...layerRewards].forEach(reward => {
+        if (reward.status === 'claimable' || reward.status === 'claimed') {
+          const wallet = reward.reward_recipient_wallet.toLowerCase();
+          rewardsByWallet.set(
+            wallet,
+            (rewardsByWallet.get(wallet) || 0) + parseFloat(reward.reward_amount)
+          );
+        }
+      });
+
+      // Get all user_balances
+      const { data: balances, error: balError } = await supabase
+        .from('user_balances')
+        .select('wallet_address, total_earned');
+
+      if (balError) throw balError;
+
+      const balancesByWallet = new Map<string, number>();
+      balances.forEach(b => {
+        balancesByWallet.set(
+          b.wallet_address.toLowerCase(),
+          parseFloat(b.total_earned || 0)
+        );
+      });
+
+      // Find wallets with missing balance
+      const unsynced: any[] = [];
+      rewardsByWallet.forEach((shouldHave, wallet) => {
+        const actualBalance = balancesByWallet.get(wallet) || 0;
+        const difference = shouldHave - actualBalance;
+
+        if (Math.abs(difference) > 0.01) { // More than 1 cent difference
+          unsynced.push({
+            wallet_address: wallet,
+            total_rewards: shouldHave,
+            current_balance: actualBalance,
+            missing_amount: difference
+          });
+        }
+      });
+
+      const issuesCount = unsynced.length;
+      const totalMissing = unsynced.reduce((sum, w) => sum + (w.missing_amount > 0 ? w.missing_amount : 0), 0);
+
+      if (issuesCount === 0) {
+        return {
+          success: true,
+          data: {
+            issues: 0,
+            details: `✅ All ${rewardsByWallet.size} wallets have correctly synced balances`,
+            breakdown: {
+              total_wallets_checked: rewardsByWallet.size,
+              wallets_with_unsynced_balance: 0,
+              total_missing_amount: 0
+            }
+          }
+        };
+      }
+
+      // Sort by missing amount (descending)
+      unsynced.sort((a, b) => b.missing_amount - a.missing_amount);
+
+      const details = unsynced.slice(0, 10).map(w =>
+        `  - ${w.wallet_address.slice(0, 10)}...${w.wallet_address.slice(-8)}: Should have $${w.total_rewards.toFixed(2)}, has $${w.current_balance.toFixed(2)} (${w.missing_amount > 0 ? 'missing' : 'extra'} $${Math.abs(w.missing_amount).toFixed(2)})`
+      ).join('\n');
+
+      return {
+        success: true,
+        data: {
+          issues: issuesCount,
+          details: `❌ Found ${issuesCount} wallets with unsynced balances:\n${details}${issuesCount > 10 ? `\n  ... and ${issuesCount - 10} more` : ''}`,
+          breakdown: {
+            total_wallets_checked: rewardsByWallet.size,
+            wallets_with_missing_balance: unsynced.filter(w => w.missing_amount > 0).length,
+            wallets_with_extra_balance: unsynced.filter(w => w.missing_amount < 0).length,
+            total_missing_amount: totalMissing.toFixed(2),
+            affected_wallets: unsynced
+          },
+          recommendations: [
+            'Run fix_balance_sync to automatically sync all wallets',
+            'Check if trigger_auto_update_balance_on_claimable is enabled',
+            'Verify reward status transitions are working correctly',
+            'Review any manual balance adjustments'
+          ]
+        }
+      };
+    }
+
+    // If RPC worked, use its results
+    const issuesCount = unsyncedWallets?.length || 0;
+
+    if (issuesCount === 0) {
+      return {
+        success: true,
+        data: {
+          issues: 0,
+          details: '✅ All wallets have correctly synced balances',
+        }
+      };
+    }
+
+    const details = unsyncedWallets.slice(0, 10).map(w =>
+      `  - ${w.wallet_address}: Missing $${w.missing_amount}`
+    ).join('\n');
+
+    return {
+      success: true,
+      data: {
+        issues: issuesCount,
+        details: `❌ Found ${issuesCount} wallets with unsynced balances:\n${details}`,
+        breakdown: unsyncedWallets,
+        recommendations: [
+          'Run fix_balance_sync to automatically sync all wallets',
+          'Check trigger_auto_update_balance_on_claimable'
+        ]
+      }
+    };
+
+  } catch (error) {
+    return {
+      success: false,
+      error: `Balance sync check failed: ${error.message}`
     };
   }
 }

@@ -141,36 +141,53 @@ export default function Rewards() {
         console.warn('Pending layer rewards fetch error:', layerError);
       }
 
-      // Direct rewards (Level 1) - need to join with reward_timers
-      const { data: pendingDirectRewards, error: directError } = await supabase
+      // Direct rewards (Level 1) - fetch separately and join with reward_timers
+      // Step 1: Get pending direct rewards
+      const { data: pendingDirectRewardsRaw, error: directError } = await supabase
         .from('direct_rewards')
-        .select(`
-          *,
-          reward_timers!inner (
-            expires_at,
-            is_active,
-            is_expired
-          )
-        `)
+        .select('*')
         .ilike('reward_recipient_wallet', memberWalletAddress)
-        .eq('status', 'pending')
-        .eq('reward_timers.is_active', true)
-        .eq('reward_timers.is_expired', false)
-        .gt('reward_timers.expires_at', new Date().toISOString())
-        .order('reward_timers.expires_at', { ascending: true })
-        .limit(3);
+        .eq('status', 'pending');
 
       if (directError) {
         console.warn('Pending direct rewards fetch error:', directError);
       }
 
-      // Combine both arrays and map direct rewards to have expires_at at top level
+      // Step 2: Get active reward_timers for these direct rewards
+      let pendingDirectRewards: any[] = [];
+      if (pendingDirectRewardsRaw && pendingDirectRewardsRaw.length > 0) {
+        const rewardIds = pendingDirectRewardsRaw.map(dr => dr.id);
+
+        const { data: timers, error: timerError } = await supabase
+          .from('reward_timers')
+          .select('*')
+          .in('reward_id', rewardIds)
+          .eq('is_active', true)
+          .eq('is_expired', false)
+          .gt('expires_at', new Date().toISOString());
+
+        if (timerError) {
+          console.warn('Reward timers fetch error:', timerError);
+        }
+
+        // Join in application layer
+        if (timers && timers.length > 0) {
+          const timersByRewardId = new Map(timers.map(t => [t.reward_id, t]));
+
+          pendingDirectRewards = pendingDirectRewardsRaw
+            .filter(dr => timersByRewardId.has(dr.id))
+            .map(dr => ({
+              ...dr,
+              expires_at: timersByRewardId.get(dr.id)?.expires_at || null,
+              reward_timers: [timersByRewardId.get(dr.id)]
+            }));
+        }
+      }
+
+      // Combine both arrays
       const combinedPendingRewards = [
         ...(pendingLayerRewards || []),
-        ...(pendingDirectRewards || []).map(dr => ({
-          ...dr,
-          expires_at: dr.reward_timers?.[0]?.expires_at || null
-        }))
+        ...pendingDirectRewards
       ].sort((a, b) => {
         const aTime = new Date(a.expires_at || 0).getTime();
         const bTime = new Date(b.expires_at || 0).getTime();
