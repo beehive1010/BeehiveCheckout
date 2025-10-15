@@ -69,6 +69,27 @@ serve(async (req) => {
       case 'data_consistency':
         result = await checkDataConsistency(supabaseClient);
         break;
+      case 'fix_claimed_nft_sync':
+        result = await checkClaimedNFTSync(supabaseClient);
+        break;
+      case 'fix_membership_to_members':
+        result = await checkMembershipToMembers(supabaseClient);
+        break;
+      case 'fix_missing_referrers':
+        result = await checkMissingReferrers(supabaseClient);
+        break;
+      case 'fix_missing_referral_records':
+        result = await checkMissingReferralRecords(supabaseClient);
+        break;
+      case 'fix_missing_matrix_placements':
+        result = await checkMissingMatrixPlacements(supabaseClient);
+        break;
+      case 'fix_missing_direct_rewards':
+        result = await checkMissingDirectRewards(supabaseClient);
+        break;
+      case 'fix_missing_layer_rewards':
+        result = await checkMissingLayerRewards(supabaseClient);
+        break;
       default:
         result = {
           success: false,
@@ -622,6 +643,324 @@ async function checkViewsStatus(supabase: any): Promise<SystemCheckResult> {
       success: false,
       error: `Views status check failed: ${error.message}`
     };
+  }
+}
+
+// Check for users with claimed NFTs but missing member records
+async function checkClaimedNFTSync(supabase: any): Promise<SystemCheckResult> {
+  try {
+    const issues = [];
+
+    const { data: allUsers } = await supabase
+      .from('users')
+      .select('wallet_address');
+
+    for (const user of allUsers || []) {
+      const { data: nftRecords } = await supabase
+        .from('membership')
+        .select('nft_level')
+        .eq('wallet_address', user.wallet_address);
+
+      if (nftRecords && nftRecords.length > 0) {
+        const { data: memberRecord } = await supabase
+          .from('members')
+          .select('wallet_address')
+          .eq('wallet_address', user.wallet_address)
+          .maybeSingle();
+
+        if (!memberRecord) {
+          issues.push(user.wallet_address);
+        }
+      }
+    }
+
+    return {
+      success: true,
+      data: {
+        issues: issues.length,
+        details: `Found ${issues.length} users with claimed NFTs but no member records`,
+        breakdown: { wallets_with_issues: issues },
+        recommendations: issues.length > 0 ? [
+          'Run fix to create missing member records',
+          'Verify NFT ownership on-chain',
+          'Check activation timestamps'
+        ] : []
+      }
+    };
+  } catch (error) {
+    return { success: false, error: `Claimed NFT sync check failed: ${error.message}` };
+  }
+}
+
+// Check for membership records without corresponding members
+async function checkMembershipToMembers(supabase: any): Promise<SystemCheckResult> {
+  try {
+    const { data: membershipWallets } = await supabase
+      .from('membership')
+      .select('wallet_address');
+
+    const uniqueWallets = [...new Set(membershipWallets?.map(m => m.wallet_address) || [])];
+    const issues = [];
+
+    for (const wallet of uniqueWallets) {
+      const { data: memberRecord } = await supabase
+        .from('members')
+        .select('wallet_address')
+        .eq('wallet_address', wallet)
+        .maybeSingle();
+
+      if (!memberRecord) {
+        issues.push(wallet);
+      }
+    }
+
+    return {
+      success: true,
+      data: {
+        issues: issues.length,
+        details: `Found ${issues.length} membership records without corresponding members`,
+        breakdown: {
+          total_membership_wallets: uniqueWallets.length,
+          missing_members: issues
+        },
+        recommendations: issues.length > 0 ? [
+          'Create missing member records',
+          'Sync activation sequences',
+          'Verify referrer relationships'
+        ] : []
+      }
+    };
+  } catch (error) {
+    return { success: false, error: `Membership to members check failed: ${error.message}` };
+  }
+}
+
+// Check for members without referrers
+async function checkMissingReferrers(supabase: any): Promise<SystemCheckResult> {
+  try {
+    const { data: orphanMembers } = await supabase
+      .from('members')
+      .select('wallet_address, activation_sequence')
+      .is('referrer_wallet', null)
+      .order('activation_sequence');
+
+    const issues = orphanMembers?.filter(m => m.activation_sequence !== 1) || [];
+
+    return {
+      success: true,
+      data: {
+        issues: issues.length,
+        details: `Found ${issues.length} members without referrers (excluding genesis)`,
+        breakdown: {
+          orphan_members: issues.map(m => m.wallet_address),
+          total_orphans: issues.length
+        },
+        recommendations: issues.length > 0 ? [
+          'Assign referrers from users table',
+          'Check referrals table for relationships',
+          'Assign to genesis member if no referrer found'
+        ] : []
+      }
+    };
+  } catch (error) {
+    return { success: false, error: `Missing referrers check failed: ${error.message}` };
+  }
+}
+
+// Check for members without referral records
+async function checkMissingReferralRecords(supabase: any): Promise<SystemCheckResult> {
+  try {
+    const { data: membersWithReferrers } = await supabase
+      .from('members')
+      .select('wallet_address, referrer_wallet')
+      .not('referrer_wallet', 'is', null);
+
+    const issues = [];
+
+    for (const member of membersWithReferrers || []) {
+      const { data: referralRecord } = await supabase
+        .from('referrals')
+        .select('id')
+        .eq('referred_wallet', member.wallet_address)
+        .eq('referrer_wallet', member.referrer_wallet)
+        .maybeSingle();
+
+      if (!referralRecord) {
+        issues.push({
+          referred: member.wallet_address,
+          referrer: member.referrer_wallet
+        });
+      }
+    }
+
+    return {
+      success: true,
+      data: {
+        issues: issues.length,
+        details: `Found ${issues.length} members with referrers but no referral records`,
+        breakdown: {
+          missing_referrals: issues,
+          total_members_checked: membersWithReferrers?.length || 0
+        },
+        recommendations: issues.length > 0 ? [
+          'Create missing referral records',
+          'Verify referrer activation sequences',
+          'Check referral depth calculations'
+        ] : []
+      }
+    };
+  } catch (error) {
+    return { success: false, error: `Missing referral records check failed: ${error.message}` };
+  }
+}
+
+// Check for members without matrix placements
+async function checkMissingMatrixPlacements(supabase: any): Promise<SystemCheckResult> {
+  try {
+    const { data: allMembers } = await supabase
+      .from('members')
+      .select('wallet_address');
+
+    const issues = [];
+
+    for (const member of allMembers || []) {
+      const { data: matrixRecords } = await supabase
+        .from('matrix_referrals')
+        .select('id')
+        .eq('member_wallet', member.wallet_address)
+        .limit(1);
+
+      if (!matrixRecords || matrixRecords.length === 0) {
+        issues.push(member.wallet_address);
+      }
+    }
+
+    return {
+      success: true,
+      data: {
+        issues: issues.length,
+        details: `Found ${issues.length} members without matrix placements`,
+        breakdown: {
+          members_without_placement: issues,
+          total_members_checked: allMembers?.length || 0
+        },
+        recommendations: issues.length > 0 ? [
+          'Trigger matrix placement for unplaced members',
+          'Verify referrer relationships',
+          'Check BFS placement logic'
+        ] : []
+      }
+    };
+  } catch (error) {
+    return { success: false, error: `Missing matrix placements check failed: ${error.message}` };
+  }
+}
+
+// Check for missing direct referral rewards (100 USD)
+async function checkMissingDirectRewards(supabase: any): Promise<SystemCheckResult> {
+  try {
+    const { data: allReferrals } = await supabase
+      .from('referrals')
+      .select('referrer_wallet, referred_wallet')
+      .eq('referral_depth', 1)
+      .not('referrer_wallet', 'is', null);
+
+    const issues = [];
+
+    for (const referral of allReferrals || []) {
+      const { data: existingReward } = await supabase
+        .from('direct_rewards')
+        .select('id')
+        .eq('triggering_member_wallet', referral.referred_wallet)
+        .eq('reward_recipient_wallet', referral.referrer_wallet)
+        .maybeSingle();
+
+      if (!existingReward) {
+        issues.push({
+          referrer: referral.referrer_wallet,
+          referred: referral.referred_wallet
+        });
+      }
+    }
+
+    return {
+      success: true,
+      data: {
+        issues: issues.length,
+        details: `Found ${issues.length} direct referrals without 100 USD rewards`,
+        breakdown: {
+          missing_rewards: issues,
+          total_referrals_checked: allReferrals?.length || 0
+        },
+        recommendations: issues.length > 0 ? [
+          'Create missing direct referral rewards',
+          'Verify recipient qualification levels',
+          'Check reward status (pending/claimed)'
+        ] : []
+      }
+    };
+  } catch (error) {
+    return { success: false, error: `Missing direct rewards check failed: ${error.message}` };
+  }
+}
+
+// Check for missing layer rewards (level 2-19 upgrades)
+async function checkMissingLayerRewards(supabase: any): Promise<SystemCheckResult> {
+  try {
+    const { data: allMemberships } = await supabase
+      .from('membership')
+      .select('wallet_address, nft_level')
+      .gte('nft_level', 2)
+      .lte('nft_level', 19);
+
+    const issues = [];
+
+    for (const membership of allMemberships || []) {
+      const { data: matrixPlacements } = await supabase
+        .from('matrix_referrals')
+        .select('matrix_root_wallet, layer')
+        .eq('member_wallet', membership.wallet_address);
+
+      for (const placement of matrixPlacements || []) {
+        const { data: existingReward } = await supabase
+          .from('layer_rewards')
+          .select('id')
+          .eq('triggering_member_wallet', membership.wallet_address)
+          .eq('reward_recipient_wallet', placement.matrix_root_wallet)
+          .eq('triggering_nft_level', membership.nft_level)
+          .eq('matrix_layer', placement.layer)
+          .maybeSingle();
+
+        if (!existingReward) {
+          issues.push({
+            member: membership.wallet_address,
+            level: membership.nft_level,
+            root: placement.matrix_root_wallet,
+            layer: placement.layer
+          });
+        }
+      }
+    }
+
+    return {
+      success: true,
+      data: {
+        issues: issues.length,
+        details: `Found ${issues.length} missing layer rewards for level 2-19 upgrades`,
+        breakdown: {
+          missing_layer_rewards: issues,
+          total_upgrades_checked: allMemberships?.length || 0
+        },
+        recommendations: issues.length > 0 ? [
+          'Create missing layer rewards',
+          'Verify matrix root qualification',
+          'Check NFT price calculations',
+          'Verify reward status (pending/claimable/rolled_up)'
+        ] : []
+      }
+    };
+  } catch (error) {
+    return { success: false, error: `Missing layer rewards check failed: ${error.message}` };
   }
 }
 

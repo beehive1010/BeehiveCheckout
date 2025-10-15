@@ -281,6 +281,17 @@ export function useNFTClaim() {
         if (!activateResponse.ok) {
           const errorText = await activateResponse.text();
           console.error('❌ Activation API call failed:', errorText);
+          console.error('❌ Response status:', activateResponse.status);
+          console.error('❌ Response statusText:', activateResponse.statusText);
+
+          // Parse error details
+          let errorDetails = errorText;
+          try {
+            const errorJson = JSON.parse(errorText);
+            errorDetails = errorJson.error || errorJson.message || errorText;
+          } catch (e) {
+            // Keep original errorText if not JSON
+          }
 
           // ✅ FIX: Record to claim_sync_queue for automatic retry
           let queuedSuccessfully = false;
@@ -293,38 +304,62 @@ export function useNFTClaim() {
                 tx_hash: claimTxResult.transactionHash,
                 status: 'pending',
                 source: activationEndpoint === 'level-upgrade' ? 'level_upgrade' : 'activate_membership',
-                error_message: errorText.substring(0, 500), // Limit error message length
+                error_message: `API Error (${activateResponse.status}): ${errorDetails}`.substring(0, 500),
                 created_at: new Date().toISOString(),
               });
 
             if (queueError) {
               console.error('❌ Failed to add to sync queue:', queueError);
+
+              // Check if this is a duplicate tx_hash error (meaning already queued)
+              if (queueError.code === '23505') {
+                console.log('✅ Transaction already queued for retry (duplicate tx_hash)');
+                queuedSuccessfully = true;
+              }
             } else {
               console.log('✅ Added to claim_sync_queue for automatic retry:', queueData);
               queuedSuccessfully = true;
             }
-          } catch (queueInsertError) {
+          } catch (queueInsertError: any) {
             console.error('❌ Queue insert exception:', queueInsertError);
+
+            // Check for duplicate key error
+            if (queueInsertError.code === '23505' || queueInsertError.message?.includes('duplicate')) {
+              console.log('✅ Transaction already queued (caught duplicate error)');
+              queuedSuccessfully = true;
+            }
           }
 
-          // ✅ FIX: User-friendly message with automatic retry info
+          // ✅ Enhanced user-friendly message
+          const toastTitle = queuedSuccessfully
+            ? '✅ NFT Claimed Successfully!'
+            : '⚠️ NFT Claimed - Activation Pending';
+
+          const toastDescription = queuedSuccessfully
+            ? 'Your Level ' + level + ' NFT has been claimed! Membership activation is processing automatically and will complete within 5 minutes. You can safely close this page.'
+            : 'Your NFT was minted successfully! However, the membership activation encountered an issue. Our system will automatically retry. Please refresh your dashboard in a few minutes or contact support with this transaction: ' + claimTxResult.transactionHash.substring(0, 16) + '...';
+
           toast({
-            title: '⚠️ Activation Processing',
-            description: queuedSuccessfully
-              ? 'Your NFT has been claimed successfully! The activation is being processed and will complete automatically within 5 minutes. You can check your status in the dashboard.'
-              : 'NFT claimed successfully, but database activation failed. Please contact support with your transaction hash: ' + claimTxResult.transactionHash.substring(0, 10) + '...',
+            title: toastTitle,
+            description: toastDescription,
             variant: queuedSuccessfully ? 'default' : 'destructive',
-            duration: 10000,
+            duration: 12000,
           });
 
-          // Don't call onSuccess if activation failed
-          // Return partial success with error details
+          // Even if activation failed, the NFT was claimed successfully
+          // Call onSuccess to allow user to proceed
+          if (queuedSuccessfully && onSuccess) {
+            console.log('🎯 NFT claimed successfully, queued for activation retry - calling onSuccess');
+            setTimeout(() => onSuccess(), 2000);
+          }
+
+          // Return partial success
           return {
-            success: false,
+            success: queuedSuccessfully, // Consider it successful if queued for retry
             txHash: claimTxResult.transactionHash,
-            error: `Activation failed: ${errorText}`,
-            nftClaimed: true, // NFT was claimed but activation failed
-            queuedForRetry: queuedSuccessfully // Whether successfully added to queue
+            error: queuedSuccessfully ? undefined : `Activation failed: ${errorDetails}`,
+            nftClaimed: true,
+            queuedForRetry: queuedSuccessfully
           };
         }
 
