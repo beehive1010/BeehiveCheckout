@@ -69,7 +69,7 @@ export default function AdminDashboard() {
 
   const loadDashboardStats = async () => {
     try {
-      console.log('🔍 Loading.tsx dashboard stats...');
+      console.log('🔍 Loading dashboard stats...');
       console.log('Environment vars:', {
         url: import.meta.env.VITE_SUPABASE_URL,
         key: import.meta.env.VITE_SUPABASE_ANON_KEY ? 'Set' : 'Missing'
@@ -82,27 +82,40 @@ export default function AdminDashboard() {
         throw new Error('Missing Supabase configuration. Please set VITE_SUPABASE_URL and VITE_SUPABASE_ANON_KEY environment variables.');
       }
 
+      // Get user session token for authenticated requests
+      const { supabase } = await import('../../lib/supabase');
+      const { data: { session } } = await supabase.auth.getSession();
+      const userToken = session?.access_token || supabaseKey;
+
+      console.log('📊 Using', session ? 'user token' : 'anon key', 'for admin queries');
+
       // Use multiple endpoint calls to get accurate data
       const [usersResponse, membersResponse, rewardsResponse] = await Promise.allSettled([
         // Get total users count
-        fetch(`${supabaseUrl}/rest/v1/users?select=wallet_address&count=exact&head=true`, {
+        fetch(`${supabaseUrl}/rest/v1/users?select=wallet_address`, {
           headers: {
             'apikey': supabaseKey,
-            'Authorization': `Bearer ${supabaseKey}`,
+            'Authorization': `Bearer ${userToken}`,
+            'Prefer': 'count=exact',
+            'Range': '0-0',
           },
         }),
-        // Get ActiveMember members count
-        fetch(`${supabaseUrl}/rest/v1/members?select=wallet_address&current_level=gt.0&count=exact&head=true`, {
+        // Get active members count
+        fetch(`${supabaseUrl}/rest/v1/members?select=wallet_address&current_level=gt.0`, {
           headers: {
             'apikey': supabaseKey,
-            'Authorization': `Bearer ${supabaseKey}`,
+            'Authorization': `Bearer ${userToken}`,
+            'Prefer': 'count=exact',
+            'Range': '0-0',
           },
         }),
         // Get pending rewards count
-        fetch(`${supabaseUrl}/rest/v1/layer_rewards?select=id&status=eq.pending&count=exact&head=true`, {
+        fetch(`${supabaseUrl}/rest/v1/layer_rewards?select=id&status=eq.pending`, {
           headers: {
             'apikey': supabaseKey,
-            'Authorization': `Bearer ${supabaseKey}`,
+            'Authorization': `Bearer ${userToken}`,
+            'Prefer': 'count=exact',
+            'Range': '0-0',
           },
         })
       ]);
