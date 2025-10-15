@@ -25,6 +25,8 @@ const AdminAuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }
         const { data: { session } } = await supabase.auth.getSession();
         
         if (session?.user) {
+          console.log('🔍 Checking admin status for user:', session.user.email, 'ID:', session.user.id);
+
           // Verify this is an admin user (admins table uses id as primary key matching auth.users.id)
           const { data: adminData, error } = await supabase
             .from('admins')
@@ -32,6 +34,13 @@ const AdminAuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }
             .eq('id', session.user.id)
             .eq('is_active', true)
             .single();
+
+          if (error) {
+            console.error('❌ Error querying admins table:', error);
+            console.error('   Error code:', error.code);
+            console.error('   Error message:', error.message);
+            console.error('   Error details:', error.details);
+          }
 
           if (!error && adminData) {
             setIsAdminAuthenticated(true);
@@ -48,8 +57,10 @@ const AdminAuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }
             // Not an admin user or inactive - just reset admin state, don't sign out regular users
             setIsAdminAuthenticated(false);
             setAdminUser(null);
-            console.log('🔍 User is not an admin, but keeping regular user session ActiveMember');
+            console.log('🔍 User is not an admin, but keeping regular user session');
           }
+        } else {
+          console.log('⚠️ No session found on page load');
         }
       } catch (error) {
         console.error('Error checking admin session:', error);
