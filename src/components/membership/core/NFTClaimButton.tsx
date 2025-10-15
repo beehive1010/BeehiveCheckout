@@ -243,11 +243,12 @@ export function useNFTClaim() {
       }
       console.log('🔗 Transaction hash:', claimTxResult.transactionHash);
 
-      // ✅ FIX: Wait additional 5 seconds for Arbitrum node state synchronization
+      // ✅ FIX: Wait additional 10 seconds for Arbitrum node state synchronization
       // This ensures the NFT balance is queryable before calling activate-membership
-      console.log('⏳ Waiting for blockchain state sync (5 seconds)...');
+      // Increased from 5s to 10s to handle network congestion
+      console.log('⏳ Waiting for blockchain state sync (10 seconds)...');
       setCurrentStep('Syncing blockchain state...');
-      await new Promise(resolve => setTimeout(resolve, 5000));
+      await new Promise(resolve => setTimeout(resolve, 10000));
 
       // Step 5: Call activation endpoint if provided
       if (activationEndpoint) {
