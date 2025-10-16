@@ -254,30 +254,76 @@ export function useNFTClaim() {
       if (activationEndpoint) {
         toast({
           title: '🎉 NFT Claimed!',
-          description: 'Processing membership activation...',
-          duration: 5000,
+          description: 'Processing membership activation... This may take up to 60 seconds. Please do not close this page.',
+          duration: 8000,
         });
 
         setCurrentStep('Activating membership...');
 
         const API_BASE = import.meta.env.VITE_API_BASE_URL || 'https://cvqibjcbfrwsgkvthccp.supabase.co/functions/v1';
 
-        const activateResponse = await fetch(`${API_BASE}/${activationEndpoint}`, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${import.meta.env.VITE_SUPABASE_ANON_KEY}`,
-            'x-wallet-address': account.address,
-          },
-          body: JSON.stringify({
-            action: activationEndpoint === 'level-upgrade' ? 'upgrade_level' : undefined,  // ✅ Add action for level-upgrade
-            walletAddress: account.address,        // ✅ Match Edge Function parameter name
-            level,
-            transactionHash: claimTxResult.transactionHash,  // ✅ Match Edge Function parameter name
-            paymentAmount: priceUSDT,
-            ...activationPayload,  // Contains targetLevel, network, etc.
-          }),
-        });
+        // ✅ FIX: Add timeout protection (60 seconds)
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 60000); // 60 seconds
+
+        let activateResponse: Response;
+        try {
+          activateResponse = await fetch(`${API_BASE}/${activationEndpoint}`, {
+            method: 'POST',
+            signal: controller.signal, // ✅ Add abort signal
+            headers: {
+              'Content-Type': 'application/json',
+              'Authorization': `Bearer ${import.meta.env.VITE_SUPABASE_ANON_KEY}`,
+              'x-wallet-address': account.address,
+            },
+            body: JSON.stringify({
+              action: activationEndpoint === 'level-upgrade' ? 'upgrade_level' : undefined,  // ✅ Add action for level-upgrade
+              walletAddress: account.address,        // ✅ Match Edge Function parameter name
+              level,
+              transactionHash: claimTxResult.transactionHash,  // ✅ Match Edge Function parameter name
+              paymentAmount: priceUSDT,
+              ...activationPayload,  // Contains targetLevel, network, etc.
+            }),
+          });
+          clearTimeout(timeoutId); // ✅ Clear timeout if successful
+        } catch (fetchError: any) {
+          clearTimeout(timeoutId);
+
+          // ✅ Handle timeout specifically
+          if (fetchError.name === 'AbortError') {
+            console.error('❌ API call timeout after 60 seconds');
+
+            // Queue for automatic retry
+            try {
+              await supabase.from('claim_sync_queue').insert({
+                wallet_address: account.address,
+                level: level,
+                tx_hash: claimTxResult.transactionHash,
+                status: 'pending',
+                source: activationEndpoint === 'level-upgrade' ? 'level_upgrade' : 'activate_membership',
+                error_message: `API timeout after 60 seconds`,
+                created_at: new Date().toISOString(),
+              });
+
+              toast({
+                title: '✅ NFT Claimed - Activation Queued',
+                description: `Your Level ${level} NFT has been claimed! The activation is taking longer than expected, but our system will complete it automatically within 5 minutes. You can safely close this page.`,
+                duration: 15000,
+              });
+
+              if (onSuccess) {
+                setTimeout(() => onSuccess(), 2000);
+              }
+
+              return { success: true, txHash: claimTxResult.transactionHash, queuedForRetry: true };
+            } catch (queueError) {
+              console.error('❌ Failed to queue timeout claim:', queueError);
+            }
+          }
+
+          // Re-throw other errors to be handled by outer catch
+          throw fetchError;
+        }
 
         if (!activateResponse.ok) {
           const errorText = await activateResponse.text();
