@@ -593,16 +593,100 @@ async function processLevelUpgrade(
       }
     }
 
-    // 3. Verify blockchain transaction (if not simulation)
-    if (transactionHash && transactionHash !== 'simulation') {
-      const transactionResult = await verifyUpgradeTransaction(transactionHash, walletAddress, targetLevel, network)
-      if (!transactionResult.success) {
+    // 3. VERIFY ON-CHAIN NFT OWNERSHIP (like activate-membership)
+    console.log(`🔐 Verifying on-chain NFT ownership for Level ${targetLevel}...`);
+
+    try {
+      const thirdwebClientId = Deno.env.get('VITE_THIRDWEB_CLIENT_ID');
+      const thirdwebSecretKey = Deno.env.get('VITE_THIRDWEB_SECRET_KEY');
+
+      if (!thirdwebClientId) {
+        throw new Error('VITE_THIRDWEB_CLIENT_ID environment variable is required');
+      }
+
+      const { createThirdwebClient, getContract, readContract } = await import('https://esm.sh/thirdweb@5');
+      const { arbitrum } = await import('https://esm.sh/thirdweb@5/chains');
+
+      const client = createThirdwebClient({
+        clientId: thirdwebClientId,
+        secretKey: thirdwebSecretKey
+      });
+
+      // Check both contracts: old ARB ONE and new ARB ONE
+      const contractAddresses = [
+        { chain: arbitrum, address: '0x15742D22f64985bC124676e206FCE3fFEb175719', name: 'ARB ONE Old' },
+        { chain: arbitrum, address: '0x018F516B0d1E77Cc5947226Abc2E864B167C7E29', name: 'ARB ONE New (2025-10-08)' }
+      ];
+
+      let hasNFT = false;
+      let totalBalance = BigInt(0);
+      let contractFound = '';
+
+      // Check each contract
+      for (const contractInfo of contractAddresses) {
+        try {
+          const contract = getContract({
+            client,
+            chain: contractInfo.chain,
+            address: contractInfo.address
+          });
+
+          const balance = await readContract({
+            contract,
+            method: "function balanceOf(address account, uint256 id) view returns (uint256)",
+            params: [walletAddress, BigInt(targetLevel)]
+          });
+
+          if (Number(balance) > 0) {
+            hasNFT = true;
+            totalBalance = balance;
+            contractFound = contractInfo.name;
+            console.log(`✅ Found Level ${targetLevel} NFT on ${contractInfo.name}: balance = ${balance.toString()}`);
+            break; // Found NFT, no need to check further
+          } else {
+            console.log(`❌ No Level ${targetLevel} NFT on ${contractInfo.name}`);
+          }
+        } catch (error) {
+          console.error(`⚠️ Error checking ${contractInfo.name}:`, error);
+          // Continue to next contract
+        }
+      }
+
+      if (!hasNFT) {
+        console.error(`❌ NFT ownership verification failed: User does not own Level ${targetLevel} NFT on any supported chain`);
         return {
           success: false,
           action: 'upgrade_level',
-          message: 'Blockchain transaction verification failed',
-          error: transactionResult.error
+          message: `You must own a Level ${targetLevel} membership NFT on-chain before upgrade activation`,
+          error: 'NFT_OWNERSHIP_REQUIRED'
+        };
+      }
+
+      console.log(`✅ NFT ownership verified on ${contractFound}: Level ${targetLevel} balance = ${totalBalance.toString()}`);
+
+    } catch (error) {
+      console.error('❌ NFT ownership verification error:', error);
+
+      // ⚠️ FALLBACK: If on-chain verification fails, try transaction hash verification
+      if (transactionHash && transactionHash !== 'simulation') {
+        console.log('⚠️ Falling back to transaction hash verification...');
+        const transactionResult = await verifyUpgradeTransaction(transactionHash, walletAddress, targetLevel, network);
+        if (!transactionResult.success) {
+          return {
+            success: false,
+            action: 'upgrade_level',
+            message: 'Both NFT ownership and transaction verification failed',
+            error: transactionResult.error
+          };
         }
+        console.log('✅ Transaction hash verification passed');
+      } else {
+        return {
+          success: false,
+          action: 'upgrade_level',
+          message: `Failed to verify NFT ownership: ${(error as Error).message}`,
+          error: 'NFT_VERIFICATION_FAILED'
+        };
       }
     }
 

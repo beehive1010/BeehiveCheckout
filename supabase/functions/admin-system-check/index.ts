@@ -45,6 +45,12 @@ serve(async (req) => {
       case 'matrix_gaps':
         result = await checkMatrixGaps(supabaseClient);
         break;
+      case 'layer_rewards_check':
+        result = await checkLayerRewardsValidation(supabaseClient);
+        break;
+      case 'user_balance_check':
+        result = await checkUserBalanceValidation(supabaseClient);
+        break;
       case 'reward_system_check':
         result = await checkRewardSystem(supabaseClient);
         break;
@@ -93,6 +99,12 @@ serve(async (req) => {
       case 'balance_sync_check':
         result = await checkBalanceSync(supabaseClient);
         break;
+      case 'activation_flow_check':
+        result = await checkActivationFlow(supabaseClient);
+        break;
+      case 'upgrade_flow_check':
+        result = await checkUpgradeFlow(supabaseClient);
+        break;
       default:
         result = {
           success: false,
@@ -125,42 +137,43 @@ serve(async (req) => {
 
 async function checkUsersSync(supabase: any): Promise<SystemCheckResult> {
   try {
-    // Check for users without corresponding members records
-    const { data: orphanUsers, error: orphanError } = await supabase
+    // Get all wallet addresses from both tables
+    const { data: allUsers, error: usersError } = await supabase
       .from('users')
-      .select('wallet_address, username')
-      .not('wallet_address', 'in', 
-        supabase.from('members').select('wallet_address')
-      );
+      .select('wallet_address, username');
 
-    if (orphanError) throw orphanError;
+    if (usersError) throw usersError;
 
-    // Check for members without corresponding users records
-    const { data: orphanMembers, error: orphanMembersError } = await supabase
+    const { data: allMembers, error: membersError } = await supabase
       .from('members')
-      .select('wallet_address, current_level')
-      .not('wallet_address', 'in',
-        supabase.from('users').select('wallet_address')
-      );
+      .select('wallet_address, current_level');
 
-    if (orphanMembersError) throw orphanMembersError;
+    if (membersError) throw membersError;
 
-    const totalIssues = (orphanUsers?.length || 0) + (orphanMembers?.length || 0);
+    // Create sets for comparison (case-insensitive)
+    const userWallets = new Set((allUsers || []).map(u => u.wallet_address.toLowerCase()));
+    const memberWallets = new Set((allMembers || []).map(m => m.wallet_address.toLowerCase()));
+
+    // Find orphans
+    const orphanUsers = (allUsers || []).filter(u => !memberWallets.has(u.wallet_address.toLowerCase()));
+    const orphanMembers = (allMembers || []).filter(m => !userWallets.has(m.wallet_address.toLowerCase()));
+
+    const totalIssues = orphanUsers.length + orphanMembers.length;
 
     return {
       success: true,
       data: {
         issues: totalIssues,
-        details: `Found ${orphanUsers?.length || 0} users without member records and ${orphanMembers?.length || 0} members without user records`,
+        details: `Found ${orphanUsers.length} users without member records and ${orphanMembers.length} members without user records`,
         breakdown: {
-          orphan_users: orphanUsers?.length || 0,
-          orphan_members: orphanMembers?.length || 0,
-          users_without_members: orphanUsers?.map(u => ({ wallet: u.wallet_address, username: u.username })) || [],
-          members_without_users: orphanMembers?.map(m => ({ wallet: m.wallet_address, level: m.current_level })) || []
+          orphan_users: orphanUsers.length,
+          orphan_members: orphanMembers.length,
+          users_without_members: orphanUsers.map(u => ({ wallet: u.wallet_address, username: u.username })),
+          members_without_users: orphanMembers.map(m => ({ wallet: m.wallet_address, level: m.current_level }))
         },
         recommendations: totalIssues > 0 ? [
           'Create missing member records for orphaned users',
-          'Create missing user records for orphaned members', 
+          'Create missing user records for orphaned members',
           'Verify wallet address consistency',
           'Check for case sensitivity issues in addresses'
         ] : []
@@ -176,34 +189,52 @@ async function checkUsersSync(supabase: any): Promise<SystemCheckResult> {
 
 async function checkMembershipSync(supabase: any): Promise<SystemCheckResult> {
   try {
-    // Check for inconsistencies between users.membership_level and members.current_level
-    const { data: inconsistentLevels, error } = await supabase
-      .from('users')
-      .select(`
-        wallet_address,
-        username,
-        membership_level,
-        members!inner(current_level)
-      `)
-      .neq('membership_level', 'members.current_level');
+    // Check for members without corresponding membership NFT records
+    const { data: allMembers, error: membersError } = await supabase
+      .from('members')
+      .select('wallet_address, current_level')
+      .gte('current_level', 1);
 
-    if (error) throw error;
+    if (membersError) throw membersError;
 
-    const issues = Array.isArray(inconsistentLevels) ? inconsistentLevels.length : 0;
+    const inconsistentLevels = [];
+
+    // Check each member's highest NFT level
+    for (const member of allMembers || []) {
+      const { data: memberships, error: membershipError } = await supabase
+        .from('membership')
+        .select('nft_level')
+        .eq('wallet_address', member.wallet_address)
+        .order('nft_level', { ascending: false })
+        .limit(1);
+
+      if (membershipError) continue;
+
+      const highestNFT = memberships?.[0]?.nft_level || 0;
+
+      if (highestNFT !== member.current_level) {
+        inconsistentLevels.push({
+          wallet_address: member.wallet_address,
+          current_level: member.current_level,
+          highest_nft_level: highestNFT,
+          difference: member.current_level - highestNFT
+        });
+      }
+    }
 
     return {
       success: true,
       data: {
-        issues,
-        details: `Found ${issues} users with inconsistent membership levels between users and members tables`,
+        issues: inconsistentLevels.length,
+        details: `Found ${inconsistentLevels.length} members with inconsistent levels between members table and NFT ownership`,
         breakdown: {
-          inconsistent_levels: inconsistentLevels || [],
-          affected_wallets: inconsistentLevels?.map(u => u.wallet_address) || []
+          inconsistent_levels: inconsistentLevels,
+          affected_wallets: inconsistentLevels.map(u => u.wallet_address)
         },
-        recommendations: issues > 0 ? [
-          'Sync membership levels between tables',
+        recommendations: inconsistentLevels.length > 0 ? [
+          'Sync membership levels with NFT ownership',
           'Update activation timestamps',
-          'Verify NFT ownership matches membership level',
+          'Verify NFT claims are reflected in members table',
           'Check for recent level upgrades not reflected'
         ] : []
       }
@@ -218,47 +249,58 @@ async function checkMembershipSync(supabase: any): Promise<SystemCheckResult> {
 
 async function checkReferralsSync(supabase: any): Promise<SystemCheckResult> {
   try {
-    // Check for invalid referral relationships in referrals table
+    // Check matrix_referrals table for invalid referral relationships
     const { data: invalidReferrals, error } = await supabase
-      .from('referrals')
-      .select('referrer_wallet, member_wallet, matrix_layer, matrix_position')
-      .or('referrer_wallet.is.null,member_wallet.is.null,matrix_position.is.null');
+      .from('matrix_referrals')
+      .select('matrix_root_wallet, member_wallet, layer, position')
+      .or('matrix_root_wallet.is.null,member_wallet.is.null,position.is.null');
 
     if (error) throw error;
 
-    // Check for self-referrals
+    // Check for self-referrals in matrix
     const { data: selfReferrals, error: selfError } = await supabase
-      .from('referrals')
-      .select('referrer_wallet, member_wallet')
-      .filter('referrer_wallet', 'eq', 'member_wallet');
+      .from('matrix_referrals')
+      .select('matrix_root_wallet, member_wallet')
+      .eq('matrix_root_wallet', 'member_wallet');
 
     if (selfError) throw selfError;
 
-    // Check for duplicate referral records
-    const { data: duplicates, error: dupError } = await supabase
-      .rpc('find_duplicate_referrals');
+    // Check for members without any matrix placement
+    const { data: allMembers, error: membersError } = await supabase
+      .from('members')
+      .select('wallet_address');
 
-    if (dupError && !dupError.message.includes('function does not exist')) throw dupError;
+    if (membersError) throw membersError;
 
-    const totalIssues = (invalidReferrals?.length || 0) + (selfReferrals?.length || 0) + (duplicates?.length || 0);
+    const { data: placedMembers, error: placedError } = await supabase
+      .from('matrix_referrals')
+      .select('member_wallet');
+
+    if (placedError) throw placedError;
+
+    const placedSet = new Set((placedMembers || []).map(p => p.member_wallet.toLowerCase()));
+    const unplacedMembers = (allMembers || []).filter(m => !placedSet.has(m.wallet_address.toLowerCase()));
+
+    const totalIssues = (invalidReferrals?.length || 0) + (selfReferrals?.length || 0) + unplacedMembers.length;
 
     return {
       success: true,
       data: {
         issues: totalIssues,
-        details: `Found ${invalidReferrals?.length || 0} invalid referrals, ${selfReferrals?.length || 0} self-referrals, and ${duplicates?.length || 0} duplicates`,
+        details: `Found ${invalidReferrals?.length || 0} invalid matrix referrals, ${selfReferrals?.length || 0} self-referrals, and ${unplacedMembers.length} unplaced members`,
         breakdown: {
           invalid_referrals: invalidReferrals?.length || 0,
           self_referrals: selfReferrals?.length || 0,
-          duplicate_referrals: duplicates?.length || 0,
+          unplaced_members: unplacedMembers.length,
           invalid_details: invalidReferrals || [],
-          self_referral_details: selfReferrals || []
+          self_referral_details: selfReferrals || [],
+          unplaced_wallets: unplacedMembers.map(m => m.wallet_address)
         },
         recommendations: totalIssues > 0 ? [
           'Remove invalid referral records',
           'Fix self-referral entries',
-          'Remove duplicate referral records',
-          'Validate all referrer wallet addresses exist',
+          'Place unplaced members in matrix',
+          'Validate all matrix root wallet addresses exist',
           'Check matrix position integrity'
         ] : []
       }
@@ -273,13 +315,40 @@ async function checkReferralsSync(supabase: any): Promise<SystemCheckResult> {
 
 async function checkMatrixGaps(supabase: any): Promise<SystemCheckResult> {
   try {
-    // Check for matrix position conflicts (multiple members in same position)
-    const { data: positionConflicts, error } = await supabase
-      .rpc('find_matrix_position_conflicts');
+    // Check for matrix position conflicts by finding duplicate positions
+    const { data: allPlacements, error } = await supabase
+      .from('matrix_referrals')
+      .select('matrix_root_wallet, layer, position, member_wallet');
 
-    if (error && !error.message.includes('function does not exist')) throw error;
+    if (error) throw error;
 
-    const conflicts = positionConflicts?.length || 0;
+    // Group by root + layer + position to find conflicts
+    const positionMap = new Map<string, any[]>();
+
+    for (const placement of allPlacements || []) {
+      const key = `${placement.matrix_root_wallet}|${placement.layer}|${placement.position}`;
+      if (!positionMap.has(key)) {
+        positionMap.set(key, []);
+      }
+      positionMap.get(key)!.push(placement);
+    }
+
+    // Find conflicts (multiple members in same position)
+    const positionConflicts = [];
+    for (const [key, placements] of positionMap.entries()) {
+      if (placements.length > 1) {
+        const [root, layer, position] = key.split('|');
+        positionConflicts.push({
+          matrix_root_wallet: root,
+          layer: parseInt(layer),
+          position,
+          members: placements.map(p => p.member_wallet),
+          count: placements.length
+        });
+      }
+    }
+
+    const conflicts = positionConflicts.length;
 
     return {
       success: true,
@@ -287,8 +356,8 @@ async function checkMatrixGaps(supabase: any): Promise<SystemCheckResult> {
         issues: conflicts,
         details: `Found ${conflicts} matrix position conflicts that need resolution`,
         breakdown: {
-          position_conflicts: positionConflicts || [],
-          affected_roots: positionConflicts?.map(c => c.matrix_root_wallet) || []
+          position_conflicts: positionConflicts,
+          affected_roots: [...new Set(positionConflicts.map(c => c.matrix_root_wallet))]
         },
         recommendations: conflicts > 0 ? [
           'Resolve position conflicts using priority rules (direct > spillover, earlier timestamp)',
@@ -1204,6 +1273,513 @@ async function checkBalanceSync(supabase: any): Promise<SystemCheckResult> {
     return {
       success: false,
       error: `Balance sync check failed: ${error.message}`
+    };
+  }
+}
+/**
+ * Check layer_rewards table for inconsistencies
+ */
+async function checkLayerRewardsValidation(supabase: any): Promise<SystemCheckResult> {
+  try {
+    console.log('🔍 Checking layer rewards validation...');
+
+    // Get all layer rewards
+    const { data: layerRewards, error: rewardsError } = await supabase
+      .from('layer_rewards')
+      .select('*');
+
+    if (rewardsError) throw rewardsError;
+
+    const issues = [];
+    const statusBreakdown = {
+      pending: 0,
+      claimable: 0,
+      claimed: 0,
+      rolled_up: 0,
+      expired: 0
+    };
+
+    // Analyze layer rewards
+    for (const reward of layerRewards || []) {
+      // Count by status
+      if (statusBreakdown[reward.status] !== undefined) {
+        statusBreakdown[reward.status]++;
+      }
+
+      // Check for negative amounts
+      if (parseFloat(reward.reward_amount) <= 0) {
+        issues.push({
+          type: 'negative_amount',
+          reward_id: reward.id,
+          amount: reward.reward_amount,
+          recipient: reward.reward_recipient_wallet
+        });
+      }
+
+      // Check for missing required fields
+      if (!reward.triggering_member_wallet || !reward.reward_recipient_wallet) {
+        issues.push({
+          type: 'missing_wallets',
+          reward_id: reward.id,
+          triggering_member: reward.triggering_member_wallet,
+          recipient: reward.reward_recipient_wallet
+        });
+      }
+    }
+
+    const totalIssues = issues.length;
+
+    return {
+      success: true,
+      data: {
+        issues: totalIssues,
+        details: `Analyzed ${layerRewards?.length || 0} layer rewards, found ${totalIssues} issues`,
+        breakdown: {
+          total_layer_rewards: layerRewards?.length || 0,
+          status_breakdown: statusBreakdown,
+          issues_by_type: issues.reduce((acc, issue) => {
+            acc[issue.type] = (acc[issue.type] || 0) + 1;
+            return acc;
+          }, {}),
+          issue_details: issues.slice(0, 10) // Limit to first 10 for display
+        },
+        recommendations: totalIssues > 0 ? [
+          'Fix negative reward amounts',
+          'Fill in missing wallet addresses',
+          'Review layer reward calculation logic',
+          'Check reward assignment triggers'
+        ] : [
+          'Layer rewards system is healthy',
+          'Continue monitoring reward distribution'
+        ]
+      }
+    };
+  } catch (error) {
+    return {
+      success: false,
+      error: `Layer rewards validation failed: ${error.message}`
+    };
+  }
+}
+
+/**
+ * Check user_balances table and BCC calculations
+ */
+async function checkUserBalanceValidation(supabase: any): Promise<SystemCheckResult> {
+  try {
+    console.log('🔍 Checking user balance validation...');
+
+    // Get all user balances
+    const { data: userBalances, error: balancesError } = await supabase
+      .from('user_balances')
+      .select('*');
+
+    if (balancesError) throw balancesError;
+
+    const issues = [];
+
+    for (const balance of userBalances || []) {
+      // Check for negative balances
+      if (parseFloat(balance.available_balance || 0) < 0) {
+        issues.push({
+          type: 'negative_available_balance',
+          wallet_address: balance.wallet_address,
+          available_balance: balance.available_balance
+        });
+      }
+
+      if (parseFloat(balance.total_earned || 0) < 0) {
+        issues.push({
+          type: 'negative_total_earned',
+          wallet_address: balance.wallet_address,
+          total_earned: balance.total_earned
+        });
+      }
+
+      // Check if available_balance > total_earned (impossible)
+      const available = parseFloat(balance.available_balance || 0);
+      const earned = parseFloat(balance.total_earned || 0);
+      if (available > earned) {
+        issues.push({
+          type: 'available_exceeds_earned',
+          wallet_address: balance.wallet_address,
+          available_balance: available,
+          total_earned: earned,
+          difference: available - earned
+        });
+      }
+
+      // Check for missing wallet address
+      if (!balance.wallet_address) {
+        issues.push({
+          type: 'missing_wallet_address',
+          balance_id: balance.id || 'unknown'
+        });
+      }
+    }
+
+    const totalIssues = issues.length;
+    const totalWallets = userBalances?.length || 0;
+    const totalBalance = userBalances?.reduce((sum, b) => sum + parseFloat(b.available_balance || 0), 0) || 0;
+    const totalEarned = userBalances?.reduce((sum, b) => sum + parseFloat(b.total_earned || 0), 0) || 0;
+
+    return {
+      success: true,
+      data: {
+        issues: totalIssues,
+        details: `Validated ${totalWallets} user balances, found ${totalIssues} issues`,
+        breakdown: {
+          total_wallets: totalWallets,
+          total_available_balance: totalBalance.toFixed(2),
+          total_earned: totalEarned.toFixed(2),
+          issues_by_type: issues.reduce((acc, issue) => {
+            acc[issue.type] = (acc[issue.type] || 0) + 1;
+            return acc;
+          }, {}),
+          issue_details: issues.slice(0, 10) // Limit to first 10 for display
+        },
+        recommendations: totalIssues > 0 ? [
+          'Fix negative balance records',
+          'Correct available > earned inconsistencies',
+          'Fill in missing wallet addresses',
+          'Review balance calculation logic'
+        ] : [
+          'User balances system is healthy',
+          'All balance calculations are consistent'
+        ]
+      }
+    };
+  } catch (error) {
+    return {
+      success: false,
+      error: `User balance validation failed: ${error.message}`
+    };
+  }
+}
+
+/**
+ * Check Level 1 Activation Flow Integrity
+ * Validates: users → members → membership → referrals → matrix_referrals → direct_rewards → user_balances
+ */
+async function checkActivationFlow(supabase: any): Promise<SystemCheckResult> {
+  try {
+    console.log('🔍 Checking Level 1 activation flow integrity...');
+
+    // Get all activated members (level >= 1)
+    const { data: activatedMembers, error: membersError } = await supabase
+      .from('members')
+      .select('wallet_address, referrer_wallet, activation_sequence, current_level')
+      .gte('current_level', 1)
+      .order('activation_sequence');
+
+    if (membersError) throw membersError;
+
+    const issues = [];
+    const flowStats = {
+      total_activated: activatedMembers?.length || 0,
+      missing_users: 0,
+      missing_membership: 0,
+      missing_referrals: 0,
+      missing_matrix_placement: 0,
+      incomplete_matrix_layers: 0,
+      missing_direct_rewards: 0,
+      missing_user_balances: 0
+    };
+
+    for (const member of activatedMembers || []) {
+      const memberIssues: string[] = [];
+      const isGenesis = member.activation_sequence === 1;
+
+      // 1. Check users table
+      const { data: userRecord } = await supabase
+        .from('users')
+        .select('wallet_address')
+        .ilike('wallet_address', member.wallet_address)
+        .maybeSingle();
+
+      if (!userRecord) {
+        memberIssues.push('missing_user_record');
+        flowStats.missing_users++;
+      }
+
+      // 2. Check membership table (should have Level 1 NFT)
+      const { data: membershipRecords } = await supabase
+        .from('membership')
+        .select('nft_level')
+        .ilike('wallet_address', member.wallet_address)
+        .eq('nft_level', 1);
+
+      if (!membershipRecords || membershipRecords.length === 0) {
+        memberIssues.push('missing_level_1_membership');
+        flowStats.missing_membership++;
+      }
+
+      // 3. Check referrals table (unless genesis member)
+      if (!isGenesis && member.referrer_wallet) {
+        const { data: referralRecord } = await supabase
+          .from('referrals')
+          .select('id')
+          .ilike('referred_wallet', member.wallet_address)
+          .ilike('referrer_wallet', member.referrer_wallet)
+          .maybeSingle();
+
+        if (!referralRecord) {
+          memberIssues.push('missing_referral_record');
+          flowStats.missing_referrals++;
+        }
+      }
+
+      // 4. Check matrix_referrals (should have placements in all 19 layers)
+      const { data: matrixPlacements } = await supabase
+        .from('matrix_referrals')
+        .select('layer')
+        .ilike('member_wallet', member.wallet_address);
+
+      if (!matrixPlacements || matrixPlacements.length === 0) {
+        memberIssues.push('no_matrix_placement');
+        flowStats.missing_matrix_placement++;
+      } else if (matrixPlacements.length < 19) {
+        memberIssues.push(`incomplete_matrix_layers (has ${matrixPlacements.length}/19)`);
+        flowStats.incomplete_matrix_layers++;
+      }
+
+      // 5. Check direct_rewards (referrer should have received 100 USDT)
+      if (!isGenesis && member.referrer_wallet) {
+        const { data: directReward } = await supabase
+          .from('direct_rewards')
+          .select('id, status')
+          .ilike('triggering_member_wallet', member.wallet_address)
+          .ilike('reward_recipient_wallet', member.referrer_wallet)
+          .maybeSingle();
+
+        if (!directReward) {
+          memberIssues.push('missing_direct_reward_for_referrer');
+          flowStats.missing_direct_rewards++;
+        }
+      }
+
+      // 6. Check user_balances
+      const { data: balanceRecord } = await supabase
+        .from('user_balances')
+        .select('wallet_address')
+        .ilike('wallet_address', member.wallet_address)
+        .maybeSingle();
+
+      if (!balanceRecord) {
+        memberIssues.push('missing_user_balance');
+        flowStats.missing_user_balances++;
+      }
+
+      // Record issues for this member
+      if (memberIssues.length > 0) {
+        issues.push({
+          wallet_address: member.wallet_address,
+          activation_sequence: member.activation_sequence,
+          current_level: member.current_level,
+          is_genesis: isGenesis,
+          issues: memberIssues
+        });
+      }
+    }
+
+    const totalIssues = issues.length;
+
+    return {
+      success: true,
+      data: {
+        issues: totalIssues,
+        details: `Validated activation flow for ${flowStats.total_activated} members, found ${totalIssues} members with incomplete flows`,
+        breakdown: {
+          flow_statistics: flowStats,
+          members_with_issues: totalIssues,
+          issue_details: issues.slice(0, 20), // Show first 20
+          issue_types_summary: {
+            'Missing user records': flowStats.missing_users,
+            'Missing Level 1 membership': flowStats.missing_membership,
+            'Missing referral records': flowStats.missing_referrals,
+            'No matrix placement': flowStats.missing_matrix_placement,
+            'Incomplete matrix layers': flowStats.incomplete_matrix_layers,
+            'Missing direct rewards': flowStats.missing_direct_rewards,
+            'Missing user balances': flowStats.missing_user_balances
+          }
+        },
+        recommendations: totalIssues > 0 ? [
+          'Complete activation flow for members with incomplete records',
+          'Verify trigger execution: trigger_create_member, trigger_place_in_matrix',
+          'Check direct reward triggers: trigger_direct_referral_rewards',
+          'Ensure all 19 matrix layers are created during placement',
+          'Verify user_balances initialization trigger'
+        ] : [
+          'All Level 1 activation flows are complete and consistent',
+          'All required records exist across the flow chain'
+        ]
+      }
+    };
+  } catch (error) {
+    return {
+      success: false,
+      error: `Activation flow check failed: ${error.message}`
+    };
+  }
+}
+
+/**
+ * Check Level 2-19 Upgrade Flow Integrity
+ * Validates: membership updates → members.current_level → layer_rewards → BCC release
+ */
+async function checkUpgradeFlow(supabase: any): Promise<SystemCheckResult> {
+  try {
+    console.log('🔍 Checking Level 2-19 upgrade flow integrity...');
+
+    // Get all Level 2+ membership records
+    const { data: upgrades, error: upgradesError } = await supabase
+      .from('membership')
+      .select('wallet_address, nft_level, claimed_at')
+      .gte('nft_level', 2)
+      .lte('nft_level', 19)
+      .order('wallet_address, nft_level');
+
+    if (upgradesError) throw upgradesError;
+
+    const issues = [];
+    const flowStats = {
+      total_upgrades: upgrades?.length || 0,
+      level_mismatch: 0,
+      sequential_violations: 0,
+      missing_layer_rewards: 0,
+      level_2_without_3_referrals: 0,
+      incomplete_layer_rewards: 0
+    };
+
+    // Group upgrades by wallet to check sequential levels
+    const upgradesByWallet = new Map<string, any[]>();
+    for (const upgrade of upgrades || []) {
+      const wallet = upgrade.wallet_address.toLowerCase();
+      if (!upgradesByWallet.has(wallet)) {
+        upgradesByWallet.set(wallet, []);
+      }
+      upgradesByWallet.get(wallet)!.push(upgrade);
+    }
+
+    // Check each wallet's upgrade progression
+    for (const [wallet, walletUpgrades] of upgradesByWallet.entries()) {
+      const upgradeIssues: string[] = [];
+      const levels = walletUpgrades.map(u => u.nft_level).sort((a, b) => a - b);
+      const highestLevel = Math.max(...levels);
+
+      // 1. Check members.current_level matches highest NFT level
+      const { data: memberRecord } = await supabase
+        .from('members')
+        .select('current_level')
+        .ilike('wallet_address', wallet)
+        .maybeSingle();
+
+      if (memberRecord && memberRecord.current_level !== highestLevel) {
+        upgradeIssues.push(`level_mismatch (members.current_level=${memberRecord.current_level}, highest_nft=${highestLevel})`);
+        flowStats.level_mismatch++;
+      }
+
+      // 2. Check for sequential levels (no gaps)
+      for (let i = 2; i <= highestLevel; i++) {
+        if (!levels.includes(i)) {
+          upgradeIssues.push(`missing_level_${i} (skipped level in progression)`);
+          flowStats.sequential_violations++;
+        }
+      }
+
+      // 3. For Level 2, check 3 direct referrals requirement
+      if (levels.includes(2)) {
+        const { data: directReferrals } = await supabase
+          .from('referrals')
+          .select('id')
+          .ilike('referrer_wallet', wallet)
+          .eq('referral_depth', 1);
+
+        if (!directReferrals || directReferrals.length < 3) {
+          upgradeIssues.push(`level_2_has_${directReferrals?.length || 0}_direct_referrals (requires 3)`);
+          flowStats.level_2_without_3_referrals++;
+        }
+      }
+
+      // 4. Check layer_rewards for each upgrade level
+      for (const upgrade of walletUpgrades) {
+        // Get all matrix roots for this member
+        const { data: matrixPlacements } = await supabase
+          .from('matrix_referrals')
+          .select('matrix_root_wallet, layer')
+          .ilike('member_wallet', wallet);
+
+        if (matrixPlacements && matrixPlacements.length > 0) {
+          // For each matrix placement, check if layer reward was created
+          const expectedRewards = matrixPlacements.length; // Should have rewards for each layer
+
+          const { data: layerRewards } = await supabase
+            .from('layer_rewards')
+            .select('id, matrix_layer, reward_recipient_wallet')
+            .ilike('triggering_member_wallet', wallet)
+            .eq('triggering_nft_level', upgrade.nft_level);
+
+          const actualRewards = layerRewards?.length || 0;
+
+          if (actualRewards === 0) {
+            upgradeIssues.push(`no_layer_rewards_for_level_${upgrade.nft_level}`);
+            flowStats.missing_layer_rewards++;
+          } else if (actualRewards < expectedRewards) {
+            upgradeIssues.push(`incomplete_layer_rewards_for_level_${upgrade.nft_level} (${actualRewards}/${expectedRewards})`);
+            flowStats.incomplete_layer_rewards++;
+          }
+        }
+      }
+
+      // Record issues for this wallet
+      if (upgradeIssues.length > 0) {
+        issues.push({
+          wallet_address: wallet,
+          levels: levels,
+          highest_level: highestLevel,
+          members_current_level: memberRecord?.current_level,
+          issues: upgradeIssues
+        });
+      }
+    }
+
+    const totalIssues = issues.length;
+
+    return {
+      success: true,
+      data: {
+        issues: totalIssues,
+        details: `Validated upgrade flow for ${flowStats.total_upgrades} upgrades (${upgradesByWallet.size} wallets), found ${totalIssues} wallets with issues`,
+        breakdown: {
+          flow_statistics: flowStats,
+          wallets_with_issues: totalIssues,
+          issue_details: issues.slice(0, 20), // Show first 20
+          issue_types_summary: {
+            'Level mismatch (members vs membership)': flowStats.level_mismatch,
+            'Sequential level violations': flowStats.sequential_violations,
+            'Level 2 without 3 referrals': flowStats.level_2_without_3_referrals,
+            'Missing layer rewards': flowStats.missing_layer_rewards,
+            'Incomplete layer rewards': flowStats.incomplete_layer_rewards
+          }
+        },
+        recommendations: totalIssues > 0 ? [
+          'Sync members.current_level with highest membership.nft_level',
+          'Investigate skipped levels in upgrade progression',
+          'Create missing layer rewards for upgrades',
+          'Verify trigger_matrix_layer_rewards execution',
+          'Check Level 2 upgrade validation (requires 3 direct referrals)',
+          'Ensure all 19 matrix roots receive layer rewards on upgrade'
+        ] : [
+          'All Level 2-19 upgrade flows are complete and consistent',
+          'Sequential level progression is valid',
+          'Layer rewards are properly distributed'
+        ]
+      }
+    };
+  } catch (error) {
+    return {
+      success: false,
+      error: `Upgrade flow check failed: ${error.message}`
     };
   }
 }

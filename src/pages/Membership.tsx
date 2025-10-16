@@ -92,7 +92,7 @@ export default function Membership() {
         const { data, error } = await supabase
           .from('membership')
           .select('unlock_membership_level')
-          .eq('wallet_address', walletAddress!.toLowerCase())
+          .ilike('wallet_address', walletAddress!) // ✅ 使用 ilike 进行大小写不敏感查询
           .order('nft_level', { ascending: false })
           .limit(1)
           .maybeSingle(); // ✅ 使用 maybeSingle() 替代 single()

@@ -47,14 +47,14 @@ export function SystemFixPanel({ onFixComplete }: SystemFixPanelProps) {
       status: 'pending'
     },
     {
-      id: 'membership_sync', 
+      id: 'membership_sync',
       name: 'Membership Data Sync',
       description: 'Sync membership levels between users and members tables',
       status: 'pending'
     },
     {
       id: 'referrals_sync',
-      name: 'Referrals Data Sync', 
+      name: 'Referrals Data Sync',
       description: 'Validate and sync referrals_new table data',
       status: 'pending'
     },
@@ -74,6 +74,18 @@ export function SystemFixPanel({ onFixComplete }: SystemFixPanelProps) {
       id: 'user_balance_check',
       name: 'User Balance Validation',
       description: 'Validate user_balance table and BCC calculations',
+      status: 'pending'
+    },
+    {
+      id: 'activation_flow_check',
+      name: 'Level 1 Activation Flow',
+      description: 'Validate complete activation flow: users → members → membership → referrals → matrix → rewards → balances',
+      status: 'pending'
+    },
+    {
+      id: 'upgrade_flow_check',
+      name: 'Level 2-19 Upgrade Flow',
+      description: 'Validate upgrade flow: membership → members.level → layer_rewards → BCC release',
       status: 'pending'
     },
     {
