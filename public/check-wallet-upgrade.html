@@ -1,0 +1,280 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>检查钱包升级状态</title>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            max-width: 1200px;
+            margin: 50px auto;
+            padding: 20px;
+            background: #f5f5f5;
+        }
+        .container {
+            background: white;
+            border-radius: 8px;
+            padding: 30px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        h1 { color: #333; margin-bottom: 30px; }
+        .section {
+            margin: 20px 0;
+            padding: 15px;
+            background: #f9f9f9;
+            border-radius: 5px;
+            border-left: 4px solid #4CAF50;
+        }
+        .section h3 {
+            margin-top: 0;
+            color: #2c3e50;
+        }
+        button {
+            background: #4CAF50;
+            color: white;
+            border: none;
+            padding: 12px 30px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+            margin: 10px 5px;
+        }
+        button:hover { background: #45a049; }
+        button:disabled { background: #ccc; cursor: not-allowed; }
+        pre {
+            background: #2c3e50;
+            color: #ecf0f1;
+            padding: 15px;
+            border-radius: 5px;
+            overflow-x: auto;
+            font-size: 13px;
+        }
+        .error { color: #e74c3c; }
+        .success { color: #27ae60; }
+        .warning { color: #f39c12; }
+        input {
+            width: 100%;
+            padding: 10px;
+            margin: 10px 0;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 14px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🔍 检查钱包升级状态</h1>
+
+        <div class="section">
+            <h3>钱包地址</h3>
+            <input type="text" id="walletInput" placeholder="输入钱包地址 (例如: 0x8C2CDA621f09543Dfe283eDecE34fd2C446Fd735)" value="0x8C2CDA621f09543Dfe283eDecE34fd2C446Fd735">
+            <button onclick="checkWalletStatus()">检查状态</button>
+            <button onclick="fixLevel2Upgrade()" style="background: #e67e22;">修复Level 2升级</button>
+        </div>
+
+        <div class="section">
+            <h3>检查结果</h3>
+            <div id="result">点击"检查状态"按钮开始...</div>
+        </div>
+    </div>
+
+    <script>
+        const supabaseUrl = 'https://vxqjqspwutxlrysvjshd.supabase.co';
+        const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZ4cWpxc3B3dXR4bHJ5c3Zqc2hkIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MjgxOTgxMDksImV4cCI6MjA0Mzc3NDEwOX0.b-13dVXigNlo0kICWzqItMYLP7_T5yoq5dHvVDH-IxE';
+        const supabase = window.supabase.createClient(supabaseUrl, supabaseKey);
+
+        async function checkWalletStatus() {
+            const wallet = document.getElementById('walletInput').value.trim();
+            const resultDiv = document.getElementById('result');
+
+            if (!wallet) {
+                resultDiv.innerHTML = '<p class="error">请输入钱包地址</p>';
+                return;
+            }
+
+            resultDiv.innerHTML = '<p>正在检查...</p>';
+
+            try {
+                // 1. 检查 members 表
+                const { data: memberData, error: memberError } = await supabase
+                    .from('members')
+                    .select('wallet_address, current_level, username, activation_time, updated_at')
+                    .ilike('wallet_address', wallet)
+                    .maybeSingle();
+
+                // 2. 检查 membership 表
+                const { data: membershipData, error: membershipError } = await supabase
+                    .from('membership')
+                    .select('nft_level, unlock_membership_level, is_member, claimed_at, claim_price, transaction_hash')
+                    .ilike('wallet_address', wallet)
+                    .order('nft_level', { ascending: true });
+
+                // 3. 检查直推数量
+                const { count: referralCount, error: referralError } = await supabase
+                    .from('referrals')
+                    .select('*', { count: 'exact', head: true })
+                    .ilike('referrer_wallet', wallet)
+                    .eq('referral_depth', 1);
+
+                // 4. 检查 layer_rewards
+                const { data: layerRewardsData, error: layerRewardsError } = await supabase
+                    .from('layer_rewards')
+                    .select('triggering_nft_level, status, reward_amount')
+                    .ilike('triggering_member_wallet', wallet)
+                    .order('triggering_nft_level', { ascending: true });
+
+                // 构建结果显示
+                let html = '';
+
+                // Members 表
+                html += '<h4>1. Members 表</h4>';
+                if (memberError) {
+                    html += `<p class="error">错误: ${memberError.message}</p>`;
+                } else if (!memberData) {
+                    html += '<p class="warning">未找到该钱包的会员记录</p>';
+                } else {
+                    html += '<pre>' + JSON.stringify(memberData, null, 2) + '</pre>';
+                }
+
+                // Membership 表
+                html += '<h4>2. Membership 表 (所有等级)</h4>';
+                if (membershipError) {
+                    html += `<p class="error">错误: ${membershipError.message}</p>`;
+                } else if (!membershipData || membershipData.length === 0) {
+                    html += '<p class="warning">未找到任何会员等级记录</p>';
+                } else {
+                    html += '<pre>' + JSON.stringify(membershipData, null, 2) + '</pre>';
+
+                    // 分析问题
+                    const hasLevel1 = membershipData.some(m => m.nft_level === 1);
+                    const hasLevel2 = membershipData.some(m => m.nft_level === 2);
+                    const level2Data = membershipData.find(m => m.nft_level === 2);
+
+                    html += '<h4 style="color: #e67e22;">诊断分析</h4>';
+                    html += '<ul>';
+                    html += `<li>拥有 Level 1: ${hasLevel1 ? '<span class="success">✓ 是</span>' : '<span class="error">✗ 否</span>'}</li>`;
+                    html += `<li>拥有 Level 2: ${hasLevel2 ? '<span class="success">✓ 是</span>' : '<span class="error">✗ 否</span>'}</li>`;
+
+                    if (hasLevel2 && level2Data) {
+                        html += `<li>Level 2 unlock_membership_level: ${level2Data.unlock_membership_level || '<span class="error">NULL</span>'}</li>`;
+                        if (!level2Data.unlock_membership_level || level2Data.unlock_membership_level !== 3) {
+                            html += '<li class="error">⚠️ 问题: unlock_membership_level 应该是 3</li>';
+                        } else {
+                            html += '<li class="success">✓ unlock_membership_level 正确</li>';
+                        }
+                    }
+
+                    if (memberData && hasLevel2 && memberData.current_level !== 2) {
+                        html += `<li class="error">⚠️ 问题: members.current_level (${memberData.current_level}) 与最高拥有等级 (2) 不一致</li>`;
+                    }
+                    html += '</ul>';
+                }
+
+                // 直推数量
+                html += '<h4>3. 直推数量</h4>';
+                if (referralError) {
+                    html += `<p class="error">错误: ${referralError.message}</p>`;
+                } else {
+                    html += `<p>直推人数: <strong>${referralCount || 0}</strong></p>`;
+                    if ((referralCount || 0) >= 3) {
+                        html += '<p class="success">✓ 满足 Level 2 升级条件 (≥3人)</p>';
+                    } else {
+                        html += `<p class="error">✗ 不满足 Level 2 升级条件 (需要${3 - (referralCount || 0)}人)</p>`;
+                    }
+                }
+
+                // Layer Rewards
+                html += '<h4>4. Layer Rewards 汇总</h4>';
+                if (layerRewardsError) {
+                    html += `<p class="error">错误: ${layerRewardsError.message}</p>`;
+                } else if (!layerRewardsData || layerRewardsData.length === 0) {
+                    html += '<p class="warning">未找到任何奖励记录</p>';
+                } else {
+                    const summary = {};
+                    layerRewardsData.forEach(reward => {
+                        const level = reward.triggering_nft_level;
+                        if (!summary[level]) {
+                            summary[level] = { count: 0, total: 0, byStatus: {} };
+                        }
+                        summary[level].count++;
+                        summary[level].total += reward.reward_amount;
+                        summary[level].byStatus[reward.status] = (summary[level].byStatus[reward.status] || 0) + 1;
+                    });
+
+                    html += '<pre>' + JSON.stringify(summary, null, 2) + '</pre>';
+                }
+
+                resultDiv.innerHTML = html;
+
+            } catch (error) {
+                resultDiv.innerHTML = `<p class="error">检查失败: ${error.message}</p>`;
+                console.error('检查错误:', error);
+            }
+        }
+
+        async function fixLevel2Upgrade() {
+            const wallet = document.getElementById('walletInput').value.trim();
+            const resultDiv = document.getElementById('result');
+
+            if (!wallet) {
+                alert('请输入钱包地址');
+                return;
+            }
+
+            if (!confirm(`确定要修复钱包 ${wallet} 的 Level 2 升级状态吗？`)) {
+                return;
+            }
+
+            resultDiv.innerHTML = '<p>正在修复...</p>';
+
+            try {
+                // 1. 更新 membership 表的 unlock_membership_level
+                const { error: updateError } = await supabase
+                    .from('membership')
+                    .update({ unlock_membership_level: 3 })
+                    .ilike('wallet_address', wallet)
+                    .eq('nft_level', 2);
+
+                if (updateError) {
+                    throw new Error(`更新 membership 失败: ${updateError.message}`);
+                }
+
+                // 2. 更新 members 表的 current_level
+                const { error: memberUpdateError } = await supabase
+                    .from('members')
+                    .update({
+                        current_level: 2,
+                        updated_at: new Date().toISOString()
+                    })
+                    .ilike('wallet_address', wallet);
+
+                if (memberUpdateError) {
+                    throw new Error(`更新 members 失败: ${memberUpdateError.message}`);
+                }
+
+                resultDiv.innerHTML = '<p class="success">✓ 修复成功！已更新:</p>' +
+                    '<ul>' +
+                    '<li>membership.unlock_membership_level = 3 (Level 2 记录)</li>' +
+                    '<li>members.current_level = 2</li>' +
+                    '</ul>' +
+                    '<p>请重新检查状态...</p>';
+
+                // 自动重新检查
+                setTimeout(checkWalletStatus, 1000);
+
+            } catch (error) {
+                resultDiv.innerHTML = `<p class="error">修复失败: ${error.message}</p>`;
+                console.error('修复错误:', error);
+            }
+        }
+
+        // 页面加载时自动检查
+        window.addEventListener('load', () => {
+            checkWalletStatus();
+        });
+    </script>
+</body>
+</html>

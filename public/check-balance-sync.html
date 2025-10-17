@@ -1,0 +1,216 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Balance Sync Checker</title>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <style>
+        body { font-family: monospace; padding: 20px; background: #1a1a1a; color: #00ff00; }
+        .result { background: #2a2a2a; padding: 15px; margin: 10px 0; border-radius: 5px; border-left: 4px solid #00ff00; }
+        .error { border-left-color: #ff0000; color: #ff6666; }
+        .warn { border-left-color: #ffaa00; color: #ffcc66; }
+        button { background: #00ff00; color: #000; padding: 10px 20px; border: none; cursor: pointer; margin: 5px; border-radius: 3px; }
+        button:hover { background: #00cc00; }
+        pre { overflow-x: auto; }
+        table { border-collapse: collapse; width: 100%; margin: 10px 0; }
+        th, td { border: 1px solid #444; padding: 8px; text-align: left; }
+        th { background: #333; }
+    </style>
+</head>
+<body>
+    <h1>🔍 Balance Sync Investigation</h1>
+    
+    <button onclick="checkBalanceSync()">Check 3 Wallets Balance Sync</button>
+    <button onclick="checkTrigger()">Check Trigger Status</button>
+    <button onclick="fixBalances()">Fix Unsynced Balances</button>
+    <button onclick="clearResults()">Clear Results</button>
+    
+    <div id="results"></div>
+
+    <script>
+        const supabaseUrl = 'https://cvqibjcbfrwsgkvthccp.supabase.co';
+        const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImN2cWliamNiZnJ3c2drdnRoY2NwIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTcyODk4NTk4NiwiZXhwIjoyMDQ0NTYxOTg2fQ.EBJMRwqYHlJGRCqfPSHckh7I5JTk1V_LO5vKmpQRSY4';
+        
+        const supabase = window.supabase.createClient(supabaseUrl, supabaseKey);
+        
+        const wallets = [
+            '0x1115adeae04ff38dbee194823d7eb08b94e33d63',
+            '0x6053609d365ee5e061f49181d46a3ce428a7a2ba',
+            '0x2b03d532faa3120826586efb00c9363f9a611b6f'
+        ];
+        
+        function log(message, type = 'result') {
+            const div = document.createElement('div');
+            div.className = type;
+            div.innerHTML = message;
+            document.getElementById('results').insertBefore(div, document.getElementById('results').firstChild);
+        }
+        
+        function clearResults() {
+            document.getElementById('results').innerHTML = '';
+        }
+        
+        async function checkBalanceSync() {
+            log('<h2>🔍 Checking Balance Sync for 3 Wallets</h2>', 'result');
+            
+            for (const wallet of wallets) {
+                log(`<h3>Wallet: ${wallet}</h3>`, 'result');
+                
+                // 1. Check direct_rewards
+                const { data: directRewards, error: drError } = await supabase
+                    .from('direct_rewards')
+                    .select('id, triggering_member_wallet, reward_amount, status, created_at')
+                    .ilike('reward_recipient_wallet', wallet);
+                
+                if (drError) {
+                    log(`❌ Error fetching direct_rewards: ${drError.message}`, 'error');
+                    continue;
+                }
+                
+                const claimableAmount = directRewards
+                    .filter(r => r.status === 'claimable')
+                    .reduce((sum, r) => sum + r.reward_amount, 0);
+                    
+                const claimedAmount = directRewards
+                    .filter(r => r.status === 'claimed')
+                    .reduce((sum, r) => sum + r.reward_amount, 0);
+                
+                const totalRewards = claimableAmount + claimedAmount;
+                
+                log(`Direct Rewards: ${directRewards.length} records`, 'result');
+                log(`  - Claimable: $${claimableAmount}`, 'result');
+                log(`  - Claimed: $${claimedAmount}`, 'result');
+                log(`  - Total: $${totalRewards}`, 'result');
+                
+                // 2. Check user_balances
+                const { data: balance, error: balError } = await supabase
+                    .from('user_balances')
+                    .select('*')
+                    .ilike('wallet_address', wallet)
+                    .maybeSingle();
+                
+                if (balError) {
+                    log(`❌ Error fetching user_balances: ${balError.message}`, 'error');
+                    continue;
+                }
+                
+                if (!balance) {
+                    log(`⚠️ No user_balances record found!`, 'warn');
+                } else {
+                    log(`User Balance:`, 'result');
+                    log(`  - Total: $${balance.total_balance}`, 'result');
+                    log(`  - Withdrawn: $${balance.withdrawn_balance}`, 'result');
+                    log(`  - Available: $${balance.available_balance}`, 'result');
+                    log(`  - Last Updated: ${balance.last_updated}`, 'result');
+                    
+                    const diff = totalRewards - balance.total_balance;
+                    if (Math.abs(diff) > 0.01) {
+                        log(`⚠️ MISMATCH: Should be $${totalRewards}, but is $${balance.total_balance} (diff: $${diff})`, 'warn');
+                    } else {
+                        log(`✅ Balance matches rewards!`, 'result');
+                    }
+                }
+                
+                // 3. Show individual rewards
+                if (directRewards.length > 0) {
+                    let table = '<table><tr><th>From</th><th>Amount</th><th>Status</th><th>Created</th></tr>';
+                    for (const r of directRewards) {
+                        const shortAddr = r.triggering_member_wallet.slice(0, 8) + '...' + r.triggering_member_wallet.slice(-6);
+                        table += `<tr><td>${shortAddr}</td><td>$${r.reward_amount}</td><td>${r.status}</td><td>${new Date(r.created_at).toLocaleString()}</td></tr>`;
+                    }
+                    table += '</table>';
+                    log(table, 'result');
+                }
+                
+                log('<hr>', 'result');
+            }
+        }
+        
+        async function checkTrigger() {
+            log('<h2>🔍 Checking trigger_auto_update_balance_on_claimable</h2>', 'result');
+            
+            const { data, error } = await supabase.rpc('get_trigger_info', {});
+            
+            if (error) {
+                log(`⚠️ Cannot check trigger directly, checking manually...`, 'warn');
+                
+                // Check if trigger exists by trying to query pg_trigger (won't work with RLS)
+                log(`Note: Trigger status requires admin database access`, 'result');
+            }
+        }
+        
+        async function fixBalances() {
+            log('<h2>🔧 Fixing Unsynced Balances</h2>', 'result');
+            
+            for (const wallet of wallets) {
+                log(`<h3>Fixing: ${wallet}</h3>`, 'result');
+                
+                // 1. Calculate total rewards
+                const { data: directRewards, error: drError } = await supabase
+                    .from('direct_rewards')
+                    .select('reward_amount, status')
+                    .ilike('reward_recipient_wallet', wallet);
+                
+                if (drError) {
+                    log(`❌ Error: ${drError.message}`, 'error');
+                    continue;
+                }
+                
+                const totalRewards = directRewards
+                    .filter(r => r.status === 'claimable' || r.status === 'claimed')
+                    .reduce((sum, r) => sum + r.reward_amount, 0);
+                
+                // 2. Check if user_balances exists
+                const { data: existingBalance } = await supabase
+                    .from('user_balances')
+                    .select('*')
+                    .ilike('wallet_address', wallet)
+                    .maybeSingle();
+                
+                if (!existingBalance) {
+                    // Create new balance record
+                    const { error: insertError } = await supabase
+                        .from('user_balances')
+                        .insert({
+                            wallet_address: wallet,
+                            total_balance: totalRewards,
+                            withdrawn_balance: 0,
+                            available_balance: totalRewards,
+                            last_updated: new Date().toISOString()
+                        });
+                    
+                    if (insertError) {
+                        log(`❌ Failed to create balance: ${insertError.message}`, 'error');
+                    } else {
+                        log(`✅ Created balance record with $${totalRewards}`, 'result');
+                    }
+                } else {
+                    // Update existing balance
+                    const { error: updateError } = await supabase
+                        .from('user_balances')
+                        .update({
+                            total_balance: totalRewards,
+                            available_balance: totalRewards - existingBalance.withdrawn_balance,
+                            last_updated: new Date().toISOString()
+                        })
+                        .ilike('wallet_address', wallet);
+                    
+                    if (updateError) {
+                        log(`❌ Failed to update balance: ${updateError.message}`, 'error');
+                    } else {
+                        log(`✅ Updated balance from $${existingBalance.total_balance} to $${totalRewards}`, 'result');
+                    }
+                }
+            }
+            
+            log('<h3>✅ Balance fix complete! Run "Check 3 Wallets" again to verify.</h3>', 'result');
+        }
+        
+        // Auto-run check on load
+        window.addEventListener('load', () => {
+            log('📱 Page loaded - ready to check balance sync', 'result');
+        });
+    </script>
+</body>
+</html>

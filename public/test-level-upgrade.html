@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test Level Upgrade</title>
+    <style>
+        body { font-family: monospace; padding: 20px; background: #1a1a1a; color: #00ff00; }
+        .result { background: #2a2a2a; padding: 15px; margin: 10px 0; border-radius: 5px; border-left: 4px solid #00ff00; }
+        .error { border-left-color: #ff0000; color: #ff6666; }
+        button { background: #00ff00; color: #000; padding: 10px 20px; border: none; cursor: pointer; margin: 5px; border-radius: 3px; }
+        button:hover { background: #00cc00; }
+        pre { overflow-x: auto; white-space: pre-wrap; }
+        input { background: #333; color: #fff; border: 1px solid #555; padding: 8px; margin: 5px 0; width: 100%; }
+    </style>
+</head>
+<body>
+    <h1>🔧 Level Upgrade Test Tool</h1>
+
+    <div>
+        <label>Wallet Address:</label>
+        <input type="text" id="walletAddress" placeholder="0x..." value="0x1115AdeAE04fF38DBEe194823D7eB08B94e33d63">
+    </div>
+
+    <div>
+        <label>Target Level:</label>
+        <input type="number" id="targetLevel" placeholder="2" value="2" min="2" max="19">
+    </div>
+
+    <div>
+        <label>Transaction Hash:</label>
+        <input type="text" id="txHash" placeholder="0x... (or use 'simulation')" value="simulation">
+    </div>
+
+    <button onclick="testUpgrade()">Test Level Upgrade</button>
+    <button onclick="checkRequirements()">Check Requirements Only</button>
+    <button onclick="debugUserStatus()">Debug User Status</button>
+    <button onclick="clearResults()">Clear Results</button>
+
+    <div id="results"></div>
+
+    <script>
+        const API_BASE = 'https://cvqibjcbfrwsgkvthccp.supabase.co/functions/v1';
+        const ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImN2cWliamNiZnJ3c2drdnRoY2NwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Mjg5ODU5ODYsImV4cCI6MjA0NDU2MTk4Nn0.njMlU8OGsHmZbCVxI5fIaecbs4h5_HvxLYfx4iQSt5c';
+
+        function log(message, type = 'result') {
+            const div = document.createElement('div');
+            div.className = type;
+            div.innerHTML = `<strong>${new Date().toLocaleTimeString()}</strong><br>${message}`;
+            document.getElementById('results').insertBefore(div, document.getElementById('results').firstChild);
+        }
+
+        function clearResults() {
+            document.getElementById('results').innerHTML = '';
+        }
+
+        async function testUpgrade() {
+            const walletAddress = document.getElementById('walletAddress').value;
+            const targetLevel = parseInt(document.getElementById('targetLevel').value);
+            const txHash = document.getElementById('txHash').value;
+
+            log(`<h3>🚀 Testing Level ${targetLevel} Upgrade</h3>`, 'result');
+            log(`Wallet: ${walletAddress}<br>Target Level: ${targetLevel}<br>TX Hash: ${txHash}`, 'result');
+
+            try {
+                const response = await fetch(`${API_BASE}/level-upgrade`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${ANON_KEY}`,
+                        'x-wallet-address': walletAddress
+                    },
+                    body: JSON.stringify({
+                        action: 'upgrade_level',
+                        walletAddress: walletAddress,
+                        targetLevel: targetLevel,
+                        transactionHash: txHash,
+                        network: 'mainnet'
+                    })
+                });
+
+                const data = await response.json();
+
+                if (response.ok && data.success) {
+                    log(`<h3>✅ Upgrade Successful!</h3><pre>${JSON.stringify(data, null, 2)}</pre>`, 'result');
+                } else {
+                    log(`<h3>❌ Upgrade Failed</h3><pre>${JSON.stringify(data, null, 2)}</pre>`, 'error');
+                }
+            } catch (error) {
+                log(`<h3>❌ Request Error</h3><pre>${error.message}\n${error.stack}</pre>`, 'error');
+            }
+        }
+
+        async function checkRequirements() {
+            const walletAddress = document.getElementById('walletAddress').value;
+            const targetLevel = parseInt(document.getElementById('targetLevel').value);
+
+            log(`<h3>🔍 Checking Requirements for Level ${targetLevel}</h3>`, 'result');
+
+            try {
+                const response = await fetch(`${API_BASE}/level-upgrade`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${ANON_KEY}`
+                    },
+                    body: JSON.stringify({
+                        action: 'check_requirements',
+                        walletAddress: walletAddress,
+                        targetLevel: targetLevel
+                    })
+                });
+
+                const data = await response.json();
+
+                if (response.ok) {
+                    log(`<h3>${data.canUpgrade ? '✅ Can Upgrade' : '❌ Cannot Upgrade'}</h3><pre>${JSON.stringify(data, null, 2)}</pre>`, data.canUpgrade ? 'result' : 'error');
+                } else {
+                    log(`<h3>❌ Check Failed</h3><pre>${JSON.stringify(data, null, 2)}</pre>`, 'error');
+                }
+            } catch (error) {
+                log(`<h3>❌ Request Error</h3><pre>${error.message}</pre>`, 'error');
+            }
+        }
+
+        async function debugUserStatus() {
+            const walletAddress = document.getElementById('walletAddress').value;
+
+            log(`<h3>🐛 Debug User Status</h3>`, 'result');
+
+            try {
+                const response = await fetch(`${API_BASE}/level-upgrade`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${ANON_KEY}`
+                    },
+                    body: JSON.stringify({
+                        action: 'debug_user_status',
+                        walletAddress: walletAddress
+                    })
+                });
+
+                const data = await response.json();
+                log(`<h3>Debug Info</h3><pre>${JSON.stringify(data, null, 2)}</pre>`, 'result');
+            } catch (error) {
+                log(`<h3>❌ Request Error</h3><pre>${error.message}</pre>`, 'error');
+            }
+        }
+
+        // Auto-run debug on load
+        window.addEventListener('load', () => {
+            log('📱 Level Upgrade Test Tool Ready', 'result');
+            log('💡 Tips:<br>- Use "simulation" as TX hash for testing<br>- Check requirements before upgrading<br>- Debug user status shows complete state', 'result');
+        });
+    </script>
+</body>
+</html>

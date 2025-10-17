@@ -433,6 +433,17 @@ async function processLevelUpgradeWithRewards(
     console.log('⚠️ Skipping verification for test/simulation transaction');
   }
 
+  // Step 0.5: Get current level to set previous_level for BCC release trigger
+  console.log('📝 Getting current level...');
+  const { data: memberData } = await supabase
+    .from('members')
+    .select('current_level')
+    .ilike('wallet_address', walletAddress)
+    .maybeSingle();
+
+  const currentLevel = memberData?.current_level || 0;
+  console.log(`📊 Current level: ${currentLevel}, upgrading to: ${targetLevel}`);
+
   // Step 1: Update membership table with new level
   console.log('📝 Updating membership table...');
   const { error: membershipError } = await supabase
@@ -446,7 +457,10 @@ async function processLevelUpgradeWithRewards(
       network: 'mainnet',
       claim_price: nftPrice,
       total_cost: nftPrice,
-      unlock_membership_level: targetLevel + 1
+      unlock_membership_level: targetLevel + 1,
+      // ✅ FIX: Add is_upgrade and previous_level for BCC release trigger
+      is_upgrade: targetLevel > 1,  // Level 2+ are upgrades
+      previous_level: targetLevel > 1 ? currentLevel : null  // Current level before upgrade
     }, {
       onConflict: 'wallet_address,nft_level'
     });
@@ -719,7 +733,10 @@ async function processLevelUpgrade(
         is_member: true,
         unlock_membership_level: targetLevel + 1, // Dynamic unlock level
         platform_activation_fee: targetLevel === 1 ? 30 : 0, // Only Level 1 has platform fee
-        total_cost: LEVEL_CONFIG.PRICING[targetLevel] || 0
+        total_cost: LEVEL_CONFIG.PRICING[targetLevel] || 0,
+        // ✅ FIX: Add is_upgrade and previous_level for BCC release trigger
+        is_upgrade: targetLevel > 1,  // Level 2+ are upgrades
+        previous_level: targetLevel > 1 ? currentLevel : null  // Current level before upgrade
       }, {
         onConflict: 'wallet_address,nft_level'
       })
