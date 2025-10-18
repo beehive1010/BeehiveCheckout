@@ -8,6 +8,8 @@ interface AdminAuthContextType {
   isLoading: boolean;
   signInAdmin: (email: string, password: string) => Promise<void>;
   signOutAdmin: () => Promise<void>;
+  hasPermission: (permission: string) => boolean;
+  hasRole: (requiredRoles: string[]) => boolean;
 }
 
 export const AdminAuthContext = createContext<AdminAuthContextType | undefined>(undefined);
@@ -175,12 +177,73 @@ const AdminAuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }
       setIsAdminAuthenticated(false);
       setAdminUser(null);
       console.log('🔓 Admin signed out');
-      
+
       // Redirect to admin login
       setLocation('/admin/login');
     } catch (error) {
       console.error('Admin sign out error:', error);
     }
+  };
+
+  const hasPermission = (permission: string): boolean => {
+    if (!adminUser || !isAdminAuthenticated) return false;
+
+    // Check if user has explicit permissions array
+    if (adminUser.permissions) {
+      // Wildcard permission grants all access
+      if (adminUser.permissions.includes('*')) return true;
+
+      // Check for specific permission
+      if (adminUser.permissions.includes(permission)) return true;
+    }
+
+    // Fallback: level-based permissions
+    const levelPermissions: Record<number, string[]> = {
+      3: ['*'], // Super admin (level 3+) - all permissions
+      2: [ // Operations admin (level 2)
+        'users.read', 'users.write', 'users.update', 'users.delete', 'users.export',
+        'referrals.read', 'referrals.export', 'referrals.manage',
+        'members.read', 'members.update', 'members.activate',
+        'rewards.read', 'rewards.write', 'rewards.process', 'rewards.distribute',
+        'withdrawals.read', 'withdrawals.process',
+        'nfts.read', 'nfts.write', 'nfts.create', 'nfts.verify',
+        'contracts.read', 'contracts.deploy',
+        'courses.read', 'courses.create', 'courses.edit',
+        'blog.read', 'blog.write',
+        'finances.read', 'stats.read', 'system.read', 'settings.read',
+        'dashboard.read', 'matrix.read', 'discover.read'
+      ],
+      1: [ // Basic admin (level 1)
+        'dashboard.read', 'users.read', 'referrals.read', 'members.read',
+        'rewards.read', 'matrix.read', 'courses.read', 'stats.read',
+        'nfts.read'
+      ]
+    };
+
+    const adminLevel = adminUser.admin_level || adminUser.adminLevel || 0;
+    const userPermissions = levelPermissions[adminLevel] || [];
+    return userPermissions.includes('*') || userPermissions.includes(permission);
+  };
+
+  const hasRole = (requiredRoles: string[]): boolean => {
+    if (!adminUser || !isAdminAuthenticated) return false;
+
+    // Check if admin has required role
+    if (adminUser.role && requiredRoles.some(role =>
+      adminUser.role.toLowerCase().includes(role.toLowerCase())
+    )) {
+      return true;
+    }
+
+    // Check by admin level
+    const adminLevel = adminUser.admin_level || adminUser.adminLevel || 0;
+
+    // Map levels to roles
+    if (adminLevel >= 3 && requiredRoles.includes('super_admin')) return true;
+    if (adminLevel >= 2 && requiredRoles.includes('admin')) return true;
+    if (adminLevel >= 1 && requiredRoles.includes('basic_admin')) return true;
+
+    return false;
   };
 
   const value = {
@@ -189,6 +252,8 @@ const AdminAuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }
     isLoading,
     signInAdmin,
     signOutAdmin,
+    hasPermission,
+    hasRole,
     logout: signOutAdmin, // Alias for compatibility with AdminLayout
   };
 
