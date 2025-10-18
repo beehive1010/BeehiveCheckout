@@ -5,8 +5,8 @@ import { Button } from '../../components/ui/button';
 import { Input } from '../../components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../../components/ui/select';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '../../components/ui/tabs';
-import { 
-  Users, 
+import {
+  Users,
   UserCheck,
   Search,
   Crown,
@@ -22,7 +22,11 @@ import {
   ArrowRight,
   CheckCircle,
   XCircle,
-  AlertTriangle
+  AlertTriangle,
+  ChevronDown,
+  ChevronRight,
+  Plus,
+  Minus
 } from 'lucide-react';
 import { useAdminAuthContext } from '../../contexts/AdminAuthContext';
 import { useToast } from '../../hooks/use-toast';
@@ -72,12 +76,16 @@ export default function AdminMatrix() {
   const [filterLevel, setFilterLevel] = useState('all');
   const [filterStatus, setFilterStatus] = useState('all');
   const [selectedMember, setSelectedMember] = useState<string | null>(null);
-  
+  const [walletSearchInput, setWalletSearchInput] = useState('');
+  const [searchedWallet, setSearchedWallet] = useState<string | null>(null);
+  const [expandedNodes, setExpandedNodes] = useState<Set<string>>(new Set());
+
   // 数据状态
   const [members, setMembers] = useState<MemberInfo[]>([]);
   const [matrixData, setMatrixData] = useState<MatrixInfo[]>([]);
   const [matrixStats, setMatrixStats] = useState<MatrixStats | null>(null);
   const [memberMatrix, setMemberMatrix] = useState<MatrixInfo[]>([]);
+  const [treeNodeData, setTreeNodeData] = useState<Map<string, any[]>>(new Map());
 
   // 加载所有会员数据
   const loadMembersData = async () => {
@@ -233,12 +241,158 @@ export default function AdminMatrix() {
   const loadMemberMatrix = async (walletAddress: string) => {
     try {
       console.log(`🔍 Loading matrix for member: ${walletAddress}`);
-      
+
       const memberMatrixData = matrixData.filter(m => m.matrix_root_wallet === walletAddress);
       setMemberMatrix(memberMatrixData);
 
     } catch (error: any) {
       console.error('❌ Error loading member matrix:', error);
+    }
+  };
+
+  // 加载节点的子节点（用于树形视图）
+  const loadNodeChildren = async (parentWallet: string, systemMatrixRoot?: string) => {
+    try {
+      console.log(`🔍 Loading children for node: ${parentWallet}`);
+
+      // 查询用户的下线
+      const { data, error } = await supabase
+        .from('v_matrix_direct_children')
+        .select(`
+          layer_index, slot_index, member_wallet,
+          parent_wallet, referral_type, placed_at,
+          child_level, child_nft_count
+        `)
+        .eq('matrix_root_wallet', systemMatrixRoot || parentWallet)
+        .eq('parent_wallet', parentWallet)
+        .order('slot_num_seq');
+
+      if (error) {
+        throw error;
+      }
+
+      // 组织成 L, M, R 格式
+      const children = ['L', 'M', 'R'].map(position => {
+        const member = data?.find(m => m.slot_index === position);
+        return member ? {
+          position,
+          wallet: member.member_wallet,
+          joinedAt: member.placed_at,
+          type: member.referral_type,
+          level: member.child_level,
+          nftCount: member.child_nft_count,
+          layer: member.layer_index
+        } : null;
+      }).filter(Boolean);
+
+      // 更新缓存
+      setTreeNodeData(prev => new Map(prev).set(parentWallet, children));
+
+      return children;
+
+    } catch (error: any) {
+      console.error('❌ Error loading node children:', error);
+      toast({
+        title: "加载失败",
+        description: `无法加载节点子节点: ${error.message}`,
+        variant: "destructive",
+      });
+      return [];
+    }
+  };
+
+  // 搜索钱包地址并加载其矩阵树
+  const handleWalletSearch = async () => {
+    if (!walletSearchInput.trim()) {
+      toast({
+        title: "输入错误",
+        description: "请输入有效的钱包地址",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setLoading(true);
+    try {
+      // 检查钱包是否存在
+      const memberExists = members.find(m =>
+        m.wallet_address.toLowerCase() === walletSearchInput.toLowerCase()
+      );
+
+      if (!memberExists) {
+        toast({
+          title: "未找到",
+          description: "该钱包地址不存在于系统中",
+          variant: "destructive",
+        });
+        setLoading(false);
+        return;
+      }
+
+      // 获取用户所在的系统矩阵根
+      const { data: matrixRootData, error: matrixRootError } = await supabase
+        .from('matrix_referrals')
+        .select('matrix_root_wallet, layer, parent_wallet, position')
+        .eq('member_wallet', walletSearchInput)
+        .order('layer', { ascending: true })
+        .limit(1);
+
+      if (matrixRootError) {
+        throw matrixRootError;
+      }
+
+      let systemMatrixRoot = walletSearchInput;
+      if (matrixRootData && matrixRootData.length > 0) {
+        systemMatrixRoot = matrixRootData[0].matrix_root_wallet;
+      }
+
+      // 设置搜索的钱包并加载其子节点
+      setSearchedWallet(walletSearchInput);
+      setExpandedNodes(new Set([walletSearchInput]));
+      await loadNodeChildren(walletSearchInput, systemMatrixRoot);
+
+      toast({
+        title: "加载成功",
+        description: `已加载 ${memberExists.username} 的矩阵树`,
+      });
+
+    } catch (error: any) {
+      console.error('❌ Error searching wallet:', error);
+      toast({
+        title: "搜索失败",
+        description: `无法搜索钱包: ${error.message}`,
+        variant: "destructive",
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // 切换节点展开/折叠
+  const toggleNodeExpand = async (wallet: string) => {
+    const newExpanded = new Set(expandedNodes);
+
+    if (newExpanded.has(wallet)) {
+      // 折叠节点
+      newExpanded.delete(wallet);
+      setExpandedNodes(newExpanded);
+    } else {
+      // 展开节点 - 如果没有加载过子节点，先加载
+      if (!treeNodeData.has(wallet)) {
+        // 获取系统矩阵根
+        const { data: matrixRootData } = await supabase
+          .from('matrix_referrals')
+          .select('matrix_root_wallet')
+          .eq('member_wallet', wallet)
+          .order('layer', { ascending: true })
+          .limit(1);
+
+        const systemMatrixRoot = matrixRootData?.[0]?.matrix_root_wallet || wallet;
+        await loadNodeChildren(wallet, systemMatrixRoot);
+      }
+
+      newExpanded.add(wallet);
+      setExpandedNodes(newExpanded);
     }
   };
 
@@ -269,6 +423,89 @@ export default function AdminMatrix() {
 
     return matchesSearch && matchesLevel && matchesStatus;
   });
+
+  // 渲染树节点
+  const renderTreeNode = (wallet: string, depth: number = 0): JSX.Element => {
+    const member = members.find(m => m.wallet_address === wallet);
+    const isExpanded = expandedNodes.has(wallet);
+    const children = treeNodeData.get(wallet) || [];
+    const hasChildren = children.length > 0;
+
+    return (
+      <div key={wallet} className="ml-4">
+        <div className="flex items-center gap-2 p-2 hover:bg-muted/50 rounded-lg group">
+          {/* 展开/折叠按钮 */}
+          <Button
+            variant="ghost"
+            size="sm"
+            className="h-6 w-6 p-0"
+            onClick={() => toggleNodeExpand(wallet)}
+          >
+            {isExpanded ? (
+              <ChevronDown className="h-4 w-4" />
+            ) : (
+              <ChevronRight className="h-4 w-4" />
+            )}
+          </Button>
+
+          {/* 成员信息 */}
+          <div className="flex items-center gap-2 flex-1">
+            <div className="flex items-center justify-center w-6 h-6 bg-honey/10 text-honey rounded-full text-xs font-medium">
+              {member?.activation_sequence || '?'}
+            </div>
+            <div>
+              <div className="flex items-center gap-2">
+                <span className="font-medium text-sm">{member?.username || 'Unknown'}</span>
+                <Badge variant="outline" className="text-xs">
+                  L{member?.current_level || 0}
+                </Badge>
+                {member?.is_activated ? (
+                  <CheckCircle className="h-3 w-3 text-green-500" />
+                ) : (
+                  <XCircle className="h-3 w-3 text-red-500" />
+                )}
+              </div>
+              <p className="text-xs text-muted-foreground">
+                {wallet.slice(0, 6)}...{wallet.slice(-4)}
+              </p>
+            </div>
+          </div>
+
+          {/* 子节点数量 */}
+          <Badge variant="secondary" className="text-xs">
+            {children.length}/3
+          </Badge>
+        </div>
+
+        {/* 渲染子节点 */}
+        {isExpanded && hasChildren && (
+          <div className="ml-6 mt-1 border-l-2 border-muted pl-2">
+            <div className="grid grid-cols-1 gap-1">
+              {['L', 'M', 'R'].map(position => {
+                const child = children.find((c: any) => c.position === position);
+                return (
+                  <div key={position} className="flex items-center gap-2 p-2 border rounded">
+                    <Badge variant="outline" className="text-xs w-8 justify-center">
+                      {position}
+                    </Badge>
+                    {child ? (
+                      <div className="flex-1">
+                        {renderTreeNode(child.wallet, depth + 1)}
+                      </div>
+                    ) : (
+                      <div className="text-xs text-muted-foreground italic flex-1">
+                        空位
+                      </div>
+                    )}
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        )}
+      </div>
+    );
+  };
 
   // 导出数据
   const exportMatrixData = () => {
@@ -409,12 +646,86 @@ export default function AdminMatrix() {
       )}
 
       {/* 主要内容 */}
-      <Tabs defaultValue="members" className="space-y-4">
-        <TabsList className="grid w-full grid-cols-3">
+      <Tabs defaultValue="tree" className="space-y-4">
+        <TabsList className="grid w-full grid-cols-4">
+          <TabsTrigger value="tree">树形视图</TabsTrigger>
           <TabsTrigger value="members">会员列表</TabsTrigger>
           <TabsTrigger value="matrix">矩阵关系</TabsTrigger>
           <TabsTrigger value="analysis">数据分析</TabsTrigger>
         </TabsList>
+
+        {/* 树形视图标签页 */}
+        <TabsContent value="tree" className="space-y-4">
+          {/* 钱包搜索输入 */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Search className="h-5 w-5" />
+                搜索会员矩阵树
+              </CardTitle>
+              <CardDescription>
+                输入任意会员钱包地址，查看其完整的矩阵树形结构
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="flex gap-2">
+                <Input
+                  placeholder="输入钱包地址（例如：0x1234...）"
+                  value={walletSearchInput}
+                  onChange={(e) => setWalletSearchInput(e.target.value)}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter') {
+                      handleWalletSearch();
+                    }
+                  }}
+                  className="flex-1"
+                />
+                <Button
+                  onClick={handleWalletSearch}
+                  disabled={loading || !walletSearchInput.trim()}
+                >
+                  <Search className="h-4 w-4 mr-2" />
+                  搜索
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* 树形视图展示 */}
+          {searchedWallet && (
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <TreePine className="h-5 w-5" />
+                  矩阵树形结构
+                  <Badge variant="outline">
+                    {members.find(m => m.wallet_address === searchedWallet)?.username}
+                  </Badge>
+                </CardTitle>
+                <CardDescription>
+                  点击节点前的箭头展开/折叠子节点 | L=左, M=中, R=右
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="max-h-[600px] overflow-y-auto border rounded-lg p-4">
+                  {renderTreeNode(searchedWallet)}
+                </div>
+              </CardContent>
+            </Card>
+          )}
+
+          {!searchedWallet && (
+            <Card>
+              <CardContent className="py-12">
+                <div className="text-center text-muted-foreground">
+                  <TreePine className="h-16 w-16 mx-auto mb-4 opacity-50" />
+                  <p className="text-lg font-medium">输入钱包地址开始查看矩阵树</p>
+                  <p className="text-sm mt-2">支持展开查看完整的19层矩阵结构</p>
+                </div>
+              </CardContent>
+            </Card>
+          )}
+        </TabsContent>
 
         {/* 会员列表标签页 */}
         <TabsContent value="members" className="space-y-4">
