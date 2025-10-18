@@ -78,8 +78,8 @@ const AdminAuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }
     // Listen for auth changes
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (event, session) => {
-        console.log('Admin auth state change:', event);
-        
+        console.log('Admin auth state change:', event, 'Session:', !!session);
+
         if (event === 'SIGNED_IN' && session?.user) {
           // Verify admin user (admins table uses id as primary key matching auth.users.id)
           const { data: adminData, error } = await supabase
@@ -103,18 +103,47 @@ const AdminAuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }
             // Redirect to admin dashboard on successful sign in
             setLocation('/admin/dashboard');
           } else {
-            // User is not an admin - just reset admin state without signing out
+            // User is not an admin - sign them out completely
             setIsAdminAuthenticated(false);
             setAdminUser(null);
-            console.log('🔍 User signed in but not admin, keeping regular user session');
+            await supabase.auth.signOut({ scope: 'local' });
+            console.log('🔍 User signed in but not admin, signing out');
           }
         } else if (event === 'SIGNED_OUT') {
+          // Clear all state on sign out
           setIsAdminAuthenticated(false);
           setAdminUser(null);
-          
+          console.log('🔓 SIGNED_OUT event - state cleared');
+
           // Redirect to admin login if on admin pages
           if (location.startsWith('/admin/') && location !== '/admin/login') {
             setLocation('/admin/login');
+          }
+        } else if (event === 'TOKEN_REFRESHED') {
+          // Re-verify admin status on token refresh
+          if (session?.user) {
+            const { data: adminData } = await supabase
+              .from('admins')
+              .select('*')
+              .eq('id', session.user.id)
+              .eq('is_active', true)
+              .single();
+
+            if (adminData) {
+              setAdminUser({
+                ...session.user,
+                role: `Level ${adminData.admin_level} Admin`,
+                admin_level: adminData.admin_level,
+                wallet_address: adminData.wallet_address,
+                permissions: adminData.permissions,
+                adminData
+              });
+              console.log('🔄 Token refreshed - admin status verified');
+            } else {
+              // Admin was deactivated, sign out
+              await supabase.auth.signOut({ scope: 'local' });
+              console.log('❌ Admin deactivated, signing out');
+            }
           }
         }
       }
@@ -125,6 +154,14 @@ const AdminAuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }
 
   const signInAdmin = async (email: string, password: string) => {
     try {
+      // Clear any existing state before signing in
+      setIsAdminAuthenticated(false);
+      setAdminUser(null);
+
+      // Ensure any old session is cleared first
+      await supabase.auth.signOut({ scope: 'local' });
+
+      // Sign in with fresh credentials
       const { data, error } = await supabase.auth.signInWithPassword({
         email,
         password,
@@ -146,7 +183,7 @@ const AdminAuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }
 
       if (adminError || !adminData) {
         console.error('❌ Admin verification failed:', adminError);
-        await supabase.auth.signOut();
+        await supabase.auth.signOut({ scope: 'local' });
         throw new Error('Invalid admin credentials or inactive account');
       }
 
@@ -164,24 +201,36 @@ const AdminAuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }
 
       // Redirect to admin dashboard
       setLocation('/admin/dashboard');
-      
+
     } catch (error: any) {
       console.error('Admin sign in error:', error);
+      // Ensure clean state on error
+      setIsAdminAuthenticated(false);
+      setAdminUser(null);
       throw error;
     }
   };
 
   const signOutAdmin = async () => {
     try {
-      await supabase.auth.signOut();
+      // Clear all admin state BEFORE sign out
       setIsAdminAuthenticated(false);
       setAdminUser(null);
-      console.log('🔓 Admin signed out');
+
+      // Sign out with 'local' scope to clear localStorage completely
+      await supabase.auth.signOut({ scope: 'local' });
+
+      console.log('🔓 Admin signed out - session cleared');
 
       // Redirect to admin login
       setLocation('/admin/login');
     } catch (error) {
       console.error('Admin sign out error:', error);
+
+      // Force clear state even if signOut fails
+      setIsAdminAuthenticated(false);
+      setAdminUser(null);
+      setLocation('/admin/login');
     }
   };
 
