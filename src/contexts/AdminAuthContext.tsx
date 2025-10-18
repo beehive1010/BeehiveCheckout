@@ -19,15 +19,26 @@ const AdminAuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }
   const [adminUser, setAdminUser] = useState<any>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [location, setLocation] = useLocation();
+  const [lastActivity, setLastActivity] = useState<number>(Date.now());
 
   // Check for existing admin session on mount
   useEffect(() => {
     const checkAdminSession = async () => {
       try {
-        const { data: { session } } = await supabase.auth.getSession();
-        
+        // Force refresh session to ensure it's valid
+        const { data: { session }, error: sessionError } = await supabase.auth.getSession();
+
+        if (sessionError) {
+          console.error('❌ Session error:', sessionError);
+          setIsAdminAuthenticated(false);
+          setAdminUser(null);
+          setIsLoading(false);
+          return;
+        }
+
         if (session?.user) {
           console.log('🔍 Checking admin status for user:', session.user.email, 'ID:', session.user.id);
+          console.log('📅 Session expires at:', new Date(session.expires_at! * 1000).toLocaleString());
 
           // Verify this is an admin user (admins table uses id as primary key matching auth.users.id)
           const { data: adminData, error } = await supabase
@@ -152,14 +163,74 @@ const AdminAuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }
     return () => subscription.unsubscribe();
   }, [location, setLocation]);
 
+  // Monitor user activity to keep session alive
+  useEffect(() => {
+    if (!isAdminAuthenticated) return;
+
+    const updateActivity = () => {
+      setLastActivity(Date.now());
+    };
+
+    // Track user interactions
+    const events = ['mousedown', 'keydown', 'scroll', 'touchstart', 'click'];
+    events.forEach(event => {
+      window.addEventListener(event, updateActivity, { passive: true });
+    });
+
+    return () => {
+      events.forEach(event => {
+        window.removeEventListener(event, updateActivity);
+      });
+    };
+  }, [isAdminAuthenticated]);
+
+  // Auto-refresh session every 30 minutes if user is active
+  useEffect(() => {
+    if (!isAdminAuthenticated) return;
+
+    const refreshInterval = setInterval(async () => {
+      const inactiveTime = Date.now() - lastActivity;
+      const thirtyMinutes = 30 * 60 * 1000;
+
+      // Only refresh if user was active in last 30 minutes
+      if (inactiveTime < thirtyMinutes) {
+        try {
+          console.log('🔄 Auto-refreshing admin session...');
+          const { data: { session }, error } = await supabase.auth.refreshSession();
+
+          if (error) {
+            console.error('❌ Session refresh failed:', error);
+            return;
+          }
+
+          if (session) {
+            console.log('✅ Session refreshed successfully. Expires:', new Date(session.expires_at! * 1000).toLocaleString());
+          }
+        } catch (error) {
+          console.error('❌ Error refreshing session:', error);
+        }
+      } else {
+        console.log('ℹ️ User inactive, skipping session refresh');
+      }
+    }, 15 * 60 * 1000); // Check every 15 minutes
+
+    return () => clearInterval(refreshInterval);
+  }, [isAdminAuthenticated, lastActivity]);
+
   const signInAdmin = async (email: string, password: string) => {
     try {
       // Clear any existing state before signing in
       setIsAdminAuthenticated(false);
       setAdminUser(null);
 
-      // Ensure any old session is cleared first
-      await supabase.auth.signOut({ scope: 'local' });
+      // Check if there's an existing valid session first
+      const { data: { session: existingSession } } = await supabase.auth.getSession();
+
+      // Only clear session if it's for a different user
+      if (existingSession?.user && existingSession.user.email !== email) {
+        console.log('🔄 Different user detected, clearing old session');
+        await supabase.auth.signOut({ scope: 'local' });
+      }
 
       // Sign in with fresh credentials
       const { data, error } = await supabase.auth.signInWithPassword({
