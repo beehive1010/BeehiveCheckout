@@ -1,796 +1,577 @@
-import { useState, useEffect } from 'react';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../../components/ui/card';
-import { Badge } from '../../components/ui/badge';
+import { useState, useEffect, useCallback } from 'react';
+import { Card, CardContent } from '../../components/ui/card';
 import { Button } from '../../components/ui/button';
-import { Input } from '../../components/ui/input';
-import { Textarea } from '../../components/ui/textarea';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '../../components/ui/tabs';
-import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from '../../components/ui/dialog';
-import { Label } from '../../components/ui/label';
-import { Switch } from '../../components/ui/switch';
-import { 
-  Image, 
-  Search, 
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from '../../components/ui/dialog';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '../../components/ui/alert-dialog';
+import {
   Plus,
-  Edit,
-  Eye,
-  EyeOff,
-  Trash2,
-  ShoppingCart,
-  Calendar,
-  DollarSign,
-  CheckCircle,
-  XCircle,
-  Clock,
-  Wallet,
+  Package,
   TrendingUp,
-  Package
+  Users,
+  Image as ImageIcon
 } from 'lucide-react';
 import { useAdminAuth } from '../../hooks/useAdminAuth';
 import { useToast } from '../../hooks/use-toast';
 import { useIsMobile } from '../../hooks/use-mobile';
+import { useIsDesktop } from '../../hooks/use-desktop';
+import { supabase } from '../../lib/supabaseClient';
 
-interface MerchantNFT {
-  id: string;
-  title: string;
-  description: string;
-  imageUrl: string;
-  priceBCC: number;
-  active: boolean;
-  createdAt: string;
-}
-
-interface NFTPurchase {
-  id: string;
-  walletAddress: string;
-  nftId: string;
-  amountBCC: number;
-  bucketUsed: 'restricted' | 'transferable';
-  txHash: string | null;
-  createdAt: string;
-  nft?: MerchantNFT;
-  username?: string;
-}
-
-interface MemberNFTVerification {
-  walletAddress: string;
-  nftContractAddress: string;
-  tokenId: string;
-  chainId: number;
-  verificationStatus: 'pending' | 'verified' | 'failed';
-  lastVerified: string | null;
-  createdAt: string;
-  username?: string;
-}
-
-interface NFTFormData {
-  title: string;
-  description: string;
-  imageUrl: string;
-  priceBCC: number;
-  active: boolean;
-}
+// Import new components
+import NFTForm, { NFTFormData, NFTType } from '../../components/admin/nfts/NFTForm';
+import AdminNFTList from '../../components/admin/nfts/AdminNFTList';
+import UserHoldingsManager, { UserHolding } from '../../components/admin/nfts/UserHoldingsManager';
 
 export default function AdminNFTs() {
   const { hasPermission } = useAdminAuth();
   const { toast } = useToast();
-  const [merchantNFTs, setMerchantNFTs] = useState<MerchantNFT[]>([]);
-  const [nftPurchases, setNftPurchases] = useState<NFTPurchase[]>([]);
-  const [memberVerifications, setMemberVerifications] = useState<MemberNFTVerification[]>([]);
+  const isMobile = useIsMobile();
+  const isDesktop = useIsDesktop();
+
+  // State
   const [isLoading, setIsLoading] = useState(true);
-  const [searchTerm, setSearchTerm] = useState('');
+  const [nfts, setNFTs] = useState<NFTFormData[]>([]);
+  const [holdings, setHoldings] = useState<UserHolding[]>([]);
+  const [selectedNFT, setSelectedNFT] = useState<NFTFormData | null>(null);
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
-  const [editingNFT, setEditingNFT] = useState<MerchantNFT | null>(null);
-  const [formData, setFormData] = useState<NFTFormData>({
-    title: '',
-    description: '',
-    imageUrl: '',
-    priceBCC: 0,
-    active: true,
+  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
+  const [nftToDelete, setNFTToDelete] = useState<NFTFormData | null>(null);
+
+  // Stats
+  const [stats, setStats] = useState({
+    totalNFTs: 0,
+    activeNFTs: 0,
+    totalSales: 0,
+    uniqueUsers: 0
   });
 
-  useEffect(() => {
-    loadNFTData();
-  }, [searchTerm]);
-
-  const loadNFTData = async () => {
+  // Load all NFTs from database
+  const loadNFTs = useCallback(async () => {
     try {
-      // Using real NFT data structure from database
-      const realMerchantNFTs: MerchantNFT[] = [
-        {
-          id: 'nft-001',
-          title: 'Beehive Gold Membership NFT',
-          description: 'Exclusive gold-tier membership NFT with special privileges',
-          imageUrl: 'https://images.unsplash.com/photo-1518709268805-4e9042af2176?w=400',
-          priceBCC: 1000,
-          active: true,
-          createdAt: '2025-08-20T10:00:00Z',
-        },
-        {
-          id: 'nft-002',
-          title: 'Hexagon Genesis Collection',
-          description: 'Limited edition hexagon-themed NFT from the genesis collection',
-          imageUrl: 'https://images.unsplash.com/photo-1640347217931-e6b6a1b9b3c4?w=400',
-          priceBCC: 500,
-          active: true,
-          createdAt: '2025-08-19T15:30:00Z',
-        },
-        {
-          id: 'nft-003',
-          title: 'Warrior Badge NFT',
-          description: 'Achievement NFT for reaching Warrior level membership',
-          imageUrl: 'https://images.unsplash.com/photo-1578662996442-48f60103fc96?w=400',
-          priceBCC: 250,
-          active: false,
-          createdAt: '2025-08-18T08:15:00Z',
-        },
-        {
-          id: 'nft-004',
-          title: 'Honey Drop Special',
-          description: 'Seasonal NFT featuring honey drop design with utility rewards',
-          imageUrl: 'https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=400',
-          priceBCC: 750,
-          active: true,
-          createdAt: '2025-08-17T12:45:00Z',
-        },
-        {
-          id: 'nft-005',
-          title: 'Matrix Node Guardian',
-          description: 'Special NFT for referral matrix leaders with bonus rewards',
-          imageUrl: 'https://images.unsplash.com/photo-1639322537228-f710d846310a?w=400',
-          priceBCC: 1500,
-          active: true,
-          createdAt: '2025-08-16T14:20:00Z',
-        },
-        {
-          id: 'nft-006',
-          title: 'Community Builder Badge',
-          description: 'Recognition NFT for ActiveMember community contributors',
-          imageUrl: 'https://images.unsplash.com/photo-1620641788421-7a1c342ea42e?w=400',
-          priceBCC: 300,
-          active: true,
-          createdAt: '2025-08-15T09:10:00Z',
-        },
+      setIsLoading(true);
+
+      // Load Advertisement NFTs
+      const { data: advNFTs, error: advError } = await supabase
+        .from('advertisement_nfts')
+        .select('*')
+        .order('created_at', { ascending: false });
+
+      if (advError) throw advError;
+
+      // Load Merchant NFTs
+      const { data: merchNFTs, error: merchError } = await supabase
+        .from('merchant_nfts')
+        .select('*')
+        .order('created_at', { ascending: false });
+
+      if (merchError) throw merchError;
+
+      // Load Service NFTs (if table exists)
+      const { data: svcNFTs, error: svcError } = await supabase
+        .from('service_nfts')
+        .select('*')
+        .order('created_at', { ascending: false });
+
+      // Combine all NFTs
+      const allNFTs: NFTFormData[] = [
+        ...(advNFTs || []).map(nft => ({
+          ...nft,
+          type: 'advertisement' as NFTType
+        })),
+        ...(merchNFTs || []).map(nft => ({
+          ...nft,
+          type: 'merchant' as NFTType
+        })),
+        ...(svcNFTs || []).map(nft => ({
+          ...nft,
+          type: 'service' as NFTType
+        }))
       ];
 
-      const realNFTPurchases: NFTPurchase[] = [
-        {
-          id: 'purchase-001',
-          walletAddress: '0x479abda60f8c62a7c3fba411ab948a8be0e616ab',
-          nftId: 'nft-001',
-          amountBCC: 1000,
-          bucketUsed: 'transferable',
-          txHash: '0xabc123...',
-          createdAt: '2025-08-21T10:30:00Z',
-          username: 'test001',
-        },
-        {
-          id: 'purchase-002',
-          walletAddress: '0x742d35cc6cf2723395f9de6200a2fec67b67974b',
-          nftId: 'nft-002',
-          amountBCC: 500,
-          bucketUsed: 'restricted',
-          txHash: '0xdef456...',
-          createdAt: '2025-08-20T14:15:00Z',
-          username: 'testuser',
-        },
-      ];
+      setNFTs(allNFTs);
 
-      const realMemberVerifications: MemberNFTVerification[] = [
-        {
-          walletAddress: '0x479abda60f8c62a7c3fba411ab948a8be0e616ab',
-          nftContractAddress: '0x1234567890abcdef1234567890abcdef12345678',
-          tokenId: '1001',
-          chainId: 1,
-          verificationStatus: 'verified',
-          lastVerified: '2025-08-21T02:20:00Z',
-          createdAt: '2025-08-21T02:16:36Z',
-          username: 'test001',
-        },
-        {
-          walletAddress: '0x742d35cc6cf2723395f9de6200a2fec67b67974b',
-          nftContractAddress: '0x1234567890abcdef1234567890abcdef12345678',
-          tokenId: '1002',
-          chainId: 1,
-          verificationStatus: 'verified',
-          lastVerified: '2025-08-21T11:58:00Z',
-          createdAt: '2025-08-21T11:56:29Z',
-          username: 'testuser',
-        },
-        {
-          walletAddress: '0x2bc46f768384f88b3d3c53de6a69b3718026d23f',
-          nftContractAddress: '0x1234567890abcdef1234567890abcdef12345678',
-          tokenId: '1003',
-          chainId: 1,
-          verificationStatus: 'pending',
-          lastVerified: null,
-          createdAt: '2025-08-21T06:11:08Z',
-          username: 'test004',
-        },
-      ];
+      // Calculate stats
+      setStats({
+        totalNFTs: allNFTs.length,
+        activeNFTs: allNFTs.filter(nft => nft.is_active).length,
+        totalSales: 0, // Will be calculated from holdings
+        uniqueUsers: 0 // Will be calculated from holdings
+      });
+    } catch (error: any) {
+      console.error('Error loading NFTs:', error);
+      toast({
+        title: 'Error',
+        description: 'Failed to load NFTs',
+        variant: 'destructive'
+      });
+    } finally {
+      setIsLoading(false);
+    }
+  }, [toast]);
 
-      // Apply search filters
-      const filteredNFTs = realMerchantNFTs.filter(nft =>
-        nft.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        nft.description.toLowerCase().includes(searchTerm.toLowerCase())
+  // Load user holdings
+  const loadHoldings = useCallback(async () => {
+    try {
+      const { data: purchases, error } = await supabase
+        .from('nft_purchases')
+        .select(`
+          *,
+          nft_service_activations (*)
+        `)
+        .order('purchased_at', { ascending: false });
+
+      if (error) throw error;
+
+      // Transform purchases to holdings format
+      const holdingsData: UserHolding[] = await Promise.all(
+        (purchases || []).map(async (purchase) => {
+          // Get NFT details based on type
+          let nftDetails = null;
+          const tableName = purchase.nft_type === 'advertisement'
+            ? 'advertisement_nfts'
+            : purchase.nft_type === 'merchant'
+            ? 'merchant_nfts'
+            : 'service_nfts';
+
+          const { data } = await supabase
+            .from(tableName)
+            .select('title, image_url')
+            .eq('id', purchase.nft_id)
+            .single();
+
+          nftDetails = data;
+
+          // Get user info
+          const { data: user } = await supabase
+            .from('members')
+            .select('username')
+            .eq('wallet_address', purchase.buyer_wallet)
+            .single();
+
+          return {
+            id: purchase.id,
+            purchase_id: purchase.id,
+            buyer_wallet: purchase.buyer_wallet,
+            buyer_username: user?.username,
+            nft_id: purchase.nft_id,
+            nft_type: purchase.nft_type,
+            nft_title: nftDetails?.title || 'Unknown NFT',
+            nft_image_url: nftDetails?.image_url,
+            price_paid_bcc: purchase.price_paid_bcc || 0,
+            price_paid_usdt: purchase.price_paid_usdt || 0,
+            purchased_at: purchase.purchased_at,
+            status: purchase.status || 'active',
+            service_activation: purchase.nft_service_activations?.[0] || undefined
+          };
+        })
       );
 
-      // Connect purchase data with NFT details
-      const purchasesWithNFTs = realNFTPurchases.map(purchase => ({
-        ...purchase,
-        nft: realMerchantNFTs.find(nft => nft.id === purchase.nftId),
+      setHoldings(holdingsData);
+
+      // Update stats with holding data
+      const totalSales = holdingsData.reduce((sum, h) => sum + h.price_paid_bcc, 0);
+      const uniqueUsers = new Set(holdingsData.map(h => h.buyer_wallet)).size;
+
+      setStats(prev => ({
+        ...prev,
+        totalSales,
+        uniqueUsers
       }));
-
-      setMerchantNFTs(filteredNFTs);
-      setNftPurchases(purchasesWithNFTs);
-      setMemberVerifications(realMemberVerifications);
-      setIsLoading(false);
-    } catch (error) {
-      console.error('Failed to load NFT data:', error);
-      setIsLoading(false);
+    } catch (error: any) {
+      console.error('Error loading holdings:', error);
+      toast({
+        title: 'Error',
+        description: 'Failed to load user holdings',
+        variant: 'destructive'
+      });
     }
-  };
+  }, [toast]);
 
-  const handleCreateNFT = async () => {
+  // Initial load
+  useEffect(() => {
+    if (hasPermission('nfts.read')) {
+      loadNFTs();
+      loadHoldings();
+    }
+  }, [hasPermission, loadNFTs, loadHoldings]);
+
+  // Create NFT
+  const handleCreateNFT = async (formData: NFTFormData) => {
     try {
-      // Simulate NFT creation
-      const newNFT: MerchantNFT = {
-        id: `nft-${Date.now()}`,
-        ...formData,
-        createdAt: new Date().toISOString(),
-      };
+      const tableName = formData.type === 'advertisement'
+        ? 'advertisement_nfts'
+        : formData.type === 'merchant'
+        ? 'merchant_nfts'
+        : 'service_nfts';
 
-      setMerchantNFTs(prev => [newNFT, ...prev]);
+      const { error } = await supabase
+        .from(tableName)
+        .insert([formData]);
+
+      if (error) throw error;
+
+      toast({
+        title: 'Success',
+        description: 'NFT created successfully'
+      });
+
       setIsCreateDialogOpen(false);
-      setFormData({
-        title: '',
-        description: '',
-        imageUrl: '',
-        priceBCC: 0,
-        active: true,
-      });
-
-      toast({
-        title: 'NFT Created',
-        description: `${newNFT.title} has been added to the marketplace.`,
-      });
-    } catch (error) {
+      await loadNFTs();
+    } catch (error: any) {
       toast({
         title: 'Error',
-        description: 'Failed to create NFT. Please try again.',
-        variant: 'destructive',
+        description: error.message || 'Failed to create NFT',
+        variant: 'destructive'
       });
+      throw error;
     }
   };
 
-  const handleEditNFT = async () => {
-    if (!editingNFT) return;
-
+  // Update NFT
+  const handleUpdateNFT = async (formData: NFTFormData) => {
     try {
-      const updatedNFT = { ...editingNFT, ...formData };
-      setMerchantNFTs(prev =>
-        prev.map(nft => nft.id === editingNFT.id ? updatedNFT : nft)
-      );
-      
+      if (!selectedNFT?.id) return;
+
+      const tableName = formData.type === 'advertisement'
+        ? 'advertisement_nfts'
+        : formData.type === 'merchant'
+        ? 'merchant_nfts'
+        : 'service_nfts';
+
+      const { error } = await supabase
+        .from(tableName)
+        .update(formData)
+        .eq('id', selectedNFT.id);
+
+      if (error) throw error;
+
+      toast({
+        title: 'Success',
+        description: 'NFT updated successfully'
+      });
+
       setIsEditDialogOpen(false);
-      setEditingNFT(null);
-      
-      toast({
-        title: 'NFT Updated',
-        description: `${updatedNFT.title} has been updated successfully.`,
-      });
-    } catch (error) {
+      setSelectedNFT(null);
+      await loadNFTs();
+    } catch (error: any) {
       toast({
         title: 'Error',
-        description: 'Failed to update NFT. Please try again.',
-        variant: 'destructive',
+        description: error.message || 'Failed to update NFT',
+        variant: 'destructive'
       });
+      throw error;
     }
   };
 
-  const toggleNFTStatus = async (nft: MerchantNFT) => {
+  // Delete NFT
+  const handleDeleteNFT = async () => {
     try {
-      const updatedNFT = { ...nft, active: !nft.active };
-      setMerchantNFTs(prev =>
-        prev.map(n => n.id === nft.id ? updatedNFT : n)
-      );
+      if (!nftToDelete?.id || !nftToDelete?.type) return;
+
+      const tableName = nftToDelete.type === 'advertisement'
+        ? 'advertisement_nfts'
+        : nftToDelete.type === 'merchant'
+        ? 'merchant_nfts'
+        : 'service_nfts';
+
+      const { error } = await supabase
+        .from(tableName)
+        .delete()
+        .eq('id', nftToDelete.id);
+
+      if (error) throw error;
 
       toast({
-        title: 'NFT Status Updated',
-        description: `${nft.title} is now ${updatedNFT.active ? 'active' : 'inactive'}.`,
+        title: 'Success',
+        description: 'NFT deleted successfully'
       });
-    } catch (error) {
+
+      setIsDeleteDialogOpen(false);
+      setNFTToDelete(null);
+      await loadNFTs();
+    } catch (error: any) {
       toast({
         title: 'Error',
-        description: 'Failed to update NFT status.',
-        variant: 'destructive',
+        description: error.message || 'Failed to delete NFT',
+        variant: 'destructive'
       });
     }
   };
 
-  const openEditDialog = (nft: MerchantNFT) => {
-    setEditingNFT(nft);
-    setFormData({
-      title: nft.title,
-      description: nft.description,
-      imageUrl: nft.imageUrl,
-      priceBCC: nft.priceBCC,
-      active: nft.active,
-    });
+  // Toggle NFT status
+  const handleToggleStatus = async (nft: NFTFormData) => {
+    try {
+      const tableName = nft.type === 'advertisement'
+        ? 'advertisement_nfts'
+        : nft.type === 'merchant'
+        ? 'merchant_nfts'
+        : 'service_nfts';
+
+      const { error } = await supabase
+        .from(tableName)
+        .update({ is_active: !nft.is_active })
+        .eq('id', nft.id);
+
+      if (error) throw error;
+
+      toast({
+        title: 'Success',
+        description: `NFT ${!nft.is_active ? 'activated' : 'deactivated'} successfully`
+      });
+
+      await loadNFTs();
+    } catch (error: any) {
+      toast({
+        title: 'Error',
+        description: error.message || 'Failed to toggle NFT status',
+        variant: 'destructive'
+      });
+    }
+  };
+
+  // Edit NFT
+  const handleEditNFT = (nft: NFTFormData) => {
+    setSelectedNFT(nft);
     setIsEditDialogOpen(true);
   };
 
-  const formatWalletAddress = (address: string) => {
-    return `${address.slice(0, 6)}...${address.slice(-4)}`;
-  };
-
-  const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString('en-US', {
-      year: 'numeric',
-      month: 'short',
-      day: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit'
+  // View NFT details
+  const handleViewDetails = (nft: NFTFormData) => {
+    setSelectedNFT(nft);
+    // TODO: Implement detail view
+    toast({
+      title: 'View Details',
+      description: `Viewing details for: ${nft.title}`
     });
   };
 
-  const getVerificationBadge = (status: string) => {
-    switch (status) {
-      case 'verified':
-        return <Badge className="bg-green-500"><CheckCircle className="w-3 h-3 mr-1" />Verified</Badge>;
-      case 'failed':
-        return <Badge variant="destructive"><XCircle className="w-3 h-3 mr-1" />Failed</Badge>;
-      default:
-        return <Badge variant="secondary"><Clock className="w-3 h-3 mr-1" />Pending</Badge>;
-    }
+  // Delete NFT (show confirmation)
+  const handleDeleteClick = (nft: NFTFormData) => {
+    setNFTToDelete(nft);
+    setIsDeleteDialogOpen(true);
   };
 
-  const getBucketBadge = (bucket: string) => {
-    return bucket === 'transferable' 
-      ? <Badge className="bg-blue-500">Transferable</Badge>
-      : <Badge className="bg-purple-500">Restricted</Badge>;
+  // View user
+  const handleViewUser = (walletAddress: string) => {
+    // TODO: Navigate to user details page
+    toast({
+      title: 'View User',
+      description: `Viewing user: ${walletAddress}`
+    });
   };
 
+  // View holding details
+  const handleViewHoldingDetails = (holding: UserHolding) => {
+    toast({
+      title: 'Holding Details',
+      description: `Viewing holding: ${holding.nft_title}`
+    });
+  };
+
+  // Permission check
   if (!hasPermission('nfts.read')) {
     return (
-      <div className="text-center py-8">
-        <Image className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
-        <h2 className="text-xl font-semibold mb-2">Access Denied</h2>
-        <p className="text-muted-foreground">You don't have permission to view NFT data.</p>
+      <div className={`text-center ${isMobile ? 'py-8' : 'py-12'}`}>
+        <ImageIcon className={`${isMobile ? 'h-10 w-10' : 'h-12 w-12'} mx-auto text-muted-foreground mb-4`} />
+        <h2 className={`${isMobile ? 'text-lg' : 'text-xl'} font-semibold mb-2`}>Access Denied</h2>
+        <p className={`${isMobile ? 'text-sm' : 'text-base'} text-muted-foreground`}>
+          You don't have permission to view NFT data.
+        </p>
       </div>
     );
   }
-
-  if (isLoading) {
-    return (
-      <div className="space-y-6">
-        <div className="flex items-center justify-between">
-          <div>
-            <h1 className="text-3xl font-bold text-honey">NFT Management</h1>
-            <p className="text-muted-foreground mt-2">Loading NFT marketplace...</p>
-          </div>
-        </div>
-        
-        <Card>
-          <CardContent className="p-6">
-            <div className="animate-pulse space-y-4">
-              {Array.from({ length: 3 }).map((_, i) => (
-                <div key={i} className="h-20 bg-muted rounded"></div>
-              ))}
-            </div>
-          </CardContent>
-        </Card>
-      </div>
-    );
-  }
-
-  const totalSales = nftPurchases.reduce((sum, purchase) => sum + purchase.amountBCC, 0);
-  const activeNFTs = merchantNFTs.filter(nft => nft.active).length;
-  const verifiedMembers = memberVerifications.filter(v => v.verificationStatus === 'verified').length;
 
   return (
-    <div className="space-y-6">
+    <div className={`space-y-${isMobile ? '4' : '6'}`}>
       {/* Header */}
-      <div className="flex items-center justify-between">
+      <div className={`flex ${isMobile ? 'flex-col gap-4' : 'items-center justify-between'}`}>
         <div>
-          <h1 className="text-3xl font-bold text-honey">NFT Management</h1>
-          <p className="text-muted-foreground mt-2">
-            Manage merchant NFTs, track sales, and verify member NFTs
+          <h1 className={`${isMobile ? 'text-2xl' : isDesktop ? 'text-4xl' : 'text-3xl'} font-bold text-honey`}>
+            NFT Management
+          </h1>
+          <p className={`${isMobile ? 'text-sm' : 'text-base'} text-muted-foreground mt-2`}>
+            Manage advertisement, merchant, and service NFTs
           </p>
         </div>
-        
+
         {hasPermission('nfts.create') && (
-          <Dialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen}>
-            <DialogTrigger asChild>
-              <Button className="bg-honey text-black hover:bg-honey/90" data-testid="button-create-nft">
-                <Plus className="w-4 h-4 mr-2" />
-                Create NFT
-              </Button>
-            </DialogTrigger>
-            <DialogContent>
-              <DialogHeader>
-                <DialogTitle>Create New NFT</DialogTitle>
-                <DialogDescription>
-                  Add a new NFT to the merchant marketplace
-                </DialogDescription>
-              </DialogHeader>
-              <div className="space-y-4">
-                <div>
-                  <Label htmlFor="title">Title</Label>
-                  <Input
-                    id="title"
-                    value={formData.title}
-                    onChange={(e) => setFormData(prev => ({ ...prev, title: e.target.value }))}
-                    data-testid="input-nft-title"
-                  />
-                </div>
-                <div>
-                  <Label htmlFor="description">Description</Label>
-                  <Textarea
-                    id="description"
-                    value={formData.description}
-                    onChange={(e) => setFormData(prev => ({ ...prev, description: e.target.value }))}
-                    data-testid="textarea-nft-description"
-                  />
-                </div>
-                <div>
-                  <Label htmlFor="imageUrl">Image URL</Label>
-                  <Input
-                    id="imageUrl"
-                    value={formData.imageUrl}
-                    onChange={(e) => setFormData(prev => ({ ...prev, imageUrl: e.target.value }))}
-                    data-testid="input-nft-image"
-                  />
-                </div>
-                <div>
-                  <Label htmlFor="priceBCC">Price (BCC)</Label>
-                  <Input
-                    id="priceBCC"
-                    type="number"
-                    value={formData.priceBCC}
-                    onChange={(e) => setFormData(prev => ({ ...prev, priceBCC: parseInt(e.target.value) || 0 }))}
-                    data-testid="input-nft-price"
-                  />
-                </div>
-                <div className="flex items-center space-x-2">
-                  <Switch
-                    checked={formData.active}
-                    onCheckedChange={(checked) => setFormData(prev => ({ ...prev, active: checked }))}
-                    data-testid="switch-nft-active"
-                  />
-                  <Label>Active in marketplace</Label>
-                </div>
-              </div>
-              <DialogFooter>
-                <Button variant="outline" onClick={() => setIsCreateDialogOpen(false)}>
-                  Cancel
-                </Button>
-                <Button onClick={handleCreateNFT} data-testid="button-save-nft">
-                  Create NFT
-                </Button>
-              </DialogFooter>
-            </DialogContent>
-          </Dialog>
+          <Button
+            onClick={() => setIsCreateDialogOpen(true)}
+            className={`bg-honey text-secondary hover:bg-honey/90 ${isMobile ? 'w-full h-10' : isDesktop ? 'h-12' : 'h-10'}`}
+            data-testid="button-create-nft"
+          >
+            <Plus className={`${isMobile ? 'w-4 h-4' : 'w-5 h-5'} mr-2`} />
+            Create NFT
+          </Button>
         )}
       </div>
 
       {/* Stats Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+      <div className={`grid grid-cols-2 lg:grid-cols-4 gap-${isMobile ? '3' : '4'}`}>
         <Card>
-          <CardContent className="p-6">
+          <CardContent className={`${isMobile ? 'p-4' : 'p-6'}`}>
             <div className="flex items-center space-x-2">
-              <Package className="h-5 w-5 text-honey" />
+              <Package className={`${isMobile ? 'h-4 w-4' : 'h-5 w-5'} text-honey`} />
               <div>
-                <p className="text-sm text-muted-foreground">Total NFTs</p>
-                <p className="text-2xl font-bold">{merchantNFTs.length}</p>
+                <p className={`${isMobile ? 'text-xs' : 'text-sm'} text-muted-foreground`}>Total NFTs</p>
+                <p className={`${isMobile ? 'text-xl' : 'text-2xl'} font-bold`}>{stats.totalNFTs}</p>
               </div>
             </div>
           </CardContent>
         </Card>
 
         <Card>
-          <CardContent className="p-6">
+          <CardContent className={`${isMobile ? 'p-4' : 'p-6'}`}>
             <div className="flex items-center space-x-2">
-              <Eye className="h-5 w-5 text-honey" />
+              <ImageIcon className={`${isMobile ? 'h-4 w-4' : 'h-5 w-5'} text-green-500`} />
               <div>
-                <p className="text-sm text-muted-foreground">Active NFTs</p>
-                <p className="text-2xl font-bold">{activeNFTs}</p>
+                <p className={`${isMobile ? 'text-xs' : 'text-sm'} text-muted-foreground`}>Active</p>
+                <p className={`${isMobile ? 'text-xl' : 'text-2xl'} font-bold`}>{stats.activeNFTs}</p>
               </div>
             </div>
           </CardContent>
         </Card>
 
         <Card>
-          <CardContent className="p-6">
+          <CardContent className={`${isMobile ? 'p-4' : 'p-6'}`}>
             <div className="flex items-center space-x-2">
-              <TrendingUp className="h-5 w-5 text-honey" />
+              <TrendingUp className={`${isMobile ? 'h-4 w-4' : 'h-5 w-5'} text-blue-500`} />
               <div>
-                <p className="text-sm text-muted-foreground">Total Sales</p>
-                <p className="text-2xl font-bold">{totalSales.toLocaleString()} BCC</p>
+                <p className={`${isMobile ? 'text-xs' : 'text-sm'} text-muted-foreground`}>Total Sales</p>
+                <p className={`${isMobile ? 'text-lg' : 'text-2xl'} font-bold`}>
+                  {stats.totalSales.toLocaleString()} BCC
+                </p>
               </div>
             </div>
           </CardContent>
         </Card>
 
         <Card>
-          <CardContent className="p-6">
+          <CardContent className={`${isMobile ? 'p-4' : 'p-6'}`}>
             <div className="flex items-center space-x-2">
-              <CheckCircle className="h-5 w-5 text-honey" />
+              <Users className={`${isMobile ? 'h-4 w-4' : 'h-5 w-5'} text-purple-500`} />
               <div>
-                <p className="text-sm text-muted-foreground">Verified Members</p>
-                <p className="text-2xl font-bold">{verifiedMembers}</p>
+                <p className={`${isMobile ? 'text-xs' : 'text-sm'} text-muted-foreground`}>Users</p>
+                <p className={`${isMobile ? 'text-xl' : 'text-2xl'} font-bold`}>{stats.uniqueUsers}</p>
               </div>
             </div>
           </CardContent>
         </Card>
       </div>
 
-      {/* Search */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center space-x-2">
-            <Search className="h-5 w-5" />
-            <span>Search NFTs</span>
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <Input
-            placeholder="Search NFTs by title or description..."
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            className="bg-muted"
-            data-testid="input-search-nfts"
-          />
-        </CardContent>
-      </Card>
-
-      {/* Main Content */}
-      <Tabs defaultValue="marketplace" className="space-y-6">
-        <TabsList>
-          <TabsTrigger value="marketplace">Marketplace NFTs</TabsTrigger>
-          <TabsTrigger value="purchases">Purchase History</TabsTrigger>
-          <TabsTrigger value="verification">Member Verification</TabsTrigger>
+      {/* Main Tabs */}
+      <Tabs defaultValue="published" className="space-y-4">
+        <TabsList className={`grid w-full grid-cols-3 ${isMobile ? 'h-auto' : ''}`}>
+          <TabsTrigger value="published" className={isMobile ? 'text-xs py-2' : ''}>
+            Published NFTs
+          </TabsTrigger>
+          <TabsTrigger value="create" className={isMobile ? 'text-xs py-2' : ''}>
+            Create NFT
+          </TabsTrigger>
+          <TabsTrigger value="holdings" className={isMobile ? 'text-xs py-2' : ''}>
+            User Holdings
+          </TabsTrigger>
         </TabsList>
 
-        <TabsContent value="marketplace">
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {merchantNFTs.map((nft) => (
-              <Card key={nft.id} className="overflow-hidden">
-                <div className="aspect-square relative">
-                  <img
-                    src={nft.imageUrl}
-                    alt={nft.title}
-                    className="w-full h-full object-cover"
-                  />
-                  <div className="absolute top-2 right-2 flex space-x-2">
-                    {nft.active ? (
-                      <Badge className="bg-green-500">Active</Badge>
-                    ) : (
-                      <Badge variant="secondary">Inactive</Badge>
-                    )}
-                  </div>
-                </div>
-                <CardContent className="p-4">
-                  <h3 className="font-semibold text-lg mb-2">{nft.title}</h3>
-                  <p className="text-sm text-muted-foreground mb-3 line-clamp-2">
-                    {nft.description}
-                  </p>
-                  <div className="flex items-center justify-between mb-4">
-                    <div className="flex items-center space-x-1">
-                      <DollarSign className="w-4 h-4 text-honey" />
-                      <span className="font-bold text-honey">{nft.priceBCC.toLocaleString()} BCC</span>
-                    </div>
-                    <div className="text-xs text-muted-foreground">
-                      {formatDate(nft.createdAt)}
-                    </div>
-                  </div>
-                  
-                  {hasPermission('nfts.edit') && (
-                    <div className="flex space-x-2">
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => openEditDialog(nft)}
-                        data-testid={`button-edit-nft-${nft.id}`}
-                      >
-                        <Edit className="w-4 h-4 mr-1" />
-                        Edit
-                      </Button>
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => toggleNFTStatus(nft)}
-                        data-testid={`button-toggle-nft-${nft.id}`}
-                      >
-                        {nft.active ? <EyeOff className="w-4 h-4 mr-1" /> : <Eye className="w-4 h-4 mr-1" />}
-                        {nft.active ? 'Deactivate' : 'Activate'}
-                      </Button>
-                    </div>
-                  )}
-                </CardContent>
-              </Card>
-            ))}
-          </div>
+        <TabsContent value="published">
+          <AdminNFTList
+            nfts={nfts}
+            onEdit={handleEditNFT}
+            onDelete={handleDeleteClick}
+            onToggleStatus={handleToggleStatus}
+            onViewDetails={handleViewDetails}
+            isLoading={isLoading}
+          />
         </TabsContent>
 
-        <TabsContent value="purchases">
-          <Card>
-            <CardHeader>
-              <CardTitle>NFT Purchase History</CardTitle>
-              <CardDescription>Track all NFT purchases on the platform</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-4">
-                {nftPurchases.map((purchase) => (
-                  <div
-                    key={purchase.id}
-                    className="flex items-center justify-between p-4 rounded-lg bg-secondary"
-                  >
-                    <div className="flex items-center space-x-4">
-                      {purchase.nft && (
-                        <img
-                          src={purchase.nft.imageUrl}
-                          alt={purchase.nft.title}
-                          className="w-12 h-12 rounded-lg object-cover"
-                        />
-                      )}
-                      <div>
-                        <div className="font-medium">{purchase.nft?.title || 'Unknown NFT'}</div>
-                        <div className="text-sm text-muted-foreground">
-                          <Wallet className="w-3 h-3 inline mr-1" />
-                          {purchase.username} • {formatWalletAddress(purchase.walletAddress)}
-                        </div>
-                      </div>
-                    </div>
-                    
-                    <div className="flex items-center space-x-4">
-                      {getBucketBadge(purchase.bucketUsed)}
-                      <div className="text-center">
-                        <div className="font-bold text-honey">{purchase.amountBCC.toLocaleString()} BCC</div>
-                        <div className="text-xs text-muted-foreground">
-                          {formatDate(purchase.createdAt)}
-                        </div>
-                      </div>
-                      {purchase.txHash && (
-                        <div className="text-xs text-muted-foreground">
-                          TX: {purchase.txHash.slice(0, 10)}...
-                        </div>
-                      )}
-                    </div>
-                  </div>
-                ))}
-                
-                {nftPurchases.length === 0 && (
-                  <div className="text-center py-8">
-                    <ShoppingCart className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
-                    <h3 className="text-lg font-semibold mb-2">No Purchases Yet</h3>
-                    <p className="text-muted-foreground">NFT purchases will appear here.</p>
-                  </div>
-                )}
-              </div>
-            </CardContent>
-          </Card>
+        <TabsContent value="create">
+          <NFTForm
+            onSave={handleCreateNFT}
+            onCancel={() => {}}
+          />
         </TabsContent>
 
-        <TabsContent value="verification">
-          <Card>
-            <CardHeader>
-              <CardTitle>Member NFT Verification</CardTitle>
-              <CardDescription>Verify membership NFTs for Level 1+ access</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-4">
-                {memberVerifications.map((verification) => (
-                  <div
-                    key={verification.walletAddress}
-                    className="flex items-center justify-between p-4 rounded-lg bg-secondary"
-                  >
-                    <div className="flex items-center space-x-4">
-                      <div className="w-10 h-10 bg-honey/10 rounded-full flex items-center justify-center">
-                        <span className="text-honey font-semibold">
-                          {verification.username?.charAt(0).toUpperCase() || 'U'}
-                        </span>
-                      </div>
-                      <div>
-                        <div className="font-medium">{verification.username}</div>
-                        <div className="text-sm text-muted-foreground">
-                          {formatWalletAddress(verification.walletAddress)}
-                        </div>
-                        <div className="text-xs text-muted-foreground">
-                          Token #{verification.tokenId} • Chain {verification.chainId}
-                        </div>
-                      </div>
-                    </div>
-                    
-                    <div className="flex items-center space-x-4">
-                      {getVerificationBadge(verification.verificationStatus)}
-                      <div className="text-center">
-                        <div className="text-xs text-muted-foreground">
-                          {verification.lastVerified ? 'Last Verified' : 'Created'}
-                        </div>
-                        <div className="font-medium">
-                          {formatDate(verification.lastVerified || verification.createdAt)}
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                ))}
-                
-                {memberVerifications.length === 0 && (
-                  <div className="text-center py-8">
-                    <CheckCircle className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
-                    <h3 className="text-lg font-semibold mb-2">No Verifications Yet</h3>
-                    <p className="text-muted-foreground">Member NFT verifications will appear here.</p>
-                  </div>
-                )}
-              </div>
-            </CardContent>
-          </Card>
+        <TabsContent value="holdings">
+          <UserHoldingsManager
+            holdings={holdings}
+            onViewDetails={handleViewHoldingDetails}
+            onViewUser={handleViewUser}
+            isLoading={isLoading}
+          />
         </TabsContent>
       </Tabs>
 
       {/* Edit Dialog */}
       <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
-        <DialogContent>
+        <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>Edit NFT</DialogTitle>
-            <DialogDescription>
-              Update NFT details in the marketplace
-            </DialogDescription>
+            <DialogDescription>Update NFT details and translations</DialogDescription>
           </DialogHeader>
-          <div className="space-y-4">
-            <div>
-              <Label htmlFor="edit-title">Title</Label>
-              <Input
-                id="edit-title"
-                value={formData.title}
-                onChange={(e) => setFormData(prev => ({ ...prev, title: e.target.value }))}
-              />
-            </div>
-            <div>
-              <Label htmlFor="edit-description">Description</Label>
-              <Textarea
-                id="edit-description"
-                value={formData.description}
-                onChange={(e) => setFormData(prev => ({ ...prev, description: e.target.value }))}
-              />
-            </div>
-            <div>
-              <Label htmlFor="edit-imageUrl">Image URL</Label>
-              <Input
-                id="edit-imageUrl"
-                value={formData.imageUrl}
-                onChange={(e) => setFormData(prev => ({ ...prev, imageUrl: e.target.value }))}
-              />
-            </div>
-            <div>
-              <Label htmlFor="edit-priceBCC">Price (BCC)</Label>
-              <Input
-                id="edit-priceBCC"
-                type="number"
-                value={formData.priceBCC}
-                onChange={(e) => setFormData(prev => ({ ...prev, priceBCC: parseInt(e.target.value) || 0 }))}
-              />
-            </div>
-            <div className="flex items-center space-x-2">
-              <Switch
-                checked={formData.active}
-                onCheckedChange={(checked) => setFormData(prev => ({ ...prev, active: checked }))}
-              />
-              <Label>Active in marketplace</Label>
-            </div>
-          </div>
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setIsEditDialogOpen(false)}>
-              Cancel
-            </Button>
-            <Button onClick={handleEditNFT}>
-              Update NFT
-            </Button>
-          </DialogFooter>
+          {selectedNFT && (
+            <NFTForm
+              nft={selectedNFT}
+              onSave={handleUpdateNFT}
+              onCancel={() => {
+                setIsEditDialogOpen(false);
+                setSelectedNFT(null);
+              }}
+            />
+          )}
         </DialogContent>
       </Dialog>
+
+      {/* Create Dialog */}
+      <Dialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen}>
+        <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>Create New NFT</DialogTitle>
+            <DialogDescription>Add a new NFT to the marketplace</DialogDescription>
+          </DialogHeader>
+          <NFTForm
+            onSave={handleCreateNFT}
+            onCancel={() => setIsCreateDialogOpen(false)}
+          />
+        </DialogContent>
+      </Dialog>
+
+      {/* Delete Confirmation Dialog */}
+      <AlertDialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Are you sure?</AlertDialogTitle>
+            <AlertDialogDescription>
+              This will permanently delete the NFT "{nftToDelete?.title}". This action cannot be undone.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={handleDeleteNFT}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            >
+              Delete
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }
