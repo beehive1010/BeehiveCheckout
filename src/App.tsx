@@ -85,6 +85,7 @@ import AdminRewards from "@/pages/admin/AdminRewards";
 import AdminMatrix from "@/pages/admin/AdminMatrix";
 import AdminSettings from "@/pages/admin/AdminSettings";
 import AdminServerWallet from "@/pages/admin/AdminServerWallet";
+import AdminNFTs from "@/pages/admin/AdminNFTs";
 const AdminUserManagement = () => {
   const { t } = useI18n();
   return <div>{t('common.comingSoon')} - Admin User Management</div>;
@@ -92,10 +93,6 @@ const AdminUserManagement = () => {
 const AdminReferrals = () => {
   const { t } = useI18n();
   return <div>{t('common.comingSoon')} - Admin Referrals</div>;
-};
-const AdminNFTsPlaceholder = () => {
-  const { t } = useI18n();
-  return <div>{t('common.comingSoon')} - Admin NFTs</div>;
 };
 const AdminContracts = () => {
   const { t } = useI18n();
@@ -267,7 +264,7 @@ function Router() {
         <Route path="/admin/nfts" component={() => (
           <AdminRouteGuard requiredPermission="nfts.read">
             <AdminLayout>
-              <AdminNFTsPlaceholder />
+              <AdminNFTs />
             </AdminLayout>
           </AdminRouteGuard>
         )} />
