@@ -84,10 +84,21 @@ export default function AdminNFTs() {
       if (merchError) throw merchError;
 
       // Load Service NFTs (if table exists)
-      const { data: svcNFTs, error: svcError } = await supabase
-        .from('service_nfts')
-        .select('*')
-        .order('created_at', { ascending: false });
+      let svcNFTs = null;
+      try {
+        const { data, error: svcError } = await supabase
+          .from('service_nfts')
+          .select('*')
+          .order('created_at', { ascending: false });
+
+        if (!svcError) {
+          svcNFTs = data;
+        } else {
+          console.warn('service_nfts table not found or not accessible:', svcError);
+        }
+      } catch (error) {
+        console.warn('service_nfts table not available:', error);
+      }
 
       // Combine all NFTs
       const allNFTs: NFTFormData[] = [
@@ -131,10 +142,7 @@ export default function AdminNFTs() {
     try {
       const { data: purchases, error } = await supabase
         .from('nft_purchases')
-        .select(`
-          *,
-          nft_service_activations (*)
-        `)
+        .select('*')
         .order('purchased_at', { ascending: false });
 
       if (error) throw error;
@@ -150,13 +158,16 @@ export default function AdminNFTs() {
             ? 'merchant_nfts'
             : 'service_nfts';
 
-          const { data } = await supabase
-            .from(tableName)
-            .select('title, image_url')
-            .eq('id', purchase.nft_id)
-            .single();
+          // Only query if table exists (skip service_nfts for now)
+          if (tableName !== 'service_nfts') {
+            const { data } = await supabase
+              .from(tableName)
+              .select('title, image_url')
+              .eq('id', purchase.nft_id)
+              .single();
 
-          nftDetails = data;
+            nftDetails = data;
+          }
 
           // Get user info
           const { data: user } = await supabase
@@ -177,8 +188,7 @@ export default function AdminNFTs() {
             price_paid_bcc: purchase.price_paid_bcc || 0,
             price_paid_usdt: purchase.price_paid_usdt || 0,
             purchased_at: purchase.purchased_at,
-            status: purchase.status || 'active',
-            service_activation: purchase.nft_service_activations?.[0] || undefined
+            status: purchase.status || 'active'
           };
         })
       );
