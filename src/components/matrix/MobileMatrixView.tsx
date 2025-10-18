@@ -13,7 +13,7 @@ import {
   Layers,
   Home
 } from 'lucide-react';
-import { useLayeredMatrix, useMatrixChildren } from '../../hooks/useMatrixByLevel';
+import { useLayeredMatrix, useMatrixChildren, useUserMatrixRoot, useUserDownline } from '../../hooks/useMatrixByLevel';
 import { useI18n } from '../../contexts/I18nContext';
 import { useIsMobile } from '../../hooks/use-mobile';
 
@@ -154,27 +154,38 @@ const MobileMatrixView: React.FC<MobileMatrixViewProps> = ({
   const [navigationHistory, setNavigationHistory] = useState<NavigationHistory[]>([]);
   const [currentRootUser, setCurrentRootUser] = useState(rootUser);
   const [originalRoot] = useState<string>(rootWalletAddress);
-  
+
+  // 获取用户所在的系统矩阵根
+  const { data: matrixRootInfo, isLoading: isLoadingMatrixRoot } = useUserMatrixRoot(currentRoot);
+  const systemMatrixRoot = matrixRootInfo?.systemMatrixRoot || currentRoot;
+  const userLayer = matrixRootInfo?.userLayer || 0;
+
+  console.log('🔍 MobileMatrixView - Matrix root info:', {
+    currentRoot,
+    systemMatrixRoot,
+    userLayer,
+    isMatrixRoot: matrixRootInfo?.isMatrixRoot
+  });
+
   // 根据是否查看原始根节点来决定使用哪个hook
   const isViewingOriginalRoot = currentRoot === originalRoot;
-  
-  // 原始矩阵数据
-  const { data: originalMatrixData, isLoading: isLoadingOriginal, error: originalError } = useLayeredMatrix(
-    originalRoot, 
-    currentLayer, 
-    originalRoot
+
+  // 获取用户在系统矩阵中的下线（包括滑落成员）
+  const { data: userDownlineData, isLoading: isLoadingDownline, error: downlineError } = useUserDownline(
+    currentRoot,
+    systemMatrixRoot
   );
-  
-  // 子节点数据  
+
+  // 子节点数据（用于drill-down）
   const { data: childrenData, isLoading: isLoadingChildren, error: childrenError } = useMatrixChildren(
-    originalRoot,
+    systemMatrixRoot,
     currentRoot
   );
-  
-  // 合并数据
-  const matrixData = isViewingOriginalRoot ? originalMatrixData : childrenData;
-  const isLoading = isViewingOriginalRoot ? isLoadingOriginal : isLoadingChildren;
-  const error = isViewingOriginalRoot ? originalError : childrenError;
+
+  // 合并数据 - 优先使用用户下线数据
+  const matrixData = userDownlineData || childrenData;
+  const isLoading = isLoadingMatrixRoot || isLoadingDownline || isLoadingChildren;
+  const error = downlineError || childrenError;
   
   // 调试信息
   console.log('🔍 MobileMatrixView - Current state:', {
@@ -287,23 +298,27 @@ const MobileMatrixView: React.FC<MobileMatrixViewProps> = ({
   // 处理不同的数据结构
   let currentMatrix = [];
   let totalMembers = 0;
-  
-  if (isViewingOriginalRoot) {
-    // 原始矩阵数据结构
-    currentMatrix = matrixData?.currentLayerMatrix || matrixData?.layer1Matrix || [];
-    totalMembers = matrixData?.totalCurrentLayerMembers || matrixData?.totalLayer1Members || 0;
-  } else {
-    // 子节点数据结构
-    currentMatrix = matrixData?.children || [];
-    totalMembers = matrixData?.totalChildren || 0;
+
+  if (userDownlineData) {
+    // 使用新的用户下线数据结构
+    currentMatrix = userDownlineData.positions || [];
+    totalMembers = userDownlineData.totalMembers || 0;
+    console.log('✅ Using userDownlineData:', { currentMatrix, totalMembers });
+  } else if (childrenData) {
+    // 使用子节点数据结构
+    currentMatrix = childrenData.children || [];
+    totalMembers = childrenData.totalChildren || 0;
+    console.log('✅ Using childrenData:', { currentMatrix, totalMembers });
   }
-  
+
   console.log('🔍 MobileMatrixView - Matrix data details:', {
-    matrixData,
+    hasUserDownlineData: !!userDownlineData,
+    hasChildrenData: !!childrenData,
     currentMatrix,
     totalMembers,
     currentMatrixLength: currentMatrix.length,
-    isViewingOriginalRoot
+    systemMatrixRoot,
+    currentRoot
   });
 
   return (
@@ -371,6 +386,12 @@ const MobileMatrixView: React.FC<MobileMatrixViewProps> = ({
                   <Badge className={`mt-1 bg-honey text-black ${isMobile ? 'text-[10px] px-1.5 py-0' : 'text-xs'}`}>
                     {t('matrix.level')} {currentRootUser.currentLevel}
                   </Badge>
+                )}
+                {/* 显示系统矩阵根信息 */}
+                {systemMatrixRoot !== currentRoot && (
+                  <div className={`${isMobile ? 'text-[9px]' : 'text-[10px]'} text-amber-600 dark:text-amber-400 mt-1`}>
+                    {t('matrix.inMatrix')}: {formatWallet(systemMatrixRoot)}
+                  </div>
                 )}
               </div>
             </div>

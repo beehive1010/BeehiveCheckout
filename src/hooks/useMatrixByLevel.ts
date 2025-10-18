@@ -1,6 +1,120 @@
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '../lib/supabaseClient';
 
+// 获取用户所在的系统矩阵根
+export function useUserMatrixRoot(userWallet: string) {
+  return useQuery({
+    queryKey: ['user-matrix-root', userWallet],
+    queryFn: async () => {
+      if (!userWallet) throw new Error('No user wallet provided');
+
+      console.log('🔍 Getting matrix root for user:', userWallet);
+
+      // 查询用户在哪个矩阵中（查找 member_wallet = userWallet 的记录）
+      const { data, error } = await supabase
+        .from('matrix_referrals')
+        .select('matrix_root_wallet, layer, parent_wallet, position')
+        .eq('member_wallet', userWallet)
+        .order('layer', { ascending: true })
+        .limit(1);
+
+      if (error) {
+        console.error('❌ Error getting user matrix root:', error);
+        throw error;
+      }
+
+      if (!data || data.length === 0) {
+        console.log('📍 User is a matrix root (no parent matrix found)');
+        // 用户可能就是矩阵根本身
+        return {
+          systemMatrixRoot: userWallet,
+          userLayer: 0,
+          isMatrixRoot: true
+        };
+      }
+
+      console.log('📍 User matrix root info:', data[0]);
+
+      return {
+        systemMatrixRoot: data[0].matrix_root_wallet,
+        userLayer: data[0].layer,
+        userParent: data[0].parent_wallet,
+        userPosition: data[0].position,
+        isMatrixRoot: false
+      };
+    },
+    enabled: !!userWallet,
+    staleTime: 30000, // Cache for 30 seconds
+  });
+}
+
+// 获取用户在系统矩阵中的下线（包括滑落成员）
+export function useUserDownline(userWallet: string, systemMatrixRoot?: string) {
+  return useQuery({
+    queryKey: ['user-downline', userWallet, systemMatrixRoot],
+    queryFn: async () => {
+      if (!userWallet) throw new Error('No user wallet provided');
+      if (!systemMatrixRoot) throw new Error('No system matrix root provided');
+
+      console.log('🔍 Getting downline for user:', userWallet, 'in matrix:', systemMatrixRoot);
+
+      // 查询用户在系统矩阵中作为 parent_wallet 的所有下线
+      const { data, error } = await supabase
+        .from('v_matrix_direct_children')
+        .select(`
+          layer_index,
+          slot_index,
+          slot_num_seq,
+          member_wallet,
+          parent_wallet,
+          referral_type,
+          placed_at,
+          child_level,
+          child_nft_count
+        `)
+        .eq('matrix_root_wallet', systemMatrixRoot)
+        .eq('parent_wallet', userWallet)
+        .order('slot_num_seq');
+
+      if (error) {
+        console.error('❌ Error getting user downline:', error);
+        throw error;
+      }
+
+      console.log('📊 User downline data:', data);
+
+      // 组织成 L, M, R 格式
+      const matrixPositions = ['L', 'M', 'R'];
+      const matrix3x3 = matrixPositions.map(position => {
+        const member = data?.find(m => m.slot_index === position);
+
+        return {
+          position: position,
+          member: member ? {
+            wallet: member.member_wallet,
+            joinedAt: member.placed_at,
+            type: member.referral_type,
+            level: member.child_level,
+            nftCount: member.child_nft_count,
+            canExpand: false // TODO: Check if member has children
+          } : null
+        };
+      });
+
+      return {
+        userWallet,
+        systemMatrixRoot,
+        positions: matrix3x3,
+        totalMembers: data?.length || 0,
+        rawData: data
+      };
+    },
+    enabled: !!userWallet && !!systemMatrixRoot,
+    staleTime: 5000,
+    refetchInterval: 15000,
+  });
+}
+
 // 3x3矩阵分层显示hook - 避免递归滑落混乱
 export function useMatrixByLevel(matrixRootWallet: string, parentWallet?: string, currentLevel = 1) {
   return useQuery({

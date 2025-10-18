@@ -2662,6 +2662,7 @@
       "loadFailed": "Failed to load matrix data",
       "noData": "No matrix data available",
       "myMatrix": "My Matrix",
+      "inMatrix": "In Matrix",
       "current": "Current",
       "navigationPath": "Navigation Path",
       "maxLayer": "Max Layer",
