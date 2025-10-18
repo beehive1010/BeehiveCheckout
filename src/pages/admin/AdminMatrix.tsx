@@ -24,7 +24,7 @@ import {
   XCircle,
   AlertTriangle
 } from 'lucide-react';
-import { useAdminAuth } from '../../hooks/useAdminAuth';
+import { useAdminAuthContext } from '../../contexts/AdminAuthContext';
 import { useToast } from '../../hooks/use-toast';
 import { supabase } from '../../lib/supabase';
 
@@ -63,7 +63,7 @@ interface MatrixStats {
 }
 
 export default function AdminMatrix() {
-  const { isAuthenticated, loading: authLoading } = useAdminAuth();
+  const { hasPermission, isAdminAuthenticated, isLoading: authLoading } = useAdminAuthContext();
   const { toast } = useToast();
   
   // 状态管理
@@ -236,11 +236,11 @@ export default function AdminMatrix() {
 
   // 初始化数据加载
   useEffect(() => {
-    if (isAuthenticated && !authLoading) {
+    if (isAdminAuthenticated && !authLoading && hasPermission('matrix.read')) {
       loadMembersData();
       loadMatrixData();
     }
-  }, [isAuthenticated, authLoading]);
+  }, [isAdminAuthenticated, authLoading, hasPermission]);
 
   useEffect(() => {
     if (members.length > 0 && matrixData.length > 0) {
@@ -299,7 +299,7 @@ export default function AdminMatrix() {
     );
   }
 
-  if (!isAuthenticated) {
+  if (!isAdminAuthenticated || !hasPermission('matrix.read')) {
     return (
       <div className="flex items-center justify-center min-h-screen">
         <Card className="w-96">

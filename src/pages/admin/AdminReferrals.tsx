@@ -19,7 +19,7 @@ import {
   ChevronRight,
   Wallet
 } from 'lucide-react';
-import { useAdminAuth } from '../../hooks/useAdminAuth';
+import { useAdminAuthContext } from '../../contexts/AdminAuthContext';
 import { useIsMobile } from '../../hooks/use-mobile';
 
 interface GlobalMatrixPosition {
@@ -45,7 +45,7 @@ interface GlobalMatrixVisualization {
 }
 
 export default function AdminReferrals() {
-  const { hasPermission } = useAdminAuth();
+  const { hasPermission } = useAdminAuthContext();
   const isMobile = useIsMobile();
   const [matrixPositions, setMatrixPositions] = useState<GlobalMatrixPosition[]>([]);
   const [isLoading, setIsLoading] = useState(true);
