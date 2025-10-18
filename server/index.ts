@@ -53,7 +53,7 @@ app.use((req, res, next) => {
   app.get("/api/admin/stats", async (req, res) => {
     try {
       // Get real statistics from database with safe queries
-      const usersResult = await adminDb.execute('SELECT COUNT(*) as count FROM users');
+      const membersResult = await adminDb.execute('SELECT COUNT(*) as count FROM members');
       
       // Check if tables exist before querying
       const membershipResult = await adminDb.execute(`
@@ -83,7 +83,7 @@ app.use((req, res, next) => {
       `).catch(() => ({ rows: [{ count: 0 }] }));
 
       res.json({
-        totalUsers: parseInt(usersResult.rows[0]?.count?.toString() || '0'),
+        totalUsers: parseInt(membersResult.rows[0]?.count?.toString() || '0'),
         activeMembers: parseInt(membershipResult.rows[0]?.count?.toString() || '0'),
         totalNFTs: parseInt(nftsResult.rows[0]?.count?.toString() || '0'),
         blogPosts: parseInt(blogResult.rows[0]?.count?.toString() || '0'),

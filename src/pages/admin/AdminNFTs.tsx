@@ -169,9 +169,9 @@ export default function AdminNFTs() {
             nftDetails = data;
           }
 
-          // Get user info
+          // Get user info (username is in users table, not members)
           const { data: user } = await supabase
-            .from('members')
+            .from('users')
             .select('username')
             .eq('wallet_address', purchase.buyer_wallet)
             .single();

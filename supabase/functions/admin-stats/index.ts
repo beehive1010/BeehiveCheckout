@@ -71,12 +71,12 @@ serve(async (req) => {
 
 async function getDashboardStats(supabaseClient: any) {
   try {
-    // Get total users
-    const { count: totalUsers, error: usersError } = await supabaseClient
-      .from('users')
+    // Get total members (from members table, not users)
+    const { count: totalMembers, error: membersCountError } = await supabaseClient
+      .from('members')
       .select('*', { count: 'exact', head: true });
 
-    if (usersError) throw usersError;
+    if (membersCountError) throw membersCountError;
 
     // Get ActiveMember members using canonical view
     const { count: activeMembers, error: membersError } = await supabaseClient
@@ -119,10 +119,10 @@ async function getDashboardStats(supabaseClient: any) {
 
     if (timersError) throw timersError;
 
-    // Get new registrations today
+    // Get new members registered today
     const today = new Date().toISOString().split('T')[0];
     const { count: newRegistrations, error: newRegError } = await supabaseClient
-      .from('users')
+      .from('members')
       .select('*', { count: 'exact', head: true })
       .gte('created_at', today);
 
@@ -162,7 +162,7 @@ async function getDashboardStats(supabaseClient: any) {
       success: true,
       data: {
         overview: {
-          total_members: totalUsers || 0,
+          total_members: totalMembers || 0,
           total_activated: activeMembers || 0,
           total_revenue_usdt: totalRevenue,
           total_pending_rewards: pendingRewards || 0,
@@ -170,7 +170,7 @@ async function getDashboardStats(supabaseClient: any) {
           new_registrations_today: newRegistrations || 0
         },
         // Legacy format for backward compatibility
-        totalUsers: totalUsers || 0,
+        totalUsers: totalMembers || 0,
         activeMembers: activeMembers || 0,
         totalNFTs: totalNFTs || 0,
         totalRevenue: totalRevenue,
