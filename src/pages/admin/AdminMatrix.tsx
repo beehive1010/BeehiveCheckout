@@ -133,22 +133,21 @@ export default function AdminMatrix() {
   // 加载矩阵数据
   const loadMatrixData = async () => {
     try {
-      console.log('🔍 Loading.tsx matrix data...');
-      
-      // 获取所有矩阵关系
+      console.log('🔍 Loading matrix data...');
+
+      // 获取所有矩阵关系 (使用正确的表名 matrix_referrals)
       const { data: matrixData, error: matrixError } = await supabase
-        .from('referrals')
+        .from('matrix_referrals')
         .select(`
           member_wallet,
           matrix_root_wallet,
-          matrix_layer,
-          matrix_position,
-          member_activation_sequence,
-          is_direct_referral,
-          is_spillover_placement,
-          placed_at
+          layer,
+          position,
+          referral_type,
+          source,
+          created_at
         `)
-        .order('member_activation_sequence', { ascending: true });
+        .order('created_at', { ascending: true });
 
       if (matrixError) {
         throw matrixError;
@@ -165,17 +164,26 @@ export default function AdminMatrix() {
 
       const usernameMap = new Map(usersData?.map(user => [user.wallet_address, user.username]) || []);
 
+      // 获取会员激活序列映射（直接查询，不依赖状态）
+      const { data: membersData } = await supabase
+        .from('members')
+        .select('wallet_address, activation_sequence');
+
+      const memberSequenceMap = new Map(
+        membersData?.map(m => [m.wallet_address, m.activation_sequence]) || []
+      );
+
       const formattedMatrix = matrixData?.map(matrix => ({
         member_wallet: matrix.member_wallet,
         member_username: usernameMap.get(matrix.member_wallet) || 'Unknown',
         matrix_root_wallet: matrix.matrix_root_wallet,
         root_username: usernameMap.get(matrix.matrix_root_wallet) || 'Unknown',
-        matrix_layer: matrix.matrix_layer,
-        matrix_position: matrix.matrix_position,
-        member_activation_sequence: matrix.member_activation_sequence,
-        is_direct_referral: matrix.is_direct_referral,
-        is_spillover_placement: matrix.is_spillover_placement,
-        placed_at: matrix.placed_at
+        matrix_layer: matrix.layer,
+        matrix_position: matrix.position,
+        member_activation_sequence: memberSequenceMap.get(matrix.member_wallet) || 0,
+        is_direct_referral: matrix.referral_type === 'direct',
+        is_spillover_placement: matrix.source === 'spillover' || matrix.referral_type === 'spillover',
+        placed_at: matrix.created_at
       })) || [];
 
       setMatrixData(formattedMatrix);
