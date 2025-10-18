@@ -27,7 +27,7 @@ import {
   Users,
   Image as ImageIcon
 } from 'lucide-react';
-import { useAdminAuth } from '../../hooks/useAdminAuth';
+import { useAdminAuthContext } from '../../contexts/AdminAuthContext';
 import { useToast } from '../../hooks/use-toast';
 import { useIsMobile } from '../../hooks/use-mobile';
 import { useIsDesktop } from '../../hooks/use-desktop';
@@ -39,7 +39,7 @@ import AdminNFTList from '../../components/admin/nfts/AdminNFTList';
 import UserHoldingsManager, { UserHolding } from '../../components/admin/nfts/UserHoldingsManager';
 
 export default function AdminNFTs() {
-  const { hasPermission } = useAdminAuth();
+  const { hasPermission } = useAdminAuthContext();
   const { toast } = useToast();
   const isMobile = useIsMobile();
   const isDesktop = useIsDesktop();
