@@ -23,13 +23,26 @@ const AdminAuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }
 
   // Check for existing admin session on mount
   useEffect(() => {
+    console.log('🔧 AdminAuthContext: Initializing...');
+
     const checkAdminSession = async () => {
+      console.log('🔄 AdminAuthContext: Checking admin session...');
+
       try {
-        // Force refresh session to ensure it's valid
-        const { data: { session }, error: sessionError } = await supabase.auth.getSession();
+        // Add timeout to prevent hanging
+        const timeoutPromise = new Promise((_, reject) =>
+          setTimeout(() => reject(new Error('Session check timeout')), 10000)
+        );
+
+        const sessionPromise = supabase.auth.getSession();
+
+        const { data: { session }, error: sessionError } = await Promise.race([
+          sessionPromise,
+          timeoutPromise
+        ]) as any;
 
         if (sessionError) {
-          console.error('❌ Session error:', sessionError);
+          console.error('❌ AdminAuthContext: Session error:', sessionError);
           setIsAdminAuthenticated(false);
           setAdminUser(null);
           setIsLoading(false);
@@ -37,8 +50,8 @@ const AdminAuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }
         }
 
         if (session?.user) {
-          console.log('🔍 Checking admin status for user:', session.user.email, 'ID:', session.user.id);
-          console.log('📅 Session expires at:', new Date(session.expires_at! * 1000).toLocaleString());
+          console.log('🔍 AdminAuthContext: Checking admin status for user:', session.user.email, 'ID:', session.user.id);
+          console.log('📅 AdminAuthContext: Session expires at:', new Date(session.expires_at! * 1000).toLocaleString());
 
           // Verify this is an admin user (admins table uses id as primary key matching auth.users.id)
           const { data: adminData, error } = await supabase
@@ -70,21 +83,25 @@ const AdminAuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }
             // Not an admin user or inactive - just reset admin state, don't sign out regular users
             setIsAdminAuthenticated(false);
             setAdminUser(null);
-            console.log('🔍 User is not an admin, but keeping regular user session');
+            console.log('🔍 AdminAuthContext: User is not an admin, but keeping regular user session');
           }
         } else {
-          console.log('⚠️ No session found on page load');
+          console.log('⚠️ AdminAuthContext: No session found on page load');
         }
       } catch (error) {
-        console.error('Error checking admin session:', error);
+        console.error('❌ AdminAuthContext: Error checking admin session:', error);
         setIsAdminAuthenticated(false);
         setAdminUser(null);
       } finally {
+        console.log('✅ AdminAuthContext: Initialization complete, isLoading set to false');
         setIsLoading(false);
       }
     };
 
-    checkAdminSession();
+    checkAdminSession().catch(err => {
+      console.error('❌ AdminAuthContext: Unhandled error in checkAdminSession:', err);
+      setIsLoading(false);
+    });
 
     // Listen for auth changes
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
@@ -218,33 +235,61 @@ const AdminAuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }
   }, [isAdminAuthenticated, lastActivity]);
 
   const signInAdmin = async (email: string, password: string) => {
+    console.log('🔐 AdminAuthContext: Starting admin sign in for:', email);
+
     try {
       // Clear any existing state before signing in
       setIsAdminAuthenticated(false);
       setAdminUser(null);
+      console.log('🔄 AdminAuthContext: Cleared existing auth state');
 
-      // Check if there's an existing valid session first
-      const { data: { session: existingSession } } = await supabase.auth.getSession();
+      // Check if there's an existing valid session first (with error handling)
+      let existingSession = null;
+      try {
+        console.log('🔍 AdminAuthContext: Checking for existing session...');
+        const { data: { session }, error: sessionError } = await supabase.auth.getSession();
+        if (!sessionError && session) {
+          existingSession = session;
+          console.log('✅ AdminAuthContext: Found existing session for:', session.user?.email);
+        } else {
+          console.log('ℹ️ AdminAuthContext: No existing session found');
+        }
+      } catch (sessionCheckError) {
+        console.log('⚠️ AdminAuthContext: Could not check existing session, proceeding with sign in');
+      }
 
       // Only clear session if it's for a different user
       if (existingSession?.user && existingSession.user.email !== email) {
-        console.log('🔄 Different user detected, clearing old session');
-        await supabase.auth.signOut({ scope: 'local' });
+        console.log('🔄 AdminAuthContext: Different user detected, clearing old session');
+        try {
+          await supabase.auth.signOut({ scope: 'local' });
+          console.log('✅ AdminAuthContext: Old session cleared');
+        } catch (signOutError) {
+          console.log('⚠️ AdminAuthContext: Could not clear old session, proceeding with sign in');
+        }
       }
 
       // Sign in with fresh credentials
+      console.log('🔑 AdminAuthContext: Signing in with password...');
       const { data, error } = await supabase.auth.signInWithPassword({
         email,
         password,
       });
 
-      if (error) throw error;
+      if (error) {
+        console.error('❌ AdminAuthContext: Sign in failed:', error);
+        throw error;
+      }
 
       if (!data.user) {
+        console.error('❌ AdminAuthContext: No user returned from authentication');
         throw new Error('No user returned from authentication');
       }
 
+      console.log('✅ AdminAuthContext: Authentication successful, user ID:', data.user.id);
+
       // Verify this is an admin user (admins table uses id as primary key matching auth.users.id)
+      console.log('🔍 AdminAuthContext: Verifying admin status...');
       const { data: adminData, error: adminError } = await supabase
         .from('admins')
         .select('*')
@@ -253,10 +298,12 @@ const AdminAuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }
         .single();
 
       if (adminError || !adminData) {
-        console.error('❌ Admin verification failed:', adminError);
+        console.error('❌ AdminAuthContext: Admin verification failed:', adminError);
         await supabase.auth.signOut({ scope: 'local' });
         throw new Error('Invalid admin credentials or inactive account');
       }
+
+      console.log('✅ AdminAuthContext: Admin verification successful, level:', adminData.admin_level);
 
       setIsAdminAuthenticated(true);
       setAdminUser({
@@ -268,13 +315,14 @@ const AdminAuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }
         adminData
       });
 
-      console.log('✅ Admin signed in:', data.user.email, 'Level:', adminData.admin_level);
+      console.log('✅ AdminAuthContext: Admin signed in successfully:', data.user.email, 'Level:', adminData.admin_level);
+      console.log('🔀 AdminAuthContext: Redirecting to /admin/dashboard');
 
       // Redirect to admin dashboard
       setLocation('/admin/dashboard');
 
     } catch (error: any) {
-      console.error('Admin sign in error:', error);
+      console.error('❌ AdminAuthContext: Admin sign in error:', error);
       // Ensure clean state on error
       setIsAdminAuthenticated(false);
       setAdminUser(null);

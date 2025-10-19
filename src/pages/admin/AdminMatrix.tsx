@@ -138,23 +138,27 @@ export default function AdminMatrix() {
     }
   };
 
-  // 加载矩阵数据
+  // 加载矩阵数据（使用新的 Branch-First BFS 系统）
   const loadMatrixData = async () => {
     try {
-      console.log('🔍 Loading matrix data...');
+      console.log('🔍 Loading matrix data from Branch-First BFS system...');
 
-      // 获取所有矩阵关系 (使用正确的表名 matrix_referrals)
+      // 使用优化的视图而不是直接查询表
       const { data: matrixData, error: matrixError } = await supabase
         .from('matrix_referrals')
         .select(`
           member_wallet,
           matrix_root_wallet,
           layer,
-          position,
+          slot,
           referral_type,
           source,
+          entry_anchor,
+          bfs_order,
+          activation_time,
           created_at
         `)
+        .order('bfs_order', { ascending: true, nullsFirst: false })
         .order('created_at', { ascending: true });
 
       if (matrixError) {
@@ -187,15 +191,17 @@ export default function AdminMatrix() {
         matrix_root_wallet: matrix.matrix_root_wallet,
         root_username: usernameMap.get(matrix.matrix_root_wallet) || 'Unknown',
         matrix_layer: matrix.layer,
-        matrix_position: matrix.position,
+        matrix_position: matrix.slot, // 新列名：slot
         member_activation_sequence: memberSequenceMap.get(matrix.member_wallet) || 0,
         is_direct_referral: matrix.referral_type === 'direct',
         is_spillover_placement: matrix.source === 'spillover' || matrix.referral_type === 'spillover',
-        placed_at: matrix.created_at
+        entry_anchor: matrix.entry_anchor,
+        bfs_order: matrix.bfs_order,
+        placed_at: matrix.activation_time || matrix.created_at
       })) || [];
 
       setMatrixData(formattedMatrix);
-      console.log(`✅ Loaded ${formattedMatrix.length} matrix relationships`);
+      console.log(`✅ Loaded ${formattedMatrix.length} matrix relationships (Branch-First BFS)`);
 
     } catch (error: any) {
       console.error('❌ Error loading matrix data:', error);
@@ -250,44 +256,68 @@ export default function AdminMatrix() {
     }
   };
 
-  // 加载节点的子节点（用于树形视图）
+  // 加载节点的子节点（用于树形视图）- 使用 Branch-First BFS 系统
   const loadNodeChildren = async (parentWallet: string, systemMatrixRoot?: string) => {
     try {
       console.log(`🔍 Loading children for node: ${parentWallet}`);
 
-      // 查询用户的下线
+      // 直接查询 matrix_referrals 表获取子节点
       const { data, error } = await supabase
-        .from('v_matrix_direct_children')
+        .from('matrix_referrals')
         .select(`
-          layer_index, slot_index, member_wallet,
-          parent_wallet, referral_type, placed_at,
-          child_level, child_nft_count
+          member_wallet,
+          parent_wallet,
+          slot,
+          layer,
+          referral_type,
+          activation_time,
+          entry_anchor,
+          bfs_order
         `)
         .eq('matrix_root_wallet', systemMatrixRoot || parentWallet)
         .eq('parent_wallet', parentWallet)
-        .order('slot_num_seq');
+        .order('slot', { ascending: true });
 
       if (error) {
         throw error;
       }
 
+      // 获取子节点的额外信息（等级、NFT数量）
+      const childWallets = data?.map(d => d.member_wallet) || [];
+      const { data: memberDetails } = childWallets.length > 0
+        ? await supabase
+            .from('members')
+            .select('wallet_address, current_level, total_nft_claimed')
+            .in('wallet_address', childWallets)
+        : { data: [] };
+
+      const memberDetailsMap = new Map(
+        memberDetails?.map(m => [m.wallet_address, m]) || []
+      );
+
       // 组织成 L, M, R 格式
       const children = ['L', 'M', 'R'].map(position => {
-        const member = data?.find(m => m.slot_index === position);
-        return member ? {
+        const member = data?.find(m => m.slot === position);
+        if (!member) return null;
+
+        const details = memberDetailsMap.get(member.member_wallet);
+        return {
           position,
           wallet: member.member_wallet,
-          joinedAt: member.placed_at,
+          joinedAt: member.activation_time,
           type: member.referral_type,
-          level: member.child_level,
-          nftCount: member.child_nft_count,
-          layer: member.layer_index
-        } : null;
+          level: details?.current_level || 0,
+          nftCount: details?.total_nft_claimed || 0,
+          layer: member.layer,
+          entryAnchor: member.entry_anchor,
+          bfsOrder: member.bfs_order
+        };
       }).filter(Boolean);
 
       // 更新缓存
       setTreeNodeData(prev => new Map(prev).set(parentWallet, children));
 
+      console.log(`✅ Loaded ${children.length} children for ${parentWallet}`);
       return children;
 
     } catch (error: any) {
@@ -332,7 +362,7 @@ export default function AdminMatrix() {
       // 获取用户所在的系统矩阵根
       const { data: matrixRootData, error: matrixRootError } = await supabase
         .from('matrix_referrals')
-        .select('matrix_root_wallet, layer, parent_wallet, position')
+        .select('matrix_root_wallet, layer, parent_wallet, slot')
         .eq('member_wallet', walletSearchInput)
         .order('layer', { ascending: true })
         .limit(1);
