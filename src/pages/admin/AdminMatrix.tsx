@@ -31,6 +31,7 @@ import {
 import { useAdminAuthContext } from '../../contexts/AdminAuthContext';
 import { useToast } from '../../hooks/use-toast';
 import { supabase } from '../../lib/supabase';
+import { AdminMatrixTreeVisualization } from '../../components/admin/AdminMatrixTreeVisualization';
 
 // 接口定义
 interface MemberInfo {
@@ -678,83 +679,15 @@ export default function AdminMatrix() {
       {/* 主要内容 */}
       <Tabs defaultValue="tree" className="space-y-4">
         <TabsList className="grid w-full grid-cols-4">
-          <TabsTrigger value="tree">树形视图</TabsTrigger>
+          <TabsTrigger value="tree">3×3矩阵树</TabsTrigger>
           <TabsTrigger value="members">会员列表</TabsTrigger>
           <TabsTrigger value="matrix">矩阵关系</TabsTrigger>
           <TabsTrigger value="analysis">数据分析</TabsTrigger>
         </TabsList>
 
-        {/* 树形视图标签页 */}
+        {/* 3×3矩阵树可视化标签页 */}
         <TabsContent value="tree" className="space-y-4">
-          {/* 钱包搜索输入 */}
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Search className="h-5 w-5" />
-                搜索会员矩阵树
-              </CardTitle>
-              <CardDescription>
-                输入任意会员钱包地址，查看其完整的矩阵树形结构
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="flex gap-2">
-                <Input
-                  placeholder="输入钱包地址（例如：0x1234...）"
-                  value={walletSearchInput}
-                  onChange={(e) => setWalletSearchInput(e.target.value)}
-                  onKeyDown={(e) => {
-                    if (e.key === 'Enter') {
-                      handleWalletSearch();
-                    }
-                  }}
-                  className="flex-1"
-                />
-                <Button
-                  onClick={handleWalletSearch}
-                  disabled={loading || !walletSearchInput.trim()}
-                >
-                  <Search className="h-4 w-4 mr-2" />
-                  搜索
-                </Button>
-              </div>
-            </CardContent>
-          </Card>
-
-          {/* 树形视图展示 */}
-          {searchedWallet && (
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <TreePine className="h-5 w-5" />
-                  矩阵树形结构
-                  <Badge variant="outline">
-                    {members.find(m => m.wallet_address === searchedWallet)?.username}
-                  </Badge>
-                </CardTitle>
-                <CardDescription>
-                  点击节点前的箭头展开/折叠子节点 | L=左, M=中, R=右
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <div className="max-h-[600px] overflow-y-auto border rounded-lg p-4">
-                  {renderTreeNode(searchedWallet)}
-                </div>
-              </CardContent>
-            </Card>
-          )}
-
-          {!searchedWallet && (
-            <Card>
-              <CardContent className="py-12">
-                <div className="text-center text-muted-foreground">
-                  <TreePine className="h-16 w-16 mx-auto mb-4 opacity-50" />
-                  <p className="text-lg font-medium">输入钱包地址开始查看矩阵树</p>
-                  <p className="text-sm mt-2">支持展开查看完整的19层矩阵结构</p>
-                </div>
-              </CardContent>
-            </Card>
-          )}
+          <AdminMatrixTreeVisualization />
         </TabsContent>
 
         {/* 会员列表标签页 */}
