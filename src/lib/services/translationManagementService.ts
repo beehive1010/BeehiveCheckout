@@ -461,7 +461,10 @@ class TranslationManagementService {
 
       return await response.json();
     } catch (error) {
-      console.error('Translation management request failed:', error);
+      // 只在开发环境显示错误（生产环境静默失败）
+      if (import.meta.env.DEV) {
+        console.warn('Translation management request failed:', error);
+      }
       return {
         success: false,
         error: error instanceof Error ? error.message : 'Unknown error occurred'
