@@ -37,11 +37,11 @@ export default function ReferralStatsCard({ className, onViewMatrix }: ReferralS
       
       // Use existing views from database
       const [matrixStatsResult, matrixDownlineResult, matrixLayersResult] = await Promise.allSettled([
-        // Get stats from referrals_matrix_stats
+        // Get stats from v_matrix_overview
         supabase
-          .from('referrals_matrix_stats')
+          .from('v_matrix_overview')
           .select('*')
-          .eq('matrix_root_wallet', walletAddress)
+          .eq('wallet_address', walletAddress)
           .single()
           .then(({ data, error }) => {
             if (error) throw error;
@@ -67,16 +67,16 @@ export default function ReferralStatsCard({ className, onViewMatrix }: ReferralS
           }),
         // Get matrix layers stats
         supabase
-          .from('matrix_layers_view')
+          .from('v_matrix_layers_v2')
           .select('*')
-          .eq('matrix_root_wallet', walletAddress)
+          .eq('root', walletAddress)
           .then(({ data, error }) => {
             if (error) throw error;
             return { data: data || [] };
           })
       ]);
 
-      // Extract stats data from referrals_matrix_stats
+      // Extract stats data from v_matrix_overview
       let statsData = null;
       if (matrixStatsResult.status === 'fulfilled' && matrixStatsResult.value.data) {
         statsData = matrixStatsResult.value.data;
@@ -88,46 +88,46 @@ export default function ReferralStatsCard({ className, onViewMatrix }: ReferralS
         downlineData = matrixDownlineResult.value.data;
       }
 
-      // Extract layers data from matrix_layers_view
+      // Extract layers data from v_matrix_layers_v2
       let layersData: any[] = [];
       if (matrixLayersResult.status === 'fulfilled' && matrixLayersResult.value.data) {
         layersData = matrixLayersResult.value.data;
       }
 
-      // Process matrix stats from referrals_matrix_stats and matrix_layers_view
+      // Process matrix stats from v_matrix_overview and v_matrix_layers_v2
       if (statsData && layersData) {
         const layerDistribution: { [key: string]: number } = {};
         layersData.forEach(layer => {
-          if (layer.layer && layer.filled_slots !== null) {
-            layerDistribution[layer.layer.toString()] = layer.filled_slots;
+          if (layer.layer && layer.filled !== null) {
+            layerDistribution[layer.layer.toString()] = layer.filled;
           }
         });
 
         const maxDepth = layersData.length > 0 ? Math.max(...layersData.map(l => l.layer || 0)) : 0;
-        const totalTeamSize = layersData.reduce((sum, layer) => sum + (layer.filled_slots || 0), 0);
+        const totalTeamSize = layersData.reduce((sum, layer) => sum + (layer.filled || 0), 0);
 
         setMatrixStats({
           as_root: {
             total_team_size: totalTeamSize,
-            activated_members: statsData.total_members || 0, // mapped from total_members
+            activated_members: statsData.active_members || 0,
             max_depth: maxDepth,
             layer_distribution: layerDistribution
           },
           overall: {
-            network_strength: totalTeamSize * 5 + (statsData.total_members || 0) * 10
+            network_strength: totalTeamSize * 5 + (statsData.active_members || 0) * 10
           }
         });
       } else if (statsData) {
-        // Fallback using only referrals_matrix_stats
+        // Fallback using only v_matrix_overview
         setMatrixStats({
           as_root: {
             total_team_size: statsData.total_members || 0,
-            activated_members: statsData.total_members || 0,
-            max_depth: statsData.active_layers || 0,
+            activated_members: statsData.active_members || 0,
+            max_depth: statsData.deepest_layer || 0,
             layer_distribution: { 1: statsData.direct_referrals || 0 }
           },
           overall: {
-            network_strength: statsData.network_strength || 0
+            network_strength: (statsData.total_members || 0) * 5 + (statsData.active_members || 0) * 10
           }
         });
       } else {

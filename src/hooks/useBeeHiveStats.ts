@@ -9,8 +9,21 @@ interface MemberData {
 
 interface UserReferralStats {
   directReferralCount: string | number;
-  totalTeamCount: number;
-  totalReferrals?: number; // Add missing property
+
+  // 总团队统计（所有层级，通过referrer树计算）
+  totalTeamCount: number;              // 所有推荐层级的总人数
+  totalTeamActivated?: number;         // 所有层级中激活的人数
+
+  // 矩阵团队统计（19层矩阵内占位）
+  matrixStats: {
+    totalMembers: number;              // 矩阵内总人数（19层）
+    activeMembers: number;             // 矩阵内激活人数（current_level >= 1）
+    deepestLayer: number;              // 最深层级
+    directReferrals: number;           // Layer 1 直推人数
+    spilloverMembers: number;          // 滑落成员数
+  };
+
+  totalReferrals?: number;
   totalEarnings: string | number;
   monthlyEarnings: string | number;
   pendingCommissions: string | number;
@@ -30,7 +43,7 @@ interface UserReferralStats {
     walletAddress: string;
     joinedAt: string;
     activated: boolean;
-  }>; // Add missing property
+  }>;
 }
 
 
@@ -143,7 +156,20 @@ export function useUserReferralStats() {
 
       return {
         directReferralCount: referralStats?.direct_referrals || 0,
-        totalTeamCount: totalTeamCount || 0, // Use custom count for all layers
+
+        // 总团队统计（所有层级，递归referrer树）
+        totalTeamCount: totalTeamCount || 0,
+        totalTeamActivated: 0, // TODO: Calculate from recursive tree
+
+        // 矩阵团队统计（19层矩阵内）
+        matrixStats: {
+          totalMembers: matrixOverview?.total_members || 0,       // 矩阵内总人数
+          activeMembers: matrixOverview?.active_members || 0,     // 矩阵内激活人数
+          deepestLayer: matrixOverview?.deepest_layer || 0,       // 最深层级
+          directReferrals: matrixOverview?.direct_referrals || 0, // Layer 1直推
+          spilloverMembers: matrixOverview?.spillover_members || 0 // 滑落成员
+        },
+
         totalReferrals: referralStats?.total_referrals || 0,
         totalEarnings: totalEarnings.toString(),
         monthlyEarnings: '0', // TODO: Calculate monthly earnings

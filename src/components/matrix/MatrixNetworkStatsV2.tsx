@@ -51,11 +51,11 @@ export function MatrixNetworkStatsV2({ walletAddress }: MatrixNetworkStatsV2Prop
       // Import supabase client 
       const { supabase } = await import('../../lib/supabaseClient');
       
-      // Get layer statistics directly from matrix_layers_view
+      // Get layer statistics directly from v_matrix_layers_v2
       const { data: matrixData, error: layerError } = await supabase
-        .from('matrix_layers_view')
+        .from('v_matrix_layers_v2')
         .select('*')
-        .eq('matrix_root_wallet', walletAddress)
+        .eq('root', walletAddress)
         .order('layer', { ascending: true });
 
       if (layerError) {
@@ -73,13 +73,13 @@ export function MatrixNetworkStatsV2({ walletAddress }: MatrixNetworkStatsV2Prop
         if (layerData) {
           layerStats.push({
             layer: layerData.layer,
-            totalMembers: layerData.filled_slots || 0,
+            totalMembers: layerData.filled || 0,
             leftMembers: layerData.left_count || 0,
             middleMembers: layerData.middle_count || 0,
             rightMembers: layerData.right_count || 0,
-            maxCapacity: layerData.max_slots || Math.pow(3, layer),
-            fillPercentage: parseFloat(layerData.completion_rate || 0),
-            activeMembers: layerData.activated_members || 0
+            maxCapacity: layerData.capacity || Math.pow(3, layer),
+            fillPercentage: layerData.capacity > 0 ? (layerData.filled / layerData.capacity) * 100 : 0,
+            activeMembers: layerData.filled || 0
           });
         } else {
           layerStats.push({
