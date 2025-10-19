@@ -31,7 +31,7 @@ import {
 import { useAdminAuthContext } from '../../contexts/AdminAuthContext';
 import { useToast } from '../../hooks/use-toast';
 import { supabase } from '../../lib/supabase';
-import { AdminMatrixTreeVisualization } from '../../components/admin/AdminMatrixTreeVisualization';
+import AdminMatrixTreeVisualization from '../../components/admin/AdminMatrixTreeVisualization';
 
 // 接口定义
 interface MemberInfo {
