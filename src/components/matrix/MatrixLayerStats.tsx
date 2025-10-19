@@ -43,24 +43,24 @@ const MatrixLayerStats: React.FC<MatrixLayerStatsProps> = ({
     setError(null);
 
     try {
-      // 使用正确的matrix_layers_view获取统计数据
+      // 使用v_matrix_layers_v2获取统计数据
       const { data: layerStatsData, error } = await supabase
-        .from('matrix_layers_view')
+        .from('v_matrix_layers_v2')
         .select('*')
-        .eq('matrix_root_wallet', walletAddress)
+        .eq('root', walletAddress)
         .order('layer');
-      
+
       if (!error && layerStatsData) {
         // 直接使用view返回的统计数据，转换为组件需要的格式
         const stats: LayerStats[] = layerStatsData.map(row => ({
           layer: row.layer,
-          totalMembers: row.filled_slots,
+          totalMembers: row.filled,
           leftMembers: row.left_count,
           middleMembers: row.middle_count,
           rightMembers: row.right_count,
-          maxCapacity: row.max_slots,
-          fillPercentage: parseFloat(row.completion_rate || 0),
-          activeMembers: row.activated_members
+          maxCapacity: row.capacity,
+          fillPercentage: row.capacity > 0 ? (row.filled / row.capacity) * 100 : 0,
+          activeMembers: row.filled
         }));
 
         setLayerStats(stats);
