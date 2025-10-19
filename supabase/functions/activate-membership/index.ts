@@ -653,13 +653,15 @@ serve(async (req) => {
       console.log(`🔗 Starting matrix placement for: ${walletAddress} -> ${normalizedReferrerWallet}`);
 
       try {
-        // ✅ Call recursive matrix placement function
-        // Recursively finds up to 19 uplines in referral tree
-        // Places member in each upline's matrix using BFS
+        // ✅ NEW: Call Branch-First BFS placement function
+        // Places member in referrer's matrix tree using Branch-First BFS strategy
+        // Entry node = referrer's position in the tree
         const { data: placementResult, error: placementError } = await supabase
-          .rpc('place_new_member_in_matrix_correct', {
+          .rpc('fn_place_member_branch_bfs', {
             p_member_wallet: walletAddress,
-            p_referrer_wallet: normalizedReferrerWallet
+            p_referrer_wallet: normalizedReferrerWallet,
+            p_activation_time: memberRecord.activation_time || new Date().toISOString(),
+            p_tx_hash: transactionHash || null
           });
 
         if (placementError) {
@@ -670,12 +672,12 @@ serve(async (req) => {
             message: 'Matrix placement failed'
           };
         } else {
-          console.log(`✅ Matrix placement result:`, placementResult);
+          console.log(`✅ Matrix placement result (Branch-First BFS):`, placementResult);
           matrixResult = {
             success: placementResult.success,
             ...placementResult,
             message: placementResult.success
-              ? `Placed in ${placementResult.placements_created} matrices (deepest layer: ${placementResult.deepest_layer})`
+              ? `Placed in matrix: ${placementResult.matrix_root} at layer ${placementResult.layer}, slot ${placementResult.slot} (${placementResult.referral_type})`
               : `Matrix placement failed: ${placementResult.message}`
           };
         }

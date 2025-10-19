@@ -97,18 +97,18 @@ export default function ReferralsStats({ walletAddress, className }: ReferralsSt
           .ilike('wallet_address', walletAddress)
           .maybeSingle();
 
-        // Use v_matrix_layers for layer 1 stats
+        // Use v_matrix_layer_summary for layer 1 stats
         const { data: layer1Stats } = await supabase
-          .from('v_matrix_layers')
+          .from('v_matrix_layer_summary')
           .select('*')
-          .ilike('root', walletAddress)
+          .ilike('matrix_root_wallet', walletAddress)
           .eq('layer', 1)
           .maybeSingle();
 
         const directReferralsCount = referralStats?.direct_referrals || 0;
         const totalTeamSize = matrixOverview?.total_members || 0;
         const maxDepth = matrixOverview?.deepest_layer || 0;
-        const layer1Filled = layer1Stats?.filled || 0;
+        const layer1Filled = layer1Stats?.filled_slots || 0;
 
         return {
           referrer: walletAddress,
