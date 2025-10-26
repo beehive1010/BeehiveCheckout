@@ -207,7 +207,7 @@ export function AdminLayout({ children }: AdminLayoutProps) {
                     if (isMobile) setSidebarOpen(false);
                   }}
                   className={cn(
-                    'w-full flex items-center space-x-3 px-3 py-2 rounded-lg transition-colors',
+                    'w-full flex items-center space-x-3 px-3 py-2 rounded-lg transition-colors touch-manipulation',
                     isActive
                       ? 'bg-honey text-black font-medium'
                       : 'text-muted-foreground hover:bg-muted hover:text-foreground'
@@ -258,7 +258,7 @@ export function AdminLayout({ children }: AdminLayoutProps) {
     <div className="min-h-screen bg-background">
       {/* Mobile Header */}
       {isMobile && (
-        <div className="sticky top-0 z-40 bg-background border-b border-border">
+        <div className="sticky top-0 z-50 bg-background border-b border-border">
           <div className="flex items-center justify-between p-4">
             <div className="flex items-center space-x-3">
               <Database className="h-6 w-6 text-honey" />
@@ -268,6 +268,7 @@ export function AdminLayout({ children }: AdminLayoutProps) {
               variant="ghost"
               size="sm"
               onClick={() => setSidebarOpen(!sidebarOpen)}
+              className="touch-manipulation"
             >
               {sidebarOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
             </Button>
@@ -282,13 +283,13 @@ export function AdminLayout({ children }: AdminLayoutProps) {
           <>
             {sidebarOpen && (
               <div
-                className="fixed inset-0 z-40 bg-black/50"
+                className="fixed inset-0 z-40 bg-black/50 touch-manipulation"
                 onClick={() => setSidebarOpen(false)}
               />
             )}
             <aside
               className={cn(
-                'fixed top-0 left-0 z-50 h-full w-72 bg-background border-r border-border transition-transform duration-300',
+                'fixed top-0 left-0 z-[60] h-full w-72 bg-background border-r border-border transition-transform duration-300',
                 sidebarOpen ? 'translate-x-0' : '-translate-x-full'
               )}
             >
