@@ -2427,13 +2427,17 @@
     "filters": "篩選器",
     "filterByType": "按類型篩選",
     "filterByLevel": "按等級篩選",
+    "filterByLayer": "按層級篩選",
     "filterAll": "全部",
     "activeFilters": "激活的篩選",
     "noResultsFound": "未找到結果",
     "showingResults": "顯示 {{count}}/{{total}} 個成員",
     "showingAllResults": "顯示全部 {{count}} 個成員",
     "filteredOut": "已篩選",
-    "filterByLayer": "按層級篩選"
+    "ui": {
+      "showAllLayers": "顯示所有層級",
+      "showLayerRange": "顯示第{{from}}-{{to}}層"
+    }
   },
   "wallet": {
     "connect": "連接錢包",

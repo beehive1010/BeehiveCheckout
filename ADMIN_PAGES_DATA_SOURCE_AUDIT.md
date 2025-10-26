@@ -70,21 +70,176 @@
 
 ---
 
-### 2. ⏳ AdminUsers (`/admin/users`)
+### 2. ⚠️ AdminUsers (`/admin/users`)
 
-**Status**: 待检查
+**Status**: ⚠️ 需要数据源修复
 
-#### 预期功能
-- 显示所有注册用户列表
-- 用户详情查看
-- 用户余额管理
+**文件**: `src/pages/admin/AdminUsers.tsx`
 
-#### 需要检查
-- [ ] 使用的组件
-- [ ] 数据源（是否使用正确的 views）
-- [ ] 是否直接查询 `users` 表
-- [ ] 是否需要使用 `v_referral_statistics` 等views
-- [ ] 移动端兼容性
+#### 当前实现
+
+**功能**:
+- ✅ 显示所有注册用户列表（支持搜索和过滤）
+- ✅ 用户详情查看（Profile, Membership, Earnings, Referrals tabs）
+- ✅ 用户/会员创建、编辑、删除
+- ✅ 批量导入（JSON/CSV）
+- ✅ 双模式切换：Users vs Members
+
+**使用的组件**:
+- Card, Button, Input, Select, Tabs, Dialog (shadcn/ui)
+- 无自定义业务组件
+
+#### 数据源分析
+
+**当前查询** (lines 137-247):
+```typescript
+// 1. 查询 users 表 ✅
+const { data: usersData } = await supabase.from('users').select('...');
+
+// 2. 查询 members 表 ✅
+const { data: membersData } = await supabase.from('members').select('...');
+
+// 3. 查询 user_balances 表 ✅
+const { data: balancesData } = await supabase.from('user_balances').select('...');
+
+// 4. 查询 referrals 表 - ❌ 手动计算团队人数
+const { data: referralsData } = await supabase.from('referrals').select('...');
+const referralCount = referralsData?.filter(...).length || 0;
+```
+
+**数据映射** (lines 192-225):
+```typescript
+return {
+  // ... other fields
+  directReferralCount: referralCount,  // ✅ OK
+  totalTeamCount: referralCount,       // ❌ WRONG - 只是直推人数
+  transferableBCC: 0,                  // ❌ 硬编码为 0
+  restrictedBCC: 0,                    // ❌ 硬编码为 0
+  referralEarnings: 0,                 // ❌ 硬编码为 0
+  levelEarnings: 0,                    // ❌ 硬编码为 0
+};
+```
+
+#### 发现的问题
+
+##### 1. ❌ 未使用 `v_referral_statistics` 视图
+**问题**: Line 221 手动计算团队人数
+```typescript
+totalTeamCount: referralCount,  // ❌ 只统计直推，不包含递归下线
+```
+
+**应该改为**:
+```typescript
+// 查询 v_referral_statistics 视图
+const { data: refStats } = await supabase
+  .from('v_referral_statistics')
+  .select('direct_referral_count, total_team_count, activation_rate_percentage')
+  .in('member_wallet', walletAddresses);
+
+// 使用视图数据
+totalTeamCount: refStat?.total_team_count || 0,  // ✅ 正确的递归团队人数
+```
+
+##### 2. ❌ BCC 余额数据缺失
+**问题**: Lines 213-214 硬编码为 0
+```typescript
+transferableBCC: 0,
+restrictedBCC: 0,
+```
+
+**应该查询**: `member_balance` 表
+```typescript
+const { data: memberBalances } = await supabase
+  .from('member_balance')
+  .select('wallet_address, transferable_bcc, restricted_bcc')
+  .in('wallet_address', walletAddresses);
+
+// 映射
+transferableBCC: memberBalance?.transferable_bcc || 0,
+restrictedBCC: memberBalance?.restricted_bcc || 0,
+```
+
+##### 3. ❌ 奖励收益数据缺失
+**问题**: Lines 216-217 硬编码为 0
+```typescript
+referralEarnings: 0,
+levelEarnings: 0,
+```
+
+**应该查询**: `layer_rewards` 表或创建汇总视图
+```typescript
+const { data: rewards } = await supabase
+  .from('layer_rewards')
+  .select('receiver_wallet, reward_amount, reward_type')
+  .in('receiver_wallet', walletAddresses)
+  .eq('status', 'claimed');
+```
+
+##### 4. ⚠️ Matrix 位置数据缺失
+**问题**: Line 223 硬编码为 0
+```typescript
+matrixPosition: 0,
+```
+
+**应该查询**: `matrix_referrals` 或 `v_matrix_tree_19_layers`
+
+#### 移动端兼容性
+
+✅ **移动端优化良好**:
+- 使用 `isMobile` hook 响应式布局
+- 统计卡片: `grid-cols-2` (mobile) vs `lg:grid-cols-5` (desktop)
+- 卡片内边距: `p-3` (mobile) vs `p-4` (desktop)
+- 按钮: `w-full` (mobile) vs 默认宽度 (desktop)
+- 字体大小: `text-xl` (mobile) vs `text-2xl` (desktop)
+- Dialog: `max-w-[95vw]` (mobile) vs `max-w-md` (desktop)
+- ✅ 触摸友好按钮尺寸
+
+#### 建议的修复方案
+
+**方案 1**: 更新现有查询（推荐）
+1. 添加 `v_referral_statistics` 查询获取团队统计
+2. 添加 `member_balance` 查询获取 BCC 余额
+3. 添加 `layer_rewards` 聚合查询获取收益
+4. 添加 `matrix_referrals` 查询获取矩阵位置
+
+**方案 2**: 创建新视图（最佳，但需要后端）
+创建 `v_admin_user_overview` 视图合并所有需要的数据：
+```sql
+CREATE OR REPLACE VIEW v_admin_user_overview AS
+SELECT
+  u.wallet_address,
+  u.username,
+  u.email,
+  u.created_at,
+  m.current_level,
+  m.member_activated,
+  mb.transferable_bcc,
+  mb.restricted_bcc,
+  rs.total_team_count,
+  rs.direct_referral_count,
+  -- ... 其他字段
+FROM users u
+LEFT JOIN members m ON m.wallet_address = u.wallet_address
+LEFT JOIN member_balance mb ON mb.wallet_address = u.wallet_address
+LEFT JOIN v_referral_statistics rs ON rs.member_wallet = u.wallet_address;
+```
+
+#### 数据完整性
+
+- ✅ 查询 `users` 表正确
+- ✅ 查询 `members` 表正确
+- ✅ 查询 `user_balances` 表正确（用于总收益）
+- ❌ **未使用 `v_referral_statistics`**（团队人数错误）
+- ❌ **未查询 `member_balance`**（BCC 余额为 0）
+- ❌ **未查询 `layer_rewards`**（收益明细为 0）
+- ❌ **未查询 matrix 数据**（矩阵位置为 0）
+
+#### 修复优先级
+
+1. 🔴 **高优先级**: 添加 `v_referral_statistics` 查询 - 团队人数数据错误
+2. 🟡 **中优先级**: 添加 `member_balance` 查询 - BCC 余额显示
+3. 🟡 **中优先级**: 添加 `layer_rewards` 聚合 - 收益明细显示
+4. 🟢 **低优先级**: 添加 matrix 位置查询 - 可选信息
 
 ---
 

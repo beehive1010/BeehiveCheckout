@@ -2435,13 +2435,17 @@
     "filters": "筛选器",
     "filterByType": "按类型筛选",
     "filterByLevel": "按等级筛选",
+    "filterByLayer": "按层级筛选",
     "filterAll": "全部",
     "activeFilters": "激活的筛选",
     "noResultsFound": "未找到结果",
     "showingResults": "显示 {{count}}/{{total}} 个成员",
     "showingAllResults": "显示全部 {{count}} 个成员",
     "filteredOut": "已筛选",
-    "filterByLayer": "按层级筛选"
+    "ui": {
+      "showAllLayers": "显示所有层级",
+      "showLayerRange": "显示第{{from}}-{{to}}层"
+    }
   },
   "wallet": {
     "connect": "连接钱包",

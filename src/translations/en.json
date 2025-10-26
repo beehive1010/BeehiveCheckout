@@ -2518,9 +2518,13 @@
   "matrix": {
     "matrixView": "Matrix View",
     "layer": "Layer",
+    "level": "Level",
     "filled": "Filled",
     "previousLayer": "Previous Layer",
     "nextLayer": "Next Layer",
+    "myMatrix": "My Matrix",
+    "current": "Current",
+    "navigationPath": "Navigation Path",
     "directReferral": "Direct Referral",
     "spillover": "Spillover",
     "emptySlot": "Empty Slot",
@@ -2528,6 +2532,9 @@
     "directReferralDesc": "Members you directly referred",
     "spilloverDesc": "Members placed by upline spillover",
     "emptySlotDesc": "Available matrix positions",
+    "loadingData": "Loading matrix data...",
+    "loadFailed": "Failed to load matrix data",
+    "waitingToJoin": "Waiting to join",
     "navigation": {
       "education": "Education",
       "features": "Features",
@@ -2539,13 +2546,17 @@
     "filters": "Filters",
     "filterByType": "Filter by Type",
     "filterByLevel": "Filter by Level",
+    "filterByLayer": "Filter by Layer",
     "filterAll": "All",
     "activeFilters": "Active filters",
     "noResultsFound": "No results found",
     "showingResults": "Showing {{count}} of {{total}} members",
     "showingAllResults": "Showing all {{count}} members",
     "filteredOut": "Filtered",
-    "filterByLayer": "Filter by Layer"
+    "ui": {
+      "showAllLayers": "Show All Layers",
+      "showLayerRange": "Show Layers {{from}}-{{to}}"
+    }
   },
   "matrixExplanation": {
     "bccRewards": {
