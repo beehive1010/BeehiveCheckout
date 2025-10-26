@@ -1,0 +1,209 @@
+         section          
+--------------------------
+ === 目标会员基本信息 ===
+(1 row)
+
+psql:check_team_count_issue.sql:16: ERROR:  column "created_at" does not exist
+LINE 5:   created_at
+          ^
+                section                 
+----------------------------------------
+ === v_referral_statistics 视图数据 ===
+(1 row)
+
+               member_wallet                | direct_referral_count | max_spillover_layer | total_team_count | matrix_19_layer_count | activation_rate_percentage 
+--------------------------------------------+-----------------------+---------------------+------------------+-----------------------+----------------------------
+ 0x479ABda60F8c62a7C3fba411ab948a8BE0E616Ab |                    10 |                  19 |             1888 |                  1888 |                     100.00
+(1 row)
+
+         section          
+--------------------------
+ === 直接推荐人数统计 ===
+(1 row)
+
+              referrer_wallet               | direct_referral_count 
+--------------------------------------------+-----------------------
+ 0x479ABda60F8c62a7C3fba411ab948a8BE0E616Ab |                    10
+(1 row)
+
+           section           
+-----------------------------
+ === Matrix 19层数据统计 ===
+(1 row)
+
+             matrix_root_wallet             | matrix_member_count | max_layer | l_count | m_count | r_count 
+--------------------------------------------+---------------------+-----------+---------+---------+---------
+ 0x479ABda60F8c62a7C3fba411ab948a8BE0E616Ab |                1888 |        19 |    1633 |     222 |      33
+(1 row)
+
+          section          
+---------------------------
+ === Matrix 按层级统计 ===
+(1 row)
+
+ layer | member_count | direct_count | spillover_count 
+-------+--------------+--------------+-----------------
+     1 |            3 |            3 |               0
+     2 |            9 |            1 |               8
+     3 |           27 |            1 |              26
+     4 |           22 |            3 |              19
+     5 |           48 |            3 |              45
+     6 |           61 |            4 |              57
+     7 |           63 |            5 |              58
+     8 |           78 |            4 |              74
+     9 |          172 |            6 |             166
+    10 |          134 |            0 |             134
+    11 |          131 |            2 |             129
+    12 |          181 |            3 |             178
+    13 |          198 |            3 |             195
+    14 |          169 |            3 |             166
+    15 |          135 |            2 |             133
+    16 |          147 |            2 |             145
+    17 |          118 |            4 |             114
+    18 |          110 |            3 |             107
+    19 |           82 |            1 |              81
+(19 rows)
+
+           section            
+------------------------------
+ === 完整递归团队人数统计 ===
+(1 row)
+
+ total_team_count | max_depth | within_20_levels 
+------------------+-----------+------------------
+             4076 |        29 |             3528
+(1 row)
+
+                  section                   
+--------------------------------------------
+ === v_referral_statistics 视图定义检查 ===
+(1 row)
+
+                                                            pg_get_viewdef                                                             
+---------------------------------------------------------------------------------------------------------------------------------------
+  WITH direct_referrals AS (                                                                                                          +
+          SELECT members.referrer_wallet,                                                                                             +
+             count(*) AS direct_count                                                                                                 +
+            FROM members                                                                                                              +
+           WHERE members.referrer_wallet IS NOT NULL                                                                                  +
+           GROUP BY members.referrer_wallet                                                                                           +
+         ), matrix_stats AS (                                                                                                         +
+          SELECT mr.matrix_root_wallet,                                                                                               +
+             count(DISTINCT mr.member_wallet) AS matrix_member_count,                                                                 +
+             max(mr.layer) AS max_spillover_layer                                                                                     +
+            FROM matrix_referrals mr                                                                                                  +
+           WHERE mr.layer >= 1 AND mr.layer <= 19                                                                                     +
+           GROUP BY mr.matrix_root_wallet                                                                                             +
+         ), recursive_team AS (                                                                                                       +
+          SELECT matrix_referrals.matrix_root_wallet,                                                                                 +
+             count(DISTINCT matrix_referrals.member_wallet) AS total_team_count                                                       +
+            FROM matrix_referrals                                                                                                     +
+           GROUP BY matrix_referrals.matrix_root_wallet                                                                               +
+         )                                                                                                                            +
+  SELECT m.wallet_address AS member_wallet,                                                                                           +
+     u.username,                                                                                                                      +
+     COALESCE(dr.direct_count, 0::bigint) AS direct_referral_count,                                                                   +
+     COALESCE(ms.max_spillover_layer, 0) AS max_spillover_layer,                                                                      +
+     COALESCE(rt.total_team_count, 0::bigint) AS total_team_count,                                                                    +
+     COALESCE(ms.matrix_member_count, 0::bigint) AS matrix_19_layer_count,                                                            +
+         CASE                                                                                                                         +
+             WHEN rt.total_team_count > 0 THEN round(ms.matrix_member_count::numeric / rt.total_team_count::numeric * 100::numeric, 2)+
+             ELSE 0::numeric                                                                                                          +
+         END AS activation_rate_percentage                                                                                            +
+    FROM members m                                                                                                                    +
+      LEFT JOIN users u ON u.wallet_address::text = m.wallet_address::text                                                            +
+      LEFT JOIN direct_referrals dr ON dr.referrer_wallet::text = m.wallet_address::text                                              +
+      LEFT JOIN matrix_stats ms ON ms.matrix_root_wallet::text = m.wallet_address::text                                               +
+      LEFT JOIN recursive_team rt ON rt.matrix_root_wallet::text = m.wallet_address::text                                             +
+   ORDER BY m.activation_sequence DESC;
+(1 row)
+
+          section           
+----------------------------
+ === 前10个最大团队统计 ===
+(1 row)
+
+               member_wallet                | direct_referral_count | total_team_count | matrix_19_layer_count | activation_rate_percentage 
+--------------------------------------------+-----------------------+------------------+-----------------------+----------------------------
+ 0xfd91667229a122265aF123a75bb624A9C35B5032 |                     3 |             2797 |                  2797 |                     100.00
+ 0x9D069295DE6B996a47F5eD683858009c977F159b |                     3 |             2386 |                  2386 |                     100.00
+ 0x89dC24b7c14C783B5c2556E85336815FC8fe8D0B |                     3 |             2164 |                  2164 |                     100.00
+ 0x479ABda60F8c62a7C3fba411ab948a8BE0E616Ab |                    10 |             1888 |                  1888 |                     100.00
+ 0xb800d5359a85B5d55a5A680a6eF6f15475D7d9e9 |                     4 |             1850 |                  1850 |                     100.00
+ 0x3C1FF5B4BE2A1FB8c157aF55aa6450eF66D7E242 |                    12 |             1466 |                  1466 |                     100.00
+ 0xd8b530f2aCD7330c3173844232F7e8CA35e7c06C |                     6 |             1462 |                  1462 |                     100.00
+ 0xC1908404eb9EFeBDe493e5b23CFb085E2dfdb105 |                     3 |              975 |                   975 |                     100.00
+ 0xE8571067b7E388e041e540f7E095728a4A3dDB24 |                     3 |              836 |                   836 |                     100.00
+ 0x312E7e80Ca8744275f890D90bC3B07820360d547 |                     5 |              712 |                   712 |                     100.00
+(10 rows)
+
+         section          
+--------------------------
+ === 系统总会员数统计 ===
+(1 row)
+
+ total_members | members_with_referrer | root_members 
+---------------+-----------------------+--------------
+          4077 |                  4076 |            1
+(1 row)
+
+          section           
+----------------------------
+ === Matrix总记录数统计 ===
+(1 row)
+
+ total_matrix_records | total_matrix_roots | total_unique_members_in_matrix 
+----------------------+--------------------+--------------------------------
+                46680 |               3856 |                           4076
+(1 row)
+
+           section            
+------------------------------
+ === Referrer链完整性检查 ===
+(1 row)
+
+ broken_referrer_links 
+-----------------------
+                     0
+(1 row)
+
+                   section                    
+----------------------------------------------
+ === Members vs Matrix_referrals 数据对比 ===
+(1 row)
+
+            source             | count 
+-------------------------------+-------
+ members表推荐人数             |    10
+ matrix_referrals中Layer 1人数 |     3
+(2 rows)
+
+                section                 
+----------------------------------------
+ === 检查下线是否都被正确放入matrix ===
+(1 row)
+
+               wallet_address               | activation_sequence | layer | slot | matrix_status 
+--------------------------------------------+---------------------+-------+------+---------------
+ 0xfd91667229a122265aF123a75bb624A9C35B5032 |                   1 |     1 | L    | IN MATRIX
+ 0xeC80DD79B87778E930DCF3f53035DB1466a736c7 |                  26 |     3 | L    | IN MATRIX
+ 0x668Dd27b997550f84f4C17fC1242feb573671A2A |                  27 |     4 | L    | IN MATRIX
+ 0x990B45797D36633E63BB8cbdC6Cf9478c5530CdC |                3946 |     3 | M    | IN MATRIX
+ 0x380Fd6A57Fc2DF6F10B8920002e4acc7d57d61c0 |                3950 |     3 | M    | IN MATRIX
+ 0x9786584Df210B3feDC05A9b62Cc5c8D1197841Dc |                3959 |     3 | M    | IN MATRIX
+ 0xfD6f46A7DF6398814a54db994D04195C3bC6beFD |                3960 |     3 | R    | IN MATRIX
+ 0x5B307A53edFA4A3fbfB35Eb622827D31a685d0Fd |                4013 |     1 | M    | IN MATRIX
+ 0x96D05a1F161E7989618e08e211840ce4E07B14b1 |                4014 |     1 | R    | IN MATRIX
+ 0x2B03D532faa3120826586efb00C9363F9a611b6f |                4024 |     3 | R    | IN MATRIX
+(10 rows)
+
+     section      
+------------------
+ === 诊断建议 ===
+(1 row)
+
+             diagnosis              
+------------------------------------
+ ✗ 问题：部分直推下线未被放入matrix
+(1 row)
+
