@@ -597,39 +597,39 @@ export const RewardsManagement: React.FC = () => {
 
               <div className={`grid gap-4 ${isMobile ? 'grid-cols-1' : 'grid-cols-2'}`}>
                 <div>
-                  <Label className="text-sm font-medium">Created At</Label>
-                  <p className="text-sm text-muted-foreground">
+                  <Label className={isMobile ? 'text-xs font-medium' : 'text-sm font-medium'}>Created At</Label>
+                  <p className={`text-muted-foreground ${isMobile ? 'text-xs' : 'text-sm'}`}>
                     {formatDateTime(selectedReward.created_at)}
                   </p>
                 </div>
                 <div>
-                  <Label className="text-sm font-medium">Expires At</Label>
-                  <p className="text-sm text-muted-foreground">
+                  <Label className={isMobile ? 'text-xs font-medium' : 'text-sm font-medium'}>Expires At</Label>
+                  <p className={`text-muted-foreground ${isMobile ? 'text-xs' : 'text-sm'}`}>
                     {selectedReward.expires_at ? formatDateTime(selectedReward.expires_at) : 'No expiration'}
                   </p>
                 </div>
               </div>
-              
+
               {selectedReward.claimed_at && (
                 <div>
-                  <Label className="text-sm font-medium">Claimed At</Label>
-                  <p className="text-sm text-green-400">
+                  <Label className={isMobile ? 'text-xs font-medium' : 'text-sm font-medium'}>Claimed At</Label>
+                  <p className={`text-green-400 ${isMobile ? 'text-xs' : 'text-sm'}`}>
                     {formatDateTime(selectedReward.claimed_at)}
                   </p>
                 </div>
               )}
-              
+
               {selectedReward.rolled_up_at && (
-                <div className="grid grid-cols-2 gap-4">
+                <div className={`grid gap-4 ${isMobile ? 'grid-cols-1' : 'grid-cols-2'}`}>
                   <div>
-                    <Label className="text-sm font-medium">Rolled Up At</Label>
-                    <p className="text-sm text-purple-400">
+                    <Label className={isMobile ? 'text-xs font-medium' : 'text-sm font-medium'}>Rolled Up At</Label>
+                    <p className={`text-purple-400 ${isMobile ? 'text-xs' : 'text-sm'}`}>
                       {formatDateTime(selectedReward.rolled_up_at)}
                     </p>
                   </div>
                   <div>
-                    <Label className="text-sm font-medium">Rolled Up To</Label>
-                    <p className="font-mono text-sm text-purple-400">
+                    <Label className={isMobile ? 'text-xs font-medium' : 'text-sm font-medium'}>Rolled Up To</Label>
+                    <p className={`font-mono text-purple-400 ${isMobile ? 'text-xs' : 'text-sm'}`}>
                       {selectedReward.rolled_up_to ? formatWalletAddress(selectedReward.rolled_up_to) : 'N/A'}
                     </p>
                   </div>

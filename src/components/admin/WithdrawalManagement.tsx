@@ -6,6 +6,7 @@ import { Label } from '../ui/label';
 import { Badge } from '../ui/badge';
 import { Alert, AlertDescription } from '../ui/alert';
 import { useToast } from '../../hooks/use-toast';
+import { useIsMobile } from '../../hooks/use-mobile';
 import { 
   Banknote, 
   DollarSign, 
@@ -90,6 +91,7 @@ const CHAIN_INFO: ChainInfo = {
 
 export const WithdrawalManagement: React.FC = () => {
   const { toast } = useToast();
+  const isMobile = useIsMobile();
   const [withdrawals, setWithdrawals] = useState<WithdrawalRecord[]>([]);
   const [stats, setStats] = useState<WithdrawalStats>({
     totalWithdrawals: 0,
@@ -310,9 +312,9 @@ export const WithdrawalManagement: React.FC = () => {
   return (
     <div className="space-y-6">
       {/* Stats Overview */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+      <div className={`grid gap-4 ${isMobile ? 'grid-cols-2' : 'grid-cols-2 md:grid-cols-4'}`}>
         <Card>
-          <CardContent className="p-4 text-center">
+          <CardContent className={`${isMobile ? 'p-3' : 'p-4'} text-center`}>
             <Banknote className="h-6 w-6 text-blue-400 mx-auto mb-2" />
             <div className="text-lg font-bold text-blue-400">{stats.totalWithdrawals.toLocaleString()}</div>
             <div className="text-xs text-muted-foreground">Total Withdrawals</div>
@@ -320,7 +322,7 @@ export const WithdrawalManagement: React.FC = () => {
         </Card>
 
         <Card>
-          <CardContent className="p-4 text-center">
+          <CardContent className={`${isMobile ? 'p-3' : 'p-4'} text-center`}>
             <Clock className="h-6 w-6 text-yellow-400 mx-auto mb-2" />
             <div className="text-lg font-bold text-yellow-400">{stats.pendingWithdrawals.toLocaleString()}</div>
             <div className="text-xs text-muted-foreground">Pending</div>
@@ -328,7 +330,7 @@ export const WithdrawalManagement: React.FC = () => {
         </Card>
 
         <Card>
-          <CardContent className="p-4 text-center">
+          <CardContent className={`${isMobile ? 'p-3' : 'p-4'} text-center`}>
             <CheckCircle className="h-6 w-6 text-green-400 mx-auto mb-2" />
             <div className="text-lg font-bold text-green-400">{stats.completedWithdrawals.toLocaleString()}</div>
             <div className="text-xs text-muted-foreground">Completed</div>
@@ -336,7 +338,7 @@ export const WithdrawalManagement: React.FC = () => {
         </Card>
 
         <Card>
-          <CardContent className="p-4 text-center">
+          <CardContent className={`${isMobile ? 'p-3' : 'p-4'} text-center`}>
             <DollarSign className="h-6 w-6 text-honey mx-auto mb-2" />
             <div className="text-lg font-bold text-honey">${stats.totalVolume.toFixed(2)}</div>
             <div className="text-xs text-muted-foreground">Total Volume</div>
@@ -345,9 +347,9 @@ export const WithdrawalManagement: React.FC = () => {
       </div>
 
       {/* Additional Stats */}
-      <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+      <div className={`grid gap-4 ${isMobile ? 'grid-cols-2' : 'grid-cols-2 md:grid-cols-3'}`}>
         <Card>
-          <CardContent className="p-4 text-center">
+          <CardContent className={`${isMobile ? 'p-3' : 'p-4'} text-center`}>
             <TrendingDown className="h-5 w-5 text-purple-400 mx-auto mb-2" />
             <div className="text-md font-bold text-purple-400">${stats.pendingVolume.toFixed(2)}</div>
             <div className="text-xs text-muted-foreground">Pending Volume</div>
@@ -355,7 +357,7 @@ export const WithdrawalManagement: React.FC = () => {
         </Card>
 
         <Card>
-          <CardContent className="p-4 text-center">
+          <CardContent className={`${isMobile ? 'p-3' : 'p-4'} text-center`}>
             <ArrowUpRight className="h-5 w-5 text-green-400 mx-auto mb-2" />
             <div className="text-md font-bold text-green-400">${stats.completedVolume.toFixed(2)}</div>
             <div className="text-xs text-muted-foreground">Completed Volume</div>
@@ -363,7 +365,7 @@ export const WithdrawalManagement: React.FC = () => {
         </Card>
 
         <Card>
-          <CardContent className="p-4 text-center">
+          <CardContent className={`${isMobile ? 'p-3' : 'p-4'} text-center`}>
             <Wallet className="h-5 w-5 text-blue-400 mx-auto mb-2" />
             <div className="text-md font-bold text-blue-400">${stats.averageAmount.toFixed(2)}</div>
             <div className="text-xs text-muted-foreground">Average Amount</div>
@@ -373,30 +375,30 @@ export const WithdrawalManagement: React.FC = () => {
 
       {/* Withdrawals Management */}
       <Card>
-        <CardHeader>
-          <div className="flex items-center justify-between">
+        <CardHeader className={isMobile ? 'p-4' : ''}>
+          <div className={`flex ${isMobile ? 'flex-col gap-4' : 'items-center justify-between'}`}>
             <div>
-              <CardTitle className="flex items-center gap-2">
+              <CardTitle className={`flex items-center gap-2 ${isMobile ? 'text-base' : ''}`}>
                 <Banknote className="h-5 w-5 text-honey" />
                 Withdrawal Management
               </CardTitle>
-              <CardDescription>Monitor and manage user withdrawals</CardDescription>
+              <CardDescription className={isMobile ? 'text-xs' : ''}>Monitor and manage user withdrawals</CardDescription>
             </div>
-            <div className="flex items-center gap-2">
-              <Button onClick={exportWithdrawals} variant="outline" size="sm">
+            <div className={`flex ${isMobile ? 'flex-wrap' : 'items-center'} gap-2`}>
+              <Button onClick={exportWithdrawals} variant="outline" size={isMobile ? 'sm' : 'sm'}>
                 <Download className="h-4 w-4 mr-2" />
-                Export CSV
+                {isMobile ? 'Export' : 'Export CSV'}
               </Button>
-              <Button onClick={loadWithdrawalData} variant="outline" size="sm">
+              <Button onClick={loadWithdrawalData} variant="outline" size={isMobile ? 'sm' : 'sm'}>
                 <RefreshCw className="h-4 w-4 mr-2" />
                 Refresh
               </Button>
             </div>
           </div>
         </CardHeader>
-        <CardContent className="space-y-4">
+        <CardContent className={`space-y-4 ${isMobile ? 'p-4' : ''}`}>
           {/* Search and Filters */}
-          <div className="flex flex-col md:flex-row gap-4">
+          <div className={`flex ${isMobile ? 'flex-col' : 'flex-col md:flex-row'} gap-4`}>
             <div className="flex-1">
               <div className="relative">
                 <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
@@ -426,14 +428,14 @@ export const WithdrawalManagement: React.FC = () => {
 
           {/* Withdrawals Table */}
           <div className="border rounded-lg overflow-hidden">
-            <div className="bg-muted px-4 py-2 font-medium text-sm">
+            <div className={`bg-muted font-medium ${isMobile ? 'px-3 py-2 text-xs' : 'px-4 py-2 text-sm'}`}>
               {filteredWithdrawals.length} withdrawals found
             </div>
-            <div className="divide-y divide-border max-h-96 overflow-y-auto">
+            <div className={`divide-y divide-border overflow-y-auto ${isMobile ? 'max-h-[60vh]' : 'max-h-96'}`}>
               {filteredWithdrawals.map((withdrawal) => {
                 const chainInfo = getChainInfo(withdrawal.target_chain_id);
                 return (
-                  <div key={withdrawal.id} className="p-4 hover:bg-muted/30 transition-colors">
+                  <div key={withdrawal.id} className={`hover:bg-muted/30 transition-colors ${isMobile ? 'p-3' : 'p-4'}`}>
                     <div className="flex items-center justify-between">
                       <div className="flex items-center gap-4 flex-1 min-w-0">
                         <div className="flex-shrink-0">
@@ -443,46 +445,47 @@ export const WithdrawalManagement: React.FC = () => {
                         </div>
                         
                         <div className="flex-1 min-w-0">
-                          <div className="flex items-center gap-2 mb-1">
-                            <span className="font-mono text-sm font-medium">
+                          <div className={`flex items-center gap-2 mb-1 ${isMobile ? 'flex-wrap' : ''}`}>
+                            <span className={`font-mono font-medium ${isMobile ? 'text-xs' : 'text-sm'}`}>
                               {formatWalletAddress(withdrawal.user_wallet)}
                             </span>
-                            <Badge className="bg-honey text-black text-xs">
+                            <Badge className={`bg-honey text-black ${isMobile ? 'text-[10px] px-1.5 py-0.5' : 'text-xs'}`}>
                               ${parseFloat(withdrawal.amount).toFixed(2)}
                             </Badge>
-                            <Badge variant="outline" className={`text-xs ${getStatusColor(withdrawal.status)}`}>
+                            <Badge variant="outline" className={`${isMobile ? 'text-[10px] px-1.5 py-0.5' : 'text-xs'} ${getStatusColor(withdrawal.status)}`}>
                               {withdrawal.status}
                             </Badge>
                           </div>
-                          
-                          <div className="text-xs text-muted-foreground">
-                            <span className="mr-4 flex items-center gap-1">
+
+                          <div className={`text-muted-foreground ${isMobile ? 'text-[10px]' : 'text-xs'}`}>
+                            <span className={`flex items-center gap-1 ${isMobile ? 'mb-1' : 'mr-4 inline-flex'}`}>
                               <span>{chainInfo.icon}</span>
                               <span>{chainInfo.name}</span>
                             </span>
                             {withdrawal.user_transaction_hash && (
-                              <span className="mr-4">TX: {formatTxHash(withdrawal.user_transaction_hash)}</span>
+                              <span className={isMobile ? 'block mb-1' : 'mr-4'}>TX: {formatTxHash(withdrawal.user_transaction_hash)}</span>
                             )}
-                            <span>Created {formatDate(withdrawal.created_at)}</span>
+                            <span className={isMobile ? 'block' : ''}>{isMobile ? formatDate(withdrawal.created_at).slice(0, -5) : `Created ${formatDate(withdrawal.created_at)}`}</span>
                           </div>
                         </div>
                       </div>
-                      
+
+
                       <div className="flex items-center gap-2">
-                        {withdrawal.user_transaction_hash && (
-                          <Button 
-                            size="sm" 
+                        {withdrawal.user_transaction_hash && !isMobile && (
+                          <Button
+                            size="sm"
                             variant="outline"
                             onClick={() => window.open(getExplorerUrl(withdrawal.target_chain_id, withdrawal.user_transaction_hash!), '_blank')}
                           >
                             <ExternalLink className="h-4 w-4" />
                           </Button>
                         )}
-                        
+
                         <DropdownMenu>
                           <DropdownMenuTrigger asChild>
                             <Button variant="ghost" size="sm">
-                              <MoreVertical className="h-4 w-4" />
+                              <MoreVertical className={isMobile ? 'h-5 w-5' : 'h-4 w-4'} />
                             </Button>
                           </DropdownMenuTrigger>
                           <DropdownMenuContent align="end">
