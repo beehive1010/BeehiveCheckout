@@ -610,50 +610,52 @@ export const WithdrawalManagement: React.FC = () => {
               
               {selectedWithdrawal.user_transaction_hash && (
                 <div>
-                  <Label className="text-sm font-medium">Transaction Hash</Label>
-                  <div className="flex items-center gap-2">
-                    <p className="font-mono text-xs bg-muted p-2 rounded break-all flex-1">
+                  <Label className={isMobile ? 'text-xs font-medium' : 'text-sm font-medium'}>Transaction Hash</Label>
+                  <div className={`flex items-center gap-2 ${isMobile ? 'flex-col items-stretch' : ''}`}>
+                    <p className={`font-mono bg-muted p-2 rounded break-all flex-1 ${isMobile ? 'text-[10px]' : 'text-xs'}`}>
                       {selectedWithdrawal.user_transaction_hash}
                     </p>
-                    <Button 
-                      size="sm" 
+                    <Button
+                      size={isMobile ? 'sm' : 'sm'}
                       variant="outline"
+                      className={isMobile ? 'w-full' : ''}
                       onClick={() => window.open(getExplorerUrl(selectedWithdrawal.target_chain_id, selectedWithdrawal.user_transaction_hash!), '_blank')}
                     >
-                      <ExternalLink className="h-4 w-4" />
+                      <ExternalLink className="h-4 w-4 mr-2" />
+                      {isMobile ? 'View on Explorer' : ''}
                     </Button>
                   </div>
                 </div>
               )}
-              
-              <div className="grid grid-cols-2 gap-4">
+
+              <div className={`grid gap-4 ${isMobile ? 'grid-cols-1' : 'grid-cols-2'}`}>
                 <div>
-                  <Label className="text-sm font-medium">Created At</Label>
-                  <p className="text-sm text-muted-foreground">
+                  <Label className={isMobile ? 'text-xs font-medium' : 'text-sm font-medium'}>Created At</Label>
+                  <p className={`text-muted-foreground ${isMobile ? 'text-xs' : 'text-sm'}`}>
                     {formatDateTime(selectedWithdrawal.created_at)}
                   </p>
                 </div>
                 <div>
-                  <Label className="text-sm font-medium">Completed At</Label>
-                  <p className="text-sm text-muted-foreground">
+                  <Label className={isMobile ? 'text-xs font-medium' : 'text-sm font-medium'}>Completed At</Label>
+                  <p className={`text-muted-foreground ${isMobile ? 'text-xs' : 'text-sm'}`}>
                     {selectedWithdrawal.completed_at ? formatDateTime(selectedWithdrawal.completed_at) : 'Not completed'}
                   </p>
                 </div>
               </div>
-              
+
               {selectedWithdrawal.failure_reason && (
                 <div>
-                  <Label className="text-sm font-medium">Failure Reason</Label>
-                  <p className="text-sm text-red-400 bg-red-500/10 p-2 rounded">
+                  <Label className={isMobile ? 'text-xs font-medium' : 'text-sm font-medium'}>Failure Reason</Label>
+                  <p className={`text-red-400 bg-red-500/10 p-2 rounded ${isMobile ? 'text-xs' : 'text-sm'}`}>
                     {selectedWithdrawal.failure_reason}
                   </p>
                 </div>
               )}
-              
+
               {selectedWithdrawal.metadata && (
                 <div>
-                  <Label className="text-sm font-medium">Metadata</Label>
-                  <pre className="text-xs bg-muted p-2 rounded overflow-x-auto">
+                  <Label className={isMobile ? 'text-xs font-medium' : 'text-sm font-medium'}>Metadata</Label>
+                  <pre className={`bg-muted p-2 rounded overflow-x-auto ${isMobile ? 'text-[10px]' : 'text-xs'}`}>
                     {JSON.stringify(selectedWithdrawal.metadata, null, 2)}
                   </pre>
                 </div>
