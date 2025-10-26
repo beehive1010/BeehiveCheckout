@@ -7,12 +7,9 @@ import {
     AlertTriangle,
     BookOpen,
     CheckCircle,
-    CreditCard,
     FileText,
-    Gift,
     Globe,
     Image,
-    Languages,
     TrendingUp,
     Users
 } from 'lucide-react';
@@ -20,11 +17,6 @@ import {useAdminAuthContext} from '../../contexts/AdminAuthContext';
 import {useIsMobile} from '../../hooks/use-mobile';
 import {SystemFixPanel} from '../../components/admin/SystemFixPanel';
 import {ServerWalletPanel} from '../../components/admin/ServerWalletPanel';
-import {UserManagement} from '../../components/admin/UserManagement';
-import {RewardsManagement} from '../../components/admin/RewardsManagement';
-import {WithdrawalManagement} from '../../components/admin/WithdrawalManagement';
-import TranslationManagement from '../../components/admin/TranslationManagement';
-import TranslationModeControl from '../../components/admin/TranslationModeControl';
 
 interface DashboardStats {
   totalUsers: number;
@@ -61,7 +53,6 @@ export default function AdminDashboard() {
     systemHealth: 'healthy',
   });
   const [isLoading, setIsLoading] = useState(true);
-  const [activeSection, setActiveSection] = useState<'overview' | 'users' | 'rewards' | 'withdrawals' | 'translations'>('overview');
 
   useEffect(() => {
     loadDashboardStats();
@@ -302,44 +293,6 @@ export default function AdminDashboard() {
     );
   }
 
-  const managementSections = [
-    {
-      id: 'overview' as const,
-      label: 'Overview',
-      icon: Activity,
-      description: 'Platform overview and statistics',
-      permission: 'dashboard.read',
-    },
-    {
-      id: 'users' as const,
-      label: 'User Management',
-      icon: Users,
-      description: 'Manage platform users and memberships',
-      permission: 'users.read',
-    },
-    {
-      id: 'rewards' as const,
-      label: 'Rewards Management',
-      icon: Gift,
-      description: 'Monitor and manage reward system',
-      permission: 'rewards.read',
-    },
-    {
-      id: 'withdrawals' as const,
-      label: 'Withdrawal Management',
-      icon: CreditCard,
-      description: 'Track and manage user withdrawals',
-      permission: 'withdrawals.read',
-    },
-    {
-      id: 'translations' as const,
-      label: 'Translation Management',
-      icon: Languages,
-      description: 'Manage multilingual content and translations',
-      permission: 'translations.read',
-    },
-  ];
-
   return (
     <div className="space-y-6">
       {/* Header */}
@@ -350,41 +303,8 @@ export default function AdminDashboard() {
         </p>
       </div>
 
-      {/* Navigation Tabs */}
-      <div className="border-b border-border">
-        <div className={`grid ${isMobile ? 'grid-cols-2' : 'grid-cols-5'} gap-2 pb-4`}>
-          {managementSections
-            .filter(section => !section.permission || hasPermission(section.permission))
-            .map((section) => (
-            <Button
-              key={section.id}
-              variant={activeSection === section.id ? 'default' : 'ghost'}
-              className={`${
-                activeSection === section.id 
-                  ? 'bg-honey text-black hover:bg-honey/90' 
-                  : 'hover:bg-muted'
-              } flex flex-col items-center gap-2 h-auto py-3 px-4`}
-              onClick={() => setActiveSection(section.id)}
-            >
-              <section.icon className="h-5 w-5" />
-              <div className="text-center">
-                <div className={`font-medium ${isMobile ? 'text-xs' : 'text-sm'}`}>
-                  {section.label}
-                </div>
-                {!isMobile && (
-                  <div className="text-xs text-muted-foreground mt-1">
-                    {section.description}
-                  </div>
-                )}
-              </div>
-            </Button>
-          ))}
-        </div>
-      </div>
-
-      {/* Content Section based on ActiveMember tab */}
-      {activeSection === 'overview' && (
-        <>
+      {/* Overview Content */}
+      <>
           {/* Quick Stats */}
           <div className={`grid gap-4 ${isMobile ? 'grid-cols-1' : 'md:grid-cols-2 lg:grid-cols-3'}`}>
             {quickStats
@@ -486,33 +406,6 @@ export default function AdminDashboard() {
             </div>
           )}
         </>
-      )}
-
-      {/* User Management Section */}
-      {activeSection === 'users' && hasPermission('users.read') && (
-        <UserManagement />
-      )}
-
-      {/* Rewards Management Section */}
-      {activeSection === 'rewards' && hasPermission('rewards.read') && (
-        <RewardsManagement />
-      )}
-
-      {/* Withdrawal Management Section */}
-      {activeSection === 'withdrawals' && hasPermission('withdrawals.read') && (
-        <WithdrawalManagement />
-      )}
-
-      {/* Translation Management Section */}
-      {activeSection === 'translations' && hasPermission('translations.read') && (
-        <div className="space-y-6">
-          {/* Translation Mode Control */}
-          <TranslationModeControl />
-          
-          {/* Translation Management Interface */}
-          <TranslationManagement />
-        </div>
-      )}
     </div>
   );
 }
