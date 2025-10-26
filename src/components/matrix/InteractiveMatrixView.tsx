@@ -1,10 +1,10 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { Card, CardHeader, CardTitle, CardContent } from '../ui/card';
 import { Badge } from '../ui/badge';
 import { Button } from '../ui/button';
-import { 
-  ChevronLeft, 
-  Users, 
+import {
+  ChevronLeft,
+  Users,
   User,
   ArrowUpRight,
   ArrowDownLeft,
@@ -12,8 +12,9 @@ import {
   Home,
   Navigation
 } from 'lucide-react';
-import { useLayeredMatrix } from '../../hooks/useMatrixByLevel';
+import { useMatrixTreeData, useMatrixNodeChildren } from '../../hooks/useMatrixTreeData';
 import { useI18n } from '../../contexts/I18nContext';
+import { useIsMobile } from '../../hooks/use-mobile';
 
 interface MatrixMember {
   wallet: string;
@@ -47,15 +48,59 @@ const InteractiveMatrixView: React.FC<InteractiveMatrixViewProps> = ({
   onNavigateToMember
 }) => {
   const { t } = useI18n();
+  const isMobile = useIsMobile();
   const [currentRoot, setCurrentRoot] = useState<string>(rootWalletAddress);
   const [currentLayer, setCurrentLayer] = useState<number>(1);
+  const [currentNodeLayer, setCurrentNodeLayer] = useState<number>(1); // Track the actual layer of current node
   const [maxAvailableLayer, setMaxAvailableLayer] = useState<number>(1);
   const [navigationHistory, setNavigationHistory] = useState<NavigationHistory[]>([]);
   const [currentRootUser, setCurrentRootUser] = useState(rootUser);
   const [originalRoot] = useState<string>(rootWalletAddress); // 保持原始根节点引用
 
-  // 使用更新后的hook获取当前root的矩阵数据
-  const { data: matrixData, isLoading, error } = useLayeredMatrix(currentRoot, currentLayer, originalRoot);
+  // 使用新的useMatrixTreeData hook获取矩阵数据
+  // When drilling down, we need to get children of the current node
+  const isDrillDown = currentRoot !== originalRoot;
+
+  // Get children of current node using the new hook
+  const { data: childrenData, isLoading, error } = useMatrixNodeChildren(
+    originalRoot,
+    currentRoot
+  );
+
+  // Transform children data to match the expected format
+  const matrixData = useMemo(() => {
+    if (!childrenData) return null;
+
+    const transformNode = (node: typeof childrenData.L): MatrixMember | null => {
+      if (!node) return null;
+      return {
+        wallet: node.member_wallet,
+        username: node.member_username || undefined,
+        joinedAt: node.activation_time || new Date().toISOString(),
+        type: node.referral_type === 'direct' ? 'is_direct' : 'is_spillover',
+        hasChildren: node.has_children,
+        childrenCount: node.children_count,
+        isActivated: true,
+        hasChildInL: node.children_slots?.L !== null,
+        hasChildInM: node.children_slots?.M !== null,
+        hasChildInR: node.children_slots?.R !== null,
+      };
+    };
+
+    const currentLayerMatrix = [
+      { position: 'L' as const, member: transformNode(childrenData.L) },
+      { position: 'M' as const, member: transformNode(childrenData.M) },
+      { position: 'R' as const, member: transformNode(childrenData.R) },
+    ];
+
+    const totalCurrentLayerMembers = [childrenData.L, childrenData.M, childrenData.R]
+      .filter(Boolean).length;
+
+    return {
+      currentLayerMatrix,
+      totalCurrentLayerMembers,
+    };
+  }, [childrenData]);
 
   // 简化的层级检查 - 根据matrixData动态判断
   useEffect(() => {
@@ -63,33 +108,42 @@ const InteractiveMatrixView: React.FC<InteractiveMatrixViewProps> = ({
       // 如果当前层有数据，假设最大层级为19（可以根据实际情况调整）
       setMaxAvailableLayer(19);
     } else {
-      setMaxAvailableLayer(currentLayer);
+      setMaxAvailableLayer(currentNodeLayer);
     }
-  }, [matrixData, currentLayer]);
+  }, [matrixData, currentNodeLayer]);
 
   useEffect(() => {
-    console.log('🔍 InteractiveMatrixView - Current root:', currentRoot, 'layer:', currentLayer);
+    console.log('🔍 InteractiveMatrixView - Current root:', currentRoot, 'current node layer:', currentNodeLayer);
     console.log('📊 Matrix data:', matrixData);
     console.log('🎚️ Max available layer:', maxAvailableLayer);
-  }, [currentRoot, currentLayer, matrixData, maxAvailableLayer]);
+  }, [currentRoot, currentNodeLayer, matrixData, maxAvailableLayer]);
 
   const handleNavigateToMember = (memberWallet: string, memberData?: MatrixMember) => {
+    // Get the layer of the member we're drilling down to
+    const childNode = childrenData?.L?.member_wallet === memberWallet ? childrenData.L :
+                     childrenData?.M?.member_wallet === memberWallet ? childrenData.M :
+                     childrenData?.R?.member_wallet === memberWallet ? childrenData.R :
+                     null;
+
+    const nextLayer = childNode?.layer || currentNodeLayer + 1;
+
     // 保存当前根到历史记录
-    setNavigationHistory(prev => [...prev, { 
+    setNavigationHistory(prev => [...prev, {
       wallet: currentRoot,
       username: currentRootUser?.username || `${t('common.user')}${currentRoot.slice(-4)}`,
       level: navigationHistory.length + 1,
-      layer: currentLayer
+      layer: currentNodeLayer
     }]);
-    
+
     // 切换到新的根
     setCurrentRoot(memberWallet);
     setCurrentRootUser({
       username: memberData?.username || `${t('common.user')}${memberWallet.slice(-4)}`,
       currentLevel: 1
     });
-    setCurrentLayer(1); // 重置到第一层
-    
+    setCurrentNodeLayer(nextLayer); // Update to the actual layer of the clicked node
+    setCurrentLayer(1); // Reset display layer to 1 (showing children of this node)
+
     // 如果有外部导航处理器，也调用它
     onNavigateToMember?.(memberWallet);
   };
@@ -108,6 +162,7 @@ const InteractiveMatrixView: React.FC<InteractiveMatrixViewProps> = ({
         username: previous.username || `${t('common.user')}${previous.wallet.slice(-4)}`,
         currentLevel: 1
       });
+      setCurrentNodeLayer(previous.layer); // Restore the layer
       setNavigationHistory(prev => prev.slice(0, -1));
       setCurrentLayer(1);
     }
@@ -117,6 +172,7 @@ const InteractiveMatrixView: React.FC<InteractiveMatrixViewProps> = ({
     setCurrentRoot(rootWalletAddress);
     setCurrentRootUser(rootUser);
     setNavigationHistory([]);
+    setCurrentNodeLayer(1); // Reset to layer 1
     setCurrentLayer(1);
   };
 
@@ -290,9 +346,9 @@ const InteractiveMatrixView: React.FC<InteractiveMatrixViewProps> = ({
               <p className="text-sm text-yellow-200/80">{t('matrix.interactiveView.subtitle')}</p>
             </div>
           </div>
-          <div className="flex items-center space-x-2">
+          <div className="flex items-center space-x-2 flex-wrap gap-2">
             <Badge variant="outline" className="bg-gradient-to-br from-yellow-500/20 to-amber-500/30 text-yellow-400 border-yellow-500/50">
-              {t('matrix.layer')} {currentLayer}
+              {t('matrix.layer')} {currentNodeLayer}
             </Badge>
             <Badge variant="outline" className="bg-gradient-to-br from-amber-500/20 to-orange-500/30 text-amber-400 border-amber-500/50">
               {matrixData?.totalCurrentLayerMembers || 0}/3 {t('matrix.filled')}

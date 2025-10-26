@@ -133,7 +133,7 @@ export default function Dashboard() {
     }
   }, [walletAddress]);
 
-  // 加载矩阵数据 - 使用修复后的referrals_stats_view获取直推数据
+  // 加载矩阵数据 - 使用新的v_referral_statistics视图（统一查询）
   const loadMatrixData = useCallback(async () => {
     if (!walletAddress) return null;
 
@@ -141,78 +141,50 @@ export default function Dashboard() {
     try {
       console.log('🌐 Fetching matrix data for:', walletAddress);
 
-      // ✅ 使用referrals_stats_view获取真实的直推人数（从referrals表）
-      const { data: referralStats, error: referralError } = await supabase
-        .from('referrals_stats_view')
-        .select('direct_referrals, activated_referrals, total_referrals')
-        .eq('referrer_wallet', walletAddress)
+      // ✅ 使用新的v_referral_statistics视图（一次查询获取所有数据）
+      const { data: stats, error: statsError } = await supabase
+        .from('v_referral_statistics')
+        .select('direct_referral_count, max_spillover_layer, total_team_count, matrix_19_layer_count, activation_rate_percentage')
+        .eq('member_wallet', walletAddress)
         .maybeSingle();
 
-      if (referralError) {
-        console.error('❌ Referral stats query error:', referralError);
+      if (statsError) {
+        console.error('❌ Referral statistics query error:', statsError);
+        throw statsError;
       }
 
-      console.log('📊 Referral stats data:', referralStats);
+      console.log('📊 Referral statistics data (unified view):', stats);
 
-      // ✅ 使用v_matrix_overview获取矩阵团队统计
-      const { data: matrixOverview, error: matrixError } = await supabase
-        .from('v_matrix_overview')
-        .select('total_members, active_members, deepest_layer')
-        .eq('wallet_address', walletAddress)
-        .maybeSingle();
-
-      if (matrixError) {
-        console.error('❌ Matrix overview query error:', matrixError);
-      }
-
-      console.log('📊 Matrix overview data:', matrixOverview);
-
-      // ✅ 使用v_total_team_count获取所有层级的总团队人数
-      const { data: totalTeamData, error: totalTeamError } = await supabase
-        .from('v_total_team_count')
-        .select('total_team_count, activated_team_count, max_referral_depth')
-        .eq('root_wallet', walletAddress)
-        .maybeSingle();
-
-      if (totalTeamError) {
-        console.error('❌ Total team query error:', totalTeamError);
-      }
-
-      console.log('📊 Total team data (all layers):', totalTeamData);
-
-      // 直推人数从referrals_stats_view获取（真实的推荐关系）
-      const directReferrals = Number(referralStats?.direct_referrals) || 0;
-      const activatedDirectReferrals = Number(referralStats?.activated_referrals) || 0;
-
-      // 总团队人数从v_total_team_count获取（所有层级，包括超过19层的成员）
-      const totalTeamSize = Number(totalTeamData?.total_team_count) || 0;
-      const maxLayer = Number(totalTeamData?.max_referral_depth) || 0;
-
-      // 如果需要更详细的层级信息，可以查询 matrix_referrals 表（但只用于统计活跃层级数）
-      let activeLayers = 0;
-      if (totalTeamSize > 0 && maxLayer > 0) {
-        // 估算：如果有团队且有最大层级，则活跃层级至少为1
-        activeLayers = maxLayer;
-      }
+      // 直推人数
+      const directReferrals = Number(stats?.direct_referral_count) || 0;
+      // 总团队人数（递归，所有层级）
+      const totalTeamSize = Number(stats?.total_team_count) || 0;
+      // 最大滑落层级
+      const maxLayer = Number(stats?.max_spillover_layer) || 0;
+      // 19层矩阵激活人数
+      const matrix19LayerCount = Number(stats?.matrix_19_layer_count) || 0;
+      // 激活率
+      const activationRate = Number(stats?.activation_rate_percentage) || 0;
 
       console.log('🌐 Matrix data calculated:', {
         directReferrals,
-        activatedDirectReferrals,
         totalTeamSize,
         maxLayer,
-        activeLayers,
-        dataSource: matrixSummary ? 'v_matrix_root_summary' : 'members_table_fallback'
+        matrix19LayerCount,
+        activationRate,
+        dataSource: 'v_referral_statistics (optimized)'
       });
 
       return {
         directReferrals,
         totalTeamSize,
         maxLayer,
-        activatedReferrals: activatedDirectReferrals,
+        activatedReferrals: directReferrals, // 假设直推都是激活的
         totalNetworkSize: directReferrals + totalTeamSize,
         hasMatrixTeam: totalTeamSize > 0,
-        activeLayers,
-        totalActivatedMembers: totalTeamSize // 假设matrix团队都是激活的
+        activeLayers: maxLayer,
+        totalActivatedMembers: matrix19LayerCount,
+        activationRate
       };
     } catch (error) {
       console.error('❌ Matrix load error:', error);

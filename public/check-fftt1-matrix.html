@@ -1,0 +1,245 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Check FFTT1 Matrix Structure</title>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <style>
+        body {
+            font-family: monospace;
+            padding: 20px;
+            background: #1a1a1a;
+            color: #00ff00;
+        }
+        .result {
+            background: #000;
+            padding: 15px;
+            margin: 10px 0;
+            border: 1px solid #00ff00;
+            border-radius: 5px;
+            white-space: pre-wrap;
+        }
+        .error {
+            color: #ff0000;
+        }
+        .success {
+            color: #00ff00;
+        }
+        button {
+            background: #00ff00;
+            color: #000;
+            border: none;
+            padding: 10px 20px;
+            margin: 5px;
+            cursor: pointer;
+            font-family: monospace;
+            font-weight: bold;
+        }
+        button:hover {
+            background: #00cc00;
+        }
+        table {
+            border-collapse: collapse;
+            width: 100%;
+            margin: 10px 0;
+        }
+        th, td {
+            border: 1px solid #00ff00;
+            padding: 8px;
+            text-align: left;
+        }
+        th {
+            background: #003300;
+        }
+    </style>
+</head>
+<body>
+    <h1>🔍 Check FFTT1 Matrix Structure</h1>
+
+    <button onclick="checkFFTT1Matrix()">Check FFTT1 Layer 1 Children</button>
+    <button onclick="checkAllLayers()">Check All 19 Layers</button>
+
+    <div id="output"></div>
+
+    <script>
+        const SUPABASE_URL = 'https://cvqibjcbfrwsgkvthccp.supabase.co';
+        const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImN2cWliamNiZnJ3c2drdnRoY2NwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzQwODU5NzIsImV4cCI6MjA0OTY2MTk3Mn0.Yqw9sp76KCEhu90PECkisPwzpOZpz_mTl5e_LkMRF3I';
+
+        const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+        const output = document.getElementById('output');
+
+        function log(message, isError = false) {
+            const div = document.createElement('div');
+            div.className = 'result ' + (isError ? 'error' : 'success');
+            div.textContent = message;
+            output.appendChild(div);
+        }
+
+        function createTable(data, columns) {
+            const table = document.createElement('table');
+
+            // Header
+            const thead = document.createElement('thead');
+            const headerRow = document.createElement('tr');
+            columns.forEach(col => {
+                const th = document.createElement('th');
+                th.textContent = col;
+                headerRow.appendChild(th);
+            });
+            thead.appendChild(headerRow);
+            table.appendChild(thead);
+
+            // Body
+            const tbody = document.createElement('tbody');
+            data.forEach(row => {
+                const tr = document.createElement('tr');
+                columns.forEach(col => {
+                    const td = document.createElement('td');
+                    td.textContent = row[col] || '-';
+                    tr.appendChild(td);
+                });
+                tbody.appendChild(tr);
+            });
+            table.appendChild(tbody);
+
+            output.appendChild(table);
+        }
+
+        async function checkFFTT1Matrix() {
+            output.innerHTML = '';
+            log('🔍 Checking FFTT1 Layer 1 Children...');
+
+            try {
+                // Query matrix_referrals for FFTT1's layer 1 children
+                const { data: layer1, error } = await supabase
+                    .from('matrix_referrals')
+                    .select('member_wallet, position, layer, placed_at')
+                    .ilike('matrix_root_wallet', 'FFTT1')
+                    .eq('layer', 1)
+                    .order('position');
+
+                if (error) throw error;
+
+                log(`✅ Found ${layer1.length} children in Layer 1`);
+
+                if (layer1.length > 0) {
+                    createTable(layer1, ['member_wallet', 'position', 'layer', 'placed_at']);
+
+                    // Check if they match expected: FFTT4 (L), FFTT112 (M), FFTT113 (R)
+                    const expectedChildren = {
+                        'L': 'FFTT4',
+                        'M': 'FFTT112',
+                        'R': 'FFTT113'
+                    };
+
+                    log('\n📋 Expected vs Actual:');
+                    for (const child of layer1) {
+                        const expected = expectedChildren[child.position];
+                        const actual = child.member_wallet;
+                        const match = expected && actual.toUpperCase() === expected.toUpperCase();
+
+                        log(`Position ${child.position}: Expected=${expected}, Actual=${actual} ${match ? '✅' : '❌'}`, !match);
+                    }
+
+                    // Check for missing positions
+                    const foundPositions = layer1.map(c => c.position);
+                    const allPositions = ['L', 'M', 'R'];
+                    const missingPositions = allPositions.filter(p => !foundPositions.includes(p));
+
+                    if (missingPositions.length > 0) {
+                        log(`\n⚠️ Missing positions: ${missingPositions.join(', ')}`, true);
+                    }
+
+                } else {
+                    log('⚠️ No children found in Layer 1!', true);
+                }
+
+                // Also check if these members exist
+                log('\n🔍 Checking if expected members exist...');
+                const expectedWallets = ['FFTT4', 'FFTT112', 'FFTT113'];
+
+                for (const wallet of expectedWallets) {
+                    const { data: member, error: memberError } = await supabase
+                        .from('members')
+                        .select('wallet_address, activation_sequence, current_level, referrer_wallet')
+                        .ilike('wallet_address', wallet)
+                        .maybeSingle();
+
+                    if (member) {
+                        log(`✅ ${wallet} exists: Seq=${member.activation_sequence}, Level=${member.current_level}, Referrer=${member.referrer_wallet}`);
+
+                        // Check their actual matrix placement
+                        const { data: actualPlacement } = await supabase
+                            .from('matrix_referrals')
+                            .select('matrix_root_wallet, position, layer')
+                            .ilike('member_wallet', wallet)
+                            .eq('layer', 1);
+
+                        if (actualPlacement && actualPlacement.length > 0) {
+                            log(`   Current placement: Root=${actualPlacement[0].matrix_root_wallet}, Position=${actualPlacement[0].position}`);
+                        } else {
+                            log(`   ⚠️ No matrix placement found!`, true);
+                        }
+                    } else {
+                        log(`❌ ${wallet} does NOT exist in members table`, true);
+                    }
+                }
+
+            } catch (error) {
+                log(`❌ Error: ${error.message}`, true);
+                console.error('Full error:', error);
+            }
+        }
+
+        async function checkAllLayers() {
+            output.innerHTML = '';
+            log('🔍 Checking all 19 layers for FFTT1...');
+
+            try {
+                const { data: allLayers, error } = await supabase
+                    .from('matrix_referrals')
+                    .select('member_wallet, position, layer')
+                    .ilike('matrix_root_wallet', 'FFTT1')
+                    .order('layer, position');
+
+                if (error) throw error;
+
+                log(`✅ Found ${allLayers.length} total placements across all layers`);
+
+                // Group by layer
+                const layerGroups = {};
+                allLayers.forEach(placement => {
+                    if (!layerGroups[placement.layer]) {
+                        layerGroups[placement.layer] = [];
+                    }
+                    layerGroups[placement.layer].push(placement);
+                });
+
+                // Display summary
+                log('\n📊 Layer Summary:');
+                for (let layer = 1; layer <= 19; layer++) {
+                    const count = layerGroups[layer]?.length || 0;
+                    const maxExpected = Math.pow(3, layer); // 3^layer
+                    log(`Layer ${layer.toString().padStart(2)}: ${count.toString().padStart(4)} members (max possible: ${maxExpected})`);
+                }
+
+                // Show Layer 1 in detail
+                if (layerGroups[1]) {
+                    log('\n📋 Layer 1 Details:');
+                    createTable(layerGroups[1], ['member_wallet', 'position', 'layer']);
+                }
+
+            } catch (error) {
+                log(`❌ Error: ${error.message}`, true);
+                console.error('Full error:', error);
+            }
+        }
+
+        // Auto-run on load
+        window.addEventListener('load', () => {
+            checkFFTT1Matrix();
+        });
+    </script>
+</body>
+</html>
