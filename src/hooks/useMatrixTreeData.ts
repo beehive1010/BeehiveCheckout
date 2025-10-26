@@ -13,7 +13,7 @@ export interface MatrixTreeNode {
   layer: number;
   member_wallet: string;
   member_username: string | null;
-  member_level: number;
+  current_level: number;  // ✅ Fixed: use current_level from view
   activation_sequence: number;
   parent_wallet: string | null;
   slot: string | null; // L, M, R

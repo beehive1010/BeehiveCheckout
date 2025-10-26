@@ -321,7 +321,7 @@ const MobileMatrixView: React.FC<MobileMatrixViewProps> = ({
         member: {
           wallet: childrenData.L.member_wallet,
           username: childrenData.L.member_username,
-          level: childrenData.L.member_level,
+          level: childrenData.L.current_level,  // ✅ Fixed: use current_level
           layer: childrenData.L.layer,  // ✅ Include layer info
           joinedAt: childrenData.L.activation_time || '',
           type: childrenData.L.referral_type === 'direct' ? 'is_direct' : 'is_spillover',
@@ -343,7 +343,7 @@ const MobileMatrixView: React.FC<MobileMatrixViewProps> = ({
         member: {
           wallet: childrenData.M.member_wallet,
           username: childrenData.M.member_username,
-          level: childrenData.M.member_level,
+          level: childrenData.M.current_level,  // ✅ Fixed: use current_level
           layer: childrenData.M.layer,  // ✅ Include layer info
           joinedAt: childrenData.M.activation_time || '',
           type: childrenData.M.referral_type === 'direct' ? 'is_direct' : 'is_spillover',
