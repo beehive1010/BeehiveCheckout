@@ -1,7 +1,8 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { Card, CardHeader, CardTitle, CardContent } from '../ui/card';
 import { Button } from '../ui/button';
 import { Badge } from '../ui/badge';
+import { Input } from '../ui/input';
 import {
   Users,
   User,
@@ -9,11 +10,21 @@ import {
   ArrowUpRight,
   ArrowDownLeft,
   Crown,
-  Home
+  Home,
+  Search,
+  Filter,
+  X
 } from 'lucide-react';
 import { useI18n } from '../../contexts/I18nContext';
 import { useIsMobile } from '../../hooks/use-mobile';
 import { useMatrixNodeChildren } from '../../hooks/useMatrixTreeData';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '../ui/select';
 
 interface MobileMatrixViewProps {
   rootWalletAddress: string;
@@ -173,6 +184,12 @@ const MobileMatrixView: React.FC<MobileMatrixViewProps> = ({
   const [navigationHistory, setNavigationHistory] = useState<NavigationHistory[]>([]);
   const [currentRootUser, setCurrentRootUser] = useState(rootUser);
   const [originalRoot] = useState<string>(rootWalletAddress);
+
+  // Search and filter states
+  const [searchQuery, setSearchQuery] = useState<string>('');
+  const [filterType, setFilterType] = useState<string>('all'); // all, direct, spillover
+  const [filterLevel, setFilterLevel] = useState<string>('all'); // all, 1, 2, etc.
+  const [showFilters, setShowFilters] = useState<boolean>(false);
 
   // Use new unified hook for children data
   const { data: childrenData, isLoading, error } = useMatrixNodeChildren(
@@ -368,6 +385,49 @@ const MobileMatrixView: React.FC<MobileMatrixViewProps> = ({
     currentRoot
   });
 
+  // Apply search and filter
+  const filteredMatrix = useMemo(() => {
+    if (!currentMatrix || currentMatrix.length === 0) return currentMatrix;
+
+    return currentMatrix.filter(node => {
+      if (!node.member) return false;
+
+      // Search filter
+      if (searchQuery) {
+        const query = searchQuery.toLowerCase();
+        const username = node.member.username?.toLowerCase() || '';
+        const wallet = node.member.wallet.toLowerCase();
+
+        if (!username.includes(query) && !wallet.includes(query)) {
+          return false;
+        }
+      }
+
+      // Type filter
+      if (filterType !== 'all') {
+        const isDirect = node.member.type === 'is_direct';
+        if (filterType === 'direct' && !isDirect) return false;
+        if (filterType === 'spillover' && isDirect) return false;
+      }
+
+      // Level filter
+      if (filterLevel !== 'all') {
+        const level = node.member.level;
+        if (String(level) !== filterLevel) return false;
+      }
+
+      return true;
+    });
+  }, [currentMatrix, searchQuery, filterType, filterLevel]);
+
+  const hasActiveFilters = searchQuery || filterType !== 'all' || filterLevel !== 'all';
+
+  const clearFilters = () => {
+    setSearchQuery('');
+    setFilterType('all');
+    setFilterLevel('all');
+  };
+
   return (
     <div className={isMobile ? "space-y-3" : "space-y-4"}>
       {/* Header Card */}
@@ -383,6 +443,136 @@ const MobileMatrixView: React.FC<MobileMatrixViewProps> = ({
             </Badge>
           </CardTitle>
         </CardHeader>
+      </Card>
+
+      {/* Search and Filter Card */}
+      <Card className="bg-gradient-to-br from-black/90 to-gray-900/95 border border-yellow-500/30 shadow-xl shadow-yellow-500/10">
+        <CardContent className={isMobile ? "p-3" : "p-4"}>
+          {/* Search Bar */}
+          <div className="relative mb-3">
+            <Search className={`absolute left-3 top-1/2 -translate-y-1/2 ${isMobile ? 'w-4 h-4' : 'w-5 h-5'} text-gray-400`} />
+            <Input
+              type="text"
+              placeholder={t('matrix.searchPlaceholder')}
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className={`${isMobile ? 'pl-9 h-9 text-sm' : 'pl-11 h-10'} bg-black/50 border-yellow-500/30 text-white placeholder:text-gray-400 focus:border-yellow-500`}
+            />
+            {searchQuery && (
+              <button
+                onClick={() => setSearchQuery('')}
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-white"
+              >
+                <X className={isMobile ? 'w-4 h-4' : 'w-5 h-5'} />
+              </button>
+            )}
+          </div>
+
+          {/* Filter Toggle Button */}
+          <div className="flex items-center justify-between gap-2">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setShowFilters(!showFilters)}
+              className={`flex-1 ${isMobile ? 'h-8 text-xs' : 'h-9'} bg-black/50 border-yellow-500/30 text-yellow-400 hover:bg-yellow-500/10`}
+            >
+              <Filter className={`${isMobile ? 'w-3 h-3 mr-1' : 'w-4 h-4 mr-2'}`} />
+              {t('matrix.filters')}
+              {hasActiveFilters && (
+                <Badge className="ml-2 bg-yellow-500 text-black px-1.5 py-0">
+                  {[searchQuery ? 1 : 0, filterType !== 'all' ? 1 : 0, filterLevel !== 'all' ? 1 : 0].reduce((a, b) => a + b, 0)}
+                </Badge>
+              )}
+            </Button>
+
+            {hasActiveFilters && (
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={clearFilters}
+                className={`${isMobile ? 'h-8 px-2 text-xs' : 'h-9 px-3'} text-red-400 hover:text-red-300 hover:bg-red-500/10`}
+              >
+                <X className={`${isMobile ? 'w-3 h-3' : 'w-4 h-4'}`} />
+              </Button>
+            )}
+          </div>
+
+          {/* Filter Options */}
+          {showFilters && (
+            <div className={`${isMobile ? 'mt-3 space-y-2' : 'mt-4 space-y-3'} pt-3 border-t border-yellow-500/20`}>
+              {/* Type Filter */}
+              <div>
+                <label className={`block ${isMobile ? 'text-xs' : 'text-sm'} font-medium text-yellow-300 mb-1.5`}>
+                  {t('matrix.filterByType')}
+                </label>
+                <Select value={filterType} onValueChange={setFilterType}>
+                  <SelectTrigger className={`${isMobile ? 'h-9 text-xs' : 'h-10'} bg-black/50 border-yellow-500/30 text-white`}>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent className="bg-black border-yellow-500/30">
+                    <SelectItem value="all" className="text-white hover:bg-yellow-500/10">
+                      {t('matrix.filterAll')}
+                    </SelectItem>
+                    <SelectItem value="direct" className="text-white hover:bg-yellow-500/10">
+                      {t('matrix.directReferral')}
+                    </SelectItem>
+                    <SelectItem value="spillover" className="text-white hover:bg-yellow-500/10">
+                      {t('matrix.spillover')}
+                    </SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+
+              {/* Level Filter */}
+              <div>
+                <label className={`block ${isMobile ? 'text-xs' : 'text-sm'} font-medium text-yellow-300 mb-1.5`}>
+                  {t('matrix.filterByLevel')}
+                </label>
+                <Select value={filterLevel} onValueChange={setFilterLevel}>
+                  <SelectTrigger className={`${isMobile ? 'h-9 text-xs' : 'h-10'} bg-black/50 border-yellow-500/30 text-white`}>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent className="bg-black border-yellow-500/30">
+                    <SelectItem value="all" className="text-white hover:bg-yellow-500/10">
+                      {t('matrix.filterAll')}
+                    </SelectItem>
+                    <SelectItem value="1" className="text-white hover:bg-yellow-500/10">
+                      {t('matrix.level')} 1
+                    </SelectItem>
+                    <SelectItem value="2" className="text-white hover:bg-yellow-500/10">
+                      {t('matrix.level')} 2
+                    </SelectItem>
+                    <SelectItem value="3" className="text-white hover:bg-yellow-500/10">
+                      {t('matrix.level')} 3
+                    </SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+          )}
+
+          {/* Active Filter Summary */}
+          {hasActiveFilters && !showFilters && (
+            <div className={`${isMobile ? 'mt-2 text-xs' : 'mt-3 text-sm'} text-yellow-200/70 flex items-center flex-wrap gap-1`}>
+              <span>{t('matrix.activeFilters')}:</span>
+              {searchQuery && (
+                <Badge className="bg-yellow-500/20 text-yellow-300 border-yellow-500/50">
+                  "{searchQuery}"
+                </Badge>
+              )}
+              {filterType !== 'all' && (
+                <Badge className="bg-yellow-500/20 text-yellow-300 border-yellow-500/50">
+                  {filterType === 'direct' ? t('matrix.directReferral') : t('matrix.spillover')}
+                </Badge>
+              )}
+              {filterLevel !== 'all' && (
+                <Badge className="bg-yellow-500/20 text-yellow-300 border-yellow-500/50">
+                  {t('matrix.level')} {filterLevel}
+                </Badge>
+              )}
+            </div>
+          )}
+        </CardContent>
       </Card>
 
       {/* Root User Info Card */}
@@ -465,16 +655,42 @@ const MobileMatrixView: React.FC<MobileMatrixViewProps> = ({
       {/* Matrix Grid */}
       <Card className="bg-gradient-to-br from-black/90 to-gray-900/95 border border-yellow-500/30 shadow-xl shadow-yellow-500/10">
         <CardContent className={isMobile ? "p-4" : "p-6"}>
+          {/* Filter Results Info */}
+          {hasActiveFilters && (
+            <div className={`${isMobile ? 'mb-3 text-xs' : 'mb-4 text-sm'} text-center text-yellow-300`}>
+              {filteredMatrix.length === 0 ? (
+                <span>{t('matrix.noResultsFound')}</span>
+              ) : filteredMatrix.length < currentMatrix.length ? (
+                <span>{t('matrix.showingResults', { count: filteredMatrix.length, total: currentMatrix.length })}</span>
+              ) : (
+                <span>{t('matrix.showingAllResults', { count: currentMatrix.length })}</span>
+              )}
+            </div>
+          )}
+
           <div className={`grid grid-cols-3 ${isMobile ? 'gap-2 mb-4' : 'gap-4 mb-6'}`}>
             {['L', 'M', 'R'].map(position => {
-              const node = currentMatrix.find(n => n.position === position);
+              // Check if position exists in filtered results
+              const node = filteredMatrix.find(n => n.position === position);
+              const originalNode = currentMatrix.find(n => n.position === position);
+              const isFiltered = originalNode && !node;
+
               return (
-                <MatrixNode
-                  key={position}
-                  position={position}
-                  member={node?.member || null}
-                  onTap={handleMemberTap}
-                />
+                <div key={position} className="relative">
+                  <MatrixNode
+                    position={position}
+                    member={node?.member || null}
+                    onTap={handleMemberTap}
+                  />
+                  {isFiltered && (
+                    <div className="absolute inset-0 bg-black/60 rounded-xl flex items-center justify-center backdrop-blur-sm">
+                      <div className={`${isMobile ? 'text-xs' : 'text-sm'} text-yellow-300 text-center px-2`}>
+                        <Filter className={`${isMobile ? 'w-4 h-4' : 'w-5 h-5'} mx-auto mb-1`} />
+                        {t('matrix.filteredOut')}
+                      </div>
+                    </div>
+                  )}
+                </div>
               );
             })}
           </div>
@@ -482,11 +698,15 @@ const MobileMatrixView: React.FC<MobileMatrixViewProps> = ({
           {/* Stats */}
           <div className={`grid grid-cols-3 ${isMobile ? 'gap-2 pt-3' : 'gap-3 pt-4'} border-t border-gray-100 dark:border-gray-800`}>
             <div className="text-center">
-              <div className={`${isMobile ? 'text-base' : 'text-lg'} font-bold text-green-500`}>{currentMatrix.filter(n => n.member?.type !== 'is_spillover').length}</div>
+              <div className={`${isMobile ? 'text-base' : 'text-lg'} font-bold text-green-500`}>
+                {hasActiveFilters ? filteredMatrix.filter(n => n.member?.type !== 'is_spillover').length : currentMatrix.filter(n => n.member?.type !== 'is_spillover').length}
+              </div>
               <div className={`${isMobile ? 'text-[10px]' : 'text-xs'} text-yellow-200/60 dark:text-yellow-200/80`}>{t('matrix.directReferral')}</div>
             </div>
             <div className="text-center">
-              <div className={`${isMobile ? 'text-base' : 'text-lg'} font-bold text-blue-400`}>{currentMatrix.filter(n => n.member?.type === 'is_spillover').length}</div>
+              <div className={`${isMobile ? 'text-base' : 'text-lg'} font-bold text-blue-400`}>
+                {hasActiveFilters ? filteredMatrix.filter(n => n.member?.type === 'is_spillover').length : currentMatrix.filter(n => n.member?.type === 'is_spillover').length}
+              </div>
               <div className={`${isMobile ? 'text-[10px]' : 'text-xs'} text-yellow-200/60 dark:text-yellow-200/80`}>{t('matrix.spillover')}</div>
             </div>
             <div className="text-center">
