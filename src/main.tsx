@@ -3,6 +3,7 @@ import { SpeedInsights } from "@vercel/speed-insights/react";
 import { Analytics } from "@vercel/analytics/react";
 import App from "./App";
 import "./index.css";
+import "./styles/matrix-animations.css";
 // 导入测试工具（在控制台中可用）
 import "./utils/testDeepL";
 

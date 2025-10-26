@@ -182,12 +182,14 @@ const InteractiveMatrixView: React.FC<InteractiveMatrixViewProps> = ({
 
   const renderMatrixNode = (position: 'L' | 'M' | 'R', member: MatrixMember | null) => {
     return (
-      <div className="flex flex-col items-center">
-        {/* 位置标签 */}
-        <div className="mb-3">
-          <Badge 
-            variant="outline" 
-            className="text-lg font-bold px-4 py-2 bg-gradient-to-r from-blue-50 to-blue-100 border-blue-200 text-blue-700"
+      <div className="flex flex-col items-center animate-fade-in">
+        {/* 位置标签 - 优化触摸体验 */}
+        <div className={`${isMobile ? 'mb-2' : 'mb-3'}`}>
+          <Badge
+            variant="outline"
+            className={`font-bold bg-gradient-to-r from-blue-50 to-blue-100 border-blue-200 text-blue-700 dark:from-blue-900/30 dark:to-blue-800/40 dark:border-blue-700 dark:text-blue-300 shadow-sm transition-all duration-200 ${
+              isMobile ? 'text-sm px-3 py-1' : 'text-lg px-4 py-2'
+            }`}
           >
             {position}
           </Badge>
@@ -195,10 +197,30 @@ const InteractiveMatrixView: React.FC<InteractiveMatrixViewProps> = ({
 
         {/* 成员卡片或空位 */}
         {member ? (
-          <div 
-            className="w-full max-w-sm bg-gradient-to-br from-gray-900/80 to-black/90 rounded-lg border-2 border-yellow-500/30 hover:border-yellow-400/70 hover:shadow-xl hover:shadow-yellow-500/20 hover:scale-105 transition-all duration-300 cursor-pointer group"
+          <div
+            className={`w-full max-w-sm bg-gradient-to-br from-gray-900/80 to-black/90 rounded-xl border-2 border-yellow-500/30 cursor-pointer group relative overflow-hidden
+              ${isMobile
+                ? 'active:scale-95 active:border-yellow-400/90 min-h-[44px]'
+                : 'hover:border-yellow-400/70 hover:scale-105'
+              }
+              transition-all duration-300 hover:shadow-xl hover:shadow-yellow-500/20
+              touch-manipulation select-none
+            `}
             onClick={() => handleNavigateToMember(member.wallet, member)}
+            onTouchStart={(e) => {
+              e.currentTarget.style.transform = 'scale(0.97)';
+              e.currentTarget.style.borderColor = 'rgba(250, 204, 21, 0.6)';
+            }}
+            onTouchEnd={(e) => {
+              e.currentTarget.style.transform = '';
+              e.currentTarget.style.borderColor = '';
+            }}
           >
+            {/* 触摸涟漪效果背景 */}
+            <div className="absolute inset-0 bg-gradient-to-br from-yellow-500/0 via-yellow-500/0 to-yellow-500/0 group-hover:from-yellow-500/5 group-hover:via-yellow-500/10 group-hover:to-yellow-500/5 transition-all duration-500" />
+
+            {/* Shimmer动画效果 */}
+            <div className="absolute inset-0 -translate-x-full group-hover:translate-x-full transition-transform duration-1000 bg-gradient-to-r from-transparent via-white/10 to-transparent" />
             {/* 卡片头部 */}
             <div className="p-4 pb-2">
               <div className="flex items-center justify-between mb-2">
@@ -278,12 +300,17 @@ const InteractiveMatrixView: React.FC<InteractiveMatrixViewProps> = ({
             </div>
           </div>
         ) : (
-          <div className="w-full max-w-sm bg-gradient-to-br from-gray-800/50 to-gray-900/70 rounded-2xl border-2 border-dashed border-yellow-500/30 p-8 text-center">
-            <div className="text-yellow-500/50 mb-3">
-              <Users className="h-12 w-12 mx-auto mb-2 opacity-50" />
+          <div className={`w-full max-w-sm bg-gradient-to-br from-gray-800/50 to-gray-900/70 rounded-2xl border-2 border-dashed border-yellow-500/30 text-center relative overflow-hidden group hover:border-yellow-500/50 transition-all duration-300 ${
+            isMobile ? 'p-4' : 'p-8'
+          }`}>
+            {/* 脉冲动画背景 */}
+            <div className="absolute inset-0 bg-yellow-500/5 animate-pulse opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+
+            <div className="text-yellow-500/50 mb-3 relative">
+              <Users className={`${isMobile ? 'h-8 w-8' : 'h-12 w-12'} mx-auto mb-2 opacity-50 transition-all duration-300 group-hover:opacity-70 group-hover:scale-110`} />
             </div>
-            <p className="text-sm text-yellow-400/80 font-medium">{t('matrix.emptySlot')}</p>
-            <p className="text-xs text-yellow-300/60 mt-1">{t('matrix.waitingToJoin')}</p>
+            <p className={`${isMobile ? 'text-xs' : 'text-sm'} text-yellow-400/80 font-medium relative`}>{t('matrix.emptySlot')}</p>
+            <p className={`${isMobile ? 'text-[10px]' : 'text-xs'} text-yellow-300/60 mt-1 relative`}>{t('matrix.waitingToJoin')}</p>
           </div>
         )}
       </div>
@@ -292,11 +319,30 @@ const InteractiveMatrixView: React.FC<InteractiveMatrixViewProps> = ({
 
   if (isLoading) {
     return (
-      <Card className="bg-gradient-to-br from-black/90 to-gray-900/95 border border-yellow-500/30 text-white">
-        <CardContent className="p-6">
-          <div className="text-center py-8">
-            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-yellow-500 mx-auto mb-4"></div>
-            <div className="text-sm text-yellow-400">{t('matrix.loadingData')}</div>
+      <Card className="bg-gradient-to-br from-black/90 to-gray-900/95 border border-yellow-500/30 text-white animate-fade-in">
+        <CardContent className={isMobile ? 'p-4' : 'p-6'}>
+          <div className={`text-center ${isMobile ? 'py-6' : 'py-8'}`}>
+            {/* 增强的加载动画 */}
+            <div className="relative mx-auto mb-4 w-16 h-16">
+              {/* 外圈旋转 */}
+              <div className="absolute inset-0 rounded-full border-4 border-yellow-500/20"></div>
+              <div className="absolute inset-0 rounded-full border-4 border-transparent border-t-yellow-500 animate-spin"></div>
+              {/* 内圈脉冲 */}
+              <div className="absolute inset-2 rounded-full bg-yellow-500/20 animate-pulse"></div>
+              {/* 中心图标 */}
+              <div className="absolute inset-0 flex items-center justify-center">
+                <Users className="h-6 w-6 text-yellow-400 animate-pulse" />
+              </div>
+            </div>
+            <div className={`${isMobile ? 'text-xs' : 'text-sm'} text-yellow-400 font-medium animate-pulse`}>
+              {t('matrix.loadingData')}
+            </div>
+            {/* 骨架屏 */}
+            <div className={`grid grid-cols-3 ${isMobile ? 'gap-2 mt-4' : 'gap-4 mt-6'}`}>
+              {[1, 2, 3].map((i) => (
+                <div key={i} className={`bg-gray-800/50 rounded-xl ${isMobile ? 'h-32' : 'h-48'} animate-pulse`}></div>
+              ))}
+            </div>
           </div>
         </CardContent>
       </Card>
@@ -381,24 +427,28 @@ const InteractiveMatrixView: React.FC<InteractiveMatrixViewProps> = ({
               {navigationHistory.length > 0 && (
                 <Button
                   variant="outline"
-                  size="sm"
+                  size={isMobile ? 'default' : 'sm'}
                   onClick={handleGoBack}
-                  className="text-yellow-400 border-yellow-500/50 hover:bg-yellow-500/10 bg-black/20"
+                  className={`text-yellow-400 border-yellow-500/50 hover:bg-yellow-500/10 bg-black/20 transition-all duration-200 active:scale-95 touch-manipulation ${
+                    isMobile ? 'min-h-[44px] px-4' : ''
+                  }`}
                 >
-                  <ChevronLeft className="h-4 w-4 mr-1" />
-                  {t('matrix.previousLayer')}
+                  <ChevronLeft className={`${isMobile ? 'h-5 w-5 mr-1' : 'h-4 w-4 mr-1'}`} />
+                  {isMobile ? t('common.back') : t('matrix.previousLayer')}
                 </Button>
               )}
-              
+
               {currentRoot !== rootWalletAddress && (
                 <Button
                   variant="outline"
-                  size="sm"
+                  size={isMobile ? 'default' : 'sm'}
                   onClick={handleGoHome}
-                  className="text-amber-400 border-amber-500/50 hover:bg-amber-500/10 bg-black/20"
+                  className={`text-amber-400 border-amber-500/50 hover:bg-amber-500/10 bg-black/20 transition-all duration-200 active:scale-95 touch-manipulation ${
+                    isMobile ? 'min-h-[44px] px-4' : ''
+                  }`}
                 >
-                  <Home className="h-4 w-4 mr-1" />
-                  {t('matrix.myMatrix')}
+                  <Home className={`${isMobile ? 'h-5 w-5 mr-1' : 'h-4 w-4 mr-1'}`} />
+                  {isMobile ? 'Home' : t('matrix.myMatrix')}
                 </Button>
               )}
             </div>
