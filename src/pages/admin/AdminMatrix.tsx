@@ -620,58 +620,58 @@ export default function AdminMatrix() {
             <CardContent className={isMobile ? 'p-3' : 'p-4'}>
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm font-medium text-muted-foreground">总会员数</p>
-                  <p className="text-2xl font-bold text-honey">{matrixStats.total_members}</p>
+                  <p className={`${isMobile ? 'text-xs' : 'text-sm'} font-medium text-muted-foreground`}>总会员数</p>
+                  <p className={`${isMobile ? 'text-xl' : 'text-2xl'} font-bold text-honey`}>{matrixStats.total_members}</p>
                 </div>
-                <Users className="h-8 w-8 text-honey" />
+                <Users className={`${isMobile ? 'h-6 w-6' : 'h-8 w-8'} text-honey`} />
               </div>
             </CardContent>
           </Card>
           
           <Card>
-            <CardContent className="p-4">
+            <CardContent className={isMobile ? 'p-3' : 'p-4'}>
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm font-medium text-muted-foreground">已激活</p>
-                  <p className="text-2xl font-bold text-green-500">{matrixStats.activated_members}</p>
+                  <p className={`${isMobile ? 'text-xs' : 'text-sm'} font-medium text-muted-foreground`}>已激活</p>
+                  <p className={`${isMobile ? 'text-xl' : 'text-2xl'} font-bold text-green-500`}>{matrixStats.activated_members}</p>
                 </div>
-                <UserCheck className="h-8 w-8 text-green-500" />
+                <UserCheck className={`${isMobile ? 'h-6 w-6' : 'h-8 w-8'} text-green-500`} />
               </div>
             </CardContent>
           </Card>
 
           <Card>
-            <CardContent className="p-4">
+            <CardContent className={isMobile ? 'p-3' : 'p-4'}>
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm font-medium text-muted-foreground">矩阵总数</p>
-                  <p className="text-2xl font-bold text-blue-500">{matrixStats.total_matrices}</p>
+                  <p className={`${isMobile ? 'text-xs' : 'text-sm'} font-medium text-muted-foreground`}>矩阵总数</p>
+                  <p className={`${isMobile ? 'text-xl' : 'text-2xl'} font-bold text-blue-500`}>{matrixStats.total_matrices}</p>
                 </div>
-                <Network className="h-8 w-8 text-blue-500" />
+                <Network className={`${isMobile ? 'h-6 w-6' : 'h-8 w-8'} text-blue-500`} />
               </div>
             </CardContent>
           </Card>
 
           <Card>
-            <CardContent className="p-4">
+            <CardContent className={isMobile ? 'p-3' : 'p-4'}>
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm font-medium text-muted-foreground">平均深度</p>
-                  <p className="text-2xl font-bold text-purple-500">{matrixStats.avg_matrix_depth}</p>
+                  <p className={`${isMobile ? 'text-xs' : 'text-sm'} font-medium text-muted-foreground`}>平均深度</p>
+                  <p className={`${isMobile ? 'text-xl' : 'text-2xl'} font-bold text-purple-500`}>{matrixStats.avg_matrix_depth}</p>
                 </div>
-                <Layers className="h-8 w-8 text-purple-500" />
+                <Layers className={`${isMobile ? 'h-6 w-6' : 'h-8 w-8'} text-purple-500`} />
               </div>
             </CardContent>
           </Card>
 
           <Card>
-            <CardContent className="p-4">
+            <CardContent className={isMobile ? 'p-3' : 'p-4'}>
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm font-medium text-muted-foreground">不完整矩阵</p>
-                  <p className="text-2xl font-bold text-orange-500">{matrixStats.incomplete_matrices}</p>
+                  <p className={`${isMobile ? 'text-xs' : 'text-sm'} font-medium text-muted-foreground`}>不完整矩阵</p>
+                  <p className={`${isMobile ? 'text-xl' : 'text-2xl'} font-bold text-orange-500`}>{matrixStats.incomplete_matrices}</p>
                 </div>
-                <TrendingUp className="h-8 w-8 text-orange-500" />
+                <TrendingUp className={`${isMobile ? 'h-6 w-6' : 'h-8 w-8'} text-orange-500`} />
               </div>
             </CardContent>
           </Card>
@@ -680,11 +680,11 @@ export default function AdminMatrix() {
 
       {/* 主要内容 */}
       <Tabs defaultValue="tree" className="space-y-4">
-        <TabsList className="grid w-full grid-cols-4">
-          <TabsTrigger value="tree">3×3矩阵树</TabsTrigger>
-          <TabsTrigger value="members">会员列表</TabsTrigger>
-          <TabsTrigger value="matrix">矩阵关系</TabsTrigger>
-          <TabsTrigger value="analysis">数据分析</TabsTrigger>
+        <TabsList className={`${isMobile ? 'grid grid-cols-2 gap-1' : 'grid w-full grid-cols-4'}`}>
+          <TabsTrigger value="tree">{isMobile ? '树' : '3×3矩阵树'}</TabsTrigger>
+          <TabsTrigger value="members">{isMobile ? '会员' : '会员列表'}</TabsTrigger>
+          <TabsTrigger value="matrix">{isMobile ? '关系' : '矩阵关系'}</TabsTrigger>
+          <TabsTrigger value="analysis">{isMobile ? '分析' : '数据分析'}</TabsTrigger>
         </TabsList>
 
         {/* 3×3矩阵树可视化标签页 */}
