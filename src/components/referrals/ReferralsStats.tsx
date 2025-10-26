@@ -88,41 +88,17 @@ export default function ReferralsStats({ walletAddress, className }: ReferralsSt
         return data;
       } catch (error) {
         console.error('❌ Failed to fetch referrer stats:', error);
-        // Fallback to views instead of direct table queries
+        // Fallback to v_referral_statistics view (fixed to use recursive CTE)
 
-        // Use referrals_stats_view for referral counts
-        const { data: referralStats } = await supabase
-          .from('referrals_stats_view')
-          .select('*')
-          .ilike('referrer_wallet', walletAddress)
+        // Use v_referral_statistics for comprehensive team statistics
+        const { data: stats, error: statsError } = await supabase
+          .from('v_referral_statistics')
+          .select('direct_referral_count, max_spillover_layer, total_team_count, matrix_19_layer_count, activation_rate_percentage')
+          .eq('member_wallet', walletAddress)
           .maybeSingle();
 
-        // Use v_matrix_overview for matrix statistics (19 layers only)
-        const { data: matrixOverview } = await supabase
-          .from('v_matrix_overview')
-          .select('*')
-          .ilike('wallet_address', walletAddress)
-          .maybeSingle();
-
-        // Calculate total team size (all layers) using recursive referrer tree
-        const { data: allMembers } = await supabase
-          .from('members')
-          .select('wallet_address, referrer_wallet');
-
-        let totalTeamSize = 0;
-        if (allMembers) {
-          const downlineSet = new Set<string>();
-          const findDownline = (rootWallet: string) => {
-            allMembers.forEach(member => {
-              if (member.referrer_wallet?.toLowerCase() === rootWallet.toLowerCase() &&
-                  !downlineSet.has(member.wallet_address.toLowerCase())) {
-                downlineSet.add(member.wallet_address.toLowerCase());
-                findDownline(member.wallet_address);
-              }
-            });
-          };
-          findDownline(walletAddress);
-          totalTeamSize = downlineSet.size;
+        if (statsError) {
+          console.error('❌ Failed to fetch from v_referral_statistics:', statsError);
         }
 
         // Use v_matrix_layer_summary for layer 1 stats
@@ -133,10 +109,12 @@ export default function ReferralsStats({ walletAddress, className }: ReferralsSt
           .eq('layer', 1)
           .maybeSingle();
 
-        const directReferralsCount = referralStats?.direct_referrals || 0;
-        const matrixTeamSize = matrixOverview?.total_members || 0;
-        const maxDepth = matrixOverview?.deepest_layer || 0;
+        const directReferralsCount = stats?.direct_referral_count || 0;
+        const totalTeamSize = stats?.total_team_count || 0; // ✅ Now uses fixed recursive CTE
+        const matrixTeamSize = stats?.matrix_19_layer_count || 0;
+        const maxDepth = stats?.max_spillover_layer || 0;
         const layer1Filled = layer1Stats?.filled_slots || 0;
+        const activationRate = stats?.activation_rate_percentage || 0;
 
         return {
           referrer: walletAddress,
@@ -144,13 +122,13 @@ export default function ReferralsStats({ walletAddress, className }: ReferralsSt
           total_direct_referrals: directReferralsCount,
           activated_referrals: directReferralsCount,
 
-          // 总团队（所有推荐层级）
+          // 总团队（所有推荐层级）- ✅ Now from fixed view
           total_team_size: totalTeamSize,
-          total_team_activated: 0,
+          total_team_activated: Math.round((totalTeamSize * activationRate) / 100),
 
           // 矩阵团队（19层内）
           matrix_team_size: matrixTeamSize,
-          activated_members: matrixOverview?.active_members || 0,
+          activated_members: Math.round((matrixTeamSize * activationRate) / 100),
 
           max_depth: maxDepth,
           network_strength: directReferralsCount * 10,

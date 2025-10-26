@@ -54,28 +54,20 @@ const MatrixLayerStatsView: React.FC<MatrixLayerStatsViewProps> = ({
     try {
       console.log('🔍 Loading matrix layer stats for:', walletAddress);
 
-      // Count ALL downline members via recursive referrer tree (no layer limit)
-      const { data: allMembersData } = await supabase
-        .from('members')
-        .select('wallet_address, referrer_wallet');
+      // Get total team count from v_referral_statistics (uses fixed recursive CTE)
+      const { data: referralStats, error: statsError } = await supabase
+        .from('v_referral_statistics')
+        .select('total_team_count')
+        .eq('member_wallet', walletAddress)
+        .maybeSingle();
 
-      let totalDownline = 0;
-      if (allMembersData) {
-        const downlineSet = new Set<string>();
-        const findDownline = (rootWallet: string) => {
-          allMembersData.forEach(member => {
-            if (member.referrer_wallet?.toLowerCase() === rootWallet.toLowerCase() &&
-                !downlineSet.has(member.wallet_address.toLowerCase())) {
-              downlineSet.add(member.wallet_address.toLowerCase());
-              findDownline(member.wallet_address);
-            }
-          });
-        };
-        findDownline(walletAddress);
-        totalDownline = downlineSet.size;
+      if (statsError) {
+        console.error('❌ Failed to fetch referral stats:', statsError);
       }
+
+      const totalDownline = referralStats?.total_team_count || 0;
       setTotalDownlineMembers(totalDownline);
-      console.log('📊 Total downline members (all depths):', totalDownline);
+      console.log('📊 Total downline members (all depths) from v_referral_statistics:', totalDownline);
 
       // Use direct database view query for matrix layer stats (19 layers)
       console.log('📊 Using direct database query for 19-layer matrix stats');

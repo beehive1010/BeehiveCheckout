@@ -13,9 +13,9 @@ import {
   Layers,
   Home
 } from 'lucide-react';
-import { useLayeredMatrix, useMatrixChildren, useUserMatrixRoot, useUserDownline } from '../../hooks/useMatrixByLevel';
 import { useI18n } from '../../contexts/I18nContext';
 import { useIsMobile } from '../../hooks/use-mobile';
+import { useMatrixNodeChildren } from '../../hooks/useMatrixTreeData';
 
 interface MobileMatrixViewProps {
   rootWalletAddress: string;
@@ -112,6 +112,11 @@ const MatrixNode: React.FC<MatrixNodeProps> = ({ position, member, onTap }) => {
         {member.username || `${t('common.user')}${member.wallet.slice(-4)}`}
       </div>
 
+      {/* Wallet Address - Mobile Optimized */}
+      <div className={`${isMobile ? 'text-[9px]' : 'text-[10px]'} text-gray-600 dark:text-gray-400 font-mono text-center truncate w-full px-0.5`}>
+        {member.wallet.slice(0, 6)}...{member.wallet.slice(-4)}
+      </div>
+
       {/* Level Badge */}
       {member.level && (
         <Badge className={`mt-0.5 ${badgeSize} ${
@@ -151,76 +156,62 @@ const MobileMatrixView: React.FC<MobileMatrixViewProps> = ({
   const isMobile = useIsMobile();
   const [currentRoot, setCurrentRoot] = useState<string>(rootWalletAddress);
   const [currentLayer, setCurrentLayer] = useState<number>(1);
+  const [currentNodeLayer, setCurrentNodeLayer] = useState<number>(1); // Track actual node layer
   const [navigationHistory, setNavigationHistory] = useState<NavigationHistory[]>([]);
   const [currentRootUser, setCurrentRootUser] = useState(rootUser);
   const [originalRoot] = useState<string>(rootWalletAddress);
 
-  // 获取用户所在的系统矩阵根
-  const { data: matrixRootInfo, isLoading: isLoadingMatrixRoot } = useUserMatrixRoot(currentRoot);
-  const systemMatrixRoot = matrixRootInfo?.systemMatrixRoot || currentRoot;
-  const userLayer = matrixRootInfo?.userLayer || 0;
-
-  console.log('🔍 MobileMatrixView - Matrix root info:', {
-    currentRoot,
-    systemMatrixRoot,
-    userLayer,
-    isMatrixRoot: matrixRootInfo?.isMatrixRoot
-  });
-
-  // 根据是否查看原始根节点来决定使用哪个hook
-  const isViewingOriginalRoot = currentRoot === originalRoot;
-
-  // 获取用户在系统矩阵中的下线（包括滑落成员）
-  const { data: userDownlineData, isLoading: isLoadingDownline, error: downlineError } = useUserDownline(
-    currentRoot,
-    systemMatrixRoot
-  );
-
-  // 子节点数据（用于drill-down）
-  const { data: childrenData, isLoading: isLoadingChildren, error: childrenError } = useMatrixChildren(
-    systemMatrixRoot,
+  // Use new unified hook for children data
+  const { data: childrenData, isLoading, error } = useMatrixNodeChildren(
+    originalRoot,
     currentRoot
   );
 
-  // 合并数据 - 优先使用用户下线数据
-  const matrixData = userDownlineData || childrenData;
-  const isLoading = isLoadingMatrixRoot || isLoadingDownline || isLoadingChildren;
-  const error = downlineError || childrenError;
-  
-  // 调试信息
   console.log('🔍 MobileMatrixView - Current state:', {
     currentRoot,
     currentLayer,
+    currentNodeLayer,
     originalRoot,
-    isViewingOriginalRoot,
     isLoading,
     error: error?.message,
-    matrixData: matrixData ? 'Data available' : 'No data'
+    childrenData: childrenData ? 'Data available' : 'No data'
   });
 
   const handleMemberTap = (memberWallet: string) => {
     console.log('🔍 MobileMatrixView - Tapping member:', memberWallet);
     console.log('🔍 Current root before change:', currentRoot);
-    
+
+    // Find which child was clicked to get its layer
+    const childNode = childrenData?.L?.member_wallet === memberWallet ? childrenData.L :
+                     childrenData?.M?.member_wallet === memberWallet ? childrenData.M :
+                     childrenData?.R?.member_wallet === memberWallet ? childrenData.R :
+                     null;
+
+    const nextLayer = childNode?.layer || currentNodeLayer + 1;
+
+    console.log('🔍 Child node data:', childNode);
+    console.log('🔍 Next layer will be:', nextLayer);
+
     // 保存当前根到历史记录
-    setNavigationHistory(prev => [...prev, { 
+    setNavigationHistory(prev => [...prev, {
       wallet: currentRoot,
       username: currentRootUser?.username || `${t('common.user')}${currentRoot.slice(-4)}`,
       level: navigationHistory.length + 1,
-      layer: currentLayer
+      layer: currentNodeLayer  // Save current node layer
     }]);
-    
-    // 切换到新的根，显示该会员的第1层
+
+    // 切换到新的根，更新到实际的 layer
     setCurrentRoot(memberWallet);
+    setCurrentNodeLayer(nextLayer);  // Update to next node's layer
     setCurrentRootUser({
       username: `${t('common.user')}${memberWallet.slice(-4)}`,
       currentLevel: 1
     });
-    setCurrentLayer(1); // 重置到第一层
-    
+    setCurrentLayer(1); // Reset viewing layer to 1
+
     console.log('🔍 New root set to:', memberWallet);
-    console.log('🔍 New layer set to: 1');
-    
+    console.log('🔍 New node layer set to:', nextLayer);
+
     // 如果有外部导航处理器，也调用它
     onNavigateToMember?.(memberWallet);
   };
@@ -229,6 +220,7 @@ const MobileMatrixView: React.FC<MobileMatrixViewProps> = ({
     if (navigationHistory.length > 0) {
       const previous = navigationHistory[navigationHistory.length - 1];
       setCurrentRoot(previous.wallet);
+      setCurrentNodeLayer(previous.layer);  // Restore previous node layer
       setCurrentRootUser({
         username: previous.username || `${t('common.user')}${previous.wallet.slice(-4)}`,
         currentLevel: 1
@@ -240,6 +232,7 @@ const MobileMatrixView: React.FC<MobileMatrixViewProps> = ({
 
   const handleGoHome = () => {
     setCurrentRoot(rootWalletAddress);
+    setCurrentNodeLayer(1);  // Reset to layer 1
     setCurrentRootUser(rootUser);
     setNavigationHistory([]);
     setCurrentLayer(1);
