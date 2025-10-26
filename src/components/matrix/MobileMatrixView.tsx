@@ -6,11 +6,9 @@ import {
   Users,
   User,
   ChevronLeft,
-  ChevronRight,
   ArrowUpRight,
   ArrowDownLeft,
   Crown,
-  Layers,
   Home
 } from 'lucide-react';
 import { useI18n } from '../../contexts/I18nContext';
@@ -239,7 +237,6 @@ const MobileMatrixView: React.FC<MobileMatrixViewProps> = ({
         currentLevel: 1
       });
       setNavigationHistory(prev => prev.slice(0, -1));
-      setCurrentLayer(1);
     }
   };
 
@@ -248,7 +245,6 @@ const MobileMatrixView: React.FC<MobileMatrixViewProps> = ({
     setCurrentNodeLayer(1);  // Reset to layer 1
     setCurrentRootUser(rootUser);
     setNavigationHistory([]);
-    setCurrentLayer(1);
   };
 
   const formatWallet = (wallet: string) => {
