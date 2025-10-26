@@ -94,7 +94,7 @@ export default function ReferralsStats({ walletAddress, className }: ReferralsSt
         const { data: stats, error: statsError } = await supabase
           .from('v_referral_statistics')
           .select('direct_referral_count, max_spillover_layer, total_team_count, matrix_19_layer_count, activation_rate_percentage')
-          .eq('member_wallet', walletAddress)
+          .ilike('member_wallet', walletAddress)
           .maybeSingle();
 
         if (statsError) {
