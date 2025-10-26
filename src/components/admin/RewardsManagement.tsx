@@ -563,38 +563,39 @@ export const RewardsManagement: React.FC = () => {
                   </div>
                 </div>
               </div>
-              
-              <div className="grid grid-cols-2 gap-4">
+
+
+              <div className={`grid gap-4 ${isMobile ? 'grid-cols-1' : 'grid-cols-2'}`}>
                 <div>
-                  <Label className="text-sm font-medium">Recipient Wallet</Label>
-                  <p className="font-mono text-sm bg-muted p-2 rounded break-all">
+                  <Label className={isMobile ? 'text-xs font-medium' : 'text-sm font-medium'}>Recipient Wallet</Label>
+                  <p className={`font-mono bg-muted p-2 rounded break-all ${isMobile ? 'text-xs' : 'text-sm'}`}>
                     {selectedReward.reward_recipient_wallet}
                   </p>
                 </div>
                 <div>
-                  <Label className="text-sm font-medium">Reward Amount</Label>
-                  <p className="text-lg font-bold text-honey p-2">
+                  <Label className={isMobile ? 'text-xs font-medium' : 'text-sm font-medium'}>Reward Amount</Label>
+                  <p className={`font-bold text-honey p-2 ${isMobile ? 'text-base' : 'text-lg'}`}>
                     ${selectedReward.reward_amount} USDT
                   </p>
                 </div>
               </div>
-              
-              <div className="grid grid-cols-2 gap-4">
+
+              <div className={`grid gap-4 ${isMobile ? 'grid-cols-1' : 'grid-cols-2'}`}>
                 <div>
-                  <Label className="text-sm font-medium">Matrix Layer</Label>
-                  <p className="text-sm bg-muted p-2 rounded">
+                  <Label className={isMobile ? 'text-xs font-medium' : 'text-sm font-medium'}>Matrix Layer</Label>
+                  <p className={`bg-muted p-2 rounded ${isMobile ? 'text-xs' : 'text-sm'}`}>
                     Layer {selectedReward.matrix_layer}
                   </p>
                 </div>
                 <div>
-                  <Label className="text-sm font-medium">Triggering NFT Level</Label>
-                  <p className="text-sm bg-muted p-2 rounded">
+                  <Label className={isMobile ? 'text-xs font-medium' : 'text-sm font-medium'}>Triggering NFT Level</Label>
+                  <p className={`bg-muted p-2 rounded ${isMobile ? 'text-xs' : 'text-sm'}`}>
                     Level {selectedReward.triggering_nft_level}
                   </p>
                 </div>
               </div>
-              
-              <div className="grid grid-cols-2 gap-4">
+
+              <div className={`grid gap-4 ${isMobile ? 'grid-cols-1' : 'grid-cols-2'}`}>
                 <div>
                   <Label className="text-sm font-medium">Created At</Label>
                   <p className="text-sm text-muted-foreground">
