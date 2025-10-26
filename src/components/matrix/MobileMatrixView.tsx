@@ -85,8 +85,16 @@ const MatrixNode: React.FC<MatrixNodeProps> = ({ position, member, onTap }) => {
         isSpillover
           ? 'from-amber-500/20 to-yellow-500/30 border-amber-500/50'
           : 'from-yellow-500/20 to-amber-500/30 border-yellow-500/50'
-      } border-2 rounded-xl ${nodeSize} flex flex-col items-center justify-center transition-all hover:scale-105 hover:shadow-lg hover:shadow-yellow-500/20 active:scale-95 cursor-pointer bg-black/80`}
+      } border-2 rounded-xl ${nodeSize} flex flex-col items-center justify-center transition-all hover:scale-105 hover:shadow-lg hover:shadow-yellow-500/20 active:scale-95 cursor-pointer bg-black/80 touch-manipulation gpu-accelerated`}
       onClick={() => onTap?.(member.wallet)}
+      onTouchStart={(e) => {
+        e.currentTarget.style.transform = 'scale(0.95)';
+        e.currentTarget.style.borderColor = 'rgba(250, 204, 21, 0.7)';
+      }}
+      onTouchEnd={(e) => {
+        e.currentTarget.style.transform = '';
+        e.currentTarget.style.borderColor = '';
+      }}
     >
       {/* Avatar */}
       <div className={`${memberAvatarSize} rounded-full bg-gradient-to-br ${avatarColors} flex items-center justify-center mb-1 shadow-lg`}>
@@ -288,29 +296,83 @@ const MobileMatrixView: React.FC<MobileMatrixViewProps> = ({
     );
   }
 
-  // 处理不同的数据结构
-  let currentMatrix = [];
+  // Transform childrenData to match expected structure
+  const currentMatrix = [];
   let totalMembers = 0;
 
-  if (userDownlineData) {
-    // 使用新的用户下线数据结构
-    currentMatrix = userDownlineData.positions || [];
-    totalMembers = userDownlineData.totalMembers || 0;
-    console.log('✅ Using userDownlineData:', { currentMatrix, totalMembers });
-  } else if (childrenData) {
-    // 使用子节点数据结构
-    currentMatrix = childrenData.children || [];
-    totalMembers = childrenData.totalChildren || 0;
-    console.log('✅ Using childrenData:', { currentMatrix, totalMembers });
+  if (childrenData) {
+    // Transform L, M, R positions into array format
+    if (childrenData.L) {
+      currentMatrix.push({
+        position: 'L',
+        member: {
+          wallet: childrenData.L.member_wallet,
+          username: childrenData.L.username,
+          level: childrenData.L.level,
+          joinedAt: childrenData.L.joined_at || '',
+          type: childrenData.L.referral_type === 'direct' ? 'is_direct' : 'is_spillover',
+          isActivated: true,
+          hasChildInL: childrenData.L.child_count_l > 0,
+          hasChildInM: childrenData.L.child_count_m > 0,
+          hasChildInR: childrenData.L.child_count_r > 0,
+          childCountL: childrenData.L.child_count_l,
+          childCountM: childrenData.L.child_count_m,
+          childCountR: childrenData.L.child_count_r
+        }
+      });
+      totalMembers++;
+    }
+
+    if (childrenData.M) {
+      currentMatrix.push({
+        position: 'M',
+        member: {
+          wallet: childrenData.M.member_wallet,
+          username: childrenData.M.username,
+          level: childrenData.M.level,
+          joinedAt: childrenData.M.joined_at || '',
+          type: childrenData.M.referral_type === 'direct' ? 'is_direct' : 'is_spillover',
+          isActivated: true,
+          hasChildInL: childrenData.M.child_count_l > 0,
+          hasChildInM: childrenData.M.child_count_m > 0,
+          hasChildInR: childrenData.M.child_count_r > 0,
+          childCountL: childrenData.M.child_count_l,
+          childCountM: childrenData.M.child_count_m,
+          childCountR: childrenData.M.child_count_r
+        }
+      });
+      totalMembers++;
+    }
+
+    if (childrenData.R) {
+      currentMatrix.push({
+        position: 'R',
+        member: {
+          wallet: childrenData.R.member_wallet,
+          username: childrenData.R.username,
+          level: childrenData.R.level,
+          joinedAt: childrenData.R.joined_at || '',
+          type: childrenData.R.referral_type === 'direct' ? 'is_direct' : 'is_spillover',
+          isActivated: true,
+          hasChildInL: childrenData.R.child_count_l > 0,
+          hasChildInM: childrenData.R.child_count_m > 0,
+          hasChildInR: childrenData.R.child_count_r > 0,
+          childCountL: childrenData.R.child_count_l,
+          childCountM: childrenData.R.child_count_m,
+          childCountR: childrenData.R.child_count_r
+        }
+      });
+      totalMembers++;
+    }
+
+    console.log('✅ Transformed childrenData:', { currentMatrix, totalMembers });
   }
 
   console.log('🔍 MobileMatrixView - Matrix data details:', {
-    hasUserDownlineData: !!userDownlineData,
     hasChildrenData: !!childrenData,
     currentMatrix,
     totalMembers,
     currentMatrixLength: currentMatrix.length,
-    systemMatrixRoot,
     currentRoot
   });
 
@@ -325,7 +387,7 @@ const MobileMatrixView: React.FC<MobileMatrixViewProps> = ({
               <span className="text-yellow-400 dark:text-yellow-300">{t('matrix.matrixView')}</span>
             </div>
             <Badge className={`bg-yellow-500 text-black font-semibold ${isMobile ? 'text-xs px-2 py-0.5' : ''}`}>
-              {t('matrix.layer')} {currentLayer}
+              {t('matrix.layer')} {currentNodeLayer}
             </Badge>
           </CardTitle>
         </CardHeader>
