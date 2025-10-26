@@ -30,6 +30,7 @@ import {
 } from 'lucide-react';
 import { useAdminAuthContext } from '../../contexts/AdminAuthContext';
 import { useToast } from '../../hooks/use-toast';
+import { useIsMobile } from '../../hooks/use-mobile';
 import { supabase } from '../../lib/supabase';
 import AdminMatrixTreeVisualization from '../../components/admin/AdminMatrixTreeVisualization';
 
@@ -70,7 +71,8 @@ interface MatrixStats {
 export default function AdminMatrix() {
   const { hasPermission, isAdminAuthenticated, isLoading: authLoading } = useAdminAuthContext();
   const { toast } = useToast();
-  
+  const isMobile = useIsMobile();
+
   // 状态管理
   const [loading, setLoading] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
@@ -613,9 +615,9 @@ export default function AdminMatrix() {
 
       {/* 统计卡片 */}
       {matrixStats && (
-        <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
+        <div className={`grid gap-4 ${isMobile ? 'grid-cols-2' : 'grid-cols-1 sm:grid-cols-3 md:grid-cols-5'}`}>
           <Card>
-            <CardContent className="p-4">
+            <CardContent className={isMobile ? 'p-3' : 'p-4'}>
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-sm font-medium text-muted-foreground">总会员数</p>

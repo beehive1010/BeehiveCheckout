@@ -37,9 +37,8 @@ SELECT
     mr.created_at,
 
     -- Member fields
-    m.username as member_username,
+    u.username as member_username,
     m.current_level,
-    m.is_activated,
     m.referrer_wallet,
 
     -- Computed fields for children
@@ -72,6 +71,7 @@ SELECT
     END as children_slots
 
 FROM matrix_referrals mr
+LEFT JOIN users u ON u.wallet_address = mr.member_wallet
 LEFT JOIN members m ON m.wallet_address = mr.member_wallet
 LEFT JOIN children_slots cs ON cs.matrix_root_wallet = mr.matrix_root_wallet
     AND cs.parent_wallet = mr.member_wallet
