@@ -2422,7 +2422,18 @@
       "getStarted": "Get Started",
       "home": "Home",
       "howItWorks": "How It Works"
-    }
+    },
+    "searchPlaceholder": "按用戶名或錢包地址搜尋...",
+    "filters": "篩選器",
+    "filterByType": "按類型篩選",
+    "filterByLevel": "按等級篩選",
+    "filterAll": "全部",
+    "activeFilters": "激活的篩選",
+    "noResultsFound": "未找到結果",
+    "showingResults": "顯示 {{count}}/{{total}} 個成員",
+    "showingAllResults": "顯示全部 {{count}} 個成員",
+    "filteredOut": "已篩選",
+    "filterByLayer": "按層級篩選"
   },
   "wallet": {
     "connect": "連接錢包",

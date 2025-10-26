@@ -3140,7 +3140,18 @@
       "getStarted": "시작하기",
       "home": "홈",
       "howItWorks": "작동 방식"
-    }
+    },
+    "searchPlaceholder": "사용자 이름 또는 지갑으로 검색...",
+    "filters": "필터",
+    "filterByType": "유형별 필터",
+    "filterByLevel": "레벨별 필터",
+    "filterAll": "전체",
+    "activeFilters": "활성 필터",
+    "noResultsFound": "결과를 찾을 수 없습니다",
+    "showingResults": "{{total}}명 중 {{count}}명 표시",
+    "showingAllResults": "전체 {{count}}명 표시",
+    "filteredOut": "필터링됨",
+    "filterByLayer": "레이어별 필터"
   },
   "auth": {
     "authenticationSuccessful": "Authentication Successful!",

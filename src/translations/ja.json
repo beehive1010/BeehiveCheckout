@@ -3094,7 +3094,18 @@
       "getStarted": "始める",
       "home": "ホーム",
       "howItWorks": "仕組み"
-    }
+    },
+    "searchPlaceholder": "ユーザー名またはウォレットで検索...",
+    "filters": "フィルター",
+    "filterByType": "タイプでフィルター",
+    "filterByLevel": "レベルでフィルター",
+    "filterAll": "すべて",
+    "activeFilters": "アクティブなフィルター",
+    "noResultsFound": "結果が見つかりません",
+    "showingResults": "{{total}}人中{{count}}人を表示",
+    "showingAllResults": "全{{count}}人を表示",
+    "filteredOut": "フィルタリング済み",
+    "filterByLayer": "レイヤーでフィルター"
   },
   "ads": {
     "available": "Available",

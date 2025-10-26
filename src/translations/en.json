@@ -2534,7 +2534,18 @@
       "getStarted": "Get Started",
       "home": "Home",
       "howItWorks": "How It Works"
-    }
+    },
+    "searchPlaceholder": "Search by username or wallet...",
+    "filters": "Filters",
+    "filterByType": "Filter by Type",
+    "filterByLevel": "Filter by Level",
+    "filterAll": "All",
+    "activeFilters": "Active filters",
+    "noResultsFound": "No results found",
+    "showingResults": "Showing {{count}} of {{total}} members",
+    "showingAllResults": "Showing all {{count}} members",
+    "filteredOut": "Filtered",
+    "filterByLayer": "Filter by Layer"
   },
   "matrixExplanation": {
     "bccRewards": {

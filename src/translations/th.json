@@ -1641,7 +1641,18 @@
       "getStarted": "เริ่มต้น",
       "home": "หน้าแรก",
       "howItWorks": "วิธีการทำงาน"
-    }
+    },
+    "searchPlaceholder": "ค้นหาตามชื่อผู้ใช้หรือกระเป๋า...",
+    "filters": "ตัวกรอง",
+    "filterByType": "กรองตามประเภท",
+    "filterByLevel": "กรองตามระดับ",
+    "filterAll": "ทั้งหมด",
+    "activeFilters": "ตัวกรองที่ใช้งาน",
+    "noResultsFound": "ไม่พบผลลัพธ์",
+    "showingResults": "แสดง {{count}} จาก {{total}} สมาชิก",
+    "showingAllResults": "แสดงสมาชิกทั้งหมด {{count}} คน",
+    "filteredOut": "กรองแล้ว",
+    "filterByLayer": "กรองตามชั้น"
   },
   "nav": {
     "dashboard": "Dashboard",

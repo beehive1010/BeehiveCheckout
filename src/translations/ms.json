@@ -963,7 +963,18 @@
       "getStarted": "Mulakan",
       "home": "Laman Utama",
       "howItWorks": "Cara Ia Berfungsi"
-    }
+    },
+    "searchPlaceholder": "Cari dengan nama pengguna atau dompet...",
+    "filters": "Penapis",
+    "filterByType": "Tapis mengikut Jenis",
+    "filterByLevel": "Tapis mengikut Tahap",
+    "filterAll": "Semua",
+    "activeFilters": "Penapis aktif",
+    "noResultsFound": "Tiada hasil ditemui",
+    "showingResults": "Menunjukkan {{count}} daripada {{total}} ahli",
+    "showingAllResults": "Menunjukkan semua {{count}} ahli",
+    "filteredOut": "Ditapis",
+    "filterByLayer": "Tapis mengikut Lapisan"
   },
   "nav": {
     "dashboard": "Papan Pemuka",

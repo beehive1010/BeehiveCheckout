@@ -17,7 +17,7 @@ import {
 } from 'lucide-react';
 import { useI18n } from '../../contexts/I18nContext';
 import { useIsMobile } from '../../hooks/use-mobile';
-import { useMatrixNodeChildren } from '../../hooks/useMatrixTreeData';
+import { useMatrixNodeChildren, useMatrixGlobalSearch, MatrixTreeNode } from '../../hooks/useMatrixTreeData';
 import {
   Select,
   SelectContent,
@@ -188,13 +188,20 @@ const MobileMatrixView: React.FC<MobileMatrixViewProps> = ({
   // Search and filter states
   const [searchQuery, setSearchQuery] = useState<string>('');
   const [filterType, setFilterType] = useState<string>('all'); // all, direct, spillover
-  const [filterLevel, setFilterLevel] = useState<string>('all'); // all, 1, 2, etc.
+  const [filterLayer, setFilterLayer] = useState<string>('all'); // all, 1, 2, ... 19
+  const [filterLevel, setFilterLevel] = useState<string>('all'); // all, 1, 2, ... 19
   const [showFilters, setShowFilters] = useState<boolean>(false);
 
   // Use new unified hook for children data
   const { data: childrenData, isLoading, error } = useMatrixNodeChildren(
     originalRoot,
     currentRoot
+  );
+
+  // Global search hook - searches all 19 layers
+  const { data: globalSearchResults, isLoading: isSearching } = useMatrixGlobalSearch(
+    originalRoot,
+    searchQuery
   );
 
   console.log('🔍 MobileMatrixView - Current state:', {
@@ -410,6 +417,12 @@ const MobileMatrixView: React.FC<MobileMatrixViewProps> = ({
         if (filterType === 'spillover' && isDirect) return false;
       }
 
+      // Layer filter
+      if (filterLayer !== 'all') {
+        const layer = node.member.layer;
+        if (String(layer) !== filterLayer) return false;
+      }
+
       // Level filter
       if (filterLevel !== 'all') {
         const level = node.member.level;
@@ -418,13 +431,14 @@ const MobileMatrixView: React.FC<MobileMatrixViewProps> = ({
 
       return true;
     });
-  }, [currentMatrix, searchQuery, filterType, filterLevel]);
+  }, [currentMatrix, searchQuery, filterType, filterLayer, filterLevel]);
 
-  const hasActiveFilters = searchQuery || filterType !== 'all' || filterLevel !== 'all';
+  const hasActiveFilters = searchQuery || filterType !== 'all' || filterLayer !== 'all' || filterLevel !== 'all';
 
   const clearFilters = () => {
     setSearchQuery('');
     setFilterType('all');
+    setFilterLayer('all');
     setFilterLevel('all');
   };
 
@@ -468,6 +482,54 @@ const MobileMatrixView: React.FC<MobileMatrixViewProps> = ({
             )}
           </div>
 
+          {/* Global Search Results */}
+          {searchQuery && globalSearchResults && globalSearchResults.length > 0 && (
+            <div className={`${isMobile ? 'mb-3' : 'mb-4'} border border-yellow-500/30 rounded-lg bg-black/30 ${isMobile ? 'p-2' : 'p-3'}`}>
+              <div className={`${isMobile ? 'text-xs' : 'text-sm'} font-medium text-yellow-300 mb-2`}>
+                Found {globalSearchResults.length} member{globalSearchResults.length > 1 ? 's' : ''} across all layers
+              </div>
+              <div className={`space-y-2 max-h-[300px] overflow-y-auto ${isMobile ? 'text-xs' : 'text-sm'}`}>
+                {globalSearchResults.map((node) => (
+                  <div
+                    key={node.member_wallet}
+                    onClick={() => {
+                      // Navigate to this member
+                      setCurrentRoot(node.member_wallet);
+                      setCurrentNodeLayer(node.layer);
+                      setSearchQuery(''); // Clear search after navigation
+                    }}
+                    className="flex items-center justify-between p-2 bg-yellow-500/10 hover:bg-yellow-500/20 rounded border border-yellow-500/30 cursor-pointer transition-all"
+                  >
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center gap-2">
+                        <span className="font-semibold text-yellow-200">
+                          {node.member_username || `User${node.member_wallet.slice(-4)}`}
+                        </span>
+                        <Badge className={`${isMobile ? 'text-[9px] h-4' : 'text-xs'} ${node.referral_type === 'direct' ? 'bg-green-500' : 'bg-blue-400'}`}>
+                          {node.referral_type === 'direct' ? t('matrix.directReferral') : t('matrix.spillover')}
+                        </Badge>
+                      </div>
+                      <div className={`${isMobile ? 'text-[10px]' : 'text-xs'} text-gray-400 font-mono mt-0.5`}>
+                        {formatWallet(node.member_wallet)}
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <Badge variant="outline" className={`${isMobile ? 'text-[9px]' : 'text-xs'} bg-yellow-500/10 text-yellow-400 border-yellow-500/50`}>
+                        {t('matrix.layer')} {node.layer}
+                      </Badge>
+                      <Badge variant="outline" className={`${isMobile ? 'text-[9px]' : 'text-xs'} bg-purple-500/10 text-purple-400 border-purple-500/50`}>
+                        {node.slot}
+                      </Badge>
+                      <Badge className={`${isMobile ? 'text-[9px]' : 'text-xs'} bg-amber-500`}>
+                        L{node.member_level}
+                      </Badge>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
           {/* Filter Toggle Button */}
           <div className="flex items-center justify-between gap-2">
             <Button
@@ -480,7 +542,7 @@ const MobileMatrixView: React.FC<MobileMatrixViewProps> = ({
               {t('matrix.filters')}
               {hasActiveFilters && (
                 <Badge className="ml-2 bg-yellow-500 text-black px-1.5 py-0">
-                  {[searchQuery ? 1 : 0, filterType !== 'all' ? 1 : 0, filterLevel !== 'all' ? 1 : 0].reduce((a, b) => a + b, 0)}
+                  {[searchQuery ? 1 : 0, filterType !== 'all' ? 1 : 0, filterLayer !== 'all' ? 1 : 0, filterLevel !== 'all' ? 1 : 0].reduce((a, b) => a + b, 0)}
                 </Badge>
               )}
             </Button>
@@ -523,6 +585,28 @@ const MobileMatrixView: React.FC<MobileMatrixViewProps> = ({
                 </Select>
               </div>
 
+              {/* Layer Filter */}
+              <div>
+                <label className={`block ${isMobile ? 'text-xs' : 'text-sm'} font-medium text-yellow-300 mb-1.5`}>
+                  {t('matrix.filterByLayer')}
+                </label>
+                <Select value={filterLayer} onValueChange={setFilterLayer}>
+                  <SelectTrigger className={`${isMobile ? 'h-9 text-xs' : 'h-10'} bg-black/50 border-yellow-500/30 text-white`}>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent className="bg-black border-yellow-500/30 max-h-[300px] overflow-y-auto">
+                    <SelectItem value="all" className="text-white hover:bg-yellow-500/10">
+                      {t('matrix.filterAll')}
+                    </SelectItem>
+                    {Array.from({ length: 19 }, (_, i) => i + 1).map(layer => (
+                      <SelectItem key={layer} value={String(layer)} className="text-white hover:bg-yellow-500/10">
+                        {t('matrix.layer')} {layer}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+
               {/* Level Filter */}
               <div>
                 <label className={`block ${isMobile ? 'text-xs' : 'text-sm'} font-medium text-yellow-300 mb-1.5`}>
@@ -532,19 +616,15 @@ const MobileMatrixView: React.FC<MobileMatrixViewProps> = ({
                   <SelectTrigger className={`${isMobile ? 'h-9 text-xs' : 'h-10'} bg-black/50 border-yellow-500/30 text-white`}>
                     <SelectValue />
                   </SelectTrigger>
-                  <SelectContent className="bg-black border-yellow-500/30">
+                  <SelectContent className="bg-black border-yellow-500/30 max-h-[300px] overflow-y-auto">
                     <SelectItem value="all" className="text-white hover:bg-yellow-500/10">
                       {t('matrix.filterAll')}
                     </SelectItem>
-                    <SelectItem value="1" className="text-white hover:bg-yellow-500/10">
-                      {t('matrix.level')} 1
-                    </SelectItem>
-                    <SelectItem value="2" className="text-white hover:bg-yellow-500/10">
-                      {t('matrix.level')} 2
-                    </SelectItem>
-                    <SelectItem value="3" className="text-white hover:bg-yellow-500/10">
-                      {t('matrix.level')} 3
-                    </SelectItem>
+                    {Array.from({ length: 19 }, (_, i) => i + 1).map(level => (
+                      <SelectItem key={level} value={String(level)} className="text-white hover:bg-yellow-500/10">
+                        {t('matrix.level')} {level}
+                      </SelectItem>
+                    ))}
                   </SelectContent>
                 </Select>
               </div>
@@ -563,6 +643,11 @@ const MobileMatrixView: React.FC<MobileMatrixViewProps> = ({
               {filterType !== 'all' && (
                 <Badge className="bg-yellow-500/20 text-yellow-300 border-yellow-500/50">
                   {filterType === 'direct' ? t('matrix.directReferral') : t('matrix.spillover')}
+                </Badge>
+              )}
+              {filterLayer !== 'all' && (
+                <Badge className="bg-yellow-500/20 text-yellow-300 border-yellow-500/50">
+                  {t('matrix.layer')} {filterLayer}
                 </Badge>
               )}
               {filterLevel !== 'all' && (

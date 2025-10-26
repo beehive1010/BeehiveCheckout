@@ -340,3 +340,52 @@ export function useReferralStats(memberWallet?: string) {
     gcTime: 300000,
   });
 }
+
+/**
+ * Hook to search for members globally across all 19 layers of the matrix tree
+ *
+ * @param matrixRootWallet - The wallet address of the matrix root
+ * @param searchQuery - Search query for username or wallet address
+ * @returns React Query result with matching nodes
+ *
+ * @example
+ * ```tsx
+ * const { data, isLoading } = useMatrixGlobalSearch('0x1234...', 'FFT4');
+ * ```
+ */
+export function useMatrixGlobalSearch(
+  matrixRootWallet?: string,
+  searchQuery?: string
+) {
+  return useQuery<MatrixTreeNode[]>({
+    queryKey: ['matrix-global-search', matrixRootWallet, searchQuery],
+    queryFn: async (): Promise<MatrixTreeNode[]> => {
+      if (!matrixRootWallet || !searchQuery || searchQuery.trim().length === 0) {
+        return [];
+      }
+
+      const query = searchQuery.toLowerCase().trim();
+      console.log('🔍 Global search for:', query, 'in matrix:', matrixRootWallet);
+
+      const { data, error } = await supabase
+        .from('v_matrix_tree_19_layers')
+        .select('*')
+        .eq('matrix_root_wallet', matrixRootWallet)
+        .or(`member_username.ilike.%${query}%,member_wallet.ilike.%${query}%`)
+        .order('layer')
+        .order('activation_sequence');
+
+      if (error) {
+        console.error('❌ Error in global search:', error);
+        throw error;
+      }
+
+      console.log('✅ Found', data?.length || 0, 'matching members');
+
+      return (data as MatrixTreeNode[]) || [];
+    },
+    enabled: !!matrixRootWallet && !!searchQuery && searchQuery.trim().length > 0,
+    staleTime: 10000, // Cache for 10 seconds
+    gcTime: 60000, // Keep in cache for 1 minute
+  });
+}
