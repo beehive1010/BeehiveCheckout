@@ -281,20 +281,8 @@ const MobileMatrixView: React.FC<MobileMatrixViewProps> = ({
     );
   }
 
-  if (!matrixData) {
-    return (
-      <Card className="bg-gradient-to-br from-black/90 to-gray-900/95 border border-yellow-500/30 shadow-xl shadow-yellow-500/10">
-        <CardContent className={isMobile ? "p-4" : "p-6"}>
-          <div className={`text-center ${isMobile ? 'py-8' : 'py-12'}`}>
-            <div className={`${isMobile ? 'w-10 h-10' : 'w-12 h-12'} rounded-full bg-gray-100 dark:bg-gray-800 mx-auto mb-4 flex items-center justify-center`}>
-              <Users className={`${isMobile ? 'w-5 h-5' : 'w-6 h-6'} text-gray-400`} />
-            </div>
-            <div className={`${isMobile ? 'text-xs' : 'text-sm'} text-yellow-200 dark:text-yellow-300`}>{t('matrix.noData')}</div>
-          </div>
-        </CardContent>
-      </Card>
-    );
-  }
+  // No need for separate no-data check - childrenData can be null/empty
+  // The component will handle it by showing empty slots
 
   // Transform childrenData to match expected structure
   const currentMatrix = [];
@@ -441,12 +429,6 @@ const MobileMatrixView: React.FC<MobileMatrixViewProps> = ({
                   <Badge className={`mt-1 bg-honey text-black ${isMobile ? 'text-[10px] px-1.5 py-0' : 'text-xs'}`}>
                     {t('matrix.level')} {currentRootUser.currentLevel}
                   </Badge>
-                )}
-                {/* 显示系统矩阵根信息 */}
-                {systemMatrixRoot !== currentRoot && (
-                  <div className={`${isMobile ? 'text-[9px]' : 'text-[10px]'} text-amber-600 dark:text-amber-400 mt-1`}>
-                    {t('matrix.inMatrix')}: {formatWallet(systemMatrixRoot)}
-                  </div>
                 )}
               </div>
             </div>
