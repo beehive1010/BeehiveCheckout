@@ -176,23 +176,46 @@ export default function AdminUsers() {
         .select('wallet_address, current_level, levels_owned, member_activated, activation_at, last_upgrade_at')
         .in('wallet_address', walletAddresses);
 
-      // Fetch balance data
+      // Fetch balance data from user_balances
       const { data: balancesData } = await supabase
         .from('user_balances')
         .select('wallet_address, reward_balance, available_balance, withdrawn_amount')
         .in('wallet_address', walletAddresses);
 
-      // Fetch referral counts
-      const { data: referralsData } = await supabase
-        .from('referrals')
-        .select('referred_wallet')
-        .in('referrer_wallet', walletAddresses);
+      // Fetch BCC balance data from member_balance
+      const { data: memberBalancesData } = await supabase
+        .from('member_balance')
+        .select('wallet_address, transferable_bcc, restricted_bcc')
+        .in('wallet_address', walletAddresses);
+
+      // Fetch referral statistics from v_referral_statistics view
+      const { data: referralStatsData } = await supabase
+        .from('v_referral_statistics')
+        .select('member_wallet, direct_referral_count, total_team_count')
+        .in('member_wallet', walletAddresses);
+
+      // Fetch layer rewards earnings aggregated by wallet
+      const { data: rewardsData } = await supabase
+        .from('layer_rewards')
+        .select('receiver_wallet, reward_amount, reward_type, status')
+        .in('receiver_wallet', walletAddresses)
+        .eq('status', 'claimed');
 
       // Map everything together
       const platformUsers: PlatformUser[] = usersData.map(user => {
         const member = membersData?.find(m => m.wallet_address === user.wallet_address);
         const balance = balancesData?.find(b => b.wallet_address === user.wallet_address);
-        const referralCount = referralsData?.filter(r => r.referred_wallet === user.wallet_address).length || 0;
+        const memberBalance = memberBalancesData?.find(mb => mb.wallet_address === user.wallet_address);
+        const referralStats = referralStatsData?.find(rs => rs.member_wallet === user.wallet_address);
+
+        // Aggregate rewards by type
+        const userRewards = rewardsData?.filter(r => r.receiver_wallet === user.wallet_address) || [];
+        const directRewardEarnings = userRewards
+          .filter(r => r.reward_type === 'direct_referral')
+          .reduce((sum, r) => sum + (r.reward_amount || 0), 0);
+        const layerRewardEarnings = userRewards
+          .filter(r => r.reward_type === 'layer_reward')
+          .reduce((sum, r) => sum + (r.reward_amount || 0), 0);
 
         return {
           walletAddress: user.wallet_address,
@@ -210,15 +233,19 @@ export default function AdminUsers() {
           activeLevel: member?.current_level || 0,
           joinedAt: member?.activation_at || undefined,
           lastUpgradeAt: member?.last_upgrade_at || undefined,
-          transferableBCC: 0,
-          restrictedBCC: 0,
+          // Use member_balance data
+          transferableBCC: memberBalance?.transferable_bcc || 0,
+          restrictedBCC: memberBalance?.restricted_bcc || 0,
+          // Use reward_balance as total earnings
           totalEarnings: balance?.reward_balance || 0,
-          referralEarnings: 0,
-          levelEarnings: 0,
+          // Use aggregated reward data
+          referralEarnings: directRewardEarnings,
+          levelEarnings: layerRewardEarnings,
           pendingRewards: balance?.available_balance || 0,
           withdrawnAmount: balance?.withdrawn_amount || 0,
-          directReferralCount: referralCount,
-          totalTeamCount: referralCount,
+          // Use v_referral_statistics data for accurate counts
+          directReferralCount: referralStats?.direct_referral_count || 0,
+          totalTeamCount: referralStats?.total_team_count || 0,
           sponsorWallet: user.referrer_wallet || undefined,
           matrixPosition: 0,
         };
