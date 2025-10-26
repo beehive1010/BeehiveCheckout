@@ -190,21 +190,21 @@ serve(async (req: Request) => {
         console.log('⚠️ referrals_stats_view query failed:', error);
       }
 
-      // Use v_matrix_layers view for efficient aggregated statistics
-      console.log(`📊 Using v_matrix_layers view for layer statistics`)
+      // Use v_matrix_layers_v2 view for efficient aggregated statistics
+      console.log(`📊 Using v_matrix_layers_v2 view for layer statistics`)
 
       const { data: layerData, error: layerDataError } = await supabase
-        .from('v_matrix_layers')
+        .from('v_matrix_layers_v2')
         .select('layer, capacity, filled, spillovers, directs')
         .eq('root', walletAddress)
         .order('layer')
 
       if (layerDataError) {
-        console.error('❌ Error querying v_matrix_layers:', layerDataError)
+        console.error('❌ Error querying v_matrix_layers_v2:', layerDataError)
         throw layerDataError
       }
 
-      console.log(`📊 v_matrix_layers returned ${layerData?.length || 0} layers`)
+      console.log(`📊 v_matrix_layers_v2 returned ${layerData?.length || 0} layers`)
 
       // Get L/M/R breakdown from matrix_referrals for layers with data
       const positionCounts: any = {}

@@ -291,66 +291,741 @@ const AdminReferrals = () => {
 
 ---
 
-### 5. ⏳ AdminMatrix (`/admin/matrix`)
+### 5. ✅ AdminMatrix (`/admin/matrix`)
 
-**Status**: 待检查
+**Status**: ✅ 基本正确，可优化
 
-#### 预期功能
-- Matrix 结构可视化
-- Layer 统计
-- Spillover 槽位管理
+**文件**: `src/pages/admin/AdminMatrix.tsx`
 
-#### 需要检查
-- [ ] 使用的组件
-- [ ] 数据源
-  - [ ] `v_matrix_tree_19_layers`
-  - [ ] `v_matrix_layer_statistics`
-  - [ ] `matrix_referrals`
-  - [ ] `matrix_spillover_slots`
-- [ ] AdminMatrixTreeVisualization 组件集成
-- [ ] 移动端兼容性
+#### 当前实现
+
+**功能**:
+- ✅ 3×3 矩阵树可视化 (使用 AdminMatrixTreeVisualization 组件)
+- ✅ 会员列表 (搜索、筛选、查看矩阵)
+- ✅ 矩阵关系查看 (全局概览、成员详情)
+- ✅ 数据分析 (激活趋势、等级分布、矩阵健康度)
+- ✅ 树形节点展开/折叠
+- ✅ CSV 导出功能
+- ✅ 钱包搜索和定位
+
+**使用的组件**:
+- ✅ **AdminMatrixTreeVisualization** (line 690) - 正确集成矩阵树可视化组件
+- Card, Button, Tabs, Input, Select (shadcn/ui)
+- 自定义树形渲染 (renderTreeNode function)
+
+#### 数据源分析
+
+**Members 查询** (lines 98-125):
+```typescript
+const { data: membersData } = await supabase
+  .from('members')  // ✅ 正确
+  .select(`
+    wallet_address,
+    current_level,
+    referrer_wallet,
+    activation_sequence,
+    activation_time,
+    total_nft_claimed,
+    users!inner(username, email)  // ✅ JOIN users 表获取用户名
+  `)
+  .order('activation_sequence', { ascending: true });
+```
+✅ 直接查询 `members` 表，JOIN `users` 获取用户名
+
+**Matrix 数据查询** (lines 148-214):
+```typescript
+const { data: matrixData } = await supabase
+  .from('matrix_referrals')  // ✅ 正确使用 Branch-First BFS 表
+  .select(`
+    member_wallet,
+    matrix_root_wallet,
+    layer,
+    slot,              // ✅ 新列名（L/M/R）
+    referral_type,     // ✅ direct/spillover
+    source,
+    entry_anchor,
+    bfs_order,         // ✅ BFS 排序
+    activation_time,
+    created_at
+  `)
+  .order('bfs_order', { ascending: true, nullsFirst: false })
+  .order('created_at', { ascending: true });
+```
+✅ 正确使用 `matrix_referrals` 表，按 BFS 顺序排序
+
+**节点子节点查询** (lines 266-332):
+```typescript
+const { data } = await supabase
+  .from('matrix_referrals')
+  .select(`
+    member_wallet,
+    parent_wallet,
+    slot,
+    layer,
+    referral_type,
+    activation_time,
+    entry_anchor,
+    bfs_order
+  `)
+  .eq('matrix_root_wallet', systemMatrixRoot || parentWallet)
+  .eq('parent_wallet', parentWallet)
+  .order('slot', { ascending: true });
+```
+✅ 正确查询 L/M/R 子节点
+
+#### 发现的优化点
+
+##### 1. ⚠️ 统计数据使用手动计算
+**位置**: Lines 218-245 (`loadMatrixStats` function)
+
+**当前做法**:
+```typescript
+// 手动计算统计
+const totalMembers = members.length;
+const activatedMembers = members.filter(m => m.is_activated).length;
+const uniqueRoots = new Set(matrixData.map(m => m.matrix_root_wallet)).size;
+
+// 手动计算平均深度
+const layerStats = new Map<string, number>();
+matrixData.forEach(m => {
+  const current = layerStats.get(m.matrix_root_wallet) || 0;
+  layerStats.set(m.matrix_root_wallet, Math.max(current, m.matrix_layer));
+});
+const avgDepth = Array.from(layerStats.values()).reduce(...) / layerStats.size || 0;
+```
+
+**建议改进**: 使用 `v_matrix_layer_statistics` 视图
+```typescript
+const { data: layerStats } = await supabase
+  .from('v_matrix_layer_statistics')
+  .select('*');
+
+// 直接从视图获取统计数据
+const totalSlots = layerStats?.reduce((sum, layer) => sum + layer.total_slots, 0) || 0;
+const occupiedSlots = layerStats?.reduce((sum, layer) => sum + layer.occupied_slots, 0) || 0;
+```
+
+##### 2. ⚠️ 移动端兼容性不足
+**问题**:
+- ❌ 未使用 `isMobile` hook
+- ❌ Tabs 在移动端可能拥挤 (`grid-cols-4`)
+- ❌ 统计卡片在移动端未优化 (`md:grid-cols-5` 直接跳到5列)
+- ❌ 对话框和表格未针对移动端优化
+
+**建议改进**:
+```typescript
+import { useIsMobile } from '../../hooks/use-mobile';
+
+const isMobile = useIsMobile();
+
+// 统计卡片
+<div className={`grid gap-4 ${isMobile ? 'grid-cols-2' : 'md:grid-cols-5'}`}>
+
+// Tabs
+<TabsList className={isMobile ? 'grid grid-cols-2 gap-1' : 'grid w-full grid-cols-4'}>
+  <TabsTrigger value="tree">{isMobile ? '树' : '3×3矩阵树'}</TabsTrigger>
+  {/* ... */}
+</TabsList>
+
+// 卡片内边距
+<CardContent className={`${isMobile ? 'p-3' : 'p-4'}`}>
+```
+
+##### 3. ⚠️ 导出功能可以增强
+**当前**: 只导出基本矩阵数据 (lines 542-565)
+
+**建议**: 添加更全面的导出选项
+- 导出包含团队统计的完整数据
+- 导出特定成员的矩阵树
+- 导出层级统计分析
+
+#### 数据完整性评估
+
+**✅ 优秀**:
+- 正确使用 `matrix_referrals` 表查询 Branch-First BFS 系统
+- 正确 JOIN `users` 表获取用户名
+- 正确查询 `members` 表获取会员信息
+- 使用 `bfs_order` 正确排序
+- 集成 `AdminMatrixTreeVisualization` 组件（该组件使用正确的视图）
+
+**⚠️ 可优化**:
+- 手动计算统计数据，应使用 `v_matrix_layer_statistics` 视图
+- 未集成 `v_referral_statistics` 显示团队统计
+- 移动端体验未优化
+
+**❌ 缺失**:
+- 无直接使用 `v_matrix_layer_statistics` 视图
+- 无直接使用 `v_referral_statistics` 视图
+
+#### AdminMatrixTreeVisualization 组件集成
+
+**Line 690**:
+```typescript
+<TabsContent value="tree" className="space-y-4">
+  <AdminMatrixTreeVisualization />  {/* ✅ 正确集成 */}
+</TabsContent>
+```
+
+✅ 该组件在之前的会话中已更新为使用：
+- `v_matrix_tree_19_layers` 视图
+- `useMatrixTreeData` hooks
+- 移动端优化
+
+#### 移动端兼容性详细检查
+
+**❌ 未使用 isMobile hook**
+**⚠️ Tabs**: `grid-cols-4` 在小屏幕可能过于拥挤
+**⚠️ 统计卡片**: 直接从 `grid-cols-1` 跳到 `md:grid-cols-5`，中间屏幕不友好
+**✅ 响应式网格**: 部分使用 `grid-cols-1 lg:grid-cols-2`
+**❌ 卡片内边距**: 所有屏幕都是 `p-4`，移动端应该 `p-3`
+**❌ 字体大小**: 没有针对移动端调整
+**❌ 按钮尺寸**: 没有针对触摸优化
+
+#### 建议的修复方案
+
+**优先级1 - 高**:
+1. 添加 `isMobile` hook
+2. 优化 Tabs 布局（移动端2列，桌面端4列）
+3. 优化统计卡片布局（移动端2列，平板3列，桌面5列）
+
+**优先级2 - 中**:
+4. 使用 `v_matrix_layer_statistics` 视图替代手动计算
+5. 添加 `v_referral_statistics` 显示团队统计
+
+**优先级3 - 低**:
+6. 增强导出功能
+7. 添加更多数据可视化图表
+
+#### 推荐代码修改
+
+```typescript
+// 1. 导入 isMobile
+import { useIsMobile } from '../../hooks/use-mobile';
+
+// 2. 在组件中使用
+const isMobile = useIsMobile();
+
+// 3. 统计卡片优化
+<div className={`grid gap-4 ${
+  isMobile ? 'grid-cols-2' : 'grid-cols-1 sm:grid-cols-3 md:grid-cols-5'
+}`}>
+
+// 4. Tabs 优化
+<TabsList className={`${
+  isMobile ? 'grid grid-cols-2 gap-1' : 'grid w-full grid-cols-4'
+}`}>
+  <TabsTrigger value="tree">{isMobile ? '树' : '3×3矩阵树'}</TabsTrigger>
+  <TabsTrigger value="members">{isMobile ? '会员' : '会员列表'}</TabsTrigger>
+  <TabsTrigger value="matrix">{isMobile ? '关系' : '矩阵关系'}</TabsTrigger>
+  <TabsTrigger value="analysis">{isMobile ? '分析' : '数据分析'}</TabsTrigger>
+</TabsList>
+
+// 5. 使用视图查询统计
+const loadMatrixStats = async () => {
+  // 查询层级统计视图
+  const { data: layerStats } = await supabase
+    .from('v_matrix_layer_statistics')
+    .select('*');
+
+  // 使用视图数据
+  // ...
+};
+```
 
 ---
 
-### 6. ⏳ AdminRewards (`/admin/rewards`)
+### 6. ✅ AdminRewards (`/admin/rewards`)
 
-**Status**: 待检查
+**Status**: ✅ 基本正确，可优化
 
-#### 预期功能
-- Layer rewards 管理
-- Reward claims 审批
-- Reward timers 查看
-- Notifications 管理
+**文件**:
+- `src/pages/admin/AdminRewards.tsx` (wrapper)
+- `src/components/admin/RewardsManagement.tsx` (main component)
 
-#### 需要检查
-- [ ] 使用的组件
-- [ ] 是否使用 RewardsManagement 组件
-- [ ] 数据源
-  - [ ] `layer_rewards`
-  - [ ] `reward_claims`
-  - [ ] `reward_timers`
-  - [ ] `reward_notifications`
-- [ ] 移动端兼容性
+#### 当前实现
+
+**AdminRewards.tsx (wrapper)**:
+- ✅ 使用 `RewardsManagement` 组件 (line 45)
+- ✅ 使用 `isMobile` hook 优化 header
+- ✅ 响应式标题和返回按钮
+- 简单的包装器组件，所有逻辑在 RewardsManagement
+
+**RewardsManagement.tsx 功能**:
+- ✅ Layer rewards 列表显示
+- ✅ 统计概览 (总数、pending、claimable、claimed、总价值)
+- ✅ Countdown timers 监控
+- ✅ 搜索和过滤
+- ✅ 手动 claim 功能
+- ✅ 处理过期奖励 (rollup)
+- ✅ CSV 导出
+- ✅ 奖励详情查看
+
+#### 数据源分析
+
+**Layer Rewards 查询** (RewardsManagement.tsx lines 107-116):
+```typescript
+const { data: rewardsData } = await supabase
+  .from('layer_rewards')  // ✅ 正确
+  .select('*')
+  .order('created_at', { ascending: false })
+  .limit(200);  // ⚠️ 硬编码限制
+```
+✅ 正确查询 `layer_rewards` 表
+⚠️ 限制 200 条记录 - 大型系统可能不够
+
+**Countdown Timers 查询** (lines 143-161):
+```typescript
+const { data: timersData } = await supabase
+  .from('countdown_timers')  // ✅ 正确
+  .select('*')
+  .eq('timer_type', 'layer_reward')
+  .order('expires_at', { ascending: true });
+```
+✅ 正确查询 `countdown_timers` 表，获取 pending 计时器
+
+**RPC 函数调用**:
+1. **Claim Reward** (line 212):
+   ```typescript
+   await supabase.rpc('claim_layer_reward', {
+     p_reward_id: rewardId,
+     p_member_wallet: null
+   });
+   ```
+   ✅ 使用后端 RPC 函数处理 claim 逻辑
+
+2. **Process Expired** (line 240):
+   ```typescript
+   await supabase.rpc('process_expired_rewards');
+   ```
+   ✅ 使用 RPC 触发过期奖励 rollup 处理
+
+#### 统计数据计算
+
+**Lines 121-140**: 手动统计计算
+```typescript
+const totalRewards = rewardsData?.length || 0;
+const pendingRewards = rewardsData?.filter(r => r.status === 'pending').length || 0;
+const claimableRewards = rewardsData?.filter(r => r.status === 'claimable').length || 0;
+const totalValue = rewardsData?.reduce((sum, r) => sum + r.reward_amount, 0) || 0;
+```
+✅ 手动计算是合理的（基于已加载的数据过滤）
+⚠️ 但如果有大量奖励，可能需要数据库聚合查询
+
+#### 发现的优化点
+
+##### 1. ⚠️ 数据加载限制
+**问题**: Line 111 限制只加载 200 条记录
+```typescript
+.limit(200);  // ⚠️ 硬编码限制
+```
+
+**建议**: 添加分页或虚拟滚动
+```typescript
+// 方案 1: 分页
+const [page, setPage] = useState(1);
+const pageSize = 50;
+
+const { data: rewardsData } = await supabase
+  .from('layer_rewards')
+  .select('*', { count: 'exact' })
+  .order('created_at', { ascending: false })
+  .range((page - 1) * pageSize, page * pageSize - 1);
+
+// 方案 2: 无限滚动
+```
+
+##### 2. ❌ 未使用 reward_notifications 表
+**问题**: 组件未查询 `reward_notifications` 表
+
+**建议**: 添加通知显示
+```typescript
+const { data: notifications } = await supabase
+  .from('reward_notifications')
+  .select('*')
+  .order('created_at', { ascending: false })
+  .limit(20);
+```
+
+##### 3. ⚠️ 移动端优化不足
+**问题**:
+- RewardsManagement 组件未使用 `isMobile` hook
+- 统计卡片: `grid-cols-2 md:grid-cols-4` (小屏幕可能拥挤)
+- 奖励列表行未针对移动端优化
+- 对话框未针对小屏幕优化
+
+**建议**:
+```typescript
+import { useIsMobile } from '../../hooks/use-mobile';
+
+const isMobile = useIsMobile();
+
+// 统计卡片
+<div className={`grid gap-4 ${isMobile ? 'grid-cols-2' : 'md:grid-cols-4'}`}>
+
+// 卡片内边距
+<CardContent className={`${isMobile ? 'p-3' : 'p-4'} text-center`}>
+
+// 对话框
+<DialogContent className={`${isMobile ? 'max-w-[95vw]' : 'max-w-2xl'}`}>
+
+// 搜索和过滤布局
+<div className={`flex ${isMobile ? 'flex-col' : 'flex-col md:flex-row'} gap-4`}>
+```
+
+#### 数据完整性评估
+
+**✅ 优秀**:
+- 正确查询 `layer_rewards` 表
+- 正确查询 `countdown_timers` 表
+- 使用 RPC 函数处理业务逻辑 (claim, process_expired)
+- 显示所有相关奖励字段
+- 支持不同状态过滤 (pending, claimable, claimed, expired, rolled_up)
+
+**⚠️ 可优化**:
+- 限制查询 200 条记录，需要分页
+- 未集成 `reward_notifications` 表
+- 移动端体验未优化
+- 没有实时更新（需要手动刷新）
+
+**❌ 缺失**:
+- 无 `reward_notifications` 查询
+- 无分页或虚拟滚动
+- 无实时订阅更新
+
+#### 移动端兼容性详细检查
+
+**AdminRewards.tsx (wrapper)**:
+- ✅ 使用 `isMobile` hook
+- ✅ 响应式 header (text-xl vs text-2xl)
+- ✅ 返回按钮尺寸 (sm vs default)
+
+**RewardsManagement.tsx**:
+- ❌ 未使用 `isMobile` hook
+- ⚠️ 统计卡片 `grid-cols-2 md:grid-cols-4` - 小屏幕2列可能拥挤
+- ✅ 响应式 timer 网格 `grid-cols-1 md:grid-cols-2 lg:grid-cols-3`
+- ⚠️ 搜索/过滤 `flex-col md:flex-row` - 没有根据 mobile 调整
+- ❌ 卡片内边距没有 mobile 优化
+- ❌ 奖励列表项在小屏幕可能拥挤
+- ⚠️ Dialog `max-w-2xl` 在小屏幕可能过大
+
+#### 建议的修复方案
+
+**优先级1 - 高**:
+1. 添加 `isMobile` hook 到 RewardsManagement
+2. 优化移动端卡片内边距和字体大小
+3. 优化对话框在移动端的显示
+
+**优先级2 - 中**:
+4. 添加分页或虚拟滚动支持
+5. 集成 `reward_notifications` 表
+6. 添加实时订阅更新
+
+**优先级3 - 低**:
+7. 增强统计图表可视化
+8. 添加批量操作功能
+9. 添加奖励趋势分析
+
+#### 推荐代码修改
+
+```typescript
+// 1. 导入 isMobile
+import { useIsMobile } from '../../hooks/use-mobile';
+
+// 2. 在组件中使用
+const isMobile = useIsMobile();
+
+// 3. 优化统计卡片
+<div className={`grid gap-4 ${isMobile ? 'grid-cols-2' : 'grid-cols-2 md:grid-cols-4'}`}>
+  <Card>
+    <CardContent className={`${isMobile ? 'p-3' : 'p-4'} text-center`}>
+      <Award className={`${isMobile ? 'h-5 w-5' : 'h-6 w-6'} text-blue-400 mx-auto mb-2`} />
+      <div className={`${isMobile ? 'text-base' : 'text-lg'} font-bold text-blue-400`}>
+        {stats.totalRewards.toLocaleString()}
+      </div>
+      <div className="text-xs text-muted-foreground">Total Rewards</div>
+    </CardContent>
+  </Card>
+  {/* ... */}
+</div>
+
+// 4. 优化对话框
+<DialogContent className={`${isMobile ? 'max-w-[95vw] max-h-[90vh] overflow-y-auto' : 'max-w-2xl'}`}>
+
+// 5. 添加分页
+const [page, setPage] = useState(1);
+const [totalCount, setTotalCount] = useState(0);
+const pageSize = isMobile ? 20 : 50;
+
+const { data: rewardsData, count } = await supabase
+  .from('layer_rewards')
+  .select('*', { count: 'exact' })
+  .order('created_at', { ascending: false })
+  .range((page - 1) * pageSize, page * pageSize - 1);
+
+setTotalCount(count || 0);
+
+// 6. 添加 notifications 查询
+const { data: notifications } = await supabase
+  .from('reward_notifications')
+  .select('*')
+  .order('created_at', { ascending: false })
+  .limit(10);
+```
 
 ---
 
-### 7. ⏳ AdminWithdrawals (`/admin/withdrawals`)
+### 7. ✅ AdminWithdrawals (`/admin/withdrawals`)
 
-**Status**: 待检查
+**Status**: ✅ 基本正确，可优化
 
-#### 预期功能
-- Withdrawal requests 列表
-- Approve/Reject 操作
-- USDT withdrawals 管理
+**文件**:
+- `src/pages/admin/AdminWithdrawals.tsx` (wrapper)
+- `src/components/admin/WithdrawalManagement.tsx` (main component)
 
-#### 需要检查
-- [ ] 使用的组件
-- [ ] 是否使用 WithdrawalManagement 组件
-- [ ] 数据源
-  - [ ] `usdt_withdrawals`
-  - [ ] `withdrawal_requests`
-  - [ ] `user_balances`
-- [ ] 移动端兼容性
+#### 当前实现
+
+**AdminWithdrawals.tsx (wrapper)**:
+- ✅ 使用 `WithdrawalManagement` 组件 (line 45)
+- ✅ 使用 `isMobile` hook 优化 header
+- ✅ 响应式标题和返回按钮
+- 简单的包装器组件，所有逻辑在 WithdrawalManagement
+
+**WithdrawalManagement.tsx 功能**:
+- ✅ Withdrawal requests 列表显示
+- ✅ 统计概览 (total, pending, completed, failed, volumes)
+- ✅ 搜索和过滤 (by wallet, ID, tx hash)
+- ✅ 手动状态更新 (mark completed/failed)
+- ✅ CSV 导出
+- ✅ Blockchain explorer 链接
+- ✅ 多链支持 (Ethereum, Polygon, Arbitrum, Optimism, BSC, Base)
+- ✅ 提现详情查看
+
+#### 数据源分析
+
+**Withdrawal Requests 查询** (WithdrawalManagement.tsx lines 119-128):
+```typescript
+const { data: withdrawalData } = await supabase
+  .from('withdrawal_requests')  // ✅ 正确
+  .select('*')
+  .order('created_at', { ascending: false })
+  .limit(200);  // ⚠️ 硬编码限制
+```
+✅ 正确查询 `withdrawal_requests` 表
+⚠️ 限制 200 条记录 - 大型系统可能不够
+
+**状态更新** (lines 226-260):
+```typescript
+const { error } = await supabase
+  .from('withdrawal_requests')
+  .update({
+    status: newStatus,
+    completed_at: ...,
+    failed_at: ...,
+    failure_reason: ...
+  })
+  .eq('id', withdrawalId);
+```
+✅ 直接更新 `withdrawal_requests` 表状态
+
+#### 统计数据计算
+
+**Lines 132-152**: 手动统计计算
+```typescript
+const totalWithdrawals = withdrawalData?.length || 0;
+const pendingWithdrawals = withdrawalData?.filter(w => w.status === 'pending' || w.status === 'processing').length || 0;
+const totalVolume = withdrawalData?.reduce((sum, w) => sum + parseFloat(w.amount || '0'), 0) || 0;
+const averageAmount = totalWithdrawals > 0 ? totalVolume / totalWithdrawals : 0;
+```
+✅ 手动计算是合理的（基于已加载的数据过滤）
+⚠️ 但限制在 200 条记录，统计可能不完整
+
+#### 发现的优化点
+
+##### 1. ⚠️ 数据加载限制
+**问题**: Line 123 限制只加载 200 条记录
+```typescript
+.limit(200);  // ⚠️ 硬编码限制
+```
+
+**建议**: 添加分页（与 RewardsManagement 相同）
+```typescript
+const [page, setPage] = useState(1);
+const pageSize = 50;
+
+const { data: withdrawalData, count } = await supabase
+  .from('withdrawal_requests')
+  .select('*', { count: 'exact' })
+  .order('created_at', { ascending: false })
+  .range((page - 1) * pageSize, page * pageSize - 1);
+```
+
+##### 2. ❌ 未验证用户余额
+**问题**: 组件未查询 `user_balances` 表验证余额
+
+**建议**: 在详情页面显示用户余额
+```typescript
+const { data: balance } = await supabase
+  .from('user_balances')
+  .select('available_balance, reward_balance')
+  .eq('wallet_address', selectedWithdrawal.user_wallet)
+  .single();
+
+// 显示余额信息，验证提现是否合理
+```
+
+##### 3. ⚠️ 缺少 USDT withdrawals 表集成
+**问题**: 审计文档提到 `usdt_withdrawals` 表，但组件未查询
+
+**说明**: 需要确认是否有单独的 `usdt_withdrawals` 表，或者 `withdrawal_requests` 已经包含所有提现记录
+
+##### 4. ⚠️ 移动端优化不足
+**问题**:
+- WithdrawalManagement 组件未使用 `isMobile` hook
+- 统计卡片: `grid-cols-2 md:grid-cols-4` (小屏幕可能拥挤)
+- 详细信息卡片: `grid-cols-2 md:grid-cols-3` (可能拥挤)
+- Dialog `max-w-2xl` 在小屏幕可能过大
+
+**建议**:
+```typescript
+import { useIsMobile } from '../../hooks/use-mobile';
+
+const isMobile = useIsMobile();
+
+// 统计卡片
+<div className={`grid gap-4 ${isMobile ? 'grid-cols-2' : 'grid-cols-2 md:grid-cols-4'}`}>
+
+// 卡片内边距
+<CardContent className={`${isMobile ? 'p-3' : 'p-4'} text-center`}>
+
+// 对话框
+<DialogContent className={`${isMobile ? 'max-w-[95vw]' : 'max-w-2xl'}`}>
+```
+
+#### 数据完整性评估
+
+**✅ 优秀**:
+- 正确查询 `withdrawal_requests` 表
+- 手动状态更新功能
+- 支持多链 (Ethereum, Polygon, Arbitrum, Optimism, BSC, Base)
+- Explorer 链接集成
+- 显示所有相关提现字段
+- 支持不同状态过滤 (pending, processing, completed, failed, cancelled)
+
+**⚠️ 可优化**:
+- 限制查询 200 条记录，需要分页
+- 未查询 `user_balances` 验证余额
+- 移动端体验未优化
+- 没有实时更新（需要手动刷新）
+
+**❌ 缺失**:
+- 无 `user_balances` 查询（余额验证）
+- 未确认是否需要查询 `usdt_withdrawals` 表
+- 无分页或虚拟滚动
+- 无实时订阅更新
+
+#### 区块链集成
+
+**✅ 支持的链** (lines 82-89):
+```typescript
+const CHAIN_INFO = {
+  1: { name: 'Ethereum', symbol: 'ETH' },
+  137: { name: 'Polygon', symbol: 'MATIC' },
+  42161: { name: 'Arbitrum One', symbol: 'ARB' },
+  10: { name: 'Optimism', symbol: 'OP' },
+  56: { name: 'BSC', symbol: 'BNB' },
+  8453: { name: 'Base', symbol: 'BASE' }
+};
+```
+
+**✅ Explorer 链接** (lines 214-224):
+- Etherscan (Ethereum)
+- Polygonscan (Polygon)
+- Arbiscan (Arbitrum)
+- Optimistic Etherscan (Optimism)
+- BscScan (BSC)
+- BaseScan (Base)
+
+#### 移动端兼容性详细检查
+
+**AdminWithdrawals.tsx (wrapper)**:
+- ✅ 使用 `isMobile` hook
+- ✅ 响应式 header (text-xl vs text-2xl)
+- ✅ 返回按钮尺寸 (sm vs default)
+
+**WithdrawalManagement.tsx**:
+- ❌ 未使用 `isMobile` hook
+- ⚠️ 第一组统计卡片 `grid-cols-2 md:grid-cols-4` - 小屏幕2列可能拥挤
+- ⚠️ 第二组统计卡片 `grid-cols-2 md:grid-cols-3` - 小屏幕2列可能拥挤
+- ✅ 搜索/过滤 `flex-col md:flex-row`
+- ❌ 卡片内边距没有 mobile 优化
+- ❌ 提现列表项在小屏幕可能拥挤
+- ⚠️ Dialog `max-w-2xl` 在小屏幕可能过大
+
+#### 建议的修复方案
+
+**优先级1 - 高**:
+1. 添加 `isMobile` hook 到 WithdrawalManagement
+2. 优化移动端卡片内边距和字体大小
+3. 优化对话框在移动端的显示
+
+**优先级2 - 中**:
+4. 添加分页或虚拟滚动支持
+5. 集成 `user_balances` 查询显示余额信息
+6. 添加实时订阅更新
+
+**优先级3 - 低**:
+7. 添加批量操作功能
+8. 添加提现趋势分析
+9. 增强区块链交易验证
+
+#### 推荐代码修改
+
+```typescript
+// 1. 导入 isMobile
+import { useIsMobile } from '../../hooks/use-mobile';
+
+// 2. 在组件中使用
+const isMobile = useIsMobile();
+
+// 3. 优化统计卡片
+<div className={`grid gap-4 ${isMobile ? 'grid-cols-2' : 'grid-cols-2 md:grid-cols-4'}`}>
+  <Card>
+    <CardContent className={`${isMobile ? 'p-3' : 'p-4'} text-center`}>
+      <Banknote className={`${isMobile ? 'h-5 w-5' : 'h-6 w-6'} text-blue-400 mx-auto mb-2`} />
+      {/* ... */}
+    </CardContent>
+  </Card>
+</div>
+
+// 4. 优化对话框
+<DialogContent className={`${isMobile ? 'max-w-[95vw] max-h-[90vh] overflow-y-auto' : 'max-w-2xl'}`}>
+
+// 5. 添加分页
+const [page, setPage] = useState(1);
+const pageSize = isMobile ? 20 : 50;
+
+const { data: withdrawalData, count } = await supabase
+  .from('withdrawal_requests')
+  .select('*', { count: 'exact' })
+  .order('created_at', { ascending: false })
+  .range((page - 1) * pageSize, page * pageSize - 1);
+
+// 6. 添加余额查询
+const { data: userBalance } = await supabase
+  .from('user_balances')
+  .select('available_balance, reward_balance, withdrawn_amount')
+  .eq('wallet_address', selectedWithdrawal.user_wallet)
+  .single();
+
+// 在详情对话框中显示
+<div>
+  <Label>User Balance</Label>
+  <p className="text-sm">
+    Available: ${userBalance?.available_balance.toFixed(2)} |
+    Withdrawn: ${userBalance?.withdrawn_amount.toFixed(2)}
+  </p>
+</div>
+```
 
 ---
 
