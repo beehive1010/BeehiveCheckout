@@ -39,6 +39,7 @@ interface MatrixNodeProps {
     username?: string;
     isActivated?: boolean;
     level?: number;
+    layer?: number;  // Matrix layer position
     hasChildInL?: boolean;
     hasChildInM?: boolean;
     hasChildInR?: boolean;
@@ -125,16 +126,23 @@ const MatrixNode: React.FC<MatrixNodeProps> = ({ position, member, onTap }) => {
         {member.wallet.slice(0, 6)}...{member.wallet.slice(-4)}
       </div>
 
-      {/* Level Badge */}
-      {member.level && (
-        <Badge className={`mt-0.5 ${badgeSize} ${
-          isSpillover
-            ? 'bg-blue-400 hover:bg-blue-500'
-            : 'bg-green-500 hover:bg-green-600'
-        }`}>
-          L{member.level}
-        </Badge>
-      )}
+      {/* Level & Layer Badges */}
+      <div className="flex items-center gap-1 mt-0.5 flex-wrap justify-center">
+        {member.level && (
+          <Badge className={`${badgeSize} ${
+            isSpillover
+              ? 'bg-blue-400 hover:bg-blue-500'
+              : 'bg-green-500 hover:bg-green-600'
+          }`}>
+            L{member.level}
+          </Badge>
+        )}
+        {member.layer && (
+          <Badge variant="outline" className={`${badgeSize} bg-yellow-500/10 text-yellow-400 border-yellow-500/50`}>
+            Layer {member.layer}
+          </Badge>
+        )}
+      </div>
 
       {/* Next Level Indicators - 移动端优化 */}
       <div className={`flex justify-center ${isMobile ? 'space-x-1 mt-1' : 'space-x-2 mt-2'}`}>
@@ -163,7 +171,6 @@ const MobileMatrixView: React.FC<MobileMatrixViewProps> = ({
   const { t } = useI18n();
   const isMobile = useIsMobile();
   const [currentRoot, setCurrentRoot] = useState<string>(rootWalletAddress);
-  const [currentLayer, setCurrentLayer] = useState<number>(1);
   const [currentNodeLayer, setCurrentNodeLayer] = useState<number>(1); // Track actual node layer
   const [navigationHistory, setNavigationHistory] = useState<NavigationHistory[]>([]);
   const [currentRootUser, setCurrentRootUser] = useState(rootUser);
@@ -177,7 +184,6 @@ const MobileMatrixView: React.FC<MobileMatrixViewProps> = ({
 
   console.log('🔍 MobileMatrixView - Current state:', {
     currentRoot,
-    currentLayer,
     currentNodeLayer,
     originalRoot,
     isLoading,
@@ -215,7 +221,6 @@ const MobileMatrixView: React.FC<MobileMatrixViewProps> = ({
       username: `${t('common.user')}${memberWallet.slice(-4)}`,
       currentLevel: 1
     });
-    setCurrentLayer(1); // Reset viewing layer to 1
 
     console.log('🔍 New root set to:', memberWallet);
     console.log('🔍 New node layer set to:', nextLayer);
@@ -297,6 +302,7 @@ const MobileMatrixView: React.FC<MobileMatrixViewProps> = ({
           wallet: childrenData.L.member_wallet,
           username: childrenData.L.username,
           level: childrenData.L.level,
+          layer: childrenData.L.layer,  // ✅ Include layer info
           joinedAt: childrenData.L.joined_at || '',
           type: childrenData.L.referral_type === 'direct' ? 'is_direct' : 'is_spillover',
           isActivated: true,
@@ -318,6 +324,7 @@ const MobileMatrixView: React.FC<MobileMatrixViewProps> = ({
           wallet: childrenData.M.member_wallet,
           username: childrenData.M.username,
           level: childrenData.M.level,
+          layer: childrenData.M.layer,  // ✅ Include layer info
           joinedAt: childrenData.M.joined_at || '',
           type: childrenData.M.referral_type === 'direct' ? 'is_direct' : 'is_spillover',
           isActivated: true,
@@ -339,6 +346,7 @@ const MobileMatrixView: React.FC<MobileMatrixViewProps> = ({
           wallet: childrenData.R.member_wallet,
           username: childrenData.R.username,
           level: childrenData.R.level,
+          layer: childrenData.R.layer,  // ✅ Include layer info
           joinedAt: childrenData.R.joined_at || '',
           type: childrenData.R.referral_type === 'direct' ? 'is_direct' : 'is_spillover',
           isActivated: true,
@@ -455,61 +463,6 @@ const MobileMatrixView: React.FC<MobileMatrixViewProps> = ({
               </div>
             </div>
           )}
-        </CardContent>
-      </Card>
-
-      {/* Layer Navigation */}
-      <Card className="bg-gradient-to-br from-black/90 to-gray-900/95 border border-yellow-500/30 shadow-xl shadow-yellow-500/10">
-        <CardContent className={isMobile ? "p-3" : "p-4"}>
-          <div className={`flex items-center justify-between ${isMobile ? 'mb-3' : 'mb-4'}`}>
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => setCurrentLayer(Math.max(1, currentLayer - 1))}
-              disabled={currentLayer <= 1}
-              className={`border-gray-200 dark:border-gray-700 ${isMobile ? 'h-8 px-2 text-xs' : 'h-10 px-4'}`}
-            >
-              <ChevronLeft className={`${isMobile ? 'h-3 w-3 mr-0.5' : 'h-4 w-4 mr-1'}`} />
-              {isMobile ? '←' : t('matrix.previousLayer')}
-            </Button>
-
-            <div className={`flex items-center ${isMobile ? 'gap-1' : 'gap-2'}`}>
-              <Layers className={`${isMobile ? 'w-3 h-3' : 'w-4 h-4'} text-honey`} />
-              <span className={`${isMobile ? 'text-xs' : 'text-sm'} font-medium text-gray-700 dark:text-gray-300`}>
-                {t('matrix.layer')} {currentLayer}
-              </span>
-            </div>
-
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => setCurrentLayer(currentLayer + 1)}
-              disabled={currentLayer >= 19}
-              className={`border-gray-200 dark:border-gray-700 ${isMobile ? 'h-8 px-2 text-xs' : 'h-10 px-4'}`}
-            >
-              {isMobile ? '→' : t('matrix.nextLayer')}
-              <ChevronRight className={`${isMobile ? 'h-3 w-3 ml-0.5' : 'h-4 w-4 ml-1'}`} />
-            </Button>
-          </div>
-
-          {/* Quick Layer Selection */}
-          <div className="flex flex-wrap gap-1 justify-center">
-            {[1,2,3,4,5,6,7,8,9,10].map(layer => (
-              <Button
-                key={layer}
-                variant={layer === currentLayer ? "default" : "outline"}
-                size="sm"
-                onClick={() => setCurrentLayer(layer)}
-                className={`${isMobile ? 'h-7 w-7 text-[10px]' : 'h-8 w-8 text-xs'} ${
-                  layer === currentLayer
-                    ? 'bg-honey text-black hover:bg-honey/90'
-                    : 'border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-800'
-                }`}
-              >
-                {layer}
-              </Button>
-            ))}
-          </div>
         </CardContent>
       </Card>
 
