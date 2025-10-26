@@ -490,6 +490,15 @@ export const WithdrawalManagement: React.FC = () => {
                           </DropdownMenuTrigger>
                           <DropdownMenuContent align="end">
                             <DropdownMenuLabel>Actions</DropdownMenuLabel>
+                            {withdrawal.user_transaction_hash && isMobile && (
+                              <>
+                                <DropdownMenuItem onClick={() => window.open(getExplorerUrl(withdrawal.target_chain_id, withdrawal.user_transaction_hash!), '_blank')}>
+                                  <ExternalLink className="mr-2 h-4 w-4" />
+                                  View on Explorer
+                                </DropdownMenuItem>
+                                <DropdownMenuSeparator />
+                              </>
+                            )}
                             <DropdownMenuItem onClick={() => {
                               setSelectedWithdrawal(withdrawal);
                               setShowWithdrawalDetails(true);
@@ -525,9 +534,9 @@ export const WithdrawalManagement: React.FC = () => {
               })}
               
               {filteredWithdrawals.length === 0 && (
-                <div className="p-8 text-center text-muted-foreground">
-                  <Banknote className="h-12 w-12 mx-auto mb-4 opacity-50" />
-                  <p>No withdrawals found matching your search criteria</p>
+                <div className={`text-center text-muted-foreground ${isMobile ? 'p-6' : 'p-8'}`}>
+                  <Banknote className={`mx-auto mb-4 opacity-50 ${isMobile ? 'h-10 w-10' : 'h-12 w-12'}`} />
+                  <p className={isMobile ? 'text-sm' : ''}>No withdrawals found matching your search criteria</p>
                 </div>
               )}
             </div>
@@ -537,20 +546,20 @@ export const WithdrawalManagement: React.FC = () => {
 
       {/* Withdrawal Details Dialog */}
       <Dialog open={showWithdrawalDetails} onOpenChange={setShowWithdrawalDetails}>
-        <DialogContent className="max-w-2xl">
+        <DialogContent className={isMobile ? 'max-w-[95vw] max-h-[90vh] overflow-y-auto p-4' : 'max-w-2xl'}>
           <DialogHeader>
-            <DialogTitle className="flex items-center gap-2">
-              <Banknote className="h-5 w-5" />
+            <DialogTitle className={`flex items-center gap-2 ${isMobile ? 'text-base' : ''}`}>
+              <Banknote className={isMobile ? 'h-4 w-4' : 'h-5 w-5'} />
               Withdrawal Details
             </DialogTitle>
-            <DialogDescription>
+            <DialogDescription className={isMobile ? 'text-xs' : ''}>
               Complete withdrawal information and transaction details
             </DialogDescription>
           </DialogHeader>
-          
+
           {selectedWithdrawal && (
-            <div className="space-y-4">
-              <div className="grid grid-cols-2 gap-4">
+            <div className={isMobile ? 'space-y-3' : 'space-y-4'}>
+              <div className={`grid gap-4 ${isMobile ? 'grid-cols-1' : 'grid-cols-2'}`}>
                 <div>
                   <Label className="text-sm font-medium">Withdrawal ID</Label>
                   <p className="font-mono text-sm bg-muted p-2 rounded break-all">
@@ -566,33 +575,34 @@ export const WithdrawalManagement: React.FC = () => {
                   </div>
                 </div>
               </div>
-              
-              <div className="grid grid-cols-2 gap-4">
+
+
+              <div className={`grid gap-4 ${isMobile ? 'grid-cols-1' : 'grid-cols-2'}`}>
                 <div>
-                  <Label className="text-sm font-medium">User Wallet</Label>
-                  <p className="font-mono text-sm bg-muted p-2 rounded break-all">
+                  <Label className={isMobile ? 'text-xs font-medium' : 'text-sm font-medium'}>User Wallet</Label>
+                  <p className={`font-mono bg-muted p-2 rounded break-all ${isMobile ? 'text-xs' : 'text-sm'}`}>
                     {selectedWithdrawal.user_wallet}
                   </p>
                 </div>
                 <div>
-                  <Label className="text-sm font-medium">Amount</Label>
-                  <p className="text-lg font-bold text-honey p-2">
+                  <Label className={isMobile ? 'text-xs font-medium' : 'text-sm font-medium'}>Amount</Label>
+                  <p className={`font-bold text-honey p-2 ${isMobile ? 'text-base' : 'text-lg'}`}>
                     ${parseFloat(selectedWithdrawal.amount).toFixed(2)} USDT
                   </p>
                 </div>
               </div>
-              
-              <div className="grid grid-cols-2 gap-4">
+
+              <div className={`grid gap-4 ${isMobile ? 'grid-cols-1' : 'grid-cols-2'}`}>
                 <div>
-                  <Label className="text-sm font-medium">Target Chain</Label>
-                  <div className="flex items-center gap-2 p-2">
+                  <Label className={isMobile ? 'text-xs font-medium' : 'text-sm font-medium'}>Target Chain</Label>
+                  <div className={`flex items-center gap-2 p-2 ${isMobile ? 'text-xs' : ''}`}>
                     <span>{getChainInfo(selectedWithdrawal.target_chain_id).icon}</span>
                     <span>{getChainInfo(selectedWithdrawal.target_chain_id).name}</span>
                   </div>
                 </div>
                 <div>
-                  <Label className="text-sm font-medium">Token Address</Label>
-                  <p className="font-mono text-xs bg-muted p-2 rounded break-all">
+                  <Label className={isMobile ? 'text-xs font-medium' : 'text-sm font-medium'}>Token Address</Label>
+                  <p className={`font-mono bg-muted p-2 rounded break-all ${isMobile ? 'text-[10px]' : 'text-xs'}`}>
                     {selectedWithdrawal.token_address}
                   </p>
                 </div>
