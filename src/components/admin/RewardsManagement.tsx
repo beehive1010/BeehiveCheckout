@@ -379,34 +379,34 @@ export const RewardsManagement: React.FC = () => {
 
       {/* Rewards Management */}
       <Card>
-        <CardHeader>
-          <div className="flex items-center justify-between">
+        <CardHeader className={isMobile ? 'p-4' : ''}>
+          <div className={`flex ${isMobile ? 'flex-col gap-4' : 'items-center justify-between'}`}>
             <div>
-              <CardTitle className="flex items-center gap-2">
+              <CardTitle className={`flex items-center gap-2 ${isMobile ? 'text-base' : ''}`}>
                 <Award className="h-5 w-5 text-honey" />
                 Layer Rewards Management
               </CardTitle>
-              <CardDescription>Monitor and manage layer reward distributions</CardDescription>
+              <CardDescription className={isMobile ? 'text-xs' : ''}>Monitor and manage layer reward distributions</CardDescription>
             </div>
-            <div className="flex items-center gap-2">
-              <Button onClick={exportRewards} variant="outline" size="sm">
+            <div className={`flex ${isMobile ? 'flex-wrap' : 'items-center'} gap-2`}>
+              <Button onClick={exportRewards} variant="outline" size={isMobile ? 'sm' : 'sm'}>
                 <Download className="h-4 w-4 mr-2" />
-                Export CSV
+                {isMobile ? 'Export' : 'Export CSV'}
               </Button>
-              <Button onClick={processExpiredRewards} variant="outline" size="sm">
+              <Button onClick={processExpiredRewards} variant="outline" size={isMobile ? 'sm' : 'sm'}>
                 <Play className="h-4 w-4 mr-2" />
-                Process Expired
+                {isMobile ? 'Process' : 'Process Expired'}
               </Button>
-              <Button onClick={loadRewardData} variant="outline" size="sm">
+              <Button onClick={loadRewardData} variant="outline" size={isMobile ? 'sm' : 'sm'}>
                 <RefreshCw className="h-4 w-4 mr-2" />
                 Refresh
               </Button>
             </div>
           </div>
         </CardHeader>
-        <CardContent className="space-y-4">
+        <CardContent className={`space-y-4 ${isMobile ? 'p-4' : ''}`}>
           {/* Search and Filters */}
-          <div className="flex flex-col md:flex-row gap-4">
+          <div className={`flex ${isMobile ? 'flex-col' : 'flex-col md:flex-row'} gap-4`}>
             <div className="flex-1">
               <div className="relative">
                 <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
@@ -437,12 +437,12 @@ export const RewardsManagement: React.FC = () => {
 
           {/* Rewards Table */}
           <div className="border rounded-lg overflow-hidden">
-            <div className="bg-muted px-4 py-2 font-medium text-sm">
+            <div className={`bg-muted font-medium ${isMobile ? 'px-3 py-2 text-xs' : 'px-4 py-2 text-sm'}`}>
               {filteredRewards.length} rewards found
             </div>
-            <div className="divide-y divide-border max-h-96 overflow-y-auto">
+            <div className={`divide-y divide-border overflow-y-auto ${isMobile ? 'max-h-[60vh]' : 'max-h-96'}`}>
               {filteredRewards.map((reward) => (
-                <div key={reward.id} className="p-4 hover:bg-muted/30 transition-colors">
+                <div key={reward.id} className={`hover:bg-muted/30 transition-colors ${isMobile ? 'p-3' : 'p-4'}`}>
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-4 flex-1 min-w-0">
                       <div className="flex-shrink-0">
@@ -452,22 +452,22 @@ export const RewardsManagement: React.FC = () => {
                       </div>
                       
                       <div className="flex-1 min-w-0">
-                        <div className="flex items-center gap-2 mb-1">
-                          <span className="font-mono text-sm font-medium">
+                        <div className={`flex items-center gap-2 mb-1 ${isMobile ? 'flex-wrap' : ''}`}>
+                          <span className={`font-mono font-medium ${isMobile ? 'text-xs' : 'text-sm'}`}>
                             {formatWalletAddress(reward.reward_recipient_wallet)}
                           </span>
-                          <Badge className="bg-honey text-black text-xs">
+                          <Badge className={`bg-honey text-black ${isMobile ? 'text-[10px] px-1.5 py-0.5' : 'text-xs'}`}>
                             Layer {reward.matrix_layer}
                           </Badge>
-                          <Badge variant="outline" className={`text-xs ${getStatusColor(reward.status)}`}>
+                          <Badge variant="outline" className={`${isMobile ? 'text-[10px] px-1.5 py-0.5' : 'text-xs'} ${getStatusColor(reward.status)}`}>
                             {reward.status}
                           </Badge>
                         </div>
-                        
-                        <div className="text-xs text-muted-foreground">
-                          <span className="mr-4 font-bold text-honey">${reward.reward_amount} USDT</span>
-                          <span className="mr-4">NFT L{reward.triggering_nft_level}</span>
-                          <span>Created {formatDate(reward.created_at)}</span>
+
+                        <div className={`text-muted-foreground ${isMobile ? 'text-[10px]' : 'text-xs'}`}>
+                          <span className={`font-bold text-honey ${isMobile ? 'block mb-1' : 'mr-4'}`}>${reward.reward_amount} USDT</span>
+                          <span className={isMobile ? 'mr-2' : 'mr-4'}>NFT L{reward.triggering_nft_level}</span>
+                          <span>{isMobile ? formatDate(reward.created_at).slice(0, -5) : `Created ${formatDate(reward.created_at)}`}</span>
                         </div>
                         
                         {reward.expires_at && (
@@ -477,11 +477,11 @@ export const RewardsManagement: React.FC = () => {
                         )}
                       </div>
                     </div>
-                    
+
                     <div className="flex items-center gap-2">
-                      {reward.status === 'claimable' && (
-                        <Button 
-                          size="sm" 
+                      {reward.status === 'claimable' && !isMobile && (
+                        <Button
+                          size="sm"
                           variant="outline"
                           onClick={() => manuallyClaimReward(reward.id)}
                         >
@@ -489,15 +489,24 @@ export const RewardsManagement: React.FC = () => {
                           Claim
                         </Button>
                       )}
-                      
+
                       <DropdownMenu>
                         <DropdownMenuTrigger asChild>
                           <Button variant="ghost" size="sm">
-                            <MoreVertical className="h-4 w-4" />
+                            <MoreVertical className={isMobile ? 'h-5 w-5' : 'h-4 w-4'} />
                           </Button>
                         </DropdownMenuTrigger>
                         <DropdownMenuContent align="end">
                           <DropdownMenuLabel>Actions</DropdownMenuLabel>
+                          {reward.status === 'claimable' && isMobile && (
+                            <>
+                              <DropdownMenuItem onClick={() => manuallyClaimReward(reward.id)}>
+                                <Gift className="mr-2 h-4 w-4" />
+                                Claim Reward
+                              </DropdownMenuItem>
+                              <DropdownMenuSeparator />
+                            </>
+                          )}
                           <DropdownMenuItem onClick={() => {
                             setSelectedReward(reward);
                             setShowRewardDetails(true);
@@ -513,9 +522,9 @@ export const RewardsManagement: React.FC = () => {
               ))}
               
               {filteredRewards.length === 0 && (
-                <div className="p-8 text-center text-muted-foreground">
-                  <Award className="h-12 w-12 mx-auto mb-4 opacity-50" />
-                  <p>No rewards found matching your search criteria</p>
+                <div className={`text-center text-muted-foreground ${isMobile ? 'p-6' : 'p-8'}`}>
+                  <Award className={`mx-auto mb-4 opacity-50 ${isMobile ? 'h-10 w-10' : 'h-12 w-12'}`} />
+                  <p className={isMobile ? 'text-sm' : ''}>No rewards found matching your search criteria</p>
                 </div>
               )}
             </div>
@@ -525,20 +534,20 @@ export const RewardsManagement: React.FC = () => {
 
       {/* Reward Details Dialog */}
       <Dialog open={showRewardDetails} onOpenChange={setShowRewardDetails}>
-        <DialogContent className="max-w-2xl">
+        <DialogContent className={isMobile ? 'max-w-[95vw] max-h-[90vh] overflow-y-auto p-4' : 'max-w-2xl'}>
           <DialogHeader>
-            <DialogTitle className="flex items-center gap-2">
-              <Award className="h-5 w-5" />
+            <DialogTitle className={`flex items-center gap-2 ${isMobile ? 'text-base' : ''}`}>
+              <Award className={isMobile ? 'h-4 w-4' : 'h-5 w-5'} />
               Reward Details
             </DialogTitle>
-            <DialogDescription>
+            <DialogDescription className={isMobile ? 'text-xs' : ''}>
               Layer reward information and status
             </DialogDescription>
           </DialogHeader>
-          
+
           {selectedReward && (
-            <div className="space-y-4">
-              <div className="grid grid-cols-2 gap-4">
+            <div className={isMobile ? 'space-y-3' : 'space-y-4'}>
+              <div className={`grid gap-4 ${isMobile ? 'grid-cols-1' : 'grid-cols-2'}`}>
                 <div>
                   <Label className="text-sm font-medium">Reward ID</Label>
                   <p className="font-mono text-sm bg-muted p-2 rounded break-all">
