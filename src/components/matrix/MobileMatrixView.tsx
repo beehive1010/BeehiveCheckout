@@ -320,18 +320,18 @@ const MobileMatrixView: React.FC<MobileMatrixViewProps> = ({
         position: 'L',
         member: {
           wallet: childrenData.L.member_wallet,
-          username: childrenData.L.username,
-          level: childrenData.L.level,
+          username: childrenData.L.member_username,
+          level: childrenData.L.member_level,
           layer: childrenData.L.layer,  // ✅ Include layer info
-          joinedAt: childrenData.L.joined_at || '',
+          joinedAt: childrenData.L.activation_time || '',
           type: childrenData.L.referral_type === 'direct' ? 'is_direct' : 'is_spillover',
           isActivated: true,
-          hasChildInL: childrenData.L.child_count_l > 0,
-          hasChildInM: childrenData.L.child_count_m > 0,
-          hasChildInR: childrenData.L.child_count_r > 0,
-          childCountL: childrenData.L.child_count_l,
-          childCountM: childrenData.L.child_count_m,
-          childCountR: childrenData.L.child_count_r
+          hasChildInL: childrenData.L.children_slots?.L !== null && childrenData.L.children_slots?.L !== undefined,
+          hasChildInM: childrenData.L.children_slots?.M !== null && childrenData.L.children_slots?.M !== undefined,
+          hasChildInR: childrenData.L.children_slots?.R !== null && childrenData.L.children_slots?.R !== undefined,
+          childCountL: childrenData.L.children_slots?.L ? 1 : 0,
+          childCountM: childrenData.L.children_slots?.M ? 1 : 0,
+          childCountR: childrenData.L.children_slots?.R ? 1 : 0
         }
       });
       totalMembers++;
@@ -342,18 +342,18 @@ const MobileMatrixView: React.FC<MobileMatrixViewProps> = ({
         position: 'M',
         member: {
           wallet: childrenData.M.member_wallet,
-          username: childrenData.M.username,
-          level: childrenData.M.level,
+          username: childrenData.M.member_username,
+          level: childrenData.M.member_level,
           layer: childrenData.M.layer,  // ✅ Include layer info
-          joinedAt: childrenData.M.joined_at || '',
+          joinedAt: childrenData.M.activation_time || '',
           type: childrenData.M.referral_type === 'direct' ? 'is_direct' : 'is_spillover',
           isActivated: true,
-          hasChildInL: childrenData.M.child_count_l > 0,
-          hasChildInM: childrenData.M.child_count_m > 0,
-          hasChildInR: childrenData.M.child_count_r > 0,
-          childCountL: childrenData.M.child_count_l,
-          childCountM: childrenData.M.child_count_m,
-          childCountR: childrenData.M.child_count_r
+          hasChildInL: childrenData.M.children_slots?.L !== null && childrenData.M.children_slots?.L !== undefined,
+          hasChildInM: childrenData.M.children_slots?.M !== null && childrenData.M.children_slots?.M !== undefined,
+          hasChildInR: childrenData.M.children_slots?.R !== null && childrenData.M.children_slots?.R !== undefined,
+          childCountL: childrenData.M.children_slots?.L ? 1 : 0,
+          childCountM: childrenData.M.children_slots?.M ? 1 : 0,
+          childCountR: childrenData.M.children_slots?.R ? 1 : 0
         }
       });
       totalMembers++;
@@ -364,18 +364,18 @@ const MobileMatrixView: React.FC<MobileMatrixViewProps> = ({
         position: 'R',
         member: {
           wallet: childrenData.R.member_wallet,
-          username: childrenData.R.username,
-          level: childrenData.R.level,
+          username: childrenData.R.member_username,
+          level: childrenData.R.member_level,
           layer: childrenData.R.layer,  // ✅ Include layer info
-          joinedAt: childrenData.R.joined_at || '',
+          joinedAt: childrenData.R.activation_time || '',
           type: childrenData.R.referral_type === 'direct' ? 'is_direct' : 'is_spillover',
           isActivated: true,
-          hasChildInL: childrenData.R.child_count_l > 0,
-          hasChildInM: childrenData.R.child_count_m > 0,
-          hasChildInR: childrenData.R.child_count_r > 0,
-          childCountL: childrenData.R.child_count_l,
-          childCountM: childrenData.R.child_count_m,
-          childCountR: childrenData.R.child_count_r
+          hasChildInL: childrenData.R.children_slots?.L !== null && childrenData.R.children_slots?.L !== undefined,
+          hasChildInM: childrenData.R.children_slots?.M !== null && childrenData.R.children_slots?.M !== undefined,
+          hasChildInR: childrenData.R.children_slots?.R !== null && childrenData.R.children_slots?.R !== undefined,
+          childCountL: childrenData.R.children_slots?.L ? 1 : 0,
+          childCountM: childrenData.R.children_slots?.M ? 1 : 0,
+          childCountR: childrenData.R.children_slots?.R ? 1 : 0
         }
       });
       totalMembers++;
