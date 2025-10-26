@@ -6,6 +6,7 @@ import { Label } from '../ui/label';
 import { Badge } from '../ui/badge';
 import { Alert, AlertDescription } from '../ui/alert';
 import { useToast } from '../../hooks/use-toast';
+import { useIsMobile } from '../../hooks/use-mobile';
 import { 
   Award, 
   Gift, 
@@ -77,6 +78,7 @@ interface PendingTimer {
 
 export const RewardsManagement: React.FC = () => {
   const { toast } = useToast();
+  const isMobile = useIsMobile();
   const [rewards, setRewards] = useState<RewardRecord[]>([]);
   const [stats, setStats] = useState<RewardStats>({
     totalRewards: 0,
@@ -307,9 +309,9 @@ export const RewardsManagement: React.FC = () => {
   return (
     <div className="space-y-6">
       {/* Stats Overview */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+      <div className={`grid gap-4 ${isMobile ? 'grid-cols-2' : 'grid-cols-2 md:grid-cols-4'}`}>
         <Card>
-          <CardContent className="p-4 text-center">
+          <CardContent className={`${isMobile ? 'p-3' : 'p-4'} text-center`}>
             <Award className="h-6 w-6 text-blue-400 mx-auto mb-2" />
             <div className="text-lg font-bold text-blue-400">{stats.totalRewards.toLocaleString()}</div>
             <div className="text-xs text-muted-foreground">Total Rewards</div>
@@ -317,7 +319,7 @@ export const RewardsManagement: React.FC = () => {
         </Card>
 
         <Card>
-          <CardContent className="p-4 text-center">
+          <CardContent className={`${isMobile ? 'p-3' : 'p-4'} text-center`}>
             <Clock className="h-6 w-6 text-yellow-400 mx-auto mb-2" />
             <div className="text-lg font-bold text-yellow-400">{stats.pendingRewards.toLocaleString()}</div>
             <div className="text-xs text-muted-foreground">Pending</div>
@@ -325,7 +327,7 @@ export const RewardsManagement: React.FC = () => {
         </Card>
 
         <Card>
-          <CardContent className="p-4 text-center">
+          <CardContent className={`${isMobile ? 'p-3' : 'p-4'} text-center`}>
             <Gift className="h-6 w-6 text-green-400 mx-auto mb-2" />
             <div className="text-lg font-bold text-green-400">{stats.claimableRewards.toLocaleString()}</div>
             <div className="text-xs text-muted-foreground">Claimable</div>
@@ -333,7 +335,7 @@ export const RewardsManagement: React.FC = () => {
         </Card>
 
         <Card>
-          <CardContent className="p-4 text-center">
+          <CardContent className={`${isMobile ? 'p-3' : 'p-4'} text-center`}>
             <DollarSign className="h-6 w-6 text-honey mx-auto mb-2" />
             <div className="text-lg font-bold text-honey">${stats.totalValue.toFixed(2)}</div>
             <div className="text-xs text-muted-foreground">Total Value</div>
@@ -344,14 +346,14 @@ export const RewardsManagement: React.FC = () => {
       {/* Pending Timers */}
       {pendingTimers.length > 0 && (
         <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
+          <CardHeader className={isMobile ? 'p-4' : ''}>
+            <CardTitle className={`flex items-center gap-2 ${isMobile ? 'text-base' : ''}`}>
               <Clock className="h-5 w-5 text-yellow-400" />
               Active Countdown Timers ({pendingTimers.length})
             </CardTitle>
           </CardHeader>
-          <CardContent>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+          <CardContent className={isMobile ? 'p-4' : ''}>
+            <div className={`grid gap-4 ${isMobile ? 'grid-cols-1' : 'grid-cols-1 md:grid-cols-2 lg:grid-cols-3'}`}>
               {pendingTimers.slice(0, 6).map((timer) => (
                 <div key={timer.id} className="border rounded-lg p-3 bg-muted/30">
                   <div className="flex items-center justify-between mb-2">

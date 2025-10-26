@@ -365,7 +365,7 @@ const MobileMatrixView: React.FC<MobileMatrixViewProps> = ({
         member: {
           wallet: childrenData.R.member_wallet,
           username: childrenData.R.member_username,
-          level: childrenData.R.member_level,
+          level: childrenData.R.current_level,  // ✅ Fixed: use current_level
           layer: childrenData.R.layer,  // ✅ Include layer info
           joinedAt: childrenData.R.activation_time || '',
           type: childrenData.R.referral_type === 'direct' ? 'is_direct' : 'is_spillover',
@@ -521,7 +521,7 @@ const MobileMatrixView: React.FC<MobileMatrixViewProps> = ({
                         {node.slot}
                       </Badge>
                       <Badge className={`${isMobile ? 'text-[9px]' : 'text-xs'} bg-amber-500`}>
-                        L{node.member_level}
+                        L{node.current_level}
                       </Badge>
                     </div>
                   </div>
