@@ -67,7 +67,7 @@ export function useMatrixTreeData(
       let query = supabase
         .from('v_matrix_tree_19_layers')
         .select('*')
-        .eq('matrix_root_wallet', matrixRootWallet.toLowerCase());
+        .ilike('matrix_root_wallet', matrixRootWallet);
 
       // Filter by layer if specified
       if (layer !== undefined && layer > 0) {
@@ -139,7 +139,7 @@ export function useMatrixTreeForMember(
       const { data: memberData, error: memberError } = await supabase
         .from('matrix_referrals')
         .select('matrix_root_wallet, layer')
-        .eq('member_wallet', memberWallet.toLowerCase())
+        .ilike('member_wallet', memberWallet)
         .order('layer', { ascending: true })
         .limit(1)
         .maybeSingle();
@@ -171,7 +171,7 @@ export function useMatrixTreeForMember(
       let query = supabase
         .from('v_matrix_tree_19_layers')
         .select('*')
-        .eq('matrix_root_wallet', matrixRoot.toLowerCase())
+        .ilike('matrix_root_wallet', matrixRoot)
         .gte('layer', memberLayer)
         .lte('layer', maxLayer);
 
@@ -225,8 +225,8 @@ export function useMatrixNodeChildren(
       const { data, error } = await supabase
         .from('v_matrix_tree_19_layers')
         .select('*')
-        .eq('matrix_root_wallet', matrixRootWallet.toLowerCase())
-        .eq('parent_wallet', parentWallet.toLowerCase())
+        .ilike('matrix_root_wallet', matrixRootWallet)
+        .ilike('parent_wallet', parentWallet)
         .order('slot');
 
       if (error) {
@@ -275,7 +275,7 @@ export function useMatrixLayerStats(matrixRootWallet?: string) {
       const { data, error } = await supabase
         .from('v_matrix_layer_statistics')
         .select('*')
-        .eq('matrix_root_wallet', matrixRootWallet.toLowerCase())
+        .ilike('matrix_root_wallet', matrixRootWallet)
         .order('layer');
 
       if (error) {
@@ -317,7 +317,7 @@ export function useReferralStats(memberWallet?: string) {
       const { data, error } = await supabase
         .from('v_referral_statistics')
         .select('*')
-        .eq('member_wallet', memberWallet.toLowerCase())
+        .ilike('member_wallet', memberWallet)
         .maybeSingle();
 
       if (error) {
@@ -370,7 +370,7 @@ export function useMatrixGlobalSearch(
       const { data, error } = await supabase
         .from('v_matrix_tree_19_layers')
         .select('*')
-        .eq('matrix_root_wallet', matrixRootWallet.toLowerCase())
+        .ilike('matrix_root_wallet', matrixRootWallet)
         .or(`member_username.ilike.%${query}%,member_wallet.ilike.%${query}%`)
         .order('layer')
         .order('activation_sequence');
