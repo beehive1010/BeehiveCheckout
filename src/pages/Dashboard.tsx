@@ -568,13 +568,20 @@ export default function Dashboard() {
                 </Badge>
               </div>
               <Button
-                onClick={() => setLocation('/membership')}
-                className={`w-full bg-gradient-to-r from-purple-500 to-violet-500 hover:from-purple-600 hover:to-violet-600 text-white font-bold shadow-lg hover:shadow-xl transition-all duration-300 ${
+                onClick={() => {
+                  toast({
+                    title: "Coming Soon",
+                    description: "Membership upgrade feature will be available soon. Stay tuned!",
+                    duration: 3000
+                  });
+                }}
+                disabled={true}
+                className={`w-full bg-gradient-to-r from-purple-500 to-violet-500 hover:from-purple-600 hover:to-violet-600 text-white font-bold shadow-lg hover:shadow-xl transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed ${
                   isMobile ? 'h-9 text-sm' : isDesktop ? 'h-12 text-base' : 'h-10 text-sm'
                 }`}
               >
                 <Crown className={`${isDesktop ? 'h-5 w-5' : 'h-4 w-4'} mr-2`} />
-                {t('dashboard.upgradeMembership')}
+                {t('dashboard.upgradeMembership')} - Coming Soon
               </Button>
             </CardContent>
           </Card>
