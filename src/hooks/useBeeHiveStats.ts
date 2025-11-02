@@ -104,92 +104,96 @@ export function useUserReferralStats() {
           console.log('✅ Team stats received:', teamStats);
         }
 
-      console.log(`📊 Team Statistics for ${walletAddress}:`, {
-        totalTeamMembers: teamStats?.total_team_members || 0,
-        activeMatrixMembers: teamStats?.active_matrix_members || 0,
-        maxReferralDepth: teamStats?.max_referral_depth || 0,
-        maxMatrixDepth: teamStats?.max_matrix_depth || 0,
-        beyondMatrix: teamStats?.beyond_matrix_members || 0
-      });
+        console.log(`📊 Team Statistics for ${walletAddress}:`, {
+          totalTeamMembers: teamStats?.total_team_members || 0,
+          activeMatrixMembers: teamStats?.active_matrix_members || 0,
+          maxReferralDepth: teamStats?.max_referral_depth || 0,
+          maxMatrixDepth: teamStats?.max_matrix_depth || 0,
+          beyondMatrix: teamStats?.beyond_matrix_members || 0
+        });
 
-      // Use v_referral_statistics for layer-by-layer breakdown
-      const { data: matrixOverview } = await supabase
-        .from('v_referral_statistics')
-        .select('*')
-        .ilike('member_wallet', walletAddress)
-        .maybeSingle();
+        // Use v_referral_statistics for layer-by-layer breakdown
+        const { data: matrixOverview } = await supabase
+          .from('v_referral_statistics')
+          .select('*')
+          .ilike('member_wallet', walletAddress)
+          .maybeSingle();
 
-      // Get member's current level and info using canonical view
-      const { data: memberData, error: memberError } = await supabase
-        .from('v_member_overview')
-        .select('current_level, wallet_address, is_active')
-        .ilike('wallet_address', walletAddress)
-        .maybeSingle();
+        // Get member's current level and info using canonical view
+        const { data: memberData, error: memberError } = await supabase
+          .from('v_member_overview')
+          .select('current_level, wallet_address, is_active')
+          .ilike('wallet_address', walletAddress)
+          .maybeSingle();
 
-      if (memberError) {
-        console.error('Error fetching member data:', memberError);
+        if (memberError) {
+          console.error('Error fetching member data:', memberError);
+        }
+
+        // Get reward statistics from canonical view
+        const { data: rewardOverview } = await supabase
+          .from('v_reward_overview')
+          .select('*')
+          .ilike('member_id', walletAddress)
+          .maybeSingle();
+
+        // Use rewards_stats_view for total earnings
+        const { data: rewardStats } = await supabase
+          .from('rewards_stats_view')
+          .select('*')
+          .ilike('wallet_address', walletAddress)
+          .maybeSingle();
+
+        const totalEarnings = rewardStats?.total_claimed || 0;
+
+        // Use v_direct_referrals for recent referrals
+        const { data: recentReferralsData } = await supabase
+          .from('v_direct_referrals')
+          .select('*')
+          .ilike('referrer_wallet', walletAddress)
+          .eq('referral_depth', 1) // Only direct referrals
+          .order('referral_date', { ascending: false })
+          .limit(5);
+
+        const recentReferrals = (recentReferralsData || []).map((referral) => ({
+          walletAddress: referral.referred_wallet,
+          joinedAt: referral.referral_date || new Date().toISOString(),
+          activated: (referral.referred_level || 0) > 0
+        }));
+
+        return {
+          directReferralCount: referralStats?.direct_referrals || 0,
+
+          // 总团队统计（所有层级，递归referrer树）
+          totalTeamCount: teamStats?.total_team_members || 0,
+          totalTeamActivated: teamStats?.active_matrix_members || 0, // 19层矩阵内激活人数
+
+          // 矩阵团队统计（19层矩阵内）
+          matrixStats: {
+            totalMembers: teamStats?.active_matrix_members || 0,       // 矩阵内总人数（19层）
+            activeMembers: teamStats?.active_matrix_members || 0,      // 矩阵内激活人数
+            deepestLayer: teamStats?.max_matrix_depth || 0,            // 最深层级
+            directReferrals: teamStats?.direct_referrals || 0,         // Layer 1直推
+            spilloverMembers: teamStats?.total_spillover || 0          // 滑落成员
+          },
+
+          totalReferrals: referralStats?.total_referrals || 0,
+          totalEarnings: totalEarnings.toString(),
+          monthlyEarnings: '0', // TODO: Calculate monthly earnings
+          pendingCommissions: (rewardOverview?.pending_cnt || 0).toString(),
+          nextPayout: rewardOverview?.next_expiring_at || 'TBD',
+          currentLevel: memberData?.current_level || 1,
+          memberActivated: memberData?.is_active || false,
+          matrixLevel: memberData?.current_level || 1,
+          positionIndex: 1,
+          levelsOwned: [memberData?.current_level || 1],
+          downlineMatrix: [], // TODO: Calculate downline matrix stats
+          recentReferrals
+        };
+      } catch (error) {
+        console.error('💥 Exception in useUserReferralStats:', error);
+        throw error;
       }
-
-      // Get reward statistics from canonical view
-      const { data: rewardOverview } = await supabase
-        .from('v_reward_overview')
-        .select('*')
-        .ilike('member_id', walletAddress)
-        .maybeSingle();
-
-      // Use rewards_stats_view for total earnings
-      const { data: rewardStats } = await supabase
-        .from('rewards_stats_view')
-        .select('*')
-        .ilike('wallet_address', walletAddress)
-        .maybeSingle();
-
-      const totalEarnings = rewardStats?.total_claimed || 0;
-
-      // Use v_direct_referrals for recent referrals
-      const { data: recentReferralsData } = await supabase
-        .from('v_direct_referrals')
-        .select('*')
-        .ilike('referrer_wallet', walletAddress)
-        .eq('referral_depth', 1) // Only direct referrals
-        .order('referral_date', { ascending: false })
-        .limit(5);
-
-      const recentReferrals = (recentReferralsData || []).map((referral) => ({
-        walletAddress: referral.referred_wallet,
-        joinedAt: referral.referral_date || new Date().toISOString(),
-        activated: (referral.referred_level || 0) > 0
-      }));
-
-      return {
-        directReferralCount: referralStats?.direct_referrals || 0,
-
-        // 总团队统计（所有层级，递归referrer树）
-        totalTeamCount: teamStats?.total_team_members || 0,
-        totalTeamActivated: teamStats?.active_matrix_members || 0, // 19层矩阵内激活人数
-
-        // 矩阵团队统计（19层矩阵内）
-        matrixStats: {
-          totalMembers: teamStats?.active_matrix_members || 0,       // 矩阵内总人数（19层）
-          activeMembers: teamStats?.active_matrix_members || 0,      // 矩阵内激活人数
-          deepestLayer: teamStats?.max_matrix_depth || 0,            // 最深层级
-          directReferrals: teamStats?.direct_referrals || 0,         // Layer 1直推
-          spilloverMembers: teamStats?.total_spillover || 0          // 滑落成员
-        },
-
-        totalReferrals: referralStats?.total_referrals || 0,
-        totalEarnings: totalEarnings.toString(),
-        monthlyEarnings: '0', // TODO: Calculate monthly earnings
-        pendingCommissions: (rewardOverview?.pending_cnt || 0).toString(),
-        nextPayout: rewardOverview?.next_expiring_at || 'TBD',
-        currentLevel: memberData?.current_level || 1,
-        memberActivated: memberData?.is_active || false,
-        matrixLevel: memberData?.current_level || 1,
-        positionIndex: 1,
-        levelsOwned: [memberData?.current_level || 1],
-        downlineMatrix: [], // TODO: Calculate downline matrix stats
-        recentReferrals
-      };
     },
     enabled: !!walletAddress,
     staleTime: 5000,
