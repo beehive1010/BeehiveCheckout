@@ -1,11 +1,13 @@
-import React, { createContext, useContext, useState, useEffect } from 'react';
+import React, { createContext, useContext, useState, useEffect, useRef } from 'react';
 import { supabase } from '../lib/supabase';
 import { useLocation } from 'wouter';
+import { useToast } from '../hooks/use-toast';
 
 interface AdminAuthContextType {
   isAdminAuthenticated: boolean;
   adminUser: any;
   isLoading: boolean;
+  isOnline: boolean;
   signInAdmin: (email: string, password: string) => Promise<void>;
   signOutAdmin: () => Promise<void>;
   hasPermission: (permission: string) => boolean;
@@ -18,8 +20,12 @@ const AdminAuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }
   const [isAdminAuthenticated, setIsAdminAuthenticated] = useState(false);
   const [adminUser, setAdminUser] = useState<any>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [isOnline, setIsOnline] = useState(navigator.onLine);
   const [location, setLocation] = useLocation();
   const [lastActivity, setLastActivity] = useState<number>(Date.now());
+  const { toast } = useToast();
+  const sessionExpiryWarningShown = useRef(false);
+  const broadcastChannel = useRef<BroadcastChannel | null>(null);
 
   // Check for existing admin session on mount
   useEffect(() => {
@@ -179,6 +185,117 @@ const AdminAuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }
 
     return () => subscription.unsubscribe();
   }, [location, setLocation]);
+
+  // Multi-tab session synchronization
+  useEffect(() => {
+    // Initialize BroadcastChannel for cross-tab communication
+    if (typeof BroadcastChannel !== 'undefined') {
+      broadcastChannel.current = new BroadcastChannel('admin_auth_channel');
+
+      broadcastChannel.current.onmessage = (event) => {
+        const { type, payload } = event.data;
+
+        switch (type) {
+          case 'ADMIN_SIGNED_OUT':
+            console.log('📢 Received sign out from another tab');
+            setIsAdminAuthenticated(false);
+            setAdminUser(null);
+            if (location.startsWith('/admin/') && location !== '/admin/login') {
+              setLocation('/admin/login');
+            }
+            break;
+
+          case 'ADMIN_SIGNED_IN':
+            console.log('📢 Received sign in from another tab');
+            setIsAdminAuthenticated(true);
+            setAdminUser(payload.adminUser);
+            break;
+
+          case 'SESSION_REFRESHED':
+            console.log('📢 Session refreshed in another tab');
+            // Reset expiry warning flag when session is refreshed
+            sessionExpiryWarningShown.current = false;
+            break;
+        }
+      };
+    }
+
+    return () => {
+      broadcastChannel.current?.close();
+    };
+  }, [location, setLocation]);
+
+  // Offline/Online state detection
+  useEffect(() => {
+    const handleOnline = () => {
+      setIsOnline(true);
+      console.log('🌐 Back online');
+      toast({
+        title: '已恢复连接',
+        description: '网络连接已恢复',
+      });
+    };
+
+    const handleOffline = () => {
+      setIsOnline(false);
+      console.log('📴 Offline');
+      toast({
+        title: '网络断开',
+        description: '请检查您的网络连接',
+        variant: 'destructive',
+      });
+    };
+
+    window.addEventListener('online', handleOnline);
+    window.addEventListener('offline', handleOffline);
+
+    return () => {
+      window.removeEventListener('online', handleOnline);
+      window.removeEventListener('offline', handleOffline);
+    };
+  }, [toast]);
+
+  // Session expiry warning (5 minutes before expiry)
+  useEffect(() => {
+    if (!isAdminAuthenticated) {
+      sessionExpiryWarningShown.current = false;
+      return;
+    }
+
+    const checkSessionExpiry = async () => {
+      try {
+        const { data: { session } } = await supabase.auth.getSession();
+
+        if (session?.expires_at) {
+          const expiresAt = session.expires_at * 1000; // Convert to milliseconds
+          const now = Date.now();
+          const timeUntilExpiry = expiresAt - now;
+          const fiveMinutes = 5 * 60 * 1000;
+
+          // Show warning 5 minutes before expiry (only once)
+          if (timeUntilExpiry <= fiveMinutes && timeUntilExpiry > 0 && !sessionExpiryWarningShown.current) {
+            sessionExpiryWarningShown.current = true;
+            console.log('⚠️ Session expiring soon, showing warning');
+
+            toast({
+              title: '会话即将过期',
+              description: '您的登录会话将在 5 分钟后过期，请保存您的工作。',
+              variant: 'destructive',
+              duration: 10000,
+            });
+          }
+        }
+      } catch (error) {
+        console.error('Error checking session expiry:', error);
+      }
+    };
+
+    // Check every minute
+    const interval = setInterval(checkSessionExpiry, 60 * 1000);
+    checkSessionExpiry(); // Check immediately
+
+    return () => clearInterval(interval);
+  }, [isAdminAuthenticated, toast]);
 
   // Monitor user activity to keep session alive
   useEffect(() => {
