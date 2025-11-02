@@ -125,6 +125,7 @@ export default function AdminUsers() {
   const { hasRole, adminUser } = useAdminAuth();
   const { toast } = useToast();
   const queryClient = useQueryClient();
+  const isMobile = useIsMobile();
   const [searchTerm, setSearchTerm] = useState('');
   const [roleFilter, setRoleFilter] = useState('all');
   const [statusFilter, setStatusFilter] = useState('all');
@@ -505,31 +506,35 @@ export default function AdminUsers() {
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div className="flex justify-between items-center">
+      <div className={`flex ${isMobile ? 'flex-col space-y-4' : 'justify-between items-center'}`}>
         <div>
-          <h1 className="text-3xl font-bold text-foreground">Admin Users</h1>
-          <p className="text-muted-foreground">Manage administrator accounts and permissions</p>
+          <h1 className={`font-bold text-foreground ${isMobile ? 'text-2xl' : 'text-3xl'}`}>Admin Users</h1>
+          <p className={`text-muted-foreground ${isMobile ? 'text-sm' : ''}`}>Manage administrator accounts and permissions</p>
         </div>
         <Dialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen}>
           <DialogTrigger asChild>
-            <Button onClick={resetFormData} className="bg-yellow-600 hover:bg-yellow-700">
+            <Button onClick={resetFormData} className={`bg-yellow-600 hover:bg-yellow-700 ${isMobile ? 'w-full' : ''}`}>
               <Plus className="h-4 w-4 mr-2" />
               Create Admin User
             </Button>
           </DialogTrigger>
-          <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
-            <DialogHeader>
-              <DialogTitle>Create New Admin User</DialogTitle>
-              <DialogDescription>
+          <DialogContent className={isMobile ? 'max-w-[95vw] max-h-[90vh] overflow-y-auto p-4' : 'max-w-2xl max-h-[90vh] overflow-y-auto'}>
+            <DialogHeader className={isMobile ? 'pb-3' : ''}>
+              <DialogTitle className={isMobile ? 'text-lg' : ''}>Create New Admin User</DialogTitle>
+              <DialogDescription className={isMobile ? 'text-sm' : ''}>
                 Set up a new administrator account with appropriate permissions.
               </DialogDescription>
             </DialogHeader>
-            
+
             <Tabs defaultValue="basic" className="w-full">
-              <TabsList className="grid w-full grid-cols-3">
-                <TabsTrigger value="basic">Basic Info</TabsTrigger>
-                <TabsTrigger value="role">Role & Permissions</TabsTrigger>
-                <TabsTrigger value="security">Security</TabsTrigger>
+              <TabsList className={`grid w-full grid-cols-3 ${isMobile ? 'h-9' : ''}`}>
+                <TabsTrigger value="basic" className={isMobile ? 'text-xs' : ''}>
+                  {isMobile ? 'Basic' : 'Basic Info'}
+                </TabsTrigger>
+                <TabsTrigger value="role" className={isMobile ? 'text-xs' : ''}>
+                  {isMobile ? 'Role' : 'Role & Permissions'}
+                </TabsTrigger>
+                <TabsTrigger value="security" className={isMobile ? 'text-xs' : ''}>Security</TabsTrigger>
               </TabsList>
               
               <TabsContent value="basic" className="space-y-4">
@@ -593,8 +598,8 @@ export default function AdminUsers() {
                   </div>
                   
                   <div>
-                    <Label>Custom Permissions</Label>
-                    <div className="mt-2 space-y-3">
+                    <Label className={isMobile ? 'text-sm' : ''}>Custom Permissions</Label>
+                    <div className={`mt-2 ${isMobile ? 'space-y-2' : 'space-y-3'}`}>
                       {Object.entries(
                         AVAILABLE_PERMISSIONS.reduce((acc, permission) => {
                           if (!acc[permission.category]) {
@@ -604,9 +609,9 @@ export default function AdminUsers() {
                           return acc;
                         }, {} as Record<string, typeof AVAILABLE_PERMISSIONS>)
                       ).map(([category, permissions]) => (
-                        <div key={category} className="space-y-2">
-                          <Label className="text-sm font-medium">{category}</Label>
-                          <div className="grid grid-cols-2 gap-2">
+                        <div key={category} className={isMobile ? 'space-y-1.5' : 'space-y-2'}>
+                          <Label className={`font-medium ${isMobile ? 'text-xs' : 'text-sm'}`}>{category}</Label>
+                          <div className={`grid gap-2 ${isMobile ? 'grid-cols-1' : 'grid-cols-2'}`}>
                             {permissions.map((permission) => (
                               <div key={permission.id} className="flex items-center space-x-2">
                                 <Checkbox
@@ -615,10 +620,11 @@ export default function AdminUsers() {
                                   onCheckedChange={(checked) =>
                                     handlePermissionToggle(permission.id, checked as boolean)
                                   }
+                                  className={isMobile ? 'h-4 w-4' : ''}
                                 />
                                 <Label
                                   htmlFor={permission.id}
-                                  className="text-sm font-normal"
+                                  className={`font-normal ${isMobile ? 'text-xs' : 'text-sm'}`}
                                 >
                                   {permission.name}
                                 </Label>
@@ -741,65 +747,65 @@ export default function AdminUsers() {
       )}
 
       {/* Statistics Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+      <div className={`grid gap-4 ${isMobile ? 'grid-cols-2' : 'md:grid-cols-4'}`}>
         <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Total Admins</CardTitle>
-            <Users className="h-4 w-4 text-muted-foreground" />
+          <CardHeader className={`flex flex-row items-center justify-between space-y-0 ${isMobile ? 'pb-1 p-4' : 'pb-2'}`}>
+            <CardTitle className={`font-medium ${isMobile ? 'text-xs' : 'text-sm'}`}>Total Admins</CardTitle>
+            <Users className={`text-muted-foreground ${isMobile ? 'h-3 w-3' : 'h-4 w-4'}`} />
           </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{stats.total}</div>
+          <CardContent className={isMobile ? 'p-4 pt-0' : ''}>
+            <div className={`font-bold ${isMobile ? 'text-xl' : 'text-2xl'}`}>{stats.total}</div>
           </CardContent>
         </Card>
         <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Active</CardTitle>
-            <UserCheck className="h-4 w-4 text-green-600" />
+          <CardHeader className={`flex flex-row items-center justify-between space-y-0 ${isMobile ? 'pb-1 p-4' : 'pb-2'}`}>
+            <CardTitle className={`font-medium ${isMobile ? 'text-xs' : 'text-sm'}`}>Active</CardTitle>
+            <UserCheck className={`text-green-600 ${isMobile ? 'h-3 w-3' : 'h-4 w-4'}`} />
           </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold text-green-600">{stats.active}</div>
+          <CardContent className={isMobile ? 'p-4 pt-0' : ''}>
+            <div className={`font-bold text-green-600 ${isMobile ? 'text-xl' : 'text-2xl'}`}>{stats.active}</div>
           </CardContent>
         </Card>
         <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Inactive</CardTitle>
-            <UserX className="h-4 w-4 text-orange-600" />
+          <CardHeader className={`flex flex-row items-center justify-between space-y-0 ${isMobile ? 'pb-1 p-4' : 'pb-2'}`}>
+            <CardTitle className={`font-medium ${isMobile ? 'text-xs' : 'text-sm'}`}>Inactive</CardTitle>
+            <UserX className={`text-orange-600 ${isMobile ? 'h-3 w-3' : 'h-4 w-4'}`} />
           </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold text-orange-600">{stats.inactive}</div>
+          <CardContent className={isMobile ? 'p-4 pt-0' : ''}>
+            <div className={`font-bold text-orange-600 ${isMobile ? 'text-xl' : 'text-2xl'}`}>{stats.inactive}</div>
           </CardContent>
         </Card>
         <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Super Admins</CardTitle>
-            <Crown className="h-4 w-4 text-red-600" />
+          <CardHeader className={`flex flex-row items-center justify-between space-y-0 ${isMobile ? 'pb-1 p-4' : 'pb-2'}`}>
+            <CardTitle className={`font-medium ${isMobile ? 'text-xs' : 'text-sm'}`}>Super Admins</CardTitle>
+            <Crown className={`text-red-600 ${isMobile ? 'h-3 w-3' : 'h-4 w-4'}`} />
           </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold text-red-600">{stats.superAdmins}</div>
+          <CardContent className={isMobile ? 'p-4 pt-0' : ''}>
+            <div className={`font-bold text-red-600 ${isMobile ? 'text-xl' : 'text-2xl'}`}>{stats.superAdmins}</div>
           </CardContent>
         </Card>
       </div>
 
       {/* Filters */}
       <Card>
-        <CardHeader>
-          <CardTitle>Filters</CardTitle>
+        <CardHeader className={isMobile ? 'p-4 pb-3' : ''}>
+          <CardTitle className={isMobile ? 'text-lg' : ''}>Filters</CardTitle>
         </CardHeader>
-        <CardContent>
-          <div className="flex flex-col sm:flex-row gap-4">
+        <CardContent className={isMobile ? 'p-4 pt-0' : ''}>
+          <div className={`flex flex-col ${isMobile ? 'space-y-3' : 'sm:flex-row gap-4'}`}>
             <div className="flex-1">
               <div className="relative">
-                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
+                <Search className={`absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground ${isMobile ? 'h-3 w-3' : 'h-4 w-4'}`} />
                 <Input
                   placeholder="Search users..."
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
-                  className="pl-10"
+                  className={`pl-10 ${isMobile ? 'text-sm h-10' : ''}`}
                 />
               </div>
             </div>
             <Select value={roleFilter} onValueChange={setRoleFilter}>
-              <SelectTrigger className="w-[180px]">
+              <SelectTrigger className={isMobile ? 'w-full text-sm h-10' : 'w-[180px]'}>
                 <SelectValue placeholder="Filter by role" />
               </SelectTrigger>
               <SelectContent>
@@ -811,7 +817,7 @@ export default function AdminUsers() {
               </SelectContent>
             </Select>
             <Select value={statusFilter} onValueChange={setStatusFilter}>
-              <SelectTrigger className="w-[180px]">
+              <SelectTrigger className={isMobile ? 'w-full text-sm h-10' : 'w-[180px]'}>
                 <SelectValue placeholder="Filter by status" />
               </SelectTrigger>
               <SelectContent>
@@ -827,70 +833,76 @@ export default function AdminUsers() {
 
       {/* Admin Users List */}
       <Card>
-        <CardHeader>
-          <CardTitle>Admin Accounts</CardTitle>
-          <CardDescription>
+        <CardHeader className={isMobile ? 'p-4 pb-3' : ''}>
+          <CardTitle className={isMobile ? 'text-lg' : ''}>Admin Accounts</CardTitle>
+          <CardDescription className={isMobile ? 'text-sm' : ''}>
             Manage administrator accounts and their permissions
           </CardDescription>
         </CardHeader>
-        <CardContent>
-          <div className="space-y-4">
+        <CardContent className={isMobile ? 'p-4 pt-0' : ''}>
+          <div className={isMobile ? 'space-y-3' : 'space-y-4'}>
             {adminUsers.map((user: AdminUser) => (
-              <div key={user.id} className="flex items-center justify-between p-4 border rounded-lg">
-                <div className="flex items-center space-x-4">
-                  <div className="w-10 h-10 rounded-full bg-gradient-to-r from-yellow-400 to-yellow-600 flex items-center justify-center text-white font-semibold">
+              <div
+                key={user.id}
+                className={`border rounded-lg ${isMobile ? 'p-3' : 'p-4'} ${isMobile ? 'flex flex-col space-y-3' : 'flex items-center justify-between'}`}
+              >
+                <div className={`flex ${isMobile ? 'items-start' : 'items-center'} space-x-3`}>
+                  <div className={`rounded-full bg-gradient-to-r from-yellow-400 to-yellow-600 flex items-center justify-center text-white font-semibold flex-shrink-0 ${isMobile ? 'w-8 h-8 text-sm' : 'w-10 h-10'}`}>
                     {user.username.charAt(0).toUpperCase()}
                   </div>
-                  <div>
-                    <div className="flex items-center space-x-2">
-                      <h3 className="font-semibold">{user.fullName || user.username}</h3>
-                      <Badge className={getRoleBadgeColor(user.role)}>
-                        {getRoleIcon(user.role)}
-                        <span className="ml-1">{user.role.replace('_', ' ')}</span>
-                      </Badge>
-                      {getStatusBadge(user.status)}
+                  <div className="flex-1 min-w-0">
+                    <div className={`flex ${isMobile ? 'flex-col space-y-1.5' : 'items-center space-x-2'}`}>
+                      <h3 className={`font-semibold ${isMobile ? 'text-sm' : ''} truncate`}>{user.fullName || user.username}</h3>
+                      <div className="flex items-center space-x-1.5 flex-wrap">
+                        <Badge className={`${getRoleBadgeColor(user.role)} ${isMobile ? 'text-xs' : ''}`}>
+                          {getRoleIcon(user.role)}
+                          <span className="ml-1">{user.role.replace('_', ' ')}</span>
+                        </Badge>
+                        {getStatusBadge(user.status)}
+                      </div>
                     </div>
-                    <div className="flex items-center space-x-4 text-sm text-muted-foreground">
+                    <div className={`flex ${isMobile ? 'flex-col space-y-1' : 'items-center space-x-4'} text-muted-foreground mt-1 ${isMobile ? 'text-xs' : 'text-sm'}`}>
                       <span className="flex items-center">
-                        <Mail className="h-3 w-3 mr-1" />
-                        {user.email}
+                        <Mail className={`mr-1 ${isMobile ? 'h-3 w-3' : 'h-3 w-3'}`} />
+                        <span className="truncate">{user.email}</span>
                       </span>
                       {user.lastLogin && (
                         <span className="flex items-center">
-                          <Calendar className="h-3 w-3 mr-1" />
+                          <Calendar className={`mr-1 ${isMobile ? 'h-3 w-3' : 'h-3 w-3'}`} />
                           Last login: {new Date(user.lastLogin).toLocaleDateString()}
                         </span>
                       )}
                     </div>
                     {user.notes && (
-                      <p className="text-xs text-muted-foreground mt-1">{user.notes}</p>
+                      <p className={`text-muted-foreground mt-1 ${isMobile ? 'text-xs' : 'text-xs'}`}>{user.notes}</p>
                     )}
                   </div>
                 </div>
-                <div className="flex items-center space-x-2">
+                <div className={`flex items-center ${isMobile ? 'justify-end space-x-2' : 'space-x-2'}`}>
                   <Button
                     variant="outline"
-                    size="sm"
+                    size={isMobile ? 'sm' : 'sm'}
                     onClick={() => openEditDialog(user)}
+                    className={isMobile ? 'h-8 px-3' : ''}
                   >
-                    <Edit className="h-4 w-4" />
+                    <Edit className={isMobile ? 'h-3 w-3' : 'h-4 w-4'} />
                   </Button>
                   {user.role !== 'super_admin' || stats.superAdmins > 1 ? (
                     <Button
                       variant="outline"
-                      size="sm"
+                      size={isMobile ? 'sm' : 'sm'}
                       onClick={() => handleDeleteUser(user.id)}
-                      className="text-red-600 hover:text-red-700"
+                      className={`text-red-600 hover:text-red-700 ${isMobile ? 'h-8 px-3' : ''}`}
                     >
-                      <Trash2 className="h-4 w-4" />
+                      <Trash2 className={isMobile ? 'h-3 w-3' : 'h-4 w-4'} />
                     </Button>
                   ) : null}
                 </div>
               </div>
             ))}
-            
+
             {adminUsers.length === 0 && (
-              <div className="text-center py-8 text-muted-foreground">
+              <div className={`text-center text-muted-foreground ${isMobile ? 'py-6 text-sm' : 'py-8'}`}>
                 No admin users found matching your criteria.
               </div>
             )}
@@ -900,19 +912,23 @@ export default function AdminUsers() {
 
       {/* Edit Dialog */}
       <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
-        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
-          <DialogHeader>
-            <DialogTitle>Edit Admin User</DialogTitle>
-            <DialogDescription>
+        <DialogContent className={isMobile ? 'max-w-[95vw] max-h-[90vh] overflow-y-auto p-4' : 'max-w-2xl max-h-[90vh] overflow-y-auto'}>
+          <DialogHeader className={isMobile ? 'pb-3' : ''}>
+            <DialogTitle className={isMobile ? 'text-lg' : ''}>Edit Admin User</DialogTitle>
+            <DialogDescription className={isMobile ? 'text-sm' : ''}>
               Update administrator account information and permissions.
             </DialogDescription>
           </DialogHeader>
-          
+
           <Tabs defaultValue="basic" className="w-full">
-            <TabsList className="grid w-full grid-cols-3">
-              <TabsTrigger value="basic">Basic Info</TabsTrigger>
-              <TabsTrigger value="role">Role & Permissions</TabsTrigger>
-              <TabsTrigger value="security">Security</TabsTrigger>
+            <TabsList className={`grid w-full grid-cols-3 ${isMobile ? 'h-9' : ''}`}>
+              <TabsTrigger value="basic" className={isMobile ? 'text-xs' : ''}>
+                {isMobile ? 'Basic' : 'Basic Info'}
+              </TabsTrigger>
+              <TabsTrigger value="role" className={isMobile ? 'text-xs' : ''}>
+                {isMobile ? 'Role' : 'Role & Permissions'}
+              </TabsTrigger>
+              <TabsTrigger value="security" className={isMobile ? 'text-xs' : ''}>Security</TabsTrigger>
             </TabsList>
             
             <TabsContent value="basic" className="space-y-4">
