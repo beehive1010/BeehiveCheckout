@@ -1,14 +1,17 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useLocation } from 'wouter';
 import { Button } from '../../components/ui/button';
 import { Input } from '../../components/ui/input';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../../components/ui/card';
 import { Label } from '../../components/ui/label';
+import { Checkbox } from '../../components/ui/checkbox';
 import { useToast } from '../../hooks/use-toast';
 import { useAdminAuthContext } from '../../contexts/AdminAuthContext';
 import { motion } from 'framer-motion';
 import HexagonIcon from '../../components/shared/HexagonIcon';
 import { Shield, Lock, User } from 'lucide-react';
+
+const REMEMBER_ME_KEY = 'beehive_admin_remember';
 
 export default function AdminLogin() {
   const [, setLocation] = useLocation();
@@ -18,7 +21,25 @@ export default function AdminLogin() {
     email: '',
     password: '',
   });
+  const [rememberMe, setRememberMe] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+
+  // Load saved credentials on component mount
+  useEffect(() => {
+    try {
+      const saved = localStorage.getItem(REMEMBER_ME_KEY);
+      if (saved) {
+        const { email, password } = JSON.parse(saved);
+        // Simple base64 decode for password
+        const decodedPassword = atob(password);
+        setCredentials({ email, password: decodedPassword });
+        setRememberMe(true);
+      }
+    } catch (error) {
+      console.error('Error loading saved credentials:', error);
+      localStorage.removeItem(REMEMBER_ME_KEY);
+    }
+  }, []);
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -27,6 +48,26 @@ export default function AdminLogin() {
     try {
       // Use AdminAuthContext signInAdmin method
       await signInAdmin(credentials.email, credentials.password);
+
+      // Save credentials if "Remember Me" is checked
+      if (rememberMe) {
+        try {
+          // Simple base64 encode for password (not secure encryption, just obfuscation)
+          const encodedPassword = btoa(credentials.password);
+          localStorage.setItem(
+            REMEMBER_ME_KEY,
+            JSON.stringify({
+              email: credentials.email,
+              password: encodedPassword,
+            })
+          );
+        } catch (error) {
+          console.error('Error saving credentials:', error);
+        }
+      } else {
+        // Clear saved credentials if not checked
+        localStorage.removeItem(REMEMBER_ME_KEY);
+      }
 
       toast({
         title: 'Login Successful',
@@ -111,8 +152,24 @@ export default function AdminLogin() {
                     data-testid="input-password"
                   />
                 </div>
+
+                {/* Remember Me Checkbox */}
+                <div className="flex items-center space-x-2">
+                  <Checkbox
+                    id="remember-me"
+                    checked={rememberMe}
+                    onCheckedChange={(checked) => setRememberMe(checked as boolean)}
+                    className="border-honey/50 data-[state=checked]:bg-honey data-[state=checked]:text-black"
+                  />
+                  <Label
+                    htmlFor="remember-me"
+                    className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 cursor-pointer"
+                  >
+                    Remember my credentials
+                  </Label>
+                </div>
               </div>
-              
+
               <Button
                 type="submit"
                 className="w-full bg-honey hover:bg-honey/90 text-black font-semibold"
