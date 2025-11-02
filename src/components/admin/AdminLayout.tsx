@@ -218,21 +218,26 @@ export function AdminLayout({ children }: AdminLayoutProps) {
               return (
                 <button
                   key={item.href}
-                  onClick={() => {
+                  type="button"
+                  onClick={(e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    console.log('🔘 Menu item clicked:', item.title, item.href);
                     setLocation(item.href);
                     if (isMobile) setSidebarOpen(false);
                   }}
                   className={cn(
                     'w-full flex items-center space-x-3 px-4 py-3 rounded-lg transition-all duration-200',
-                    'touch-manipulation min-h-[44px]',
+                    'touch-manipulation min-h-[44px] cursor-pointer',
+                    'relative z-10 pointer-events-auto',
                     'active:scale-95 active:opacity-80',
                     isActive
                       ? 'bg-honey text-black font-medium shadow-sm'
                       : 'text-muted-foreground hover:bg-muted hover:text-foreground hover:shadow-sm'
                   )}
                 >
-                  <Icon className="h-5 w-5 flex-shrink-0" />
-                  <span className="text-sm font-medium">{item.title}</span>
+                  <Icon className="h-5 w-5 flex-shrink-0 pointer-events-none" />
+                  <span className="text-sm font-medium pointer-events-none">{item.title}</span>
                 </button>
               );
             })}
@@ -261,12 +266,18 @@ export function AdminLayout({ children }: AdminLayoutProps) {
       {/* Logout */}
       <div className="p-4 border-t border-border">
         <Button
+          type="button"
           variant="ghost"
-          className="w-full justify-start text-red-600 hover:text-red-700 hover:bg-red-50 dark:hover:bg-red-950/20 touch-manipulation min-h-[44px] active:scale-95"
-          onClick={handleLogout}
+          className="w-full justify-start text-red-600 hover:text-red-700 hover:bg-red-50 dark:hover:bg-red-950/20 touch-manipulation min-h-[44px] active:scale-95 cursor-pointer relative z-10 pointer-events-auto"
+          onClick={(e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            console.log('🔘 Logout clicked');
+            handleLogout();
+          }}
         >
-          <LogOut className="h-5 w-5 mr-3 flex-shrink-0" />
-          <span className="font-medium">Logout</span>
+          <LogOut className="h-5 w-5 mr-3 flex-shrink-0 pointer-events-none" />
+          <span className="font-medium pointer-events-none">Logout</span>
         </Button>
       </div>
     </div>
@@ -302,7 +313,7 @@ export function AdminLayout({ children }: AdminLayoutProps) {
           <>
             {sidebarOpen && (
               <div
-                className="fixed inset-0 z-40 bg-black/60 backdrop-blur-sm touch-manipulation"
+                className="fixed inset-0 z-40 bg-black/60 backdrop-blur-sm"
                 onClick={() => setSidebarOpen(false)}
                 role="button"
                 aria-label="Close menu overlay"
@@ -316,7 +327,7 @@ export function AdminLayout({ children }: AdminLayoutProps) {
             )}
             <aside
               className={cn(
-                'fixed top-0 left-0 z-[60] h-full w-72 max-w-[80vw] bg-background border-r border-border',
+                'fixed top-0 left-0 z-[100] h-full w-72 max-w-[80vw] bg-background border-r border-border',
                 'transition-transform duration-300 ease-in-out shadow-2xl',
                 sidebarOpen ? 'translate-x-0' : '-translate-x-full'
               )}
