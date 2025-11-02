@@ -72,7 +72,7 @@ const navigationItems: NavItem[] = [
     href: '/admin/matrix',
     icon: TrendingUp,
     permission: 'matrix.read',
-    dbTables: ['matrix_referrals', 'matrix_spillover_slots'],
+    dbTables: ['members'], // ✅ Updated: matrix_referrals no longer exists, using members table
   },
   {
     title: 'Rewards',

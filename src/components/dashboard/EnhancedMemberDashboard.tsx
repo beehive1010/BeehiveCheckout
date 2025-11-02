@@ -129,24 +129,29 @@ export function EnhancedMemberDashboard({ className = "" }: EnhancedMemberDashbo
     enabled: !!walletAddress && activeTab === 'team',
     queryFn: async () => {
       const { data, error } = await supabase
-        .from('matrix_referrals_tree_view')
+        .from('members')
         .select(`
-          member_wallet,
+          wallet_address,
           matrix_root_wallet,
-          matrix_layer,
-          matrix_position,
-          referral_type,
-          placed_at
+          layer_level,
+          position,
+          parent_wallet,
+          referrer_wallet,
+          activation_time
         `)
         .eq('matrix_root_wallet', walletAddress!)
-        .lte('matrix_layer', 3)
-        .order('matrix_layer');
+        .lte('layer_level', 3)
+        .order('layer_level');
 
       if (error) throw error;
-      
+
       // Group by root for compatibility with existing UI
       const groupedData = data?.reduce((acc: any, item: any) => {
         const key = item.matrix_root_wallet;
+        const referralType = item.parent_wallet?.toLowerCase() === item.referrer_wallet?.toLowerCase()
+          ? 'direct'
+          : 'spillover';
+
         if (!acc[key]) {
           acc[key] = {
             wallet_address: key,
@@ -157,9 +162,14 @@ export function EnhancedMemberDashboard({ className = "" }: EnhancedMemberDashbo
           };
         }
         acc[key].members.push({
-          ...item,
-          layer: item.matrix_layer,
-          position: item.matrix_position
+          member_wallet: item.wallet_address,
+          matrix_root_wallet: item.matrix_root_wallet,
+          matrix_layer: item.layer_level,
+          matrix_position: item.position,
+          referral_type: referralType,
+          placed_at: item.activation_time,
+          layer: item.layer_level,
+          position: item.position
         });
         acc[key].total_downline++;
         return acc;

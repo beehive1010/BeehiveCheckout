@@ -47,19 +47,20 @@ export default function ReferralStatsCard({ className, onViewMatrix }: ReferralS
             if (error) throw error;
             return { data };
           }),
-        // Get team members from matrix_referrals_tree_view (now shows actual placement)
+        // ✅ Get team members from members table (shows actual placement)
         supabase
-          .from('matrix_referrals_tree_view')
+          .from('members')
           .select(`
-            member_wallet,
+            wallet_address,
             matrix_root_wallet,
-            matrix_layer,
-            matrix_position,
-            placed_at,
-            referral_type
+            layer_level,
+            position,
+            parent_wallet,
+            referrer_wallet,
+            activation_time
           `)
           .eq('matrix_root_wallet', walletAddress)
-          .order('placed_at', { ascending: false })
+          .order('activation_time', { ascending: false })
           .limit(10)
           .then(({ data, error }) => {
             if (error) throw error;
@@ -80,7 +81,7 @@ export default function ReferralStatsCard({ className, onViewMatrix }: ReferralS
         statsData = matrixStatsResult.value.data;
       }
 
-      // Extract downline data from matrix_referrals_tree_view
+      // ✅ Extract downline data from members table
       let downlineData: any[] = [];
       if (matrixDownlineResult.status === 'fulfilled' && matrixDownlineResult.value.data) {
         downlineData = matrixDownlineResult.value.data;
@@ -152,10 +153,10 @@ export default function ReferralStatsCard({ className, onViewMatrix }: ReferralS
         });
       }
 
-      // Process downline referrals from matrix_referrals_tree_view
+      // ✅ Process downline referrals from members table
       if (downlineData && downlineData.length > 0) {
         // Get additional user info for display names
-        const memberWallets = downlineData.map(d => d.member_wallet).filter(Boolean);
+        const memberWallets = downlineData.map(d => d.wallet_address).filter(Boolean);
         const { data: usersInfo } = await supabase
           .from('users')
           .select('wallet_address, username')
@@ -164,15 +165,19 @@ export default function ReferralStatsCard({ className, onViewMatrix }: ReferralS
         const usersMap = new Map(usersInfo?.map(u => [u.wallet_address, u]) || []);
 
         setReferrals(downlineData.map((member: any) => {
-          const userInfo = usersMap.get(member.member_wallet);
+          const userInfo = usersMap.get(member.wallet_address);
+          const referralType = member.parent_wallet?.toLowerCase() === member.referrer_wallet?.toLowerCase()
+            ? 'direct'
+            : 'spillover';
+
           return {
-            member_wallet: member.member_wallet,
-            member_name: userInfo?.username || `User${member.member_wallet?.slice(-4) || ''}`,
-            layer: member.matrix_layer || 1,
-            position: member.matrix_position,
-            placement_type: member.referral_type === 'direct' ? 'direct' : 'spillover',
-            placed_at: member.placed_at,
-            is_active: true, // Assume ActiveMember if in tree
+            member_wallet: member.wallet_address,
+            member_name: userInfo?.username || `User${member.wallet_address?.slice(-4) || ''}`,
+            layer: member.layer_level || 1,
+            position: member.position,
+            placement_type: referralType,
+            placed_at: member.activation_time,
+            is_active: true, // Assume active if in tree
             member_level: 1 // Default level
           };
         }));

@@ -10,12 +10,12 @@ export function useUserMatrixRoot(userWallet: string) {
 
       console.log('🔍 Getting matrix root for user:', userWallet);
 
-      // 查询用户在哪个矩阵中（查找 member_wallet = userWallet 的记录）
+      // ✅ 查询用户在members表中的记录（使用新架构）
       const { data, error } = await supabase
-        .from('matrix_referrals')
-        .select('matrix_root_wallet, layer, parent_wallet, position')
-        .eq('member_wallet', userWallet)
-        .order('layer', { ascending: true })
+        .from('members')
+        .select('matrix_root_wallet, layer_level, parent_wallet, position')
+        .eq('wallet_address', userWallet)
+        .order('layer_level', { ascending: true })
         .limit(1);
 
       if (error) {
@@ -37,7 +37,7 @@ export function useUserMatrixRoot(userWallet: string) {
 
       return {
         systemMatrixRoot: data[0].matrix_root_wallet,
-        userLayer: data[0].layer,
+        userLayer: data[0].layer_level,
         userParent: data[0].parent_wallet,
         userPosition: data[0].position,
         isMatrixRoot: false

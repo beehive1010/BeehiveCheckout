@@ -112,20 +112,20 @@ export function AdminMatrixTreeVisualization({
     try {
       console.log(`📊 Loading children for: ${parentWallet} (root: ${matrixRoot})`);
 
-      // 查询 matrix_referrals 表获取该节点的3个子位置
+      // ✅ 查询 members 表获取该节点的3个子位置
       const { data: childrenData, error } = await supabase
-        .from('matrix_referrals')
+        .from('members')
         .select(`
-          member_wallet,
+          wallet_address,
           parent_wallet,
-          slot,
-          layer,
-          referral_type,
+          referrer_wallet,
+          position,
+          layer_level,
           activation_time
         `)
         .eq('matrix_root_wallet', matrixRoot)
         .eq('parent_wallet', parentWallet)
-        .order('slot', { ascending: true });
+        .order('position', { ascending: true });
 
       if (error) {
         console.error('Error loading children:', error);
@@ -137,31 +137,23 @@ export function AdminMatrixTreeVisualization({
         return {};
       }
 
-      // 获取子节点的会员详细信息
-      const childWallets = childrenData.map(c => c.member_wallet);
-      const { data: membersData, error: membersError } = await supabase
-        .from('members')
-        .select(`
-          wallet_address,
-          current_level,
-          activation_sequence,
-          users!inner(username)
-        `)
+      // ✅ 获取子节点的用户详细信息
+      const childWallets = childrenData.map(c => c.wallet_address);
+      const { data: usersData, error: usersError } = await supabase
+        .from('users')
+        .select('wallet_address, username')
         .in('wallet_address', childWallets);
 
-      if (membersError) {
-        console.error('Error loading member details:', membersError);
-        return {};
+      if (usersError) {
+        console.error('Error loading user details:', usersError);
       }
 
-      // 构建会员详情映射
-      const membersMap = new Map(
-        membersData?.map(m => [
-          m.wallet_address,
+      // 构建用户详情映射
+      const usersMap = new Map(
+        usersData?.map(u => [
+          u.wallet_address,
           {
-            username: (m.users as any)?.username || 'Unknown',
-            level: m.current_level,
-            activationSequence: m.activation_sequence
+            username: u.username || 'Unknown'
           }
         ]) || []
       );
@@ -170,19 +162,21 @@ export function AdminMatrixTreeVisualization({
       const children: { L?: MatrixMember; M?: MatrixMember; R?: MatrixMember } = {};
 
       childrenData.forEach(child => {
-        const memberDetails = membersMap.get(child.member_wallet);
-        if (!memberDetails) return;
+        const userDetails = usersMap.get(child.wallet_address);
+        const referralType = child.parent_wallet?.toLowerCase() === child.referrer_wallet?.toLowerCase()
+          ? 'direct'
+          : 'spillover';
 
-        const position = child.slot as 'L' | 'M' | 'R';
+        const position = child.position as 'L' | 'M' | 'R';
         children[position] = {
-          wallet: child.member_wallet,
-          username: memberDetails.username,
-          level: memberDetails.level,
-          activationSequence: memberDetails.activationSequence,
+          wallet: child.wallet_address,
+          username: userDetails?.username || `User${child.wallet_address.slice(-4)}`,
+          level: 1, // Level info not directly available in this query
+          activationSequence: 0, // Sequence not needed here
           isActivated: true,
-          slot: child.slot,
-          layer: child.layer,
-          referralType: child.referral_type,
+          slot: child.position,
+          layer: child.layer_level,
+          referralType: referralType,
           activationTime: child.activation_time,
           parentWallet: child.parent_wallet
         };
@@ -223,12 +217,12 @@ export function AdminMatrixTreeVisualization({
         return;
       }
 
-      // 获取该会员的矩阵根
+      // ✅ 获取该会员的矩阵根（从members表）
       const { data: matrixRootData } = await supabase
-        .from('matrix_referrals')
+        .from('members')
         .select('matrix_root_wallet')
-        .eq('member_wallet', searchInput)
-        .order('layer', { ascending: true })
+        .eq('wallet_address', searchInput)
+        .order('layer_level', { ascending: true })
         .limit(1);
 
       const matrixRoot = matrixRootData?.[0]?.matrix_root_wallet || searchInput;
@@ -286,12 +280,12 @@ export function AdminMatrixTreeVisualization({
     // 如果未展开，展开它
     // 如果子节点未加载，先加载
     if (!nodeData.childrenLoaded) {
-      // 获取矩阵根
+      // ✅ 获取矩阵根（从members表）
       const { data: matrixRootData } = await supabase
-        .from('matrix_referrals')
+        .from('members')
         .select('matrix_root_wallet')
-        .eq('member_wallet', wallet)
-        .order('layer', { ascending: true })
+        .eq('wallet_address', wallet)
+        .order('layer_level', { ascending: true })
         .limit(1);
 
       const matrixRoot = matrixRootData?.[0]?.matrix_root_wallet || rootWallet || wallet;

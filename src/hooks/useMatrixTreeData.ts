@@ -224,36 +224,44 @@ export function useMatrixNodeChildren(
       console.log('🔍 Starting Supabase query...');
 
       // Query children directly by parent_wallet from members table
-      // Use ilike for case-insensitive matching
+      // Use direct fetch API to bypass Supabase JS client issues
       try {
-        console.log('🔧 Executing query: members table, parent_wallet =', parentWallet);
+        console.log('🔧 Executing DIRECT FETCH query: members table, parent_wallet =', parentWallet);
 
-        const queryPromise = supabase
-          .from('members')
-          .select(`
-            wallet_address,
-            parent_wallet,
-            position,
-            layer_level,
-            referrer_wallet,
-            activation_time,
-            activation_sequence,
-            current_level
-          `)
-          .ilike('parent_wallet', parentWallet)
-          .order('position');
+        const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL;
+        const SUPABASE_ANON_KEY = import.meta.env.VITE_SUPABASE_ANON_KEY;
 
-        // Add timeout to detect hanging queries
+        // Use direct fetch instead of Supabase client
+        const url = `${SUPABASE_URL}/rest/v1/members?parent_wallet=ilike.${parentWallet}&select=wallet_address,parent_wallet,position,layer_level,referrer_wallet,activation_time,activation_sequence,current_level&order=position`;
+
+        console.log('📡 Fetching from URL:', url);
+
+        const fetchPromise = fetch(url, {
+          method: 'GET',
+          headers: {
+            'apikey': SUPABASE_ANON_KEY,
+            'Authorization': `Bearer ${SUPABASE_ANON_KEY}`,
+            'Content-Type': 'application/json',
+          }
+        });
+
+        // Add timeout
         const timeoutPromise = new Promise((_, reject) => {
           setTimeout(() => reject(new Error('Query timeout after 10 seconds')), 10000);
         });
 
-        const { data: membersData, error: membersError } = await Promise.race([
-          queryPromise,
-          timeoutPromise
-        ]) as any;
+        const response = await Promise.race([fetchPromise, timeoutPromise]) as Response;
 
-        console.log('✅ Supabase query completed!');
+        console.log('✅ Fetch completed! Status:', response.status);
+
+        if (!response.ok) {
+          throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+        }
+
+        const membersData = await response.json();
+        const membersError = null;
+
+        console.log('✅ Data received!');
         console.log('📦 Query result:', { dataLength: membersData?.length, error: membersError });
 
         if (membersError) {

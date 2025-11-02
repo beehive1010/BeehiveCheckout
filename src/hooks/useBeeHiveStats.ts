@@ -58,28 +58,39 @@ export function useUserReferralStats() {
       console.log('📊 useUserReferralStats - Starting for wallet:', walletAddress);
 
       try {
-        // Use referrals_stats_view for referral statistics
-        console.log('🔍 Querying referrals_stats_view...');
+        // Use direct fetch for referrals_stats_view to bypass Supabase JS client issues
+        console.log('🔍 Direct fetching referrals_stats_view...');
 
-        const viewQueryPromise = supabase
-          .from('referrals_stats_view')
-          .select('*')
-          .ilike('referrer_wallet', walletAddress)
-          .maybeSingle();
+        const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL;
+        const SUPABASE_ANON_KEY = import.meta.env.VITE_SUPABASE_ANON_KEY;
+
+        const viewUrl = `${SUPABASE_URL}/rest/v1/referrals_stats_view?referrer_wallet=ilike.${walletAddress}&select=*`;
+
+        const fetchPromise = fetch(viewUrl, {
+          method: 'GET',
+          headers: {
+            'apikey': SUPABASE_ANON_KEY,
+            'Authorization': `Bearer ${SUPABASE_ANON_KEY}`,
+            'Content-Type': 'application/json',
+          }
+        });
 
         const viewTimeout = new Promise((_, reject) => {
           setTimeout(() => reject(new Error('referrals_stats_view timeout')), 8000);
         });
 
-        const { data: referralStats, error: referralError } = await Promise.race([
-          viewQueryPromise,
-          viewTimeout
-        ]) as any;
+        const response = await Promise.race([fetchPromise, viewTimeout]) as Response;
 
-        if (referralError) {
-          console.error('❌ Error fetching referral stats:', referralError);
-        } else {
+        let referralStats = null;
+        let referralError = null;
+
+        if (response.ok) {
+          const dataArray = await response.json();
+          referralStats = dataArray && dataArray.length > 0 ? dataArray[0] : null;
           console.log('✅ Referral stats:', referralStats);
+        } else {
+          referralError = new Error(`HTTP ${response.status}: ${response.statusText}`);
+          console.error('❌ Error fetching referral stats:', referralError);
         }
 
         // Use fn_get_user_total_referral_stats for accurate team statistics

@@ -643,7 +643,8 @@ export const matrixService = {
     }
   },
 
-  // Create matrix referral record using new MasterSpec table structure
+  // DEPRECATED: Matrix referrals are now stored in members table
+  // Matrix placement is handled automatically by database triggers when inserting into members table
   async createReferral(referralData: {
     matrix_root_wallet: string;
     member_wallet: string;
@@ -652,14 +653,9 @@ export const matrixService = {
     position: string;
     referral_type: string;
   }) {
-    return supabase
-      .from('matrix_referrals')
-      .insert([{
-        ...referralData,
-        created_at: new Date().toISOString(),
-      }])
-      .select()
-      .single();
+    console.error('❌ createReferral is deprecated. Matrix referrals are now stored in members table.');
+    console.error('   Matrix placement is handled automatically by database triggers.');
+    throw new Error('matrix_referrals table no longer exists. Use members table with parent_wallet relationships.');
   },
 
   // Update matrix referral (matrix referrals are immutable in MasterSpec)

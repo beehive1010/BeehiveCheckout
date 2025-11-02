@@ -78,26 +78,27 @@ export default function ReferralMatrixVisualization({
     try {
       setLoading(true);
 
-      // Get referral data from matrix_referrals_tree_view
+      // ✅ Get referral data from members table
       const { data: matrixPlacements, error } = await supabase
-        .from('matrix_referrals_tree_view')
+        .from('members')
         .select(`
-          member_wallet,
+          wallet_address,
           matrix_root_wallet,
-          matrix_layer,
-          matrix_position,
-          referral_type,
-          placed_at
+          layer_level,
+          position,
+          parent_wallet,
+          referrer_wallet,
+          activation_time
         `)
         .eq('matrix_root_wallet', effectiveRootWallet)
-        .order('placed_at');
+        .order('activation_time');
 
       if (error) {
         throw new Error(`Failed to load matrix data: ${error.message}`);
       }
 
       // Get additional member and user info
-      const memberWallets = matrixPlacements?.map(p => p.member_wallet).filter((w): w is string => Boolean(w)) || [];
+      const memberWallets = matrixPlacements?.map(p => p.wallet_address).filter((w): w is string => Boolean(w)) || [];
 
       let membersData: any[] = [];
 
@@ -119,25 +120,28 @@ export default function ReferralMatrixVisualization({
       // Create map for easy lookup
       const membersMap = new Map(membersData.map(m => [m.wallet_address, m]));
 
-      // Transform data to MatrixMember format using matrix_referrals_tree_view data
+      // ✅ Transform data to MatrixMember format using members table data
       const members: MatrixMember[] = matrixPlacements?.map(placement => {
         // Convert position from L/M/R to 1/2/3 for internal use
         let positionNumber = 0;
-        if (placement.matrix_position === 'L') positionNumber = 1;
-        else if (placement.matrix_position === 'M') positionNumber = 2;
-        else if (placement.matrix_position === 'R') positionNumber = 3;
-        else positionNumber = parseInt(placement.matrix_position || '0');
+        if (placement.position === 'L') positionNumber = 1;
+        else if (placement.position === 'M') positionNumber = 2;
+        else if (placement.position === 'R') positionNumber = 3;
+        else positionNumber = parseInt(placement.position || '0');
 
-        const memberInfo = membersMap.get(placement.member_wallet || '');
+        const memberInfo = membersMap.get(placement.wallet_address || '');
+        const referralType = placement.parent_wallet?.toLowerCase() === placement.referrer_wallet?.toLowerCase()
+          ? 'direct'
+          : 'spillover';
 
         return {
-          walletAddress: placement.member_wallet || '',
+          walletAddress: placement.wallet_address || '',
           username: memberInfo?.username || undefined,
           level: memberInfo?.current_level || 1,
-          layer: placement.matrix_layer || 1,
+          layer: placement.layer_level || 1,
           position: positionNumber,
           isActive: Boolean(memberInfo && memberInfo.current_level && memberInfo.current_level > 0),
-          placedAt: placement.placed_at || new Date().toISOString(),
+          placedAt: placement.activation_time || new Date().toISOString(),
           downlineCount: 0 // TODO: Calculate downline count
         };
       }).filter(member => member.walletAddress) || [];
