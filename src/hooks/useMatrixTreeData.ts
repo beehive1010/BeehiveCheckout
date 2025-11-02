@@ -197,8 +197,9 @@ export function useMatrixTreeForMember(
 
 /**
  * Hook to fetch only the children of a specific node in the matrix tree
+ * Note: This uses parent_wallet directly, not matrix_root_wallet filter
  *
- * @param matrixRootWallet - The wallet address of the matrix root
+ * @param userWallet - The wallet address of the user (for reference, not used in query)
  * @param parentWallet - The wallet address of the parent node
  * @returns React Query result with children nodes (L, M, R)
  *
@@ -208,22 +209,32 @@ export function useMatrixTreeForMember(
  * ```
  */
 export function useMatrixNodeChildren(
-  matrixRootWallet?: string,
+  userWallet?: string,
   parentWallet?: string
 ) {
   return useQuery<{ L: MatrixTreeNode | null; M: MatrixTreeNode | null; R: MatrixTreeNode | null }>({
-    queryKey: ['matrix-node-children', matrixRootWallet, parentWallet],
+    queryKey: ['matrix-node-children', userWallet, parentWallet],
     queryFn: async () => {
-      if (!matrixRootWallet || !parentWallet) {
-        throw new Error('Matrix root wallet and parent wallet are required');
+      if (!parentWallet) {
+        throw new Error('Parent wallet is required');
       }
 
       console.log('👶 Fetching children for parent:', parentWallet);
 
+      // Query children directly by parent_wallet from members table
       const { data, error } = await supabase
-        .from('v_matrix_tree_19_layers')
-        .select('*')
-        .ilike('matrix_root_wallet', matrixRootWallet)
+        .from('members')
+        .select(`
+          wallet_address,
+          parent_wallet,
+          slot,
+          layer_level,
+          referrer_wallet,
+          activation_time,
+          activation_sequence,
+          current_level,
+          referral_type
+        `)
         .ilike('parent_wallet', parentWallet)
         .order('slot');
 
@@ -232,18 +243,58 @@ export function useMatrixNodeChildren(
         throw error;
       }
 
+      // Check if children have their own children
+      const childrenWallets = data?.map(d => d.wallet_address) || [];
+      const { data: grandchildrenData } = await supabase
+        .from('members')
+        .select('parent_wallet, slot')
+        .in('parent_wallet', childrenWallets);
+
+      // Build children_slots for each child
+      const childrenSlotsMap = new Map<string, any>();
+      grandchildrenData?.forEach(gc => {
+        if (!childrenSlotsMap.has(gc.parent_wallet)) {
+          childrenSlotsMap.set(gc.parent_wallet, { L: null, M: null, R: null });
+        }
+        const slots = childrenSlotsMap.get(gc.parent_wallet);
+        if (gc.slot) {
+          slots[gc.slot] = gc.parent_wallet; // Just mark as filled
+        }
+      });
+
+      // Transform to MatrixTreeNode format
+      const transformNode = (node: any): MatrixTreeNode | null => {
+        if (!node) return null;
+        const childrenSlots = childrenSlotsMap.get(node.wallet_address) || { L: null, M: null, R: null };
+        return {
+          matrix_root_wallet: '', // Not used anymore
+          layer: node.layer_level,
+          member_wallet: node.wallet_address,
+          member_username: null,
+          current_level: node.current_level || 0,
+          activation_sequence: node.activation_sequence || 0,
+          parent_wallet: node.parent_wallet,
+          slot: node.slot,
+          activation_time: node.activation_time,
+          referral_type: node.referral_type || 'direct',
+          has_children: Object.values(childrenSlots).some(s => s !== null),
+          children_count: Object.values(childrenSlots).filter(s => s !== null).length,
+          children_slots: childrenSlots
+        };
+      };
+
       // Organize children by slot (L, M, R)
       const children = {
-        L: data?.find(node => node.slot === 'L') as MatrixTreeNode | null || null,
-        M: data?.find(node => node.slot === 'M') as MatrixTreeNode | null || null,
-        R: data?.find(node => node.slot === 'R') as MatrixTreeNode | null || null,
+        L: transformNode(data?.find(node => node.slot === 'L') || null),
+        M: transformNode(data?.find(node => node.slot === 'M') || null),
+        R: transformNode(data?.find(node => node.slot === 'R') || null),
       };
 
       console.log('✅ Found children:', Object.values(children).filter(Boolean).length);
 
       return children;
     },
-    enabled: !!matrixRootWallet && !!parentWallet,
+    enabled: !!parentWallet,
     staleTime: 30000,
     gcTime: 300000,
   });
@@ -340,49 +391,68 @@ export function useReferralStats(memberWallet?: string) {
 }
 
 /**
- * Hook to search for members globally across all 19 layers of the matrix tree
+ * Hook to search for members in a user's 19-layer subtree
  *
- * @param matrixRootWallet - The wallet address of the matrix root
- * @param searchQuery - Search query for username or wallet address
+ * @param userWallet - The wallet address of the user whose subtree to search
+ * @param searchQuery - Search query for wallet address
  * @returns React Query result with matching nodes
  *
  * @example
  * ```tsx
- * const { data, isLoading } = useMatrixGlobalSearch('0x1234...', 'FFT4');
+ * const { data, isLoading } = useMatrixGlobalSearch('0x1234...', '0x5678');
  * ```
  */
 export function useMatrixGlobalSearch(
-  matrixRootWallet?: string,
+  userWallet?: string,
   searchQuery?: string
 ) {
   return useQuery<MatrixTreeNode[]>({
-    queryKey: ['matrix-global-search', matrixRootWallet, searchQuery],
+    queryKey: ['matrix-global-search', userWallet, searchQuery],
     queryFn: async (): Promise<MatrixTreeNode[]> => {
-      if (!matrixRootWallet || !searchQuery || searchQuery.trim().length === 0) {
+      if (!userWallet || !searchQuery || searchQuery.trim().length === 0) {
         return [];
       }
 
       const query = searchQuery.toLowerCase().trim();
-      console.log('🔍 Global search for:', query, 'in matrix:', matrixRootWallet);
+      console.log('🔍 Searching user subtree for:', query, 'user:', userWallet);
 
-      const { data, error } = await supabase
-        .from('v_matrix_tree_19_layers')
-        .select('*')
-        .ilike('matrix_root_wallet', matrixRootWallet)
-        .or(`member_username.ilike.%${query}%,member_wallet.ilike.%${query}%`)
-        .order('layer')
-        .order('activation_sequence');
+      // Use fn_get_user_matrix_subtree to get all members in user's 19-layer tree
+      const { data: subtreeData, error } = await supabase
+        .rpc('fn_get_user_matrix_subtree', { p_root_wallet: userWallet });
 
       if (error) {
         console.error('❌ Error in global search:', error);
         throw error;
       }
 
-      console.log('✅ Found', data?.length || 0, 'matching members');
+      // Filter results by search query (wallet address only, as we don't have usernames)
+      const filtered = subtreeData?.filter((node: any) =>
+        node.member_wallet?.toLowerCase().includes(query) &&
+        node.depth_from_user > 0 // Exclude the root user
+      ) || [];
 
-      return (data as MatrixTreeNode[]) || [];
+      // Transform to MatrixTreeNode format
+      const results: MatrixTreeNode[] = filtered.map((node: any) => ({
+        matrix_root_wallet: '', // Not used
+        layer: node.layer,
+        member_wallet: node.member_wallet,
+        member_username: null,
+        current_level: node.current_level || 0,
+        activation_sequence: node.activation_sequence || 0,
+        parent_wallet: node.parent_wallet,
+        slot: node.slot,
+        activation_time: node.activation_time,
+        referral_type: node.referral_type || 'direct',
+        has_children: node.has_children || false,
+        children_count: node.children_count || 0,
+        children_slots: node.children_slots || { L: null, M: null, R: null }
+      }));
+
+      console.log('✅ Found', results.length, 'matching members');
+
+      return results;
     },
-    enabled: !!matrixRootWallet && !!searchQuery && searchQuery.trim().length > 0,
+    enabled: !!userWallet && !!searchQuery && searchQuery.trim().length > 0,
     staleTime: 10000, // Cache for 10 seconds
     gcTime: 60000, // Keep in cache for 1 minute
   });

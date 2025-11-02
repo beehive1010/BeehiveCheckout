@@ -62,51 +62,29 @@ export function useUserReferralStats() {
         .ilike('referrer_wallet', walletAddress)
         .maybeSingle();
 
-      // Use v_referral_statistics for matrix statistics
+      // Use fn_get_user_total_referral_stats for accurate team statistics
+      const { data: teamStats, error: teamStatsError } = await supabase
+        .rpc('fn_get_user_total_referral_stats', { p_user_wallet: walletAddress })
+        .single();
+
+      if (teamStatsError) {
+        console.error('Error fetching team statistics:', teamStatsError);
+      }
+
+      console.log(`📊 Team Statistics for ${walletAddress}:`, {
+        totalTeamMembers: teamStats?.total_team_members || 0,
+        activeMatrixMembers: teamStats?.active_matrix_members || 0,
+        maxReferralDepth: teamStats?.max_referral_depth || 0,
+        maxMatrixDepth: teamStats?.max_matrix_depth || 0,
+        beyondMatrix: teamStats?.beyond_matrix_members || 0
+      });
+
+      // Use v_referral_statistics for layer-by-layer breakdown
       const { data: matrixOverview } = await supabase
         .from('v_referral_statistics')
         .select('*')
         .ilike('member_wallet', walletAddress)
         .maybeSingle();
-
-      // Count ALL team members from members table (recursive downline through referrer_wallet)
-      // This gets ALL descendants regardless of depth (not limited by 19-layer matrix constraint)
-      const { data: allMembersData, error: membersError } = await supabase
-        .from('members')
-        .select('wallet_address, referrer_wallet');
-
-      // Build downline tree recursively in JavaScript
-      let totalTeamCount = 0;
-      if (allMembersData && !membersError) {
-        const downlineSet = new Set<string>();
-        const findDownline = (rootWallet: string) => {
-          allMembersData.forEach(member => {
-            if (member.referrer_wallet?.toLowerCase() === rootWallet.toLowerCase() &&
-                !downlineSet.has(member.wallet_address.toLowerCase())) {
-              downlineSet.add(member.wallet_address.toLowerCase());
-              findDownline(member.wallet_address); // Recursive
-            }
-          });
-        };
-
-        findDownline(walletAddress);
-        totalTeamCount = downlineSet.size;
-
-        console.log(`📊 Team Size Calculation for ${walletAddress}:`, {
-          method: 'recursive referrer tree',
-          totalTeamCount,
-          totalMembersInDB: allMembersData.length
-        });
-      } else {
-        console.error('Error fetching members for team count:', membersError);
-        // Fallback: use direct referral count from v_referral_statistics
-        totalTeamCount = 0;
-
-        console.log(`📊 Team Size Fallback for ${walletAddress}:`, {
-          method: 'fallback to 0',
-          totalTeamCount
-        });
-      }
 
       // Get member's current level and info using canonical view
       const { data: memberData, error: memberError } = await supabase
@@ -154,16 +132,16 @@ export function useUserReferralStats() {
         directReferralCount: referralStats?.direct_referrals || 0,
 
         // 总团队统计（所有层级，递归referrer树）
-        totalTeamCount: totalTeamCount || 0,
-        totalTeamActivated: 0, // TODO: Calculate from recursive tree
+        totalTeamCount: teamStats?.total_team_members || 0,
+        totalTeamActivated: teamStats?.active_matrix_members || 0, // 19层矩阵内激活人数
 
         // 矩阵团队统计（19层矩阵内）
         matrixStats: {
-          totalMembers: matrixOverview?.matrix_19_layer_count || 0,       // 矩阵内总人数
-          activeMembers: matrixOverview?.total_team_count || 0,           // 矩阵内激活人数
-          deepestLayer: matrixOverview?.max_spillover_layer || 0,         // 最深层级
-          directReferrals: matrixOverview?.direct_referral_count || 0,    // Layer 1直推
-          spilloverMembers: (matrixOverview?.matrix_19_layer_count || 0) - (matrixOverview?.direct_referral_count || 0) // 滑落成员
+          totalMembers: teamStats?.active_matrix_members || 0,       // 矩阵内总人数（19层）
+          activeMembers: teamStats?.active_matrix_members || 0,      // 矩阵内激活人数
+          deepestLayer: teamStats?.max_matrix_depth || 0,            // 最深层级
+          directReferrals: teamStats?.direct_referrals || 0,         // Layer 1直推
+          spilloverMembers: teamStats?.total_spillover || 0          // 滑落成员
         },
 
         totalReferrals: referralStats?.total_referrals || 0,
@@ -203,11 +181,11 @@ export function useUserMatrixStats() {
         .ilike('member_wallet', walletAddress)
         .maybeSingle();
 
-      // Use v_matrix_layer_statistics for layer-by-layer statistics (all 19 layers)
+      // Use v_matrix_layers_v2 for layer-by-layer statistics (user's 19 layers)
       const { data: layerData } = await supabase
-        .from('v_matrix_layer_statistics')
+        .from('v_matrix_layers_v2')
         .select('*')
-        .ilike('matrix_root_wallet', walletAddress)
+        .eq('root', walletAddress)
         .order('layer');
 
       // Count ALL unique members via referrer tree (no layer limit)
@@ -235,7 +213,7 @@ export function useUserMatrixStats() {
       // Transform layer data into the expected format
       const layerStats = (layerData || []).reduce((acc, layer) => {
         acc[layer.layer] = {
-          members: layer.total_members,
+          members: layer.filled || 0,  // Use 'filled' from v_matrix_layers_v2
           positions: [] // positions array not needed from view
         };
         return acc;
@@ -263,30 +241,41 @@ export function useFullMatrixStructure() {
     queryFn: async () => {
       if (!walletAddress) throw new Error('No wallet address');
 
-      // 获取完整的19层矩阵结构 - use v_matrix_tree_19_layers view
-      const { data: fullMatrixData } = await supabase
-        .from('v_matrix_tree_19_layers')
-        .select(`
-          layer,
-          slot,
-          member_wallet,
-          parent_wallet,
-          activation_sequence,
-          referral_type,
-          activation_time
-        `)
-        .ilike('matrix_root_wallet', walletAddress)
-        .order('layer, activation_sequence');
+      // 获取完整的19层矩阵结构 - use fn_get_user_matrix_subtree
+      const { data: fullMatrixData, error: matrixError } = await supabase
+        .rpc('fn_get_user_matrix_subtree', { p_root_wallet: walletAddress });
+
+      if (matrixError) {
+        console.error('Error fetching matrix subtree:', matrixError);
+        throw matrixError;
+      }
+
+      // Transform data to expected format
+      const transformedData = fullMatrixData
+        ?.filter(m => m.depth_from_user > 0) // Exclude root
+        ?.map(m => ({
+          layer: m.layer,
+          slot: m.slot,
+          member_wallet: m.member_wallet,
+          parent_wallet: m.parent_wallet,
+          activation_sequence: m.activation_sequence,
+          referral_type: m.referral_type,
+          activation_time: m.activation_time
+        }))
+        ?.sort((a, b) => {
+          if (a.layer !== b.layer) return a.layer - b.layer;
+          return a.activation_sequence - b.activation_sequence;
+        }) || [];
 
       // 按层级组织数据
-      const matrixByLayers = fullMatrixData?.reduce((acc, member) => {
+      const matrixByLayers = transformedData.reduce((acc, member) => {
         const layer = member.layer;
         if (!acc[layer]) {
           acc[layer] = [];
         }
         acc[layer].push(member);
         return acc;
-      }, {} as Record<number, typeof fullMatrixData>) || {};
+      }, {} as Record<number, typeof transformedData>);
 
       // 计算每层统计
       const layerSummary = Object.entries(matrixByLayers).map(([layer, members]) => ({
@@ -307,9 +296,9 @@ export function useFullMatrixStructure() {
       return {
         matrixByLayers,
         layerSummary,
-        totalMembers: fullMatrixData?.length || 0,
+        totalMembers: transformedData.length,
         totalLayers: Object.keys(matrixByLayers).length,
-        fullMatrixData: fullMatrixData || []
+        fullMatrixData: transformedData
       };
     },
     enabled: !!walletAddress,
