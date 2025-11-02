@@ -51,37 +51,58 @@ export function useUserReferralStats() {
   const { walletAddress } = useWallet();
 
   return useQuery<UserReferralStats>({
-    queryKey: ['/api/stats/user-referrals-v2', walletAddress],
+    queryKey: ['/api/stats/user-referrals-v3', walletAddress],
     queryFn: async () => {
       if (!walletAddress) throw new Error('No wallet address');
 
       console.log('📊 useUserReferralStats - Starting for wallet:', walletAddress);
 
-      // Use referrals_stats_view for referral statistics
-      console.log('🔍 Querying referrals_stats_view...');
-      const { data: referralStats, error: referralError } = await supabase
-        .from('referrals_stats_view')
-        .select('*')
-        .ilike('referrer_wallet', walletAddress)
-        .maybeSingle();
+      try {
+        // Use referrals_stats_view for referral statistics
+        console.log('🔍 Querying referrals_stats_view...');
 
-      if (referralError) {
-        console.error('❌ Error fetching referral stats:', referralError);
-      } else {
-        console.log('✅ Referral stats:', referralStats);
-      }
+        const viewQueryPromise = supabase
+          .from('referrals_stats_view')
+          .select('*')
+          .ilike('referrer_wallet', walletAddress)
+          .maybeSingle();
 
-      // Use fn_get_user_total_referral_stats for accurate team statistics
-      console.log('🔍 Calling fn_get_user_total_referral_stats...');
-      const { data: teamStats, error: teamStatsError } = await supabase
-        .rpc('fn_get_user_total_referral_stats', { p_user_wallet: walletAddress })
-        .single();
+        const viewTimeout = new Promise((_, reject) => {
+          setTimeout(() => reject(new Error('referrals_stats_view timeout')), 8000);
+        });
 
-      if (teamStatsError) {
-        console.error('❌ Error fetching team statistics:', teamStatsError);
-      } else {
-        console.log('✅ Team stats received:', teamStats);
-      }
+        const { data: referralStats, error: referralError } = await Promise.race([
+          viewQueryPromise,
+          viewTimeout
+        ]) as any;
+
+        if (referralError) {
+          console.error('❌ Error fetching referral stats:', referralError);
+        } else {
+          console.log('✅ Referral stats:', referralStats);
+        }
+
+        // Use fn_get_user_total_referral_stats for accurate team statistics
+        console.log('🔍 Calling fn_get_user_total_referral_stats...');
+
+        const rpcPromise = supabase
+          .rpc('fn_get_user_total_referral_stats', { p_user_wallet: walletAddress })
+          .single();
+
+        const rpcTimeout = new Promise((_, reject) => {
+          setTimeout(() => reject(new Error('RPC fn_get_user_total_referral_stats timeout')), 8000);
+        });
+
+        const { data: teamStats, error: teamStatsError } = await Promise.race([
+          rpcPromise,
+          rpcTimeout
+        ]) as any;
+
+        if (teamStatsError) {
+          console.error('❌ Error fetching team statistics:', teamStatsError);
+        } else {
+          console.log('✅ Team stats received:', teamStats);
+        }
 
       console.log(`📊 Team Statistics for ${walletAddress}:`, {
         totalTeamMembers: teamStats?.total_team_members || 0,

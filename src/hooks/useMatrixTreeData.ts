@@ -214,7 +214,7 @@ export function useMatrixNodeChildren(
 ) {
   return useQuery<{ L: MatrixTreeNode | null; M: MatrixTreeNode | null; R: MatrixTreeNode | null }>({
     // Updated query key to force cache refresh after RLS and case-sensitivity fixes
-    queryKey: ['matrix-node-children-v3', userWallet, parentWallet],
+    queryKey: ['matrix-node-children-v4', userWallet, parentWallet],
     queryFn: async () => {
       if (!parentWallet) {
         throw new Error('Parent wallet is required');
@@ -226,7 +226,9 @@ export function useMatrixNodeChildren(
       // Query children directly by parent_wallet from members table
       // Use ilike for case-insensitive matching
       try {
-        const { data: membersData, error: membersError } = await supabase
+        console.log('🔧 Executing query: members table, parent_wallet =', parentWallet);
+
+        const queryPromise = supabase
           .from('members')
           .select(`
             wallet_address,
@@ -241,7 +243,18 @@ export function useMatrixNodeChildren(
           .ilike('parent_wallet', parentWallet)
           .order('position');
 
+        // Add timeout to detect hanging queries
+        const timeoutPromise = new Promise((_, reject) => {
+          setTimeout(() => reject(new Error('Query timeout after 10 seconds')), 10000);
+        });
+
+        const { data: membersData, error: membersError } = await Promise.race([
+          queryPromise,
+          timeoutPromise
+        ]) as any;
+
         console.log('✅ Supabase query completed!');
+        console.log('📦 Query result:', { dataLength: membersData?.length, error: membersError });
 
         if (membersError) {
           console.error('❌ Error fetching children from members:', membersError);
