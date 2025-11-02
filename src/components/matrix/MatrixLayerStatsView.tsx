@@ -67,22 +67,20 @@ const MatrixLayerStatsView: React.FC<MatrixLayerStatsViewProps> = ({
       setTotalDownlineMembers(totalMembers);
       console.log('📊 Total members in user subtree:', totalMembers);
 
-      // Use v_matrix_layers_v2 view for user's 19-layer stats
-      console.log('📊 Using v_matrix_layers_v2 view for user matrix stats');
+      // Use RPC function for user's 19-layer stats
+      console.log('📊 Using fn_get_user_layer_stats RPC for user matrix stats');
 
       const { data: layerData, error: matrixError } = await supabase
-        .from('v_matrix_layers_v2')
-        .select('layer, filled, direct_count, spillover_count, left_count, middle_count, right_count, fill_rate')
-        .eq('root', walletAddress);
+        .rpc('fn_get_user_layer_stats', { p_user_wallet: walletAddress });
 
       if (matrixError) {
         throw new Error(`Database error: ${matrixError.message}`);
       }
 
-      console.log('📊 Matrix layer data from v_matrix_layers_v2:', layerData);
+      console.log('📊 Matrix layer data from fn_get_user_layer_stats:', layerData);
       console.log('📊 Total records found:', layerData?.length || 0);
 
-      // Build layer counts from v_matrix_layers_v2
+      // Build layer counts from fn_get_user_layer_stats
       const layerCounts: Record<number, { L: number, M: number, R: number, active: number }> = {};
 
       // Map layer data from the view

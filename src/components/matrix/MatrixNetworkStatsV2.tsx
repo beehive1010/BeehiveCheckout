@@ -51,12 +51,9 @@ export function MatrixNetworkStatsV2({ walletAddress }: MatrixNetworkStatsV2Prop
       // Import supabase client 
       const { supabase } = await import('../../lib/supabaseClient');
       
-      // Get layer statistics directly from v_matrix_layers_v2
+      // Get layer statistics directly using RPC function
       const { data: matrixData, error: layerError } = await supabase
-        .from('v_matrix_layers_v2')
-        .select('*')
-        .eq('root', walletAddress)
-        .order('layer', { ascending: true });
+        .rpc('fn_get_user_layer_stats', { p_user_wallet: walletAddress });
 
       if (layerError) {
         console.error('❌ Matrix layers query error:', layerError);

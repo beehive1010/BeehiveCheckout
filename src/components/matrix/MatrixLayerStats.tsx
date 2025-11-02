@@ -43,12 +43,9 @@ const MatrixLayerStats: React.FC<MatrixLayerStatsProps> = ({
     setError(null);
 
     try {
-      // 使用v_matrix_layers_v2获取统计数据
+      // 使用RPC函数获取统计数据
       const { data: layerStatsData, error } = await supabase
-        .from('v_matrix_layers_v2')
-        .select('*')
-        .eq('root', walletAddress)
-        .order('layer');
+        .rpc('fn_get_user_layer_stats', { p_user_wallet: walletAddress });
 
       if (!error && layerStatsData) {
         // 直接使用view返回的统计数据，转换为组件需要的格式

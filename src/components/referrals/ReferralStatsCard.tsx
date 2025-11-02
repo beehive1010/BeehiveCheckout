@@ -65,11 +65,9 @@ export default function ReferralStatsCard({ className, onViewMatrix }: ReferralS
             if (error) throw error;
             return { data: data || [] };
           }),
-        // Get matrix layers stats
+        // Get matrix layers stats using RPC function
         supabase
-          .from('v_matrix_layers_v2')
-          .select('*')
-          .eq('root', walletAddress)
+          .rpc('fn_get_user_layer_stats', { p_user_wallet: walletAddress })
           .then(({ data, error }) => {
             if (error) throw error;
             return { data: data || [] };
@@ -88,13 +86,13 @@ export default function ReferralStatsCard({ className, onViewMatrix }: ReferralS
         downlineData = matrixDownlineResult.value.data;
       }
 
-      // Extract layers data from v_matrix_layers_v2
+      // Extract layers data from fn_get_user_layer_stats
       let layersData: any[] = [];
       if (matrixLayersResult.status === 'fulfilled' && matrixLayersResult.value.data) {
         layersData = matrixLayersResult.value.data;
       }
 
-      // Process matrix stats from v_matrix_overview and v_matrix_layers_v2
+      // Process matrix stats from v_matrix_overview and fn_get_user_layer_stats
       if (statsData && layersData) {
         const layerDistribution: { [key: string]: number } = {};
         layersData.forEach(layer => {

@@ -181,12 +181,9 @@ export function useUserMatrixStats() {
         .ilike('member_wallet', walletAddress)
         .maybeSingle();
 
-      // Use v_matrix_layers_v2 for layer-by-layer statistics (user's 19 layers)
+      // Use RPC function for layer-by-layer statistics (user's 19 layers)
       const { data: layerData } = await supabase
-        .from('v_matrix_layers_v2')
-        .select('*')
-        .eq('root', walletAddress)
-        .order('layer');
+        .rpc('fn_get_user_layer_stats', { p_user_wallet: walletAddress });
 
       // Count ALL unique members via referrer tree (no layer limit)
       const { data: allMembersForCount } = await supabase
@@ -213,7 +210,7 @@ export function useUserMatrixStats() {
       // Transform layer data into the expected format
       const layerStats = (layerData || []).reduce((acc, layer) => {
         acc[layer.layer] = {
-          members: layer.filled || 0,  // Use 'filled' from v_matrix_layers_v2
+          members: layer.filled || 0,  // Use 'filled' from fn_get_user_layer_stats
           positions: [] // positions array not needed from view
         };
         return acc;

@@ -232,8 +232,7 @@ export function useMatrixNodeChildren(
           referrer_wallet,
           activation_time,
           activation_sequence,
-          current_level,
-          referral_type
+          current_level
         `)
         .ilike('parent_wallet', parentWallet)
         .order('slot');
@@ -266,6 +265,10 @@ export function useMatrixNodeChildren(
       const transformNode = (node: any): MatrixTreeNode | null => {
         if (!node) return null;
         const childrenSlots = childrenSlotsMap.get(node.wallet_address) || { L: null, M: null, R: null };
+        // Calculate referral_type: direct if parent = referrer, otherwise spillover
+        const referralType = node.parent_wallet?.toLowerCase() === node.referrer_wallet?.toLowerCase()
+          ? 'direct'
+          : 'spillover';
         return {
           matrix_root_wallet: '', // Not used anymore
           layer: node.layer_level,
@@ -276,7 +279,7 @@ export function useMatrixNodeChildren(
           parent_wallet: node.parent_wallet,
           slot: node.slot,
           activation_time: node.activation_time,
-          referral_type: node.referral_type || 'direct',
+          referral_type: referralType,
           has_children: Object.values(childrenSlots).some(s => s !== null),
           children_count: Object.values(childrenSlots).filter(s => s !== null).length,
           children_slots: childrenSlots
