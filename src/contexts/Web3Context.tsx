@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState, useEffect } from 'react';
+import React, { createContext, useContext, useState, useEffect, useMemo, useCallback } from 'react';
 import { ThirdwebProvider, useActiveAccount, useActiveWallet, useActiveWalletChain, useConnect } from 'thirdweb/react';
 import { client, supportedChains, arbitrum } from '../lib/web3';
 import { inAppWallet, createWallet } from 'thirdweb/wallets';
@@ -408,7 +408,7 @@ function Web3ContextProvider({ children }: { children: React.ReactNode }) {
     }
   }, [isConnected, account?.address, activeChain?.id]);
 
-  const value = {
+  const value = useMemo(() => ({
     client,
     account,
     wallet,
@@ -426,7 +426,19 @@ function Web3ContextProvider({ children }: { children: React.ReactNode }) {
     signOut,
     gasSponsorship,
     checkGasSponsorshipEligibility,
-  };
+  }), [
+    client,
+    account,
+    wallet,
+    activeChain,
+    isConnected,
+    walletAddress,
+    isSupabaseAuthenticated,
+    supabaseUser,
+    isMember,
+    referrerWallet,
+    gasSponsorship,
+  ]);
 
   return (
     <Web3Context.Provider value={value}>

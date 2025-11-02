@@ -207,58 +207,113 @@ export function useUserMatrixStats() {
   const { walletAddress } = useWallet();
 
   return useQuery({
-    queryKey: ['/api/stats/user-matrix', walletAddress],
+    queryKey: ['/api/stats/user-matrix-v2', walletAddress],
     queryFn: async () => {
       if (!walletAddress) throw new Error('No wallet address');
 
-      // Use v_referral_statistics for overall statistics
-      const { data: matrixOverview } = await supabase
-        .from('v_referral_statistics')
-        .select('*')
-        .ilike('member_wallet', walletAddress)
-        .maybeSingle();
+      console.log('📊 useUserMatrixStats - Starting for wallet:', walletAddress);
 
-      // Use RPC function for layer-by-layer statistics (user's 19 layers)
-      const { data: layerData } = await supabase
-        .rpc('fn_get_user_layer_stats', { p_user_wallet: walletAddress });
+      try {
+        // Use v_referral_statistics for overall statistics
+        console.log('🔍 Querying v_referral_statistics...');
+        const matrixOverviewPromise = supabase
+          .from('v_referral_statistics')
+          .select('*')
+          .ilike('member_wallet', walletAddress)
+          .maybeSingle();
 
-      // Count ALL unique members via referrer tree (no layer limit)
-      const { data: allMembersForCount } = await supabase
-        .from('members')
-        .select('wallet_address, referrer_wallet');
+        const matrixOverviewTimeout = new Promise((_, reject) => {
+          setTimeout(() => reject(new Error('v_referral_statistics timeout')), 8000);
+        });
 
-      // Build downline tree recursively
-      let totalMembersAllLayers = 0;
-      if (allMembersForCount) {
-        const downlineSet = new Set<string>();
-        const findDownline = (rootWallet: string) => {
-          allMembersForCount.forEach(member => {
-            if (member.referrer_wallet?.toLowerCase() === rootWallet.toLowerCase() &&
-                !downlineSet.has(member.wallet_address.toLowerCase())) {
-              downlineSet.add(member.wallet_address.toLowerCase());
-              findDownline(member.wallet_address);
-            }
-          });
+        const { data: matrixOverview, error: matrixOverviewError } = await Promise.race([
+          matrixOverviewPromise,
+          matrixOverviewTimeout
+        ]) as any;
+
+        if (matrixOverviewError) {
+          console.error('❌ Error fetching matrix overview:', matrixOverviewError);
+        } else {
+          console.log('✅ Matrix overview:', matrixOverview);
+        }
+
+        // Use RPC function for layer-by-layer statistics (user's 19 layers)
+        console.log('🔍 Calling fn_get_user_layer_stats...');
+        const layerDataPromise = supabase
+          .rpc('fn_get_user_layer_stats', { p_user_wallet: walletAddress });
+
+        const layerDataTimeout = new Promise((_, reject) => {
+          setTimeout(() => reject(new Error('fn_get_user_layer_stats timeout')), 8000);
+        });
+
+        const { data: layerData, error: layerDataError } = await Promise.race([
+          layerDataPromise,
+          layerDataTimeout
+        ]) as any;
+
+        if (layerDataError) {
+          console.error('❌ Error fetching layer stats:', layerDataError);
+        } else {
+          console.log('✅ Layer stats received:', layerData?.length, 'layers');
+        }
+
+        // Count ALL unique members via referrer tree (no layer limit)
+        console.log('🔍 Fetching all members for count...');
+        const allMembersPromise = supabase
+          .from('members')
+          .select('wallet_address, referrer_wallet');
+
+        const allMembersTimeout = new Promise((_, reject) => {
+          setTimeout(() => reject(new Error('members table timeout')), 8000);
+        });
+
+        const { data: allMembersForCount, error: allMembersError } = await Promise.race([
+          allMembersPromise,
+          allMembersTimeout
+        ]) as any;
+
+        if (allMembersError) {
+          console.error('❌ Error fetching all members:', allMembersError);
+        } else {
+          console.log('✅ All members fetched:', allMembersForCount?.length);
+        }
+
+        // Build downline tree recursively
+        let totalMembersAllLayers = 0;
+        if (allMembersForCount) {
+          const downlineSet = new Set<string>();
+          const findDownline = (rootWallet: string) => {
+            allMembersForCount.forEach(member => {
+              if (member.referrer_wallet?.toLowerCase() === rootWallet.toLowerCase() &&
+                  !downlineSet.has(member.wallet_address.toLowerCase())) {
+                downlineSet.add(member.wallet_address.toLowerCase());
+                findDownline(member.wallet_address);
+              }
+            });
+          };
+          findDownline(walletAddress);
+          totalMembersAllLayers = downlineSet.size;
+        }
+
+        // Transform layer data into the expected format
+        const layerStats = (layerData || []).reduce((acc, layer) => {
+          acc[layer.layer] = {
+            members: layer.filled || 0,  // Use 'filled' from fn_get_user_layer_stats
+            positions: [] // positions array not needed from view
+          };
+          return acc;
+        }, {} as Record<number, { members: number; positions: string[] }>);
+
+        return {
+          totalLayers: matrixOverview?.max_spillover_layer || 0,
+          layerStats,
+          totalMembers: totalMembersAllLayers || 0, // Count all layers, not limited to 19
+          matrixData: layerData || [] // Layer data instead of raw matrix data
         };
-        findDownline(walletAddress);
-        totalMembersAllLayers = downlineSet.size;
+      } catch (error) {
+        console.error('💥 Exception in useUserMatrixStats:', error);
+        throw error;
       }
-
-      // Transform layer data into the expected format
-      const layerStats = (layerData || []).reduce((acc, layer) => {
-        acc[layer.layer] = {
-          members: layer.filled || 0,  // Use 'filled' from fn_get_user_layer_stats
-          positions: [] // positions array not needed from view
-        };
-        return acc;
-      }, {} as Record<number, { members: number; positions: string[] }>);
-
-      return {
-        totalLayers: matrixOverview?.max_spillover_layer || 0,
-        layerStats,
-        totalMembers: totalMembersAllLayers || 0, // Count all layers, not limited to 19
-        matrixData: layerData || [] // Layer data instead of raw matrix data
-      };
     },
     enabled: !!walletAddress,
     staleTime: 5000,
