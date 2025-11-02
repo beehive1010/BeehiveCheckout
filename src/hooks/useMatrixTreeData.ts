@@ -213,7 +213,8 @@ export function useMatrixNodeChildren(
   parentWallet?: string
 ) {
   return useQuery<{ L: MatrixTreeNode | null; M: MatrixTreeNode | null; R: MatrixTreeNode | null }>({
-    queryKey: ['matrix-node-children', userWallet, parentWallet],
+    // Updated query key to force cache refresh after RLS and case-sensitivity fixes
+    queryKey: ['matrix-node-children-v2', userWallet, parentWallet],
     queryFn: async () => {
       if (!parentWallet) {
         throw new Error('Parent wallet is required');
@@ -222,6 +223,7 @@ export function useMatrixNodeChildren(
       console.log('👶 Fetching children for parent:', parentWallet);
 
       // Query children directly by parent_wallet from members table
+      // Use ilike for case-insensitive matching
       const { data: membersData, error: membersError } = await supabase
         .from('members')
         .select(`
@@ -234,7 +236,7 @@ export function useMatrixNodeChildren(
           activation_sequence,
           current_level
         `)
-        .eq('parent_wallet', parentWallet)
+        .ilike('parent_wallet', parentWallet)
         .order('position');
 
       if (membersError) {
@@ -242,8 +244,11 @@ export function useMatrixNodeChildren(
         throw membersError;
       }
 
+      console.log('📊 Found', membersData?.length || 0, 'children from members table:', membersData);
+
       // Get usernames for these children
       const childWallets = membersData?.map(m => m.wallet_address) || [];
+      console.log('🔍 Fetching usernames for', childWallets.length, 'children:', childWallets);
       let usernamesMap = new Map<string, string>();
 
       if (childWallets.length > 0) {
@@ -270,20 +275,25 @@ export function useMatrixNodeChildren(
       let grandchildrenData: any[] = [];
 
       if (childrenWallets.length > 0) {
-        const { data: gcData } = await supabase
-          .from('members')
-          .select('parent_wallet, position')
-          .in('parent_wallet', childrenWallets);
-        grandchildrenData = gcData || [];
+        // Query each child's children individually to avoid case sensitivity issues with .in()
+        const gcPromises = childrenWallets.map(wallet =>
+          supabase
+            .from('members')
+            .select('parent_wallet, position')
+            .ilike('parent_wallet', wallet)
+        );
+        const gcResults = await Promise.all(gcPromises);
+        grandchildrenData = gcResults.flatMap(result => result.data || []);
       }
 
-      // Build children_slots for each child
+      // Build children_slots for each child (use lowercase keys for case-insensitive matching)
       const childrenSlotsMap = new Map<string, any>();
       grandchildrenData?.forEach(gc => {
-        if (!childrenSlotsMap.has(gc.parent_wallet)) {
-          childrenSlotsMap.set(gc.parent_wallet, { L: null, M: null, R: null });
+        const parentKey = gc.parent_wallet.toLowerCase();
+        if (!childrenSlotsMap.has(parentKey)) {
+          childrenSlotsMap.set(parentKey, { L: null, M: null, R: null });
         }
-        const slots = childrenSlotsMap.get(gc.parent_wallet);
+        const slots = childrenSlotsMap.get(parentKey);
         if (gc.position) {
           slots[gc.position] = gc.parent_wallet; // Just mark as filled
         }
@@ -292,7 +302,7 @@ export function useMatrixNodeChildren(
       // Transform to MatrixTreeNode format
       const transformNode = (node: any): MatrixTreeNode | null => {
         if (!node) return null;
-        const childrenSlots = childrenSlotsMap.get(node.wallet_address) || { L: null, M: null, R: null };
+        const childrenSlots = childrenSlotsMap.get(node.wallet_address.toLowerCase()) || { L: null, M: null, R: null };
         // Calculate referral_type: direct if parent = referrer, otherwise spillover
         const referralType = node.parent_wallet?.toLowerCase() === node.referrer_wallet?.toLowerCase()
           ? 'direct'
@@ -344,7 +354,8 @@ export function useMatrixNodeChildren(
  */
 export function useMatrixLayerStats(matrixRootWallet?: string) {
   return useQuery({
-    queryKey: ['matrix-layer-statistics', matrixRootWallet],
+    // Updated query key to force cache refresh after RLS fixes
+    queryKey: ['matrix-layer-statistics-v2', matrixRootWallet],
     queryFn: async () => {
       if (!matrixRootWallet) {
         throw new Error('Matrix root wallet is required');
