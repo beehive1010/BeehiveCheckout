@@ -9,9 +9,9 @@ import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, D
 import { Label } from '../../components/ui/label';
 import { Switch } from '../../components/ui/switch';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../../components/ui/select';
-import { 
-  FileText, 
-  Search, 
+import {
+  FileText,
+  Search,
   Plus,
   Edit,
   Eye,
@@ -30,6 +30,7 @@ import {
 } from 'lucide-react';
 import { useAdminAuth } from '../../hooks/useAdminAuth';
 import { useToast } from '../../hooks/use-toast';
+import { useIsMobile } from '../../hooks/use-mobile';
 
 interface BlogPost {
   id: string;
@@ -74,6 +75,7 @@ interface BlogFormData {
 export default function AdminBlog() {
   const { hasPermission } = useAdminAuth();
   const { toast } = useToast();
+  const isMobile = useIsMobile();
   const [blogPosts, setBlogPosts] = useState<BlogPost[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
@@ -481,10 +483,10 @@ export default function AdminBlog() {
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div className="flex items-center justify-between">
+      <div className={`flex ${isMobile ? 'flex-col space-y-4' : 'items-center justify-between'}`}>
         <div>
-          <h1 className="text-3xl font-bold text-honey">HiveWorld Blog</h1>
-          <p className="text-muted-foreground mt-2">
+          <h1 className={`font-bold text-honey ${isMobile ? 'text-2xl' : 'text-3xl'}`}>HiveWorld Blog</h1>
+          <p className={`text-muted-foreground mt-2 ${isMobile ? 'text-sm' : ''}`}>
             Manage blog posts, articles, and platform announcements
           </p>
         </div>
@@ -497,15 +499,15 @@ export default function AdminBlog() {
                 Create Post
               </Button>
             </DialogTrigger>
-            <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+            <DialogContent className={isMobile ? 'max-w-[95vw] max-h-[90vh] overflow-y-auto p-4' : 'max-w-4xl max-h-[90vh] overflow-y-auto'}>
               <DialogHeader>
-                <DialogTitle>Create New Blog Post</DialogTitle>
-                <DialogDescription>
+                <DialogTitle className={isMobile ? 'text-lg' : ''}>Create New Blog Post</DialogTitle>
+                <DialogDescription className={isMobile ? 'text-sm' : ''}>
                   Write and publish a new article for the HiveWorld blog
                 </DialogDescription>
               </DialogHeader>
               <div className="grid grid-cols-1 gap-6">
-                <div className="grid grid-cols-2 gap-4">
+                <div className={`grid gap-4 ${isMobile ? 'grid-cols-1' : 'grid-cols-2'}`}>
                   <div>
                     <Label htmlFor="title">Post Title</Label>
                     <Input
@@ -651,62 +653,62 @@ export default function AdminBlog() {
       </div>
 
       {/* Stats Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
+      <div className={`grid gap-4 ${isMobile ? 'grid-cols-2' : 'md:grid-cols-5'}`}>
         <Card>
-          <CardContent className="p-6">
+          <CardContent className={isMobile ? 'p-4' : 'p-6'}>
             <div className="flex items-center space-x-2">
-              <FileText className="h-5 w-5 text-honey" />
+              <FileText className={`${isMobile ? 'h-4 w-4' : 'h-5 w-5'} text-honey`} />
               <div>
-                <p className="text-sm text-muted-foreground">Total Posts</p>
-                <p className="text-2xl font-bold">{totalPosts}</p>
+                <p className={`${isMobile ? 'text-xs' : 'text-sm'} text-muted-foreground`}>Total Posts</p>
+                <p className={`${isMobile ? 'text-xl' : 'text-2xl'} font-bold`}>{totalPosts}</p>
               </div>
             </div>
           </CardContent>
         </Card>
 
         <Card>
-          <CardContent className="p-6">
+          <CardContent className={isMobile ? 'p-4' : 'p-6'}>
             <div className="flex items-center space-x-2">
-              <Eye className="h-5 w-5 text-honey" />
+              <Eye className={`${isMobile ? 'h-4 w-4' : 'h-5 w-5'} text-honey`} />
               <div>
-                <p className="text-sm text-muted-foreground">Published</p>
-                <p className="text-2xl font-bold">{publishedPosts}</p>
+                <p className={`${isMobile ? 'text-xs' : 'text-sm'} text-muted-foreground`}>Published</p>
+                <p className={`${isMobile ? 'text-xl' : 'text-2xl'} font-bold`}>{publishedPosts}</p>
               </div>
             </div>
           </CardContent>
         </Card>
 
         <Card>
-          <CardContent className="p-6">
+          <CardContent className={isMobile ? 'p-4' : 'p-6'}>
             <div className="flex items-center space-x-2">
-              <EyeOff className="h-5 w-5 text-honey" />
+              <EyeOff className={`${isMobile ? 'h-4 w-4' : 'h-5 w-5'} text-honey`} />
               <div>
-                <p className="text-sm text-muted-foreground">Drafts</p>
-                <p className="text-2xl font-bold">{draftPosts}</p>
+                <p className={`${isMobile ? 'text-xs' : 'text-sm'} text-muted-foreground`}>Drafts</p>
+                <p className={`${isMobile ? 'text-xl' : 'text-2xl'} font-bold`}>{draftPosts}</p>
               </div>
             </div>
           </CardContent>
         </Card>
 
         <Card>
-          <CardContent className="p-6">
+          <CardContent className={isMobile ? 'p-4' : 'p-6'}>
             <div className="flex items-center space-x-2">
-              <BarChart3 className="h-5 w-5 text-honey" />
+              <BarChart3 className={`${isMobile ? 'h-4 w-4' : 'h-5 w-5'} text-honey`} />
               <div>
-                <p className="text-sm text-muted-foreground">Total Views</p>
-                <p className="text-2xl font-bold">{totalViews.toLocaleString()}</p>
+                <p className={`${isMobile ? 'text-xs' : 'text-sm'} text-muted-foreground`}>Total Views</p>
+                <p className={`${isMobile ? 'text-xl' : 'text-2xl'} font-bold`}>{totalViews.toLocaleString()}</p>
               </div>
             </div>
           </CardContent>
         </Card>
 
         <Card>
-          <CardContent className="p-6">
+          <CardContent className={isMobile ? 'p-4' : 'p-6'}>
             <div className="flex items-center space-x-2">
-              <Star className="h-5 w-5 text-honey" />
+              <Star className={`${isMobile ? 'h-4 w-4' : 'h-5 w-5'} text-honey`} />
               <div>
-                <p className="text-sm text-muted-foreground">Featured</p>
-                <p className="text-2xl font-bold">{featuredPosts}</p>
+                <p className={`${isMobile ? 'text-xs' : 'text-sm'} text-muted-foreground`}>Featured</p>
+                <p className={`${isMobile ? 'text-xl' : 'text-2xl'} font-bold`}>{featuredPosts}</p>
               </div>
             </div>
           </CardContent>
@@ -716,23 +718,23 @@ export default function AdminBlog() {
       {/* Search and Filters */}
       <Card>
         <CardHeader>
-          <CardTitle className="flex items-center space-x-2">
-            <Search className="h-5 w-5" />
+          <CardTitle className={`flex items-center space-x-2 ${isMobile ? 'text-base' : ''}`}>
+            <Search className={isMobile ? 'h-4 w-4' : 'h-5 w-5'} />
             <span>Search & Filter Posts</span>
           </CardTitle>
         </CardHeader>
-        <CardContent className="space-y-4">
+        <CardContent className={isMobile ? 'space-y-3 p-4' : 'space-y-4'}>
           <Input
-            placeholder="Search posts by title, author, or tags..."
+            placeholder={isMobile ? "Search posts..." : "Search posts by title, author, or tags..."}
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
             className="bg-muted"
             data-testid="input-search-posts"
           />
-          
-          <div className="flex gap-4">
+
+          <div className={`grid gap-3 ${isMobile ? 'grid-cols-1' : 'grid-cols-2 md:flex md:gap-4'}`}>
             <Select value={statusFilter} onValueChange={setStatusFilter}>
-              <SelectTrigger className="w-48">
+              <SelectTrigger className={isMobile ? 'w-full' : 'w-48'}>
                 <SelectValue placeholder="Filter by status" />
               </SelectTrigger>
               <SelectContent>
@@ -742,9 +744,9 @@ export default function AdminBlog() {
                 <SelectItem value="scheduled">Scheduled</SelectItem>
               </SelectContent>
             </Select>
-            
+
             <Select value={categoryFilter} onValueChange={setCategoryFilter}>
-              <SelectTrigger className="w-48">
+              <SelectTrigger className={isMobile ? 'w-full' : 'w-48'}>
                 <SelectValue placeholder="Filter by category" />
               </SelectTrigger>
               <SelectContent>
@@ -762,64 +764,68 @@ export default function AdminBlog() {
 
       {/* Main Content */}
       <Tabs defaultValue="posts" className="space-y-6">
-        <TabsList>
-          <TabsTrigger value="posts">All Posts</TabsTrigger>
-          <TabsTrigger value="analytics">Analytics</TabsTrigger>
-          <TabsTrigger value="trending">Trending</TabsTrigger>
+        <TabsList className={isMobile ? 'grid grid-cols-3 w-full' : ''}>
+          <TabsTrigger value="posts" className={isMobile ? 'text-sm' : ''}>
+            {isMobile ? 'Posts' : 'All Posts'}
+          </TabsTrigger>
+          <TabsTrigger value="analytics" className={isMobile ? 'text-sm' : ''}>Analytics</TabsTrigger>
+          <TabsTrigger value="trending" className={isMobile ? 'text-sm' : ''}>Trending</TabsTrigger>
         </TabsList>
 
         <TabsContent value="posts">
-          <div className="space-y-4">
+          <div className={isMobile ? 'space-y-3' : 'space-y-4'}>
             {blogPosts.map((post) => (
               <Card key={post.id} className="overflow-hidden">
-                <CardContent className="p-6">
-                  <div className="flex items-start space-x-4">
+                <CardContent className={isMobile ? 'p-4' : 'p-6'}>
+                  <div className={isMobile ? 'space-y-3' : 'flex items-start space-x-4'}>
                     {/* Featured Image */}
-                    <div className="w-32 h-20 rounded-lg overflow-hidden flex-shrink-0">
-                      <img 
-                        src={post.imageUrl} 
+                    <div className={`rounded-lg overflow-hidden flex-shrink-0 ${isMobile ? 'w-full h-32' : 'w-32 h-20'}`}>
+                      <img
+                        src={post.imageUrl}
                         alt={post.title}
                         className="w-full h-full object-cover"
                       />
                     </div>
-                    
+
                     {/* Content */}
                     <div className="flex-1">
-                      <div className="flex items-start justify-between mb-3">
+                      <div className={isMobile ? 'space-y-3' : 'flex items-start justify-between mb-3'}>
                         <div className="flex-1">
-                          <div className="flex items-center space-x-3 mb-2">
-                            <h3 className="font-bold text-lg text-honey">{post.title}</h3>
+                          <div className={`flex items-center gap-2 mb-2 ${isMobile ? 'flex-wrap' : 'space-x-3'}`}>
+                            <h3 className={`font-bold text-honey ${isMobile ? 'text-base w-full' : 'text-lg'}`}>
+                              {post.title}
+                            </h3>
                             {getStatusBadge(post.status)}
-                            {post.featured && <Badge className="bg-yellow-500">Featured</Badge>}
-                            {post.trending && <Badge className="bg-red-500">🔥 Trending</Badge>}
-                            <Badge variant="outline" className={`${getCategoryColor(post.category)} text-white`}>
+                            {post.featured && <Badge className="bg-yellow-500 text-xs">Featured</Badge>}
+                            {post.trending && <Badge className="bg-red-500 text-xs">🔥 Trending</Badge>}
+                            <Badge variant="outline" className={`${getCategoryColor(post.category)} text-white text-xs`}>
                               {post.category}
                             </Badge>
                           </div>
-                          
-                          <p className="text-muted-foreground text-sm mb-3 line-clamp-2">
+
+                          <p className={`text-muted-foreground mb-3 line-clamp-2 ${isMobile ? 'text-xs' : 'text-sm'}`}>
                             {post.excerpt}
                           </p>
-                          
-                          <div className="flex items-center space-x-6 text-sm text-muted-foreground">
+
+                          <div className={`grid gap-3 text-muted-foreground ${isMobile ? 'grid-cols-2 text-xs' : 'flex items-center space-x-6 text-sm'}`}>
                             <div className="flex items-center space-x-1">
-                              <User className="w-4 h-4" />
-                              <span>{post.author}</span>
+                              <User className={isMobile ? 'w-3 h-3' : 'w-4 h-4'} />
+                              <span className="truncate">{post.author}</span>
                             </div>
                             <div className="flex items-center space-x-1">
-                              <Calendar className="w-4 h-4" />
-                              <span>{formatDate(post.publishedAt)}</span>
+                              <Calendar className={isMobile ? 'w-3 h-3' : 'w-4 h-4'} />
+                              <span className="truncate">{isMobile ? new Date(post.publishedAt).toLocaleDateString() : formatDate(post.publishedAt)}</span>
                             </div>
                             <div className="flex items-center space-x-1">
-                              <Clock className="w-4 h-4" />
-                              <span>{post.readTime} min read</span>
+                              <Clock className={isMobile ? 'w-3 h-3' : 'w-4 h-4'} />
+                              <span>{post.readTime} min</span>
                             </div>
                             <div className="flex items-center space-x-1">
-                              <Eye className="w-4 h-4" />
+                              <Eye className={isMobile ? 'w-3 h-3' : 'w-4 h-4'} />
                               <span>{post.views.toLocaleString()}</span>
                             </div>
                           </div>
-                          
+
                           <div className="flex flex-wrap gap-1 mt-3">
                             {post.tags.slice(0, 3).map((tag, index) => (
                               <Badge key={index} variant="outline" className="text-xs">
@@ -835,31 +841,32 @@ export default function AdminBlog() {
                         </div>
                       </div>
                     </div>
-                    
+
                     {/* Actions & Stats */}
-                    <div className="flex flex-col items-end space-y-3">
-                      <div className="grid grid-cols-3 gap-4 text-center">
+                    <div className={isMobile ? 'border-t pt-3 space-y-3' : 'flex flex-col items-end space-y-3'}>
+                      <div className={`grid grid-cols-3 gap-3 text-center ${isMobile ? '' : 'gap-4'}`}>
                         <div>
-                          <div className="text-lg font-bold text-honey">{post.views}</div>
+                          <div className={`font-bold text-honey ${isMobile ? 'text-base' : 'text-lg'}`}>{post.views}</div>
                           <div className="text-xs text-muted-foreground">Views</div>
                         </div>
                         <div>
-                          <div className="text-lg font-bold text-honey">{post.likes}</div>
+                          <div className={`font-bold text-honey ${isMobile ? 'text-base' : 'text-lg'}`}>{post.likes}</div>
                           <div className="text-xs text-muted-foreground">Likes</div>
                         </div>
                         <div>
-                          <div className="text-lg font-bold text-honey">{post.comments}</div>
+                          <div className={`font-bold text-honey ${isMobile ? 'text-base' : 'text-lg'}`}>{post.comments}</div>
                           <div className="text-xs text-muted-foreground">Comments</div>
                         </div>
                       </div>
-                      
+
                       {hasPermission('blog.update') && (
-                        <div className="flex space-x-2">
+                        <div className={`grid gap-2 ${isMobile ? 'grid-cols-1' : 'flex space-x-2'}`}>
                           <Button
                             variant="outline"
                             size="sm"
                             onClick={() => openEditDialog(post)}
                             data-testid={`button-edit-post-${post.id}`}
+                            className={isMobile ? 'w-full' : ''}
                           >
                             <Edit className="w-4 h-4 mr-1" />
                             Edit
@@ -869,6 +876,7 @@ export default function AdminBlog() {
                             size="sm"
                             onClick={() => togglePostStatus(post)}
                             data-testid={`button-toggle-post-${post.id}`}
+                            className={isMobile ? 'w-full' : ''}
                           >
                             {post.status === 'published' ? (
                               <>
@@ -887,6 +895,7 @@ export default function AdminBlog() {
                             size="sm"
                             onClick={() => toggleFeatured(post)}
                             data-testid={`button-feature-post-${post.id}`}
+                            className={isMobile ? 'w-full' : ''}
                           >
                             <Star className={`w-4 h-4 mr-1 ${post.featured ? 'fill-yellow-400 text-yellow-400' : ''}`} />
                             {post.featured ? 'Unfeature' : 'Feature'}
@@ -902,7 +911,7 @@ export default function AdminBlog() {
         </TabsContent>
 
         <TabsContent value="analytics">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div className={`grid gap-6 ${isMobile ? 'grid-cols-1' : 'md:grid-cols-2'}`}>
             <Card>
               <CardHeader>
                 <CardTitle>Top Performing Posts</CardTitle>
@@ -957,7 +966,7 @@ export default function AdminBlog() {
         </TabsContent>
 
         <TabsContent value="trending">
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          <div className={`grid gap-6 ${isMobile ? 'grid-cols-1' : 'md:grid-cols-2 lg:grid-cols-3'}`}>
             {blogPosts.filter(post => post.trending).map(post => (
               <Card key={post.id} className="overflow-hidden">
                 <div className="aspect-video">
