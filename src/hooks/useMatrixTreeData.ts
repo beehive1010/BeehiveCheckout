@@ -221,7 +221,7 @@ export function useMatrixNodeChildren(
 
       console.log('👶 Fetching children for parent:', parentWallet);
 
-      // Query children directly by parent_wallet from members table
+      // Query children directly by parent_wallet from members table with users join
       const { data, error } = await supabase
         .from('members')
         .select(`
@@ -232,7 +232,8 @@ export function useMatrixNodeChildren(
           referrer_wallet,
           activation_time,
           activation_sequence,
-          current_level
+          current_level,
+          users!inner(username)
         `)
         .eq('parent_wallet', parentWallet)
         .order('position');
@@ -278,7 +279,7 @@ export function useMatrixNodeChildren(
           matrix_root_wallet: '', // Not used anymore
           layer: node.layer_level,
           member_wallet: node.wallet_address,
-          member_username: null,
+          member_username: node.users?.username || null,
           current_level: node.current_level || 0,
           activation_sequence: node.activation_sequence || 0,
           parent_wallet: node.parent_wallet,
