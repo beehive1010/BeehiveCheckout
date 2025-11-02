@@ -551,7 +551,7 @@ export default function AdminBlog() {
                   />
                 </div>
                 
-                <div className="grid grid-cols-2 gap-4">
+                <div className={`grid gap-4 ${isMobile ? 'grid-cols-1' : 'grid-cols-2'}`}>
                   <div>
                     <Label htmlFor="imageUrl">Featured Image URL</Label>
                     <Input
@@ -577,8 +577,8 @@ export default function AdminBlog() {
                     </Select>
                   </div>
                 </div>
-                
-                <div className="grid grid-cols-2 gap-4">
+
+                <div className={`grid gap-4 ${isMobile ? 'grid-cols-1' : 'grid-cols-2'}`}>
                   <div>
                     <Label htmlFor="tags">Tags (comma separated)</Label>
                     <Input
@@ -602,8 +602,8 @@ export default function AdminBlog() {
                     </Select>
                   </div>
                 </div>
-                
-                <div className="grid grid-cols-2 gap-4">
+
+                <div className={`grid gap-4 ${isMobile ? 'grid-cols-1' : 'grid-cols-2'}`}>
                   <div>
                     <Label htmlFor="seoTitle">SEO Title</Label>
                     <Input
@@ -996,13 +996,13 @@ export default function AdminBlog() {
 
       {/* Edit Dialog */}
       <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
-        <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+        <DialogContent className={isMobile ? 'max-w-[95vw] max-h-[90vh] overflow-y-auto p-4' : 'max-w-4xl max-h-[90vh] overflow-y-auto'}>
           <DialogHeader>
-            <DialogTitle>Edit Blog Post</DialogTitle>
-            <DialogDescription>Update post content and settings</DialogDescription>
+            <DialogTitle className={isMobile ? 'text-lg' : ''}>Edit Blog Post</DialogTitle>
+            <DialogDescription className={isMobile ? 'text-sm' : ''}>Update post content and settings</DialogDescription>
           </DialogHeader>
           <div className="grid grid-cols-1 gap-6">
-            <div className="grid grid-cols-2 gap-4">
+            <div className={`grid gap-4 ${isMobile ? 'grid-cols-1' : 'grid-cols-2'}`}>
               <div>
                 <Label htmlFor="edit-title">Post Title</Label>
                 <Input
@@ -1041,7 +1041,7 @@ export default function AdminBlog() {
               />
             </div>
             
-            <div className="grid grid-cols-2 gap-4">
+            <div className={`grid gap-4 ${isMobile ? 'grid-cols-1' : 'grid-cols-2'}`}>
               <div>
                 <Label htmlFor="edit-imageUrl">Featured Image URL</Label>
                 <Input
