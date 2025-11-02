@@ -992,8 +992,8 @@ export default function AdminUsers() {
                 </div>
                 
                 <div>
-                  <Label>Custom Permissions</Label>
-                  <div className="mt-2 space-y-3">
+                  <Label className={isMobile ? 'text-sm' : ''}>Custom Permissions</Label>
+                  <div className={`mt-2 ${isMobile ? 'space-y-2' : 'space-y-3'}`}>
                     {Object.entries(
                       AVAILABLE_PERMISSIONS.reduce((acc, permission) => {
                         if (!acc[permission.category]) {
@@ -1003,9 +1003,9 @@ export default function AdminUsers() {
                         return acc;
                       }, {} as Record<string, typeof AVAILABLE_PERMISSIONS>)
                     ).map(([category, permissions]) => (
-                      <div key={category} className="space-y-2">
-                        <Label className="text-sm font-medium">{category}</Label>
-                        <div className="grid grid-cols-2 gap-2">
+                      <div key={category} className={isMobile ? 'space-y-1.5' : 'space-y-2'}>
+                        <Label className={`font-medium ${isMobile ? 'text-xs' : 'text-sm'}`}>{category}</Label>
+                        <div className={`grid gap-2 ${isMobile ? 'grid-cols-1' : 'grid-cols-2'}`}>
                           {permissions.map((permission) => (
                             <div key={permission.id} className="flex items-center space-x-2">
                               <Checkbox
@@ -1014,10 +1014,11 @@ export default function AdminUsers() {
                                 onCheckedChange={(checked) =>
                                   handlePermissionToggle(permission.id, checked as boolean)
                                 }
+                                className={isMobile ? 'h-4 w-4' : ''}
                               />
                               <Label
                                 htmlFor={`edit-${permission.id}`}
-                                className="text-sm font-normal"
+                                className={`font-normal ${isMobile ? 'text-xs' : 'text-sm'}`}
                               >
                                 {permission.name}
                               </Label>
