@@ -107,6 +107,7 @@ const AdminAuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }
         setIsAdminAuthenticated(false);
         setAdminUser(null);
       } finally {
+        isCheckingSession.current = false;
         console.log('✅ AdminAuthContext: Initialization complete, isLoading set to false');
         setIsLoading(false);
       }
@@ -114,6 +115,7 @@ const AdminAuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }
 
     checkAdminSession().catch(err => {
       console.error('❌ AdminAuthContext: Unhandled error in checkAdminSession:', err);
+      isCheckingSession.current = false;
       setIsLoading(false);
     });
 
