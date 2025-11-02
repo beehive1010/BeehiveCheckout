@@ -214,126 +214,134 @@ export function useMatrixNodeChildren(
 ) {
   return useQuery<{ L: MatrixTreeNode | null; M: MatrixTreeNode | null; R: MatrixTreeNode | null }>({
     // Updated query key to force cache refresh after RLS and case-sensitivity fixes
-    queryKey: ['matrix-node-children-v2', userWallet, parentWallet],
+    queryKey: ['matrix-node-children-v3', userWallet, parentWallet],
     queryFn: async () => {
       if (!parentWallet) {
         throw new Error('Parent wallet is required');
       }
 
       console.log('👶 Fetching children for parent:', parentWallet);
+      console.log('🔍 Starting Supabase query...');
 
       // Query children directly by parent_wallet from members table
       // Use ilike for case-insensitive matching
-      const { data: membersData, error: membersError } = await supabase
-        .from('members')
-        .select(`
-          wallet_address,
-          parent_wallet,
-          position,
-          layer_level,
-          referrer_wallet,
-          activation_time,
-          activation_sequence,
-          current_level
-        `)
-        .ilike('parent_wallet', parentWallet)
-        .order('position');
+      try {
+        const { data: membersData, error: membersError } = await supabase
+          .from('members')
+          .select(`
+            wallet_address,
+            parent_wallet,
+            position,
+            layer_level,
+            referrer_wallet,
+            activation_time,
+            activation_sequence,
+            current_level
+          `)
+          .ilike('parent_wallet', parentWallet)
+          .order('position');
 
-      if (membersError) {
-        console.error('❌ Error fetching children from members:', membersError);
-        throw membersError;
-      }
+        console.log('✅ Supabase query completed!');
 
-      console.log('📊 Found', membersData?.length || 0, 'children from members table:', membersData);
+        if (membersError) {
+          console.error('❌ Error fetching children from members:', membersError);
+          throw membersError;
+        }
 
-      // Get usernames for these children
-      const childWallets = membersData?.map(m => m.wallet_address) || [];
-      console.log('🔍 Fetching usernames for', childWallets.length, 'children:', childWallets);
-      let usernamesMap = new Map<string, string>();
+        console.log('📊 Found', membersData?.length || 0, 'children from members table:', membersData);
 
-      if (childWallets.length > 0) {
-        const { data: usersData } = await supabase
-          .from('users')
-          .select('wallet_address, username')
-          .in('wallet_address', childWallets);
+        // Get usernames for these children
+        const childWallets = membersData?.map(m => m.wallet_address) || [];
+        console.log('🔍 Fetching usernames for', childWallets.length, 'children:', childWallets);
+        let usernamesMap = new Map<string, string>();
 
-        usersData?.forEach(u => {
-          usernamesMap.set(u.wallet_address.toLowerCase(), u.username);
+        if (childWallets.length > 0) {
+          const { data: usersData } = await supabase
+            .from('users')
+            .select('wallet_address, username')
+            .in('wallet_address', childWallets);
+
+          usersData?.forEach(u => {
+            usernamesMap.set(u.wallet_address.toLowerCase(), u.username);
+          });
+        }
+
+        // Merge username data
+        const data = membersData?.map(m => ({
+          ...m,
+          username: usernamesMap.get(m.wallet_address.toLowerCase()) || null
+        })) || [];
+
+        const error = null;
+
+        // Check if children have their own children
+        const childrenWallets = data?.map(d => d.wallet_address) || [];
+        let grandchildrenData: any[] = [];
+
+        if (childrenWallets.length > 0) {
+          // Query each child's children individually to avoid case sensitivity issues with .in()
+          const gcPromises = childrenWallets.map(wallet =>
+            supabase
+              .from('members')
+              .select('parent_wallet, position')
+              .ilike('parent_wallet', wallet)
+          );
+          const gcResults = await Promise.all(gcPromises);
+          grandchildrenData = gcResults.flatMap(result => result.data || []);
+        }
+
+        // Build children_slots for each child (use lowercase keys for case-insensitive matching)
+        const childrenSlotsMap = new Map<string, any>();
+        grandchildrenData?.forEach(gc => {
+          const parentKey = gc.parent_wallet.toLowerCase();
+          if (!childrenSlotsMap.has(parentKey)) {
+            childrenSlotsMap.set(parentKey, { L: null, M: null, R: null });
+          }
+          const slots = childrenSlotsMap.get(parentKey);
+          if (gc.position) {
+            slots[gc.position] = gc.parent_wallet; // Just mark as filled
+          }
         });
-      }
 
-      // Merge username data
-      const data = membersData?.map(m => ({
-        ...m,
-        username: usernamesMap.get(m.wallet_address.toLowerCase()) || null
-      })) || [];
-
-      const error = null;
-
-      // Check if children have their own children
-      const childrenWallets = data?.map(d => d.wallet_address) || [];
-      let grandchildrenData: any[] = [];
-
-      if (childrenWallets.length > 0) {
-        // Query each child's children individually to avoid case sensitivity issues with .in()
-        const gcPromises = childrenWallets.map(wallet =>
-          supabase
-            .from('members')
-            .select('parent_wallet, position')
-            .ilike('parent_wallet', wallet)
-        );
-        const gcResults = await Promise.all(gcPromises);
-        grandchildrenData = gcResults.flatMap(result => result.data || []);
-      }
-
-      // Build children_slots for each child (use lowercase keys for case-insensitive matching)
-      const childrenSlotsMap = new Map<string, any>();
-      grandchildrenData?.forEach(gc => {
-        const parentKey = gc.parent_wallet.toLowerCase();
-        if (!childrenSlotsMap.has(parentKey)) {
-          childrenSlotsMap.set(parentKey, { L: null, M: null, R: null });
-        }
-        const slots = childrenSlotsMap.get(parentKey);
-        if (gc.position) {
-          slots[gc.position] = gc.parent_wallet; // Just mark as filled
-        }
-      });
-
-      // Transform to MatrixTreeNode format
-      const transformNode = (node: any): MatrixTreeNode | null => {
-        if (!node) return null;
-        const childrenSlots = childrenSlotsMap.get(node.wallet_address.toLowerCase()) || { L: null, M: null, R: null };
-        // Calculate referral_type: direct if parent = referrer, otherwise spillover
-        const referralType = node.parent_wallet?.toLowerCase() === node.referrer_wallet?.toLowerCase()
-          ? 'direct'
-          : 'spillover';
-        return {
-          matrix_root_wallet: '', // Not used anymore
-          layer: node.layer_level,
-          member_wallet: node.wallet_address,
-          member_username: node.username || null,
-          current_level: node.current_level || 0,
-          activation_sequence: node.activation_sequence || 0,
-          parent_wallet: node.parent_wallet,
-          slot: node.position,
-          activation_time: node.activation_time,
-          referral_type: referralType,
-          has_children: Object.values(childrenSlots).some(s => s !== null),
-          children_count: Object.values(childrenSlots).filter(s => s !== null).length,
-          children_slots: childrenSlots
+        // Transform to MatrixTreeNode format
+        const transformNode = (node: any): MatrixTreeNode | null => {
+          if (!node) return null;
+          const childrenSlots = childrenSlotsMap.get(node.wallet_address.toLowerCase()) || { L: null, M: null, R: null };
+          // Calculate referral_type: direct if parent = referrer, otherwise spillover
+          const referralType = node.parent_wallet?.toLowerCase() === node.referrer_wallet?.toLowerCase()
+            ? 'direct'
+            : 'spillover';
+          return {
+            matrix_root_wallet: '', // Not used anymore
+            layer: node.layer_level,
+            member_wallet: node.wallet_address,
+            member_username: node.username || null,
+            current_level: node.current_level || 0,
+            activation_sequence: node.activation_sequence || 0,
+            parent_wallet: node.parent_wallet,
+            slot: node.position,
+            activation_time: node.activation_time,
+            referral_type: referralType,
+            has_children: Object.values(childrenSlots).some(s => s !== null),
+            children_count: Object.values(childrenSlots).filter(s => s !== null).length,
+            children_slots: childrenSlots
+          };
         };
-      };
 
-      // Organize children by slot (L, M, R)
-      const children = {
-        L: transformNode(data?.find(node => node.position === 'L') || null),
-        M: transformNode(data?.find(node => node.position === 'M') || null),
-        R: transformNode(data?.find(node => node.position === 'R') || null),
-      };
+        // Organize children by slot (L, M, R)
+        const children = {
+          L: transformNode(data?.find(node => node.position === 'L') || null),
+          M: transformNode(data?.find(node => node.position === 'M') || null),
+          R: transformNode(data?.find(node => node.position === 'R') || null),
+        };
 
-      console.log('✅ Found children:', Object.values(children).filter(Boolean).length);
+        console.log('✅ Found children:', Object.values(children).filter(Boolean).length);
 
-      return children;
+        return children;
+      } catch (error) {
+        console.error('💥 Exception in useMatrixNodeChildren:', error);
+        throw error;
+      }
     },
     enabled: !!parentWallet,
     staleTime: 30000,
