@@ -318,38 +318,72 @@ const AdminAuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }
     };
   }, [isAdminAuthenticated]);
 
-  // Auto-refresh session every 30 minutes if user is active
+  // Smart token refresh - refresh proactively before expiry
   useEffect(() => {
-    if (!isAdminAuthenticated) return;
+    if (!isAdminAuthenticated || !isOnline) return;
 
-    const refreshInterval = setInterval(async () => {
-      const inactiveTime = Date.now() - lastActivity;
-      const thirtyMinutes = 30 * 60 * 1000;
+    const scheduleTokenRefresh = async () => {
+      try {
+        const { data: { session } } = await supabase.auth.getSession();
 
-      // Only refresh if user was active in last 30 minutes
-      if (inactiveTime < thirtyMinutes) {
-        try {
-          console.log('🔄 Auto-refreshing admin session...');
-          const { data: { session }, error } = await supabase.auth.refreshSession();
+        if (session?.expires_at) {
+          const expiresAt = session.expires_at * 1000; // Convert to milliseconds
+          const now = Date.now();
+          const timeUntilExpiry = expiresAt - now;
+          const tenMinutes = 10 * 60 * 1000;
+          const thirtyMinutes = 30 * 60 * 1000;
 
-          if (error) {
-            console.error('❌ Session refresh failed:', error);
-            return;
-          }
+          // Schedule refresh 10 minutes before expiry, but only if user active in last 30 min
+          const refreshTime = Math.max(0, timeUntilExpiry - tenMinutes);
 
-          if (session) {
-            console.log('✅ Session refreshed successfully. Expires:', new Date(session.expires_at! * 1000).toLocaleString());
-          }
-        } catch (error) {
-          console.error('❌ Error refreshing session:', error);
+          console.log(`🔄 Scheduling token refresh in ${Math.round(refreshTime / 60000)} minutes`);
+
+          const timeoutId = setTimeout(async () => {
+            const inactiveTime = Date.now() - lastActivity;
+
+            // Only refresh if user was active in last 30 minutes
+            if (inactiveTime < thirtyMinutes) {
+              try {
+                console.log('🔄 Proactively refreshing session before expiry...');
+                const { data: { session: newSession }, error } = await supabase.auth.refreshSession();
+
+                if (error) {
+                  console.error('❌ Session refresh failed:', error);
+                  return;
+                }
+
+                if (newSession) {
+                  console.log('✅ Session refreshed successfully. New expiry:', new Date(newSession.expires_at! * 1000).toLocaleString());
+
+                  // Reset expiry warning flag
+                  sessionExpiryWarningShown.current = false;
+
+                  // Broadcast to other tabs
+                  broadcastChannel.current?.postMessage({
+                    type: 'SESSION_REFRESHED',
+                    payload: { expiresAt: newSession.expires_at }
+                  });
+
+                  // Schedule next refresh
+                  scheduleTokenRefresh();
+                }
+              } catch (error) {
+                console.error('❌ Error refreshing session:', error);
+              }
+            } else {
+              console.log('ℹ️ User inactive for 30+ minutes, skipping session refresh');
+            }
+          }, refreshTime);
+
+          return () => clearTimeout(timeoutId);
         }
-      } else {
-        console.log('ℹ️ User inactive, skipping session refresh');
+      } catch (error) {
+        console.error('❌ Error scheduling token refresh:', error);
       }
-    }, 15 * 60 * 1000); // Check every 15 minutes
+    };
 
-    return () => clearInterval(refreshInterval);
-  }, [isAdminAuthenticated, lastActivity]);
+    scheduleTokenRefresh();
+  }, [isAdminAuthenticated, isOnline, lastActivity]);
 
   const signInAdmin = async (email: string, password: string) => {
     console.log('🔐 AdminAuthContext: Starting admin sign in for:', email);
@@ -423,16 +457,25 @@ const AdminAuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }
       console.log('✅ AdminAuthContext: Admin verification successful, level:', adminData.admin_level);
 
       setIsAdminAuthenticated(true);
-      setAdminUser({
+      const newAdminUser = {
         ...data.user,
         role: `Level ${adminData.admin_level} Admin`, // Map admin_level to role
         admin_level: adminData.admin_level,
         wallet_address: adminData.wallet_address,
         permissions: adminData.permissions,
         adminData
-      });
+      };
+
+      setAdminUser(newAdminUser);
 
       console.log('✅ AdminAuthContext: Admin signed in successfully:', data.user.email, 'Level:', adminData.admin_level);
+
+      // Broadcast sign in to other tabs
+      broadcastChannel.current?.postMessage({
+        type: 'ADMIN_SIGNED_IN',
+        payload: { adminUser: newAdminUser }
+      });
+
       console.log('🔀 AdminAuthContext: Redirecting to /admin/dashboard');
 
       // Redirect to admin dashboard
@@ -452,6 +495,12 @@ const AdminAuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }
       // Clear all admin state BEFORE sign out
       setIsAdminAuthenticated(false);
       setAdminUser(null);
+
+      // Broadcast sign out to other tabs BEFORE actually signing out
+      broadcastChannel.current?.postMessage({
+        type: 'ADMIN_SIGNED_OUT',
+        payload: {}
+      });
 
       // Sign out with 'local' scope to clear localStorage completely
       await supabase.auth.signOut({ scope: 'local' });
@@ -535,6 +584,7 @@ const AdminAuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }
     isAdminAuthenticated,
     adminUser,
     isLoading,
+    isOnline,
     signInAdmin,
     signOutAdmin,
     hasPermission,
