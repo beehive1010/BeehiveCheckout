@@ -54,36 +54,35 @@ const MatrixLayerStatsView: React.FC<MatrixLayerStatsViewProps> = ({
     try {
       console.log('🔍 Loading matrix layer stats for wallet:', walletAddress);
 
-      // Get total member count for this matrix root
-      const { data: memberCount, error: countError } = await supabase
-        .from('members')
-        .select('wallet_address', { count: 'exact', head: true })
-        .ilike('matrix_root_wallet', walletAddress);
+      // Get total member count from user's subtree
+      const { data: subtreeStats, error: statsError } = await supabase
+        .rpc('fn_get_user_matrix_stats', { p_user_wallet: walletAddress })
+        .single();
 
-      if (countError) {
-        console.error('❌ Failed to fetch member count:', countError);
+      if (statsError) {
+        console.error('❌ Failed to fetch user matrix stats:', statsError);
       }
 
-      const totalMembers = memberCount?.count || 0;
+      const totalMembers = subtreeStats?.total_members || 0;
       setTotalDownlineMembers(totalMembers);
-      console.log('📊 Total members in matrix:', totalMembers);
+      console.log('📊 Total members in user subtree:', totalMembers);
 
-      // Use v_matrix_layer_statistics view for this matrix root
-      console.log('📊 Using v_matrix_layer_statistics view for 19-layer matrix stats');
+      // Use v_matrix_layers_v2 view for user's 19-layer stats
+      console.log('📊 Using v_matrix_layers_v2 view for user matrix stats');
 
       const { data: layerData, error: matrixError } = await supabase
-        .from('v_matrix_layer_statistics')
-        .select('layer, total_members, direct_count, spillover_count, l_count, m_count, r_count, fill_rate_percent')
-        .ilike('matrix_root_wallet', walletAddress);
+        .from('v_matrix_layers_v2')
+        .select('layer, filled, direct_count, spillover_count, left_count, middle_count, right_count, fill_rate')
+        .eq('root', walletAddress);
 
       if (matrixError) {
         throw new Error(`Database error: ${matrixError.message}`);
       }
 
-      console.log('📊 Matrix layer data from v_matrix_layer_statistics:', layerData);
+      console.log('📊 Matrix layer data from v_matrix_layers_v2:', layerData);
       console.log('📊 Total records found:', layerData?.length || 0);
 
-      // Build layer counts from v_matrix_layer_statistics
+      // Build layer counts from v_matrix_layers_v2
       const layerCounts: Record<number, { L: number, M: number, R: number, active: number }> = {};
 
       // Map layer data from the view
@@ -91,10 +90,10 @@ const MatrixLayerStatsView: React.FC<MatrixLayerStatsViewProps> = ({
         if (!layerCounts[row.layer]) {
           layerCounts[row.layer] = { L: 0, M: 0, R: 0, active: 0 };
         }
-        layerCounts[row.layer].L += row.l_count || 0;
-        layerCounts[row.layer].M += row.m_count || 0;
-        layerCounts[row.layer].R += row.r_count || 0;
-        layerCounts[row.layer].active += row.total_members || 0;
+        layerCounts[row.layer].L += row.left_count || 0;
+        layerCounts[row.layer].M += row.middle_count || 0;
+        layerCounts[row.layer].R += row.right_count || 0;
+        layerCounts[row.layer].active += row.filled || 0;
       });
 
       console.log('📊 Layer counts with L/M/R breakdown:', layerCounts);
