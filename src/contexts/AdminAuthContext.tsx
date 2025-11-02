@@ -26,18 +26,26 @@ const AdminAuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }
   const { toast } = useToast();
   const sessionExpiryWarningShown = useRef(false);
   const broadcastChannel = useRef<BroadcastChannel | null>(null);
+  const isCheckingSession = useRef(false);
 
   // Check for existing admin session on mount
   useEffect(() => {
     console.log('🔧 AdminAuthContext: Initializing...');
 
     const checkAdminSession = async () => {
+      // Prevent duplicate session checks
+      if (isCheckingSession.current) {
+        console.log('⏭️ AdminAuthContext: Session check already in progress, skipping...');
+        return;
+      }
+
+      isCheckingSession.current = true;
       console.log('🔄 AdminAuthContext: Checking admin session...');
 
       try {
-        // Add timeout to prevent hanging
+        // Add timeout to prevent hanging (increased to 30 seconds for slow networks)
         const timeoutPromise = new Promise((_, reject) =>
-          setTimeout(() => reject(new Error('Session check timeout')), 10000)
+          setTimeout(() => reject(new Error('Session check timeout')), 30000)
         );
 
         const sessionPromise = supabase.auth.getSession();
