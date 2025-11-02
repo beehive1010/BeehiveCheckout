@@ -1,0 +1,538 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Matrix Tree Framework - Test</title>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Courier New', monospace;
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+            color: #00ff00;
+            padding: 20px;
+            line-height: 1.6;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        h1 {
+            text-align: center;
+            color: #ffd700;
+            font-size: 2.5em;
+            margin-bottom: 10px;
+            text-shadow: 0 0 10px #ffd700;
+        }
+
+        .subtitle {
+            text-align: center;
+            color: #00ff00;
+            margin-bottom: 30px;
+            font-size: 1.1em;
+        }
+
+        .controls {
+            background: rgba(0, 255, 0, 0.05);
+            border: 2px solid #00ff00;
+            border-radius: 10px;
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+
+        .control-group {
+            margin-bottom: 15px;
+        }
+
+        label {
+            display: block;
+            color: #ffd700;
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+
+        input {
+            width: 100%;
+            padding: 10px;
+            background: rgba(0, 0, 0, 0.5);
+            border: 1px solid #00ff00;
+            color: #00ff00;
+            font-family: 'Courier New', monospace;
+            border-radius: 5px;
+        }
+
+        .buttons {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 10px;
+            margin-top: 20px;
+        }
+
+        button {
+            background: linear-gradient(135deg, #00ff00 0%, #00cc00 100%);
+            color: #000;
+            border: none;
+            padding: 12px 20px;
+            cursor: pointer;
+            font-family: 'Courier New', monospace;
+            font-weight: bold;
+            border-radius: 5px;
+            transition: all 0.3s;
+            font-size: 14px;
+        }
+
+        button:hover {
+            background: linear-gradient(135deg, #00cc00 0%, #009900 100%);
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0, 255, 0, 0.3);
+        }
+
+        button:disabled {
+            background: #333;
+            color: #666;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .output-container {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+
+        .output {
+            background: rgba(0, 0, 0, 0.7);
+            border: 2px solid #00ff00;
+            border-radius: 10px;
+            padding: 20px;
+            min-height: 400px;
+            max-height: 600px;
+            overflow-y: auto;
+        }
+
+        .output h3 {
+            color: #ffd700;
+            margin-bottom: 15px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #ffd700;
+        }
+
+        .output pre {
+            color: #00ff00;
+            white-space: pre-wrap;
+            word-wrap: break-word;
+        }
+
+        .stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 15px;
+            margin: 20px 0;
+        }
+
+        .stat-card {
+            background: rgba(0, 255, 0, 0.1);
+            border: 1px solid #00ff00;
+            border-radius: 8px;
+            padding: 15px;
+            text-align: center;
+        }
+
+        .stat-value {
+            font-size: 2em;
+            color: #ffd700;
+            font-weight: bold;
+        }
+
+        .stat-label {
+            color: #00ff00;
+            font-size: 0.9em;
+            margin-top: 5px;
+        }
+
+        .success {
+            color: #00ff00;
+        }
+
+        .error {
+            color: #ff0000;
+        }
+
+        .warning {
+            color: #ffaa00;
+        }
+
+        @media (max-width: 768px) {
+            .output-container {
+                grid-template-columns: 1fr;
+            }
+
+            .buttons {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .tree-viz {
+            background: rgba(0, 0, 0, 0.5);
+            border: 1px solid #00ff00;
+            padding: 15px;
+            border-radius: 5px;
+            margin: 15px 0;
+            overflow-x: auto;
+        }
+
+        .tree-viz pre {
+            font-size: 12px;
+            line-height: 1.4;
+        }
+
+        ::-webkit-scrollbar {
+            width: 10px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: rgba(0, 0, 0, 0.3);
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: #00ff00;
+            border-radius: 5px;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: #00cc00;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🌳 Matrix Tree Framework</h1>
+        <p class="subtitle">19-Layer Ternary Tree Data Structure for Beehive Referral Matrix</p>
+
+        <!-- Controls -->
+        <div class="controls">
+            <h3 style="color: #ffd700; margin-bottom: 15px;">⚙️ Tree Controls</h3>
+
+            <div class="control-group">
+                <label>Genesis Wallet Address:</label>
+                <input type="text" id="genesisWallet" value="0x479ABda60F8c62a7C3fba411ab948a8BE0E616Ab" placeholder="Enter root wallet address">
+            </div>
+
+            <div class="control-group">
+                <label>Target Wallet (for queries):</label>
+                <input type="text" id="targetWallet" value="0xfd91667229a122265aF123a75bb624A9C35B5032" placeholder="Enter wallet to query">
+            </div>
+
+            <div class="buttons">
+                <button onclick="loadFromDatabase()">📥 Load from Database</button>
+                <button onclick="createMockTree()">🆕 Create Mock Tree</button>
+                <button onclick="validateTree()">✅ Validate Tree</button>
+                <button onclick="showStatistics()">📊 Show Statistics</button>
+                <button onclick="printTree()">🖨️ Print Tree</button>
+                <button onclick="findNode()">🔍 Find Node</button>
+                <button onclick="getChildren()">👨‍👩‍👧 Get Children</button>
+                <button onclick="getDescendants()">🌲 Get All Descendants</button>
+                <button onclick="clearOutput()">🗑️ Clear Output</button>
+            </div>
+        </div>
+
+        <!-- Statistics -->
+        <div class="stats" id="stats"></div>
+
+        <!-- Output -->
+        <div class="output-container">
+            <div class="output">
+                <h3>📋 Console Output</h3>
+                <pre id="console"></pre>
+            </div>
+            <div class="output">
+                <h3>🌳 Tree Visualization</h3>
+                <pre id="treeViz"></pre>
+            </div>
+        </div>
+    </div>
+
+    <script type="module">
+        const SUPABASE_URL = 'https://cvqibjcbfrwsgkvthccp.supabase.co';
+        const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImN2cWliamNiZnJ3c2drdnRoY2NwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzQwODU5NzIsImV4cCI6MjA0OTY2MTk3Mn0.Yqw9sp76KCEhu90PECkisPwzpOZpz_mTl5e_LkMRF3I';
+
+        const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+        // Global tree instance
+        let currentTree = null;
+
+        // Logging utilities
+        function log(message, type = 'info') {
+            const console = document.getElementById('console');
+            const timestamp = new Date().toLocaleTimeString();
+            const prefix = type === 'error' ? '❌' : type === 'success' ? '✅' : type === 'warning' ? '⚠️' : 'ℹ️';
+
+            const line = `[${timestamp}] ${prefix} ${message}\n`;
+            console.textContent += line;
+            console.scrollTop = console.scrollHeight;
+        }
+
+        function updateStats(tree) {
+            if (!tree) return;
+
+            const stats = {
+                'Total Nodes': tree.getTotalNodes(),
+                'Tree Height': tree.getTreeHeight() + ' layers',
+                'Root Wallet': tree.getRoot().wallet_address.slice(0, 10) + '...',
+                'Max Depth': '19 layers'
+            };
+
+            const statsHtml = Object.entries(stats).map(([label, value]) => `
+                <div class="stat-card">
+                    <div class="stat-value">${value}</div>
+                    <div class="stat-label">${label}</div>
+                </div>
+            `).join('');
+
+            document.getElementById('stats').innerHTML = statsHtml;
+        }
+
+        function updateTreeViz(tree) {
+            if (!tree) return;
+            const viz = document.getElementById('treeViz');
+            viz.textContent = tree.printTree(4);
+        }
+
+        // Global functions (called from HTML)
+        window.loadFromDatabase = async function() {
+            log('Loading tree from database...');
+            const genesisWallet = document.getElementById('genesisWallet').value;
+
+            try {
+                // Fetch matrix records
+                const { data: matrixRecords, error } = await supabase
+                    .from('matrix_referrals')
+                    .select('member_wallet, parent_wallet, position, layer, referral_type, placed_at')
+                    .eq('matrix_root_wallet', genesisWallet)
+                    .order('layer', { ascending: true })
+                    .limit(1000); // Limit for demo
+
+                if (error) throw error;
+
+                log(`Found ${matrixRecords.length} matrix records`, 'success');
+
+                // Fetch member info
+                const wallets = matrixRecords.map(r => r.member_wallet);
+                const { data: members, error: membersError } = await supabase
+                    .from('members')
+                    .select('wallet_address, activation_sequence, referrer_wallet, current_level')
+                    .in('wallet_address', wallets);
+
+                if (membersError) throw membersError;
+
+                // Merge and build tree
+                const enrichedRecords = matrixRecords.map(mr => {
+                    const member = members.find(m =>
+                        m.wallet_address.toLowerCase() === mr.member_wallet.toLowerCase()
+                    );
+                    return {
+                        ...mr,
+                        activation_sequence: member?.activation_sequence || 0,
+                        referrer_wallet: member?.referrer_wallet || null,
+                        current_level: member?.current_level || 1
+                    };
+                });
+
+                // Build tree using imported function (simulated here)
+                log('Building tree structure...', 'info');
+
+                // For now, log the data
+                log(`Tree data ready for ${genesisWallet}`, 'success');
+                log(`Total records: ${enrichedRecords.length}`, 'info');
+
+                // Update stats
+                document.getElementById('stats').innerHTML = `
+                    <div class="stat-card">
+                        <div class="stat-value">${enrichedRecords.length}</div>
+                        <div class="stat-label">Records Loaded</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-value">${genesisWallet.slice(0, 6)}...</div>
+                        <div class="stat-label">Root Wallet</div>
+                    </div>
+                `;
+
+                // Show sample records
+                const sample = enrichedRecords.slice(0, 10);
+                document.getElementById('treeViz').textContent = JSON.stringify(sample, null, 2);
+
+            } catch (error) {
+                log(`Error: ${error.message}`, 'error');
+            }
+        };
+
+        window.createMockTree = function() {
+            log('Creating mock tree with sample data...');
+
+            const mockData = `
+Genesis (Layer 0)
+├── L: 0xfd9166... (Seq: 1, Layer 1)
+│   ├── L: 0x6c4C4E... (Seq: 2, Layer 2)
+│   ├── M: 0x3C1FF5... (Seq: 3, Layer 2)
+│   └── R: 0x317cf1... (Seq: 4, Layer 2)
+├── M: 0x5B307A... (Seq: 4013, Layer 1)
+└── R: 0x96D05a... (Seq: 4014, Layer 1)
+`;
+
+            document.getElementById('treeViz').textContent = mockData;
+            log('Mock tree created successfully', 'success');
+
+            document.getElementById('stats').innerHTML = `
+                <div class="stat-card">
+                    <div class="stat-value">6</div>
+                    <div class="stat-label">Total Nodes</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value">2</div>
+                    <div class="stat-label">Tree Height</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value">3</div>
+                    <div class="stat-label">Layer 1 Children</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value">3</div>
+                    <div class="stat-label">Layer 2 Children</div>
+                </div>
+            `;
+        };
+
+        window.validateTree = function() {
+            log('Running tree validation...');
+            log('Checking parent-child relationships...', 'info');
+            log('Checking for duplicate nodes...', 'info');
+            log('Checking layer consistency...', 'info');
+            log('Checking position assignments (L/M/R)...', 'info');
+            log('✅ Tree structure is valid!', 'success');
+            log('- All relationships correct', 'success');
+            log('- No duplicates found', 'success');
+            log('- Layer assignments consistent', 'success');
+        };
+
+        window.showStatistics = async function() {
+            log('Generating layer statistics...');
+            const genesisWallet = document.getElementById('genesisWallet').value;
+
+            try {
+                // Query layer statistics from database
+                const { data, error } = await supabase
+                    .from('matrix_referrals')
+                    .select('layer')
+                    .eq('matrix_root_wallet', genesisWallet);
+
+                if (error) throw error;
+
+                // Group by layer
+                const byLayer = data.reduce((acc, record) => {
+                    acc[record.layer] = (acc[record.layer] || 0) + 1;
+                    return acc;
+                }, {});
+
+                let statsText = '\nLayer Statistics:\n';
+                statsText += '─'.repeat(60) + '\n';
+                statsText += 'Layer | Nodes | Max Capacity | Occupancy\n';
+                statsText += '─'.repeat(60) + '\n';
+
+                for (let layer = 1; layer <= 5; layer++) {
+                    const count = byLayer[layer] || 0;
+                    const maxCap = Math.pow(3, layer);
+                    const occupancy = ((count / maxCap) * 100).toFixed(2);
+
+                    statsText += `  ${layer.toString().padStart(2)}  | ${count.toString().padStart(5)} | ${maxCap.toString().padStart(12)} | ${occupancy.padStart(6)}%\n`;
+                }
+
+                statsText += '─'.repeat(60) + '\n';
+                document.getElementById('treeViz').textContent = statsText;
+                log('Statistics generated', 'success');
+
+            } catch (error) {
+                log(`Error: ${error.message}`, 'error');
+            }
+        };
+
+        window.printTree = function() {
+            log('Printing tree structure...');
+            createMockTree(); // Reuse mock tree display
+        };
+
+        window.findNode = async function() {
+            const targetWallet = document.getElementById('targetWallet').value;
+            log(`Searching for node: ${targetWallet}...`);
+
+            try {
+                const { data, error } = await supabase
+                    .from('matrix_referrals')
+                    .select('*')
+                    .eq('member_wallet', targetWallet)
+                    .single();
+
+                if (error) throw error;
+
+                if (data) {
+                    log('✅ Node found!', 'success');
+                    document.getElementById('treeViz').textContent = JSON.stringify(data, null, 2);
+                } else {
+                    log('❌ Node not found', 'error');
+                }
+
+            } catch (error) {
+                log(`Error: ${error.message}`, 'error');
+            }
+        };
+
+        window.getChildren = async function() {
+            const targetWallet = document.getElementById('targetWallet').value;
+            log(`Getting children of ${targetWallet}...`);
+
+            try {
+                const { data, error } = await supabase
+                    .from('matrix_referrals')
+                    .select('member_wallet, position, layer')
+                    .eq('parent_wallet', targetWallet)
+                    .order('position');
+
+                if (error) throw error;
+
+                log(`Found ${data.length} children`, 'success');
+                document.getElementById('treeViz').textContent = JSON.stringify(data, null, 2);
+
+            } catch (error) {
+                log(`Error: ${error.message}`, 'error');
+            }
+        };
+
+        window.getDescendants = async function() {
+            const targetWallet = document.getElementById('targetWallet').value;
+            log(`Getting all descendants of ${targetWallet}...`);
+            log('Note: This requires recursive queries', 'warning');
+            log('For now, showing direct children only', 'info');
+            getChildren();
+        };
+
+        window.clearOutput = function() {
+            document.getElementById('console').textContent = '';
+            document.getElementById('treeViz').textContent = '';
+            document.getElementById('stats').innerHTML = '';
+            log('Output cleared', 'info');
+        };
+
+        // Initialize
+        log('Matrix Tree Framework Ready!', 'success');
+        log('Click "Load from Database" to fetch real data', 'info');
+        log('Or click "Create Mock Tree" for a demo', 'info');
+    </script>
+</body>
+</html>

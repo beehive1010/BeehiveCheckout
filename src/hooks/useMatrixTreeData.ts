@@ -135,13 +135,11 @@ export function useMatrixTreeForMember(
 
       console.log('🔍 Finding matrix root for member:', memberWallet);
 
-      // First, find the matrix root for this member
+      // First, find the matrix root for this member from members table
       const { data: memberData, error: memberError } = await supabase
-        .from('matrix_referrals')
-        .select('matrix_root_wallet, layer')
-        .ilike('member_wallet', memberWallet)
-        .order('layer', { ascending: true })
-        .limit(1)
+        .from('members')
+        .select('matrix_root_wallet, layer_level')
+        .ilike('wallet_address', memberWallet)
         .maybeSingle();
 
       if (memberError) {
@@ -161,7 +159,7 @@ export function useMatrixTreeForMember(
       }
 
       const matrixRoot = memberData.matrix_root_wallet;
-      const memberLayer = memberData.layer;
+      const memberLayer = memberData.layer_level;
 
       console.log('✅ Found matrix root:', matrixRoot, 'member at layer:', memberLayer);
 

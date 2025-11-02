@@ -1,0 +1,392 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Single Matrix Preview</title>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Monaco', 'Courier New', monospace;
+            background: linear-gradient(135deg, #0f0f1e 0%, #1a1a2e 100%);
+            color: #fff;
+            padding: 20px;
+            min-height: 100vh;
+        }
+
+        .container {
+            max-width: 1600px;
+            margin: 0 auto;
+        }
+
+        h1 {
+            text-align: center;
+            margin-bottom: 30px;
+            color: #ffd700;
+            font-size: 2.5em;
+            text-shadow: 2px 2px 8px rgba(255, 215, 0, 0.5);
+        }
+
+        .comparison {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 30px;
+            margin-bottom: 30px;
+        }
+
+        .panel {
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 15px;
+            padding: 25px;
+            border: 2px solid rgba(255, 215, 0, 0.3);
+        }
+
+        .panel h2 {
+            color: #ffd700;
+            margin-bottom: 20px;
+            font-size: 1.5em;
+            text-align: center;
+        }
+
+        .panel.current {
+            border-color: #f44336;
+        }
+
+        .panel.expected {
+            border-color: #4CAF50;
+        }
+
+        .matrix-tree {
+            font-family: 'Monaco', 'Courier New', monospace;
+            font-size: 0.85em;
+            line-height: 1.8;
+            white-space: pre;
+            overflow-x: auto;
+            background: rgba(0, 0, 0, 0.3);
+            padding: 20px;
+            border-radius: 10px;
+        }
+
+        .tree-node {
+            padding: 2px 0;
+        }
+
+        .tree-node.layer0 { color: #ff9800; font-weight: bold; }
+        .tree-node.layer1 { color: #4CAF50; }
+        .tree-node.layer2 { color: #2196F3; }
+        .tree-node.layer3 { color: #9C27B0; }
+
+        .position-l { color: #4CAF50; font-weight: bold; }
+        .position-m { color: #2196F3; font-weight: bold; }
+        .position-r { color: #9C27B0; font-weight: bold; }
+
+        .stats-box {
+            background: rgba(0, 0, 0, 0.3);
+            padding: 15px;
+            border-radius: 10px;
+            margin-top: 20px;
+        }
+
+        .stat-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 8px 0;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .stat-label {
+            color: rgba(255, 255, 255, 0.7);
+        }
+
+        .stat-value {
+            color: #ffd700;
+            font-weight: bold;
+        }
+
+        .stat-value.good {
+            color: #4CAF50;
+        }
+
+        .stat-value.bad {
+            color: #f44336;
+        }
+
+        button {
+            background: linear-gradient(135deg, #4CAF50, #45a049);
+            color: white;
+            border: none;
+            padding: 15px 40px;
+            border-radius: 10px;
+            font-weight: 600;
+            cursor: pointer;
+            font-size: 1.1em;
+            margin: 10px;
+            transition: all 0.3s ease;
+        }
+
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(76, 175, 80, 0.4);
+        }
+
+        button.danger {
+            background: linear-gradient(135deg, #f44336, #d32f2f);
+        }
+
+        button.danger:hover {
+            box-shadow: 0 8px 20px rgba(244, 67, 54, 0.4);
+        }
+
+        .actions {
+            text-align: center;
+            margin: 30px 0;
+        }
+
+        .warning {
+            background: rgba(255, 152, 0, 0.2);
+            border: 2px solid #ff9800;
+            border-radius: 10px;
+            padding: 20px;
+            margin: 20px 0;
+        }
+
+        .warning h3 {
+            color: #ff9800;
+            margin-bottom: 10px;
+        }
+
+        @media (max-width: 1200px) {
+            .comparison {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🌳 Single Matrix Preview</h1>
+
+        <div class="warning">
+            <h3>⚠️ 重要说明</h3>
+            <p>当前系统使用 <strong>Generation-Based Placement</strong>，每个成员分散在19个矩阵中。</p>
+            <p>预览显示如果切换到 <strong>Single Matrix Placement</strong>，Genesis矩阵的结构会是什么样子。</p>
+            <p><strong>注意：</strong> 这只是预览，不会修改数据库。</p>
+        </div>
+
+        <div class="comparison">
+            <!-- Current System -->
+            <div class="panel current">
+                <h2>❌ 当前结构 (Generation-Based)</h2>
+                <div id="current-structure" class="matrix-tree">加载中...</div>
+                <div class="stats-box">
+                    <div class="stat-row">
+                        <span class="stat-label">Layer 1 分布:</span>
+                        <span class="stat-value" id="current-layer1">-</span>
+                    </div>
+                    <div class="stat-row">
+                        <span class="stat-label">Layer 2 分布:</span>
+                        <span class="stat-value bad" id="current-layer2">-</span>
+                    </div>
+                    <div class="stat-row">
+                        <span class="stat-label">问题:</span>
+                        <span class="stat-value bad">每个父节点只有1个子节点</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Expected System -->
+            <div class="panel expected">
+                <h2>✅ 预期结构 (Single Matrix)</h2>
+                <div id="expected-structure" class="matrix-tree">生成中...</div>
+                <div class="stats-box">
+                    <div class="stat-row">
+                        <span class="stat-label">Layer 1 分布:</span>
+                        <span class="stat-value good" id="expected-layer1">-</span>
+                    </div>
+                    <div class="stat-row">
+                        <span class="stat-label">Layer 2 分布:</span>
+                        <span class="stat-value good" id="expected-layer2">-</span>
+                    </div>
+                    <div class="stat-row">
+                        <span class="stat-label">优势:</span>
+                        <span class="stat-value good">每个父节点可以有3个子节点</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="actions">
+            <button onclick="window.location.reload()">🔄 刷新预览</button>
+            <button class="danger" onclick="showRebuildConfirm()">⚠️ 执行重建 (危险操作)</button>
+        </div>
+
+        <div id="confirm-modal" style="display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.9); z-index: 1000; display: flex; align-items: center; justify-content: center;">
+            <div style="background: #1a1a2e; padding: 40px; border-radius: 15px; max-width: 600px; border: 2px solid #f44336;">
+                <h2 style="color: #f44336; margin-bottom: 20px;">⚠️ 确认重建操作</h2>
+                <p style="margin-bottom: 20px; line-height: 1.8;">
+                    此操作将：<br>
+                    1. 删除 Genesis 矩阵的所有现有记录<br>
+                    2. 使用 Single Matrix 算法重建<br>
+                    3. <strong style="color: #f44336;">不可逆转</strong><br>
+                    <br>
+                    请输入 "REBUILD" 确认：
+                </p>
+                <input type="text" id="confirm-input" style="width: 100%; padding: 10px; border-radius: 5px; margin-bottom: 20px; background: #0f0f1e; border: 1px solid #ffd700; color: white; font-size: 1em;" />
+                <div style="text-align: center;">
+                    <button onclick="hideRebuildConfirm()">取消</button>
+                    <button class="danger" onclick="executeRebuild()">确认重建</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const SUPABASE_URL = 'https://cvqibjcbfrwsgkvthccp.supabase.co';
+        const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImN2cWliamNiZnJ3c2drdnRoY2NwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDM2NzI0NTMsImV4cCI6MjA1OTI0ODQ1M30.EgwcfhU9t5j9NtKV3VxPaxLzpL7PFJGNkIJz-yN0hHQ';
+
+        const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+        const GENESIS_WALLET = '0x479ABda60F8c62a7C3fba411ab948a8BE0E616Ab';
+
+        async function loadCurrentStructure() {
+            try {
+                const { data, error } = await supabase
+                    .from('matrix_referrals')
+                    .select('*')
+                    .ilike('matrix_root_wallet', GENESIS_WALLET)
+                    .lte('layer', 3)
+                    .order('layer')
+                    .order('bfs_order');
+
+                if (error) throw error;
+
+                displayCurrentTree(data);
+            } catch (error) {
+                console.error('Error:', error);
+            }
+        }
+
+        function displayCurrentTree(data) {
+            const layer1 = data.filter(n => n.layer === 1);
+            const layer2 = data.filter(n => n.layer === 2);
+
+            let tree = `Genesis (0x479AB...)\n`;
+
+            // Layer 1
+            layer1.forEach((node, i) => {
+                const isLast = i === layer1.length - 1;
+                const prefix = isLast ? '└──' : '├──';
+                tree += `${prefix} <span class="position-${node.position.toLowerCase()}">${node.position}</span> Member ${node.bfs_order} (${node.member_wallet.substring(0, 10)}...)\n`;
+
+                // Layer 2 children of this node
+                const children = layer2.filter(n => n.parent_wallet === node.member_wallet);
+                children.forEach((child, j) => {
+                    const childPrefix = isLast ? '    ' : '│   ';
+                    const childIsLast = j === children.length - 1;
+                    const childBranch = childIsLast ? '└──' : '├──';
+                    tree += `${childPrefix}${childBranch} <span class="position-${child.position.toLowerCase()}">${child.position}</span> Member ${child.bfs_order}\n`;
+                });
+            });
+
+            document.getElementById('current-structure').innerHTML = tree;
+
+            // Stats
+            const l1_l = layer1.filter(n => n.position === 'L').length;
+            const l1_m = layer1.filter(n => n.position === 'M').length;
+            const l1_r = layer1.filter(n => n.position === 'R').length;
+
+            const l2_l = layer2.filter(n => n.position === 'L').length;
+            const l2_m = layer2.filter(n => n.position === 'M').length;
+            const l2_r = layer2.filter(n => n.position === 'R').length;
+
+            document.getElementById('current-layer1').textContent = `L:${l1_l} M:${l1_m} R:${l1_r}`;
+            document.getElementById('current-layer2').textContent = `L:${l2_l} M:${l2_m} R:${l2_r} ❌ 不均衡!`;
+        }
+
+        async function generateExpectedStructure() {
+            try {
+                const { data: members, error } = await supabase
+                    .from('members')
+                    .select('wallet_address, activation_sequence')
+                    .lte('activation_sequence', 12)
+                    .order('activation_sequence');
+
+                if (error) throw error;
+
+                displayExpectedTree(members);
+            } catch (error) {
+                console.error('Error:', error);
+            }
+        }
+
+        function displayExpectedTree(members) {
+            if (!members || members.length < 4) {
+                document.getElementById('expected-structure').textContent = '数据不足';
+                return;
+            }
+
+            let tree = `Genesis (0x479AB...)\n`;
+
+            // Layer 1: Members 1-3
+            const layer1 = members.slice(1, 4); // seq 1,2,3
+            const positions1 = ['L', 'M', 'R'];
+
+            layer1.forEach((member, i) => {
+                const pos = positions1[i];
+                const isLast = i === layer1.length - 1;
+                const prefix = isLast ? '└──' : '├──';
+                tree += `${prefix} <span class="position-${pos.toLowerCase()}">${pos}</span> Member ${member.activation_sequence} (${member.wallet_address.substring(0, 10)}...)\n`;
+
+                // Layer 2: 3 children per Layer 1 member
+                const childStart = 4 + i * 3; // Members 4-12
+                const children = members.slice(childStart, childStart + 3);
+
+                children.forEach((child, j) => {
+                    const childPos = positions1[j];
+                    const childPrefix = isLast ? '    ' : '│   ';
+                    const childIsLast = j === children.length - 1;
+                    const childBranch = childIsLast ? '└──' : '├──';
+                    tree += `${childPrefix}${childBranch} <span class="position-${childPos.toLowerCase()}">${childPos}</span> Member ${child.activation_sequence}\n`;
+                });
+            });
+
+            document.getElementById('expected-structure').innerHTML = tree;
+
+            // Stats
+            document.getElementById('expected-layer1').textContent = 'L:1 M:1 R:1 ✅ 均衡!';
+            document.getElementById('expected-layer2').textContent = 'L:3 M:3 R:3 ✅ 均衡!';
+        }
+
+        function showRebuildConfirm() {
+            document.getElementById('confirm-modal').style.display = 'flex';
+        }
+
+        function hideRebuildConfirm() {
+            document.getElementById('confirm-modal').style.display = 'none';
+            document.getElementById('confirm-input').value = '';
+        }
+
+        function executeRebuild() {
+            const input = document.getElementById('confirm-input').value;
+            if (input !== 'REBUILD') {
+                alert('请输入 "REBUILD" 确认');
+                return;
+            }
+
+            alert('此功能需要在服务器端执行 SQL 脚本\\n\\n请运行:\\npsql ... -f supabase/migrations/20251029000004_rebuild_genesis_as_single_matrix.sql');
+            hideRebuildConfirm();
+        }
+
+        // Auto-load on page load
+        window.addEventListener('load', () => {
+            loadCurrentStructure();
+            generateExpectedStructure();
+        });
+    </script>
+</body>
+</html>

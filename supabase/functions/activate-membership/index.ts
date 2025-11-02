@@ -469,7 +469,7 @@ serve(async (req) => {
     let memberRecord = null;
 
     if (!existingMember) {
-      console.log(`👥 Creating members record (with automatic membership sync via trigger)...`);
+      console.log(`👥 Creating members record with matrix placement...`);
 
       try {
         // Get the next activation sequence number using atomic function
@@ -487,7 +487,38 @@ serve(async (req) => {
         const finalReferrerWallet = userData.referrer_wallet || normalizedReferrerWallet;
         console.log(`🔗 Using referrer wallet: ${finalReferrerWallet}`);
 
-        const memberData = {
+        // ✅ STEP A: Calculate matrix placement BEFORE insert
+        let placementData: any = null;
+        if (finalReferrerWallet) {
+          console.log(`🧮 Calculating matrix placement...`);
+          const { data: placement, error: placementError } = await supabase
+            .rpc('fn_calculate_member_placement', {
+              p_member_wallet: walletAddress,
+              p_referrer_wallet: finalReferrerWallet
+            });
+
+          if (placementError) {
+            console.error('❌ Matrix placement calculation failed:', placementError);
+            throw new Error(`Matrix placement calculation failed: ${placementError.message}`);
+          }
+
+          if (!placement || !placement.success) {
+            console.error('❌ Matrix placement calculation returned error:', placement);
+            throw new Error(`Matrix placement failed: ${placement?.message || 'Unknown error'}`);
+          }
+
+          placementData = placement;
+          console.log(`✅ Matrix placement calculated:`, {
+            matrix_root: placement.matrix_root_wallet,
+            parent: placement.parent_wallet,
+            position: placement.position,
+            layer: placement.layer_level,
+            type: placement.referral_type
+          });
+        }
+
+        // ✅ STEP B: INSERT members with ALL fields (including matrix fields)
+        const memberData: any = {
           wallet_address: walletAddress,
           referrer_wallet: finalReferrerWallet,
           current_level: level,
@@ -496,11 +527,19 @@ serve(async (req) => {
           total_nft_claimed: 1
         };
 
+        // Add matrix fields if placement was calculated
+        if (placementData) {
+          memberData.matrix_root_wallet = placementData.matrix_root_wallet;
+          memberData.parent_wallet = placementData.parent_wallet;
+          memberData.position = placementData.position;
+          memberData.layer_level = placementData.layer_level;
+          console.log(`📍 Adding matrix fields to member insert`);
+        }
+
         // INSERT members will trigger:
         // 1. sync_member_to_membership_trigger -> creates membership automatically
         // 2. trigger_auto_create_balance_with_initial -> user balance
         // 3. trigger_member_initial_level1_rewards -> rewards
-        // NOTE: trigger_recursive_matrix_placement is DISABLED - using batch placement instead
         const { data: newMember, error: memberError } = await supabase
           .from('members')
           .insert(memberData)
@@ -645,54 +684,23 @@ serve(async (req) => {
       console.log(`ℹ️ No referrer, skipping referrals record`);
     }
 
-    // Step 6: Record matrix placement - BATCH PROCESSING
-    // ✅ NEW: Use batch_place_member_in_matrices with checkpointing
+    // Step 6: Matrix placement result (already done during member creation)
     let matrixResult: any = null;
 
-    if (normalizedReferrerWallet && memberRecord) {
-      console.log(`🔗 Starting matrix placement for: ${walletAddress} -> ${normalizedReferrerWallet}`);
-
-      try {
-        // ✅ NEW: Call Branch-First BFS placement function
-        // Places member in referrer's matrix tree using Branch-First BFS strategy
-        // Entry node = referrer's position in the tree
-        const { data: placementResult, error: placementError } = await supabase
-          .rpc('fn_place_member_branch_bfs', {
-            p_member_wallet: walletAddress,
-            p_referrer_wallet: normalizedReferrerWallet,
-            p_activation_time: memberRecord.activation_time || new Date().toISOString(),
-            p_tx_hash: transactionHash || null
-          });
-
-        if (placementError) {
-          console.error('❌ Matrix placement error:', placementError);
-          matrixResult = {
-            success: false,
-            error: placementError.message,
-            message: 'Matrix placement failed'
-          };
-        } else {
-          console.log(`✅ Matrix placement result (Branch-First BFS):`, placementResult);
-          matrixResult = {
-            success: placementResult.success,
-            ...placementResult,
-            message: placementResult.success
-              ? `Placed in matrix: ${placementResult.matrix_root} at layer ${placementResult.layer}, slot ${placementResult.slot} (${placementResult.referral_type})`
-              : `Matrix placement failed: ${placementResult.message}`
-          };
-        }
-
-      } catch (placementErr: any) {
-        console.error('❌ Matrix placement exception:', placementErr);
-        matrixResult = {
-          success: false,
-          error: placementErr.message,
-          message: 'Matrix placement exception'
-        };
-      }
-
+    // Matrix placement was already calculated and inserted with member record
+    if (memberRecord?.matrix_root_wallet) {
+      matrixResult = {
+        success: true,
+        matrix_root_wallet: memberRecord.matrix_root_wallet,
+        parent_wallet: memberRecord.parent_wallet,
+        position: memberRecord.position,
+        layer_level: memberRecord.layer_level,
+        referral_type: (memberRecord.referrer_wallet === memberRecord.parent_wallet) ? 'direct' : 'spillover',
+        message: `Placed in matrix: ${memberRecord.matrix_root_wallet} at layer ${memberRecord.layer_level}, position ${memberRecord.position}`
+      };
+      console.log(`✅ Matrix placement completed during member insert:`, matrixResult);
     } else {
-      console.log(`ℹ️ No referrer wallet, skipping matrix placement`);
+      console.log(`ℹ️ No matrix placement (no referrer)`);
       matrixResult = {
         success: true,
         message: 'No referrer - no matrix placement needed'
@@ -876,12 +884,17 @@ serve(async (req) => {
         finalVerification.referralsExist = true; // Skip check if no referrer
       }
 
-      // Check matrix_referrals record
-      const { data: finalMatrixReferrals } = await supabase
-        .from('matrix_referrals')
-        .select('*')
-        .ilike('member_wallet', walletAddress);
-      finalVerification.matrixPlacementExists = !!finalMatrixReferrals && finalMatrixReferrals.length > 0;
+      // Check matrix placement in members table
+      const { data: finalMember2 } = await supabase
+        .from('members')
+        .select('matrix_root_wallet, parent_wallet, position, layer_level')
+        .ilike('wallet_address', walletAddress)
+        .single();
+      finalVerification.matrixPlacementExists = !!finalMember2 &&
+        !!finalMember2.matrix_root_wallet &&
+        !!finalMember2.parent_wallet &&
+        !!finalMember2.position &&
+        !!finalMember2.layer_level;
 
       console.log(`✅ Final verification results:`, finalVerification);
 

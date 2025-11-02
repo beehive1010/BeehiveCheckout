@@ -52,49 +52,49 @@ const MatrixLayerStatsView: React.FC<MatrixLayerStatsViewProps> = ({
     setError(null);
 
     try {
-      console.log('🔍 Loading GLOBAL matrix layer stats (all matrices)');
+      console.log('🔍 Loading matrix layer stats for wallet:', walletAddress);
 
-      // Get GLOBAL member count across all matrices
-      const { data: globalCount, error: countError } = await supabase
-        .from('matrix_referrals')
-        .select('member_wallet', { count: 'exact', head: true });
+      // Get total member count for this matrix root
+      const { data: memberCount, error: countError } = await supabase
+        .from('members')
+        .select('wallet_address', { count: 'exact', head: true })
+        .ilike('matrix_root_wallet', walletAddress);
 
       if (countError) {
-        console.error('❌ Failed to fetch global member count:', countError);
+        console.error('❌ Failed to fetch member count:', countError);
       }
 
-      const totalGlobalMembers = globalCount?.count || 0;
-      setTotalDownlineMembers(totalGlobalMembers);
-      console.log('📊 Total members in all matrices:', totalGlobalMembers);
+      const totalMembers = memberCount?.count || 0;
+      setTotalDownlineMembers(totalMembers);
+      console.log('📊 Total members in matrix:', totalMembers);
 
-      // Use direct database view query for matrix layer stats (19 layers)
-      console.log('📊 Using direct database query for 19-layer matrix stats');
+      // Use v_matrix_layer_statistics view for this matrix root
+      console.log('📊 Using v_matrix_layer_statistics view for 19-layer matrix stats');
 
-      // Use v_matrix_layers_v2 view for GLOBAL aggregated statistics
-      // Remove .eq('root', walletAddress) to get ALL matrices, then aggregate
       const { data: layerData, error: matrixError } = await supabase
-        .from('v_matrix_layers_v2')
-        .select('layer, capacity, filled, spillovers, directs, left_count, middle_count, right_count');
+        .from('v_matrix_layer_statistics')
+        .select('layer, total_members, direct_count, spillover_count, l_count, m_count, r_count, fill_rate_percent')
+        .ilike('matrix_root_wallet', walletAddress);
 
       if (matrixError) {
         throw new Error(`Database error: ${matrixError.message}`);
       }
 
-      console.log('📊 Matrix layer data from v_matrix_layers (all roots):', layerData);
+      console.log('📊 Matrix layer data from v_matrix_layer_statistics:', layerData);
       console.log('📊 Total records found:', layerData?.length || 0);
 
-      // Aggregate L/M/R counts across ALL matrices per layer
+      // Build layer counts from v_matrix_layer_statistics
       const layerCounts: Record<number, { L: number, M: number, R: number, active: number }> = {};
 
-      // Aggregate across all roots for each layer
+      // Map layer data from the view
       layerData?.forEach(row => {
         if (!layerCounts[row.layer]) {
           layerCounts[row.layer] = { L: 0, M: 0, R: 0, active: 0 };
         }
-        layerCounts[row.layer].L += row.left_count || 0;
-        layerCounts[row.layer].M += row.middle_count || 0;
-        layerCounts[row.layer].R += row.right_count || 0;
-        layerCounts[row.layer].active += row.filled || 0;
+        layerCounts[row.layer].L += row.l_count || 0;
+        layerCounts[row.layer].M += row.m_count || 0;
+        layerCounts[row.layer].R += row.r_count || 0;
+        layerCounts[row.layer].active += row.total_members || 0;
       });
 
       console.log('📊 Layer counts with L/M/R breakdown:', layerCounts);
@@ -392,11 +392,11 @@ const MatrixLayerStatsView: React.FC<MatrixLayerStatsViewProps> = ({
         <CardTitle className="flex items-center justify-between text-honey">
           <div className="flex items-center gap-2">
             <Layers className="h-5 w-5" />
-            <span>{t('membershipSystem.matrix.stats.layerStats.title')} (Global)</span>
+            <span>{t('membershipSystem.matrix.stats.layerStats.title')}</span>
           </div>
           <div className="flex items-center gap-2">
             <Badge variant="outline" className="bg-honey/10 text-honey border-honey/30">
-              All Matrices - {t('membershipSystem.matrix.stats.layerStats.layerCount')}
+              {t('membershipSystem.matrix.stats.layerStats.layerCount')}
             </Badge>
             {compact && (
               <Button
