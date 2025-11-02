@@ -239,6 +239,8 @@ function Web3ContextProvider({ children }: { children: React.ReactNode }) {
         setWalletAddress(null);
         sessionStorage.removeItem('wallet-address');
         sessionStorage.removeItem('ActiveMember-chain-id');
+        localStorage.removeItem('walletAddress'); // ✅ Also clear localStorage
+        localStorage.removeItem('ActiveMember-chain-id');
         
         // Redirect to landing page if not already there and not on admin/public pages
         const publicPages = ['/', '/hiveworld', '/register', '/welcome', '/welcome2'];
@@ -291,13 +293,16 @@ function Web3ContextProvider({ children }: { children: React.ReactNode }) {
         setIsConnected(true);
         setWalletAddress(currentAddress);
 
-        // Store wallet data
+        // Store wallet data in BOTH sessionStorage and localStorage for persistence
         const wasAddress = sessionStorage.getItem('wallet-address');
         const wasChainId = sessionStorage.getItem('ActiveMember-chain-id');
 
         sessionStorage.setItem('wallet-address', currentAddress);
+        localStorage.setItem('walletAddress', currentAddress); // ✅ Add localStorage for persistence
+
         if (activeChain?.id !== undefined && activeChain.id !== null) {
           sessionStorage.setItem('ActiveMember-chain-id', activeChain.id.toString());
+          localStorage.setItem('ActiveMember-chain-id', activeChain.id.toString());
         }
 
         // Only log if it's a new connection or chain switch
@@ -344,6 +349,8 @@ function Web3ContextProvider({ children }: { children: React.ReactNode }) {
             setReferrerWallet(null);
             sessionStorage.removeItem('wallet-address');
             sessionStorage.removeItem('ActiveMember-chain-id');
+            localStorage.removeItem('walletAddress'); // ✅ Also clear localStorage
+            localStorage.removeItem('ActiveMember-chain-id');
 
             // Reset member status on wallet disconnect
             setIsMember(false);
