@@ -51,24 +51,36 @@ export function useUserReferralStats() {
   const { walletAddress } = useWallet();
 
   return useQuery<UserReferralStats>({
-    queryKey: ['/api/stats/user-referrals', walletAddress],
+    queryKey: ['/api/stats/user-referrals-v2', walletAddress],
     queryFn: async () => {
       if (!walletAddress) throw new Error('No wallet address');
 
+      console.log('📊 useUserReferralStats - Starting for wallet:', walletAddress);
+
       // Use referrals_stats_view for referral statistics
-      const { data: referralStats } = await supabase
+      console.log('🔍 Querying referrals_stats_view...');
+      const { data: referralStats, error: referralError } = await supabase
         .from('referrals_stats_view')
         .select('*')
         .ilike('referrer_wallet', walletAddress)
         .maybeSingle();
 
+      if (referralError) {
+        console.error('❌ Error fetching referral stats:', referralError);
+      } else {
+        console.log('✅ Referral stats:', referralStats);
+      }
+
       // Use fn_get_user_total_referral_stats for accurate team statistics
+      console.log('🔍 Calling fn_get_user_total_referral_stats...');
       const { data: teamStats, error: teamStatsError } = await supabase
         .rpc('fn_get_user_total_referral_stats', { p_user_wallet: walletAddress })
         .single();
 
       if (teamStatsError) {
-        console.error('Error fetching team statistics:', teamStatsError);
+        console.error('❌ Error fetching team statistics:', teamStatsError);
+      } else {
+        console.log('✅ Team stats received:', teamStats);
       }
 
       console.log(`📊 Team Statistics for ${walletAddress}:`, {

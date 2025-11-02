@@ -138,6 +138,46 @@
                 log('❌ Exception: ' + e.message, true);
             }
 
+            // Test 5: referrals_stats_view
+            try {
+                log('\n📋 Test 5: referrals_stats_view for ' + TEST_WALLET);
+                const { data: referralStats, error: referralError } = await supabase
+                    .from('referrals_stats_view')
+                    .select('*')
+                    .ilike('referrer_wallet', TEST_WALLET)
+                    .maybeSingle();
+
+                if (referralError) {
+                    log('❌ Error: ' + JSON.stringify(referralError), true);
+                } else {
+                    log('✅ Referral stats:');
+                    log('Total referrals: ' + referralStats?.total_referrals);
+                    log('Direct referrals: ' + referralStats?.direct_referrals);
+                    log('Activated: ' + referralStats?.activated_referrals);
+                }
+            } catch (e) {
+                log('❌ Exception: ' + e.message, true);
+            }
+
+            // Test 6: fn_get_user_total_referral_stats
+            try {
+                log('\n📋 Test 6: fn_get_user_total_referral_stats for ' + TEST_WALLET);
+                const { data: teamStats, error: teamError } = await supabase
+                    .rpc('fn_get_user_total_referral_stats', { p_user_wallet: TEST_WALLET })
+                    .single();
+
+                if (teamError) {
+                    log('❌ Error: ' + JSON.stringify(teamError), true);
+                } else {
+                    log('✅ Team stats:');
+                    log('Total team members: ' + teamStats?.total_team_members);
+                    log('Active matrix members: ' + teamStats?.active_matrix_members);
+                    log('Direct referrals: ' + teamStats?.direct_referrals);
+                }
+            } catch (e) {
+                log('❌ Exception: ' + e.message, true);
+            }
+
             log('\n✅ All tests completed!');
         }
     </script>
