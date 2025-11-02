@@ -455,22 +455,22 @@ export default function AdminSystem() {
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div className="flex items-center justify-between">
+      <div className={`flex ${isMobile ? 'flex-col space-y-4' : 'items-center justify-between'}`}>
         <div>
-          <h1 className="text-3xl font-bold text-honey">System Status</h1>
-          <p className="text-muted-foreground mt-2">
+          <h1 className={`font-bold text-honey ${isMobile ? 'text-2xl' : 'text-3xl'}`}>System Status</h1>
+          <p className={`text-muted-foreground mt-2 ${isMobile ? 'text-sm' : ''}`}>
             Real-time monitoring of platform health and performance
           </p>
         </div>
-        
-        <div className="flex items-center space-x-4">
-          <div className="text-sm text-muted-foreground">
+
+        <div className={`flex items-center ${isMobile ? 'flex-col space-y-2 w-full' : 'space-x-4'}`}>
+          <div className={`text-sm text-muted-foreground ${isMobile ? 'w-full text-center' : ''}`}>
             Last updated: {formatTimestamp(lastRefresh)}
           </div>
-          <Button 
-            variant="outline" 
+          <Button
+            variant="outline"
             onClick={refreshSystemData}
-            className="border-honey/20 hover:bg-honey/10"
+            className={`border-honey/20 hover:bg-honey/10 ${isMobile ? 'w-full' : ''}`}
             data-testid="button-refresh-system"
           >
             <RefreshCw className="w-4 h-4 mr-2" />
@@ -480,58 +480,58 @@ export default function AdminSystem() {
       </div>
 
       {/* System Overview Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+      <div className={`grid gap-4 ${isMobile ? 'grid-cols-2' : 'md:grid-cols-4'}`}>
         <Card className={overallSystemHealth >= 90 ? "border-green-500/50" : overallSystemHealth >= 70 ? "border-yellow-500/50" : "border-red-500/50"}>
-          <CardContent className="p-6">
+          <CardContent className={isMobile ? 'p-4' : 'p-6'}>
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-muted-foreground">System Health</p>
-                <p className="text-2xl font-bold text-honey">{Math.round(overallSystemHealth)}%</p>
+                <p className={`text-muted-foreground ${isMobile ? 'text-xs' : 'text-sm'}`}>System Health</p>
+                <p className={`font-bold text-honey ${isMobile ? 'text-xl' : 'text-2xl'}`}>{Math.round(overallSystemHealth)}%</p>
               </div>
-              <div className="w-12 h-12 rounded-full bg-honey/20 flex items-center justify-center">
-                <Activity className="h-6 w-6 text-honey" />
+              <div className={`rounded-full bg-honey/20 flex items-center justify-center ${isMobile ? 'w-10 h-10' : 'w-12 h-12'}`}>
+                <Activity className={`text-honey ${isMobile ? 'h-5 w-5' : 'h-6 w-6'}`} />
               </div>
             </div>
           </CardContent>
         </Card>
 
         <Card>
-          <CardContent className="p-6">
+          <CardContent className={isMobile ? 'p-4' : 'p-6'}>
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-muted-foreground">Services Online</p>
-                <p className="text-2xl font-bold text-honey">{servicesOnline}/{totalServices}</p>
+                <p className={`text-muted-foreground ${isMobile ? 'text-xs' : 'text-sm'}`}>Services Online</p>
+                <p className={`font-bold text-honey ${isMobile ? 'text-xl' : 'text-2xl'}`}>{servicesOnline}/{totalServices}</p>
               </div>
-              <div className="w-12 h-12 rounded-full bg-honey/20 flex items-center justify-center">
-                <Server className="h-6 w-6 text-honey" />
+              <div className={`rounded-full bg-honey/20 flex items-center justify-center ${isMobile ? 'w-10 h-10' : 'w-12 h-12'}`}>
+                <Server className={`text-honey ${isMobile ? 'h-5 w-5' : 'h-6 w-6'}`} />
               </div>
             </div>
           </CardContent>
         </Card>
 
         <Card>
-          <CardContent className="p-6">
+          <CardContent className={isMobile ? 'p-4' : 'p-6'}>
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-muted-foreground">Databases</p>
-                <p className="text-2xl font-bold text-honey">{databasesConnected}/{databases.length}</p>
+                <p className={`text-muted-foreground ${isMobile ? 'text-xs' : 'text-sm'}`}>Databases</p>
+                <p className={`font-bold text-honey ${isMobile ? 'text-xl' : 'text-2xl'}`}>{databasesConnected}/{databases.length}</p>
               </div>
-              <div className="w-12 h-12 rounded-full bg-honey/20 flex items-center justify-center">
-                <Database className="h-6 w-6 text-honey" />
+              <div className={`rounded-full bg-honey/20 flex items-center justify-center ${isMobile ? 'w-10 h-10' : 'w-12 h-12'}`}>
+                <Database className={`text-honey ${isMobile ? 'h-5 w-5' : 'h-6 w-6'}`} />
               </div>
             </div>
           </CardContent>
         </Card>
 
         <Card>
-          <CardContent className="p-6">
+          <CardContent className={isMobile ? 'p-4' : 'p-6'}>
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-muted-foreground">Critical Issues</p>
-                <p className="text-2xl font-bold text-honey">{criticalIssues}</p>
+                <p className={`text-muted-foreground ${isMobile ? 'text-xs' : 'text-sm'}`}>Critical Issues</p>
+                <p className={`font-bold text-honey ${isMobile ? 'text-xl' : 'text-2xl'}`}>{criticalIssues}</p>
               </div>
-              <div className="w-12 h-12 rounded-full bg-honey/20 flex items-center justify-center">
-                <AlertTriangle className="h-6 w-6 text-honey" />
+              <div className={`rounded-full bg-honey/20 flex items-center justify-center ${isMobile ? 'w-10 h-10' : 'w-12 h-12'}`}>
+                <AlertTriangle className={`text-honey ${isMobile ? 'h-5 w-5' : 'h-6 w-6'}`} />
               </div>
             </div>
           </CardContent>
@@ -540,25 +540,33 @@ export default function AdminSystem() {
 
       {/* Main Content */}
       <Tabs defaultValue="metrics" className="space-y-6">
-        <TabsList>
-          <TabsTrigger value="metrics">System Metrics</TabsTrigger>
-          <TabsTrigger value="services">Services</TabsTrigger>
-          <TabsTrigger value="databases">Databases</TabsTrigger>
-          <TabsTrigger value="logs">Error Logs</TabsTrigger>
-          <TabsTrigger value="integrity">Data Integrity</TabsTrigger>
+        <TabsList className={isMobile ? 'grid grid-cols-2 w-full' : ''}>
+          <TabsTrigger value="metrics" className={isMobile ? 'text-xs' : ''}>
+            {isMobile ? 'Metrics' : 'System Metrics'}
+          </TabsTrigger>
+          <TabsTrigger value="services" className={isMobile ? 'text-xs' : ''}>Services</TabsTrigger>
+          <TabsTrigger value="databases" className={isMobile ? 'text-xs' : ''}>
+            {isMobile ? 'DB' : 'Databases'}
+          </TabsTrigger>
+          <TabsTrigger value="logs" className={isMobile ? 'text-xs' : ''}>
+            {isMobile ? 'Logs' : 'Error Logs'}
+          </TabsTrigger>
+          <TabsTrigger value="integrity" className={isMobile ? 'text-xs' : ''}>
+            {isMobile ? 'Integrity' : 'Data Integrity'}
+          </TabsTrigger>
         </TabsList>
 
         <TabsContent value="metrics">
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          <div className={`grid gap-6 ${isMobile ? 'grid-cols-1' : 'md:grid-cols-2 lg:grid-cols-3'}`}>
             {systemMetrics.map((metric) => (
               <Card key={metric.id} className="overflow-hidden">
-                <CardContent className="p-6">
-                  <div className="flex items-center justify-between mb-4">
+                <CardContent className={isMobile ? 'p-4' : 'p-6'}>
+                  <div className={`flex items-center justify-between ${isMobile ? 'mb-3' : 'mb-4'}`}>
                     <div className="flex items-center space-x-3">
                       {getMetricIcon(metric.id)}
                       <div>
-                        <h3 className="font-semibold">{metric.name}</h3>
-                        <p className="text-sm text-muted-foreground">
+                        <h3 className={`font-semibold ${isMobile ? 'text-sm' : ''}`}>{metric.name}</h3>
+                        <p className={`text-muted-foreground ${isMobile ? 'text-xs' : 'text-sm'}`}>
                           {formatTimestamp(metric.lastUpdated)}
                         </p>
                       </div>
@@ -568,12 +576,12 @@ export default function AdminSystem() {
                       {getTrendIcon(metric.trend)}
                     </div>
                   </div>
-                  
+
                   <div className="space-y-3">
                     <div className="flex items-center justify-between">
-                      <span className="text-2xl font-bold text-honey">
+                      <span className={`font-bold text-honey ${isMobile ? 'text-xl' : 'text-2xl'}`}>
                         {typeof metric.value === 'number' ? metric.value.toLocaleString() : metric.value}
-                        {metric.unit && <span className="text-sm ml-1">{metric.unit}</span>}
+                        {metric.unit && <span className={`ml-1 ${isMobile ? 'text-xs' : 'text-sm'}`}>{metric.unit}</span>}
                       </span>
                       {getStatusBadge(metric.status)}
                     </div>
@@ -608,64 +616,66 @@ export default function AdminSystem() {
         </TabsContent>
 
         <TabsContent value="services">
-          <div className="space-y-4">
+          <div className={isMobile ? 'space-y-3' : 'space-y-4'}>
             {services.map((service) => (
               <Card key={service.id} className="overflow-hidden">
-                <CardContent className="p-6">
-                  <div className="flex items-center justify-between">
+                <CardContent className={isMobile ? 'p-4' : 'p-6'}>
+                  <div className={isMobile ? 'space-y-3' : 'flex items-center justify-between'}>
                     <div className="flex items-center space-x-4">
-                      <div className="w-12 h-12 rounded-lg bg-honey/10 flex items-center justify-center">
-                        {service.status === 'online' ? 
-                          <CheckCircle className="w-6 h-6 text-green-400" /> :
+                      <div className={`rounded-lg bg-honey/10 flex items-center justify-center ${isMobile ? 'w-10 h-10' : 'w-12 h-12'}`}>
+                        {service.status === 'online' ?
+                          <CheckCircle className={`text-green-400 ${isMobile ? 'w-5 h-5' : 'w-6 h-6'}`} /> :
                           service.status === 'offline' ?
-                          <CloudOff className="w-6 h-6 text-red-400" /> :
-                          <AlertTriangle className="w-6 h-6 text-yellow-400" />
+                          <CloudOff className={`text-red-400 ${isMobile ? 'w-5 h-5' : 'w-6 h-6'}`} /> :
+                          <AlertTriangle className={`text-yellow-400 ${isMobile ? 'w-5 h-5' : 'w-6 h-6'}`} />
                         }
                       </div>
-                      
+
                       <div className="flex-1">
-                        <div className="flex items-center space-x-3 mb-2">
-                          <h3 className="font-semibold text-lg">{service.name}</h3>
+                        <div className={`flex items-center gap-2 ${isMobile ? 'flex-wrap mb-2' : 'space-x-3 mb-2'}`}>
+                          <h3 className={`font-semibold ${isMobile ? 'text-sm w-full' : 'text-lg'}`}>{service.name}</h3>
                           {getStatusBadge(service.status)}
                           {service.version && (
-                            <Badge variant="outline">v{service.version}</Badge>
+                            <Badge variant="outline" className={isMobile ? 'text-xs' : ''}>v{service.version}</Badge>
                           )}
                         </div>
-                        
-                        <div className="flex items-center space-x-6 text-sm text-muted-foreground">
+
+                        <div className={`grid gap-3 text-muted-foreground ${isMobile ? 'grid-cols-2 text-xs' : 'flex items-center space-x-6 text-sm'}`}>
                           <div className="flex items-center space-x-1">
-                            <Globe className="w-4 h-4" />
-                            <span>{service.region}</span>
+                            <Globe className={isMobile ? 'w-3 h-3' : 'w-4 h-4'} />
+                            <span className="truncate">{service.region}</span>
                           </div>
                           <div className="flex items-center space-x-1">
-                            <Clock className="w-4 h-4" />
-                            <span>Uptime: {service.uptime}</span>
+                            <Clock className={isMobile ? 'w-3 h-3' : 'w-4 h-4'} />
+                            <span>{service.uptime}</span>
                           </div>
                           <div className="flex items-center space-x-1">
-                            <Zap className="w-4 h-4" />
-                            <span>Response: {service.responseTime}ms</span>
+                            <Zap className={isMobile ? 'w-3 h-3' : 'w-4 h-4'} />
+                            <span>{service.responseTime}ms</span>
                           </div>
-                          <div className="flex items-center space-x-1">
-                            <Activity className="w-4 h-4" />
-                            <span>Last check: {formatTimestamp(service.lastCheck)}</span>
-                          </div>
+                          {!isMobile && (
+                            <div className="flex items-center space-x-1">
+                              <Activity className="w-4 h-4" />
+                              <span>{formatTimestamp(service.lastCheck)}</span>
+                            </div>
+                          )}
                         </div>
                       </div>
                     </div>
-                    
-                    <div className="flex items-center space-x-2">
-                      {service.url && (
+
+                    {service.url && (
+                      <div className={`flex items-center ${isMobile ? 'pt-2 border-t' : 'space-x-2'}`}>
                         <Button
                           variant="outline"
                           size="sm"
                           onClick={() => service.url && window.open(service.url, '_blank')}
-                          className="border-honey/20 hover:bg-honey/10"
+                          className={`border-honey/20 hover:bg-honey/10 ${isMobile ? 'w-full' : ''}`}
                         >
                           <ExternalLink className="w-4 h-4 mr-1" />
                           Test
                         </Button>
-                      )}
-                    </div>
+                      </div>
+                    )}
                   </div>
                 </CardContent>
               </Card>
@@ -674,23 +684,23 @@ export default function AdminSystem() {
         </TabsContent>
 
         <TabsContent value="databases">
-          <div className="space-y-4">
+          <div className={isMobile ? 'space-y-3' : 'space-y-4'}>
             {databases.map((db) => (
               <Card key={db.id} className="overflow-hidden">
-                <CardContent className="p-6">
+                <CardContent className={isMobile ? 'p-4' : 'p-6'}>
                   <div className="flex items-center justify-between">
-                    <div className="flex items-center space-x-4">
-                      <div className="w-12 h-12 rounded-lg bg-honey/10 flex items-center justify-center">
-                        <Database className="w-6 h-6 text-honey" />
+                    <div className="flex items-center space-x-4 flex-1">
+                      <div className={`rounded-lg bg-honey/10 flex items-center justify-center ${isMobile ? 'w-10 h-10' : 'w-12 h-12'}`}>
+                        <Database className={`text-honey ${isMobile ? 'w-5 h-5' : 'w-6 h-6'}`} />
                       </div>
-                      
+
                       <div className="flex-1">
-                        <div className="flex items-center space-x-3 mb-2">
-                          <h3 className="font-semibold text-lg">{db.name}</h3>
+                        <div className={`flex items-center gap-2 ${isMobile ? 'flex-wrap mb-2' : 'space-x-3 mb-2'}`}>
+                          <h3 className={`font-semibold ${isMobile ? 'text-sm' : 'text-lg'}`}>{db.name}</h3>
                           {getStatusBadge(db.status)}
                         </div>
-                        
-                        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
+
+                        <div className={`grid gap-4 ${isMobile ? 'grid-cols-2 text-xs' : 'grid-cols-2 md:grid-cols-4 text-sm'}`}>
                           <div>
                             <div className="text-muted-foreground">Connections</div>
                             <div className="font-medium">{db.connections}/{db.maxConnections}</div>
@@ -705,23 +715,23 @@ export default function AdminSystem() {
                           </div>
                           <div>
                             <div className="text-muted-foreground">Last Backup</div>
-                            <div className="font-medium">
-                              {db.lastBackup === 'N/A (In-Memory)' ? 
-                                'N/A' : 
+                            <div className={`font-medium ${isMobile ? 'truncate' : ''}`}>
+                              {db.lastBackup === 'N/A (In-Memory)' ?
+                                'N/A' :
                                 formatTimestamp(db.lastBackup)
                               }
                             </div>
                           </div>
                         </div>
-                        
+
                         {/* Connection Usage Bar */}
-                        <div className="mt-4">
-                          <div className="flex justify-between text-sm text-muted-foreground mb-1">
+                        <div className={isMobile ? 'mt-3' : 'mt-4'}>
+                          <div className={`flex justify-between text-muted-foreground mb-1 ${isMobile ? 'text-xs' : 'text-sm'}`}>
                             <span>Connection Usage</span>
                             <span>{Math.round((db.connections / db.maxConnections) * 100)}%</span>
                           </div>
-                          <Progress 
-                            value={(db.connections / db.maxConnections) * 100} 
+                          <Progress
+                            value={(db.connections / db.maxConnections) * 100}
                             className="h-2"
                           />
                         </div>
@@ -737,42 +747,42 @@ export default function AdminSystem() {
         <TabsContent value="logs">
           <Card>
             <CardHeader>
-              <CardTitle>Recent Error Logs</CardTitle>
-              <CardDescription>
+              <CardTitle className={isMobile ? 'text-base' : ''}>Recent Error Logs</CardTitle>
+              <CardDescription className={isMobile ? 'text-sm' : ''}>
                 Latest system errors, warnings, and important events
               </CardDescription>
             </CardHeader>
-            <CardContent>
-              <div className="space-y-4">
+            <CardContent className={isMobile ? 'p-4' : ''}>
+              <div className={isMobile ? 'space-y-3' : 'space-y-4'}>
                 {errorLogs.map((log) => (
                   <div
                     key={log.id}
-                    className="flex items-start justify-between p-4 rounded-lg bg-secondary/50 border border-border"
+                    className={`flex items-start justify-between rounded-lg bg-secondary/50 border border-border ${isMobile ? 'p-3' : 'p-4'}`}
                   >
-                    <div className="flex items-start space-x-4 flex-1">
-                      <div className="w-8 h-8 rounded-full bg-honey/10 flex items-center justify-center flex-shrink-0 mt-1">
+                    <div className={`flex items-start flex-1 ${isMobile ? 'space-x-2' : 'space-x-4'}`}>
+                      <div className={`rounded-full bg-honey/10 flex items-center justify-center flex-shrink-0 mt-1 ${isMobile ? 'w-6 h-6' : 'w-8 h-8'}`}>
                         {log.level === 'error' ? (
-                          <AlertCircle className="w-4 h-4 text-red-400" />
+                          <AlertCircle className={`text-red-400 ${isMobile ? 'w-3 h-3' : 'w-4 h-4'}`} />
                         ) : log.level === 'warning' ? (
-                          <AlertTriangle className="w-4 h-4 text-yellow-400" />
+                          <AlertTriangle className={`text-yellow-400 ${isMobile ? 'w-3 h-3' : 'w-4 h-4'}`} />
                         ) : (
-                          <CheckCircle className="w-4 h-4 text-blue-400" />
+                          <CheckCircle className={`text-blue-400 ${isMobile ? 'w-3 h-3' : 'w-4 h-4'}`} />
                         )}
                       </div>
-                      
+
                       <div className="flex-1">
-                        <div className="flex items-center space-x-3 mb-2">
+                        <div className={`flex items-center gap-2 ${isMobile ? 'flex-wrap mb-2 text-xs' : 'space-x-3 mb-2'}`}>
                           {getLogLevelBadge(log.level)}
-                          <Badge variant="outline">{log.service}</Badge>
-                          <span className="text-sm text-muted-foreground">
+                          <Badge variant="outline" className={isMobile ? 'text-xs' : ''}>{log.service}</Badge>
+                          <span className={`text-muted-foreground ${isMobile ? 'text-xs w-full' : 'text-sm'}`}>
                             {formatTimestamp(log.timestamp)}
                           </span>
                           {log.count > 1 && (
-                            <Badge variant="secondary">{log.count}x</Badge>
+                            <Badge variant="secondary" className={isMobile ? 'text-xs' : ''}>{log.count}x</Badge>
                           )}
                         </div>
-                        
-                        <p className="text-sm">{log.message}</p>
+
+                        <p className={isMobile ? 'text-xs' : 'text-sm'}>{log.message}</p>
                       </div>
                     </div>
                   </div>
