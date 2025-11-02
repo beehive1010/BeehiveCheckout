@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Wallet Connection Diagnostic</title>
+    <style>
+        body {
+            font-family: monospace;
+            padding: 20px;
+            background: #1a1a1a;
+            color: #0f0;
+        }
+        .status {
+            background: #000;
+            padding: 15px;
+            margin: 10px 0;
+            border: 1px solid #0f0;
+            border-radius: 5px;
+        }
+        .error { color: #f00; }
+        .success { color: #0f0; }
+        .warning { color: #ff0; }
+        button {
+            background: #0f0;
+            color: #000;
+            padding: 10px 20px;
+            border: none;
+            cursor: pointer;
+            font-family: monospace;
+            font-size: 14px;
+            margin: 5px;
+        }
+        button:hover {
+            background: #0c0;
+        }
+    </style>
+</head>
+<body>
+    <h1>🔧 Wallet Connection Diagnostic</h1>
+    <p>Checking wallet connection status...</p>
+
+    <div id="status"></div>
+
+    <button onclick="checkStorage()">Check Storage</button>
+    <button onclick="clearStorage()">Clear All Storage</button>
+
+    <script>
+        function log(message, className = 'success') {
+            const div = document.createElement('div');
+            div.className = 'status ' + className;
+            div.textContent = message;
+            document.getElementById('status').appendChild(div);
+        }
+
+        function checkStorage() {
+            document.getElementById('status').innerHTML = '';
+            log('🔍 Checking storage...');
+
+            // Check sessionStorage
+            log('\n📦 sessionStorage:');
+            const sessionWallet = sessionStorage.getItem('wallet-address');
+            const sessionChain = sessionStorage.getItem('ActiveMember-chain-id');
+
+            if (sessionWallet) {
+                log('  ✅ wallet-address: ' + sessionWallet);
+            } else {
+                log('  ❌ wallet-address: null', 'error');
+            }
+
+            if (sessionChain) {
+                log('  ✅ ActiveMember-chain-id: ' + sessionChain);
+            } else {
+                log('  ⚠️ ActiveMember-chain-id: null', 'warning');
+            }
+
+            // Check localStorage
+            log('\n💾 localStorage:');
+            const localWallet = localStorage.getItem('walletAddress');
+            const supabaseSession = localStorage.getItem('supabase-wallet-session');
+
+            if (localWallet) {
+                log('  ✅ walletAddress: ' + localWallet);
+            } else {
+                log('  ⚠️ walletAddress: null', 'warning');
+            }
+
+            if (supabaseSession) {
+                log('  ✅ supabase-wallet-session: exists');
+            } else {
+                log('  ⚠️ supabase-wallet-session: null', 'warning');
+            }
+
+            // Check all localStorage keys
+            log('\n🔑 All localStorage keys:');
+            for (let i = 0; i < localStorage.length; i++) {
+                const key = localStorage.key(i);
+                log('  - ' + key);
+            }
+
+            // Check all sessionStorage keys
+            log('\n🔑 All sessionStorage keys:');
+            for (let i = 0; i < sessionStorage.length; i++) {
+                const key = sessionStorage.key(i);
+                log('  - ' + key);
+            }
+        }
+
+        function clearStorage() {
+            if (confirm('Clear all storage? This will disconnect your wallet.')) {
+                localStorage.clear();
+                sessionStorage.clear();
+                log('🗑️ All storage cleared!', 'warning');
+                setTimeout(() => {
+                    window.location.reload();
+                }, 1000);
+            }
+        }
+
+        // Auto-check on load
+        window.onload = checkStorage;
+    </script>
+</body>
+</html>
