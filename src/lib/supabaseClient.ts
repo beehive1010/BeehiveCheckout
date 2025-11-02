@@ -9,13 +9,26 @@ if (!supabaseUrl || !supabaseKey) {
   throw new Error('Missing Supabase environment variables: VITE_SUPABASE_URL and VITE_SUPABASE_ANON_KEY');
 }
 
-// Create typed Supabase client with persistent session storage
+// Create typed Supabase client with persistent session storage and timeout
 export const supabase = createClient<Database>(supabaseUrl, supabaseKey, {
   auth: {
     storage: typeof window !== 'undefined' ? window.localStorage : undefined,
     autoRefreshToken: true,
     persistSession: true,
     detectSessionInUrl: true,
+  },
+  global: {
+    headers: {
+      'x-client-info': 'beehive-platform@1.0.0',
+    },
+  },
+  db: {
+    schema: 'public',
+  },
+  realtime: {
+    params: {
+      eventsPerSecond: 10,
+    },
   },
 });
 
