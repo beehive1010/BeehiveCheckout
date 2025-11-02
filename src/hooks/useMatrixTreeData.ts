@@ -227,15 +227,15 @@ export function useMatrixNodeChildren(
         .select(`
           wallet_address,
           parent_wallet,
-          slot,
+          position,
           layer_level,
           referrer_wallet,
           activation_time,
           activation_sequence,
           current_level
         `)
-        .ilike('parent_wallet', parentWallet)
-        .order('slot');
+        .eq('parent_wallet', parentWallet)
+        .order('position');
 
       if (error) {
         console.error('❌ Error fetching children:', error);
@@ -244,10 +244,15 @@ export function useMatrixNodeChildren(
 
       // Check if children have their own children
       const childrenWallets = data?.map(d => d.wallet_address) || [];
-      const { data: grandchildrenData } = await supabase
-        .from('members')
-        .select('parent_wallet, slot')
-        .in('parent_wallet', childrenWallets);
+      let grandchildrenData: any[] = [];
+
+      if (childrenWallets.length > 0) {
+        const { data: gcData } = await supabase
+          .from('members')
+          .select('parent_wallet, position')
+          .in('parent_wallet', childrenWallets);
+        grandchildrenData = gcData || [];
+      }
 
       // Build children_slots for each child
       const childrenSlotsMap = new Map<string, any>();
@@ -256,8 +261,8 @@ export function useMatrixNodeChildren(
           childrenSlotsMap.set(gc.parent_wallet, { L: null, M: null, R: null });
         }
         const slots = childrenSlotsMap.get(gc.parent_wallet);
-        if (gc.slot) {
-          slots[gc.slot] = gc.parent_wallet; // Just mark as filled
+        if (gc.position) {
+          slots[gc.position] = gc.parent_wallet; // Just mark as filled
         }
       });
 
@@ -277,7 +282,7 @@ export function useMatrixNodeChildren(
           current_level: node.current_level || 0,
           activation_sequence: node.activation_sequence || 0,
           parent_wallet: node.parent_wallet,
-          slot: node.slot,
+          slot: node.position,
           activation_time: node.activation_time,
           referral_type: referralType,
           has_children: Object.values(childrenSlots).some(s => s !== null),
@@ -288,9 +293,9 @@ export function useMatrixNodeChildren(
 
       // Organize children by slot (L, M, R)
       const children = {
-        L: transformNode(data?.find(node => node.slot === 'L') || null),
-        M: transformNode(data?.find(node => node.slot === 'M') || null),
-        R: transformNode(data?.find(node => node.slot === 'R') || null),
+        L: transformNode(data?.find(node => node.position === 'L') || null),
+        M: transformNode(data?.find(node => node.position === 'M') || null),
+        R: transformNode(data?.find(node => node.position === 'R') || null),
       };
 
       console.log('✅ Found children:', Object.values(children).filter(Boolean).length);
