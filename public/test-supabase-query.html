@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test Supabase Query</title>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <style>
+        body {
+            font-family: monospace;
+            padding: 20px;
+            background: #1a1a1a;
+            color: #0f0;
+        }
+        .result {
+            background: #000;
+            padding: 15px;
+            margin: 10px 0;
+            border: 1px solid #0f0;
+            border-radius: 5px;
+        }
+        button {
+            background: #0f0;
+            color: #000;
+            padding: 10px 20px;
+            border: none;
+            cursor: pointer;
+            font-family: monospace;
+            font-size: 14px;
+        }
+        button:hover {
+            background: #0c0;
+        }
+        .error { color: #f00; }
+        .success { color: #0f0; }
+    </style>
+</head>
+<body>
+    <h1>🔍 Supabase Query Test</h1>
+    <p>Testing direct Supabase queries for matrix data</p>
+
+    <div id="results"></div>
+
+    <button onclick="testQueries()">Run Tests</button>
+
+    <script>
+        const SUPABASE_URL = 'https://cvqibjcbfrwsgkvthccp.supabase.co';
+        const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImN2cWliamNiZnJ3c2drdnRoY2NwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDIwNjkwMDIsImV4cCI6MjA1NzY0NTAwMn0.cHqBPaivV7W1lTKvahkXzDpC4PzQQM3KeHtHjCITPig';
+
+        const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+        const TEST_WALLET = '0x479ABda60F8c62a7C3fba411ab948a8BE0E616Ab';
+
+        function log(message, isError = false) {
+            const div = document.createElement('div');
+            div.className = 'result ' + (isError ? 'error' : 'success');
+            div.textContent = message;
+            document.getElementById('results').appendChild(div);
+        }
+
+        async function testQueries() {
+            document.getElementById('results').innerHTML = '';
+            log('🚀 Starting tests...');
+
+            // Test 1: Query members table for children
+            try {
+                log('\n📋 Test 1: Query members table for children of ' + TEST_WALLET);
+                const { data: membersData, error: membersError } = await supabase
+                    .from('members')
+                    .select('wallet_address, parent_wallet, position, layer_level, current_level')
+                    .ilike('parent_wallet', TEST_WALLET)
+                    .order('position');
+
+                if (membersError) {
+                    log('❌ Error fetching children: ' + JSON.stringify(membersError), true);
+                } else {
+                    log('✅ Found ' + (membersData?.length || 0) + ' children');
+                    log('Data: ' + JSON.stringify(membersData, null, 2));
+                }
+            } catch (e) {
+                log('❌ Exception: ' + e.message, true);
+            }
+
+            // Test 2: Query users table
+            try {
+                log('\n📋 Test 2: Query users table');
+                const { data: usersData, error: usersError } = await supabase
+                    .from('users')
+                    .select('wallet_address, username')
+                    .limit(5);
+
+                if (usersError) {
+                    log('❌ Error fetching users: ' + JSON.stringify(usersError), true);
+                } else {
+                    log('✅ Found ' + (usersData?.length || 0) + ' users');
+                    log('Data: ' + JSON.stringify(usersData, null, 2));
+                }
+            } catch (e) {
+                log('❌ Exception: ' + e.message, true);
+            }
+
+            // Test 3: RPC fn_get_user_matrix_stats
+            try {
+                log('\n📋 Test 3: RPC fn_get_user_matrix_stats for ' + TEST_WALLET);
+                const { data: statsData, error: statsError } = await supabase
+                    .rpc('fn_get_user_matrix_stats', { p_user_wallet: TEST_WALLET })
+                    .single();
+
+                if (statsError) {
+                    log('❌ Error calling RPC: ' + JSON.stringify(statsError), true);
+                } else {
+                    log('✅ RPC result:');
+                    log('Total members: ' + statsData?.total_members);
+                    log('Max depth: ' + statsData?.max_depth);
+                    log('Direct children: ' + statsData?.direct_children);
+                    log('Spillover children: ' + statsData?.spillover_children);
+                }
+            } catch (e) {
+                log('❌ Exception: ' + e.message, true);
+            }
+
+            // Test 4: RPC fn_get_user_layer_stats
+            try {
+                log('\n📋 Test 4: RPC fn_get_user_layer_stats for ' + TEST_WALLET);
+                const { data: layerData, error: layerError } = await supabase
+                    .rpc('fn_get_user_layer_stats', { p_user_wallet: TEST_WALLET });
+
+                if (layerError) {
+                    log('❌ Error calling RPC: ' + JSON.stringify(layerError), true);
+                } else {
+                    log('✅ Found ' + (layerData?.length || 0) + ' layers');
+                    // Show first 3 layers
+                    if (layerData && layerData.length > 0) {
+                        log('First 3 layers: ' + JSON.stringify(layerData.slice(0, 3), null, 2));
+                    }
+                }
+            } catch (e) {
+                log('❌ Exception: ' + e.message, true);
+            }
+
+            log('\n✅ All tests completed!');
+        }
+    </script>
+</body>
+</html>
