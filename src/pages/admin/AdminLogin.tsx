@@ -1,195 +1,152 @@
-import { useState, useEffect } from 'react';
-import { useLocation } from 'wouter';
+import { useState } from 'react';
+import { Card, CardContent, CardHeader, CardTitle } from '../../components/ui/card';
 import { Button } from '../../components/ui/button';
 import { Input } from '../../components/ui/input';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../../components/ui/card';
 import { Label } from '../../components/ui/label';
-import { Checkbox } from '../../components/ui/checkbox';
 import { useToast } from '../../hooks/use-toast';
 import { useAdminAuthContext } from '../../contexts/AdminAuthContext';
-import { motion } from 'framer-motion';
-import HexagonIcon from '../../components/shared/HexagonIcon';
-import { Shield, Lock, User } from 'lucide-react';
-
-const REMEMBER_ME_KEY = 'beehive_admin_remember';
+import { Mail, Lock, Shield } from 'lucide-react';
 
 export default function AdminLogin() {
-  const [, setLocation] = useLocation();
+  const { signInAdmin, isLoading } = useAdminAuthContext();
   const { toast } = useToast();
-  const { signInAdmin } = useAdminAuthContext();
-  const [credentials, setCredentials] = useState({
+  
+  const [formData, setFormData] = useState({
     email: '',
-    password: '',
+    password: ''
   });
-  const [rememberMe, setRememberMe] = useState(false);
-  const [isLoading, setIsLoading] = useState(false);
 
-  // Load saved credentials on component mount
-  useEffect(() => {
-    try {
-      const saved = localStorage.getItem(REMEMBER_ME_KEY);
-      if (saved) {
-        const { email, password } = JSON.parse(saved);
-        // Simple base64 decode for password
-        const decodedPassword = atob(password);
-        setCredentials({ email, password: decodedPassword });
-        setRememberMe(true);
-      }
-    } catch (error) {
-      console.error('Error loading saved credentials:', error);
-      localStorage.removeItem(REMEMBER_ME_KEY);
-    }
-  }, []);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const handleLogin = async (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setIsLoading(true);
+    
+    if (!formData.email || !formData.password) {
+      toast({
+        title: 'Missing Information',
+        description: 'Please enter both email and password',
+        variant: 'destructive'
+      });
+      return;
+    }
+
+    setIsSubmitting(true);
 
     try {
-      // Use AdminAuthContext signInAdmin method
-      await signInAdmin(credentials.email, credentials.password);
-
-      // Save credentials if "Remember Me" is checked
-      if (rememberMe) {
-        try {
-          // Simple base64 encode for password (not secure encryption, just obfuscation)
-          const encodedPassword = btoa(credentials.password);
-          localStorage.setItem(
-            REMEMBER_ME_KEY,
-            JSON.stringify({
-              email: credentials.email,
-              password: encodedPassword,
-            })
-          );
-        } catch (error) {
-          console.error('Error saving credentials:', error);
-        }
-      } else {
-        // Clear saved credentials if not checked
-        localStorage.removeItem(REMEMBER_ME_KEY);
-      }
-
+      await signInAdmin(formData.email, formData.password);
+      
       toast({
-        title: 'Login Successful',
-        description: `Welcome to Admin Panel!`,
+        title: 'Welcome Back! 👋',
+        description: 'Successfully signed in to admin panel',
       });
-
-      // AdminAuthContext will handle redirect to /admin/dashboard
     } catch (error: any) {
       console.error('Admin login error:', error);
+      
+      let errorMessage = 'Please check your credentials and try again';
+      
+      if (error.message?.includes('Invalid login credentials')) {
+        errorMessage = 'Invalid email or password';
+      } else if (error.message?.includes('Invalid admin credentials')) {
+        errorMessage = 'Access denied: Not an admin account';
+      } else if (error.message?.includes('inactive account')) {
+        errorMessage = 'Account is inactive. Contact support.';
+      }
 
       toast({
-        title: 'Login Failed',
-        description: error.message || 'Invalid admin credentials',
-        variant: 'destructive',
+        title: 'Sign In Failed',
+        description: errorMessage,
+        variant: 'destructive'
       });
     } finally {
-      setIsLoading(false);
+      setIsSubmitting(false);
     }
   };
 
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <div className="flex items-center space-x-3">
+          <div className="animate-spin h-6 w-6 border-2 border-honey border-t-transparent rounded-full"></div>
+          <span className="text-muted-foreground">Checking authentication...</span>
+        </div>
+      </div>
+    );
+  }
+
   return (
-    <div className="min-h-screen flex items-center justify-center bg-background p-4">
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.6 }}
-        className="w-full max-w-md"
-      >
-        <Card className="bg-secondary border-border glow-hover">
-          <CardHeader className="text-center pb-8">
-            <motion.div
-              initial={{ scale: 0 }}
-              animate={{ scale: 1 }}
-              transition={{ delay: 0.2, duration: 0.5 }}
-            >
-              <HexagonIcon className="mx-auto mb-6" size="xl">
-                <Shield className="text-honey text-4xl" />
-              </HexagonIcon>
-            </motion.div>
-            
-            <CardTitle className="text-3xl font-bold text-honey mb-2">
-              Beehive Admin Panel
-            </CardTitle>
-            <CardDescription className="text-muted-foreground">
-              Secure access to administrative functions
-            </CardDescription>
-          </CardHeader>
-          
-          <CardContent>
-            <form onSubmit={handleLogin} className="space-y-6">
-              <div className="space-y-4">
-                <div>
-                  <Label htmlFor="email" className="text-honey mb-2 flex items-center">
-                    <User className="w-4 h-4 mr-2" />
-                    Email
-                  </Label>
-                  <Input
-                    id="email"
-                    type="email"
-                    placeholder="Enter admin email"
-                    value={credentials.email}
-                    onChange={(e) => setCredentials(prev => ({ ...prev, email: e.target.value }))}
-                    required
-                    className="bg-muted border-honey/20 focus:border-honey"
-                    data-testid="input-email"
-                  />
-                </div>
-                
-                <div>
-                  <Label htmlFor="password" className="text-honey mb-2 flex items-center">
-                    <Lock className="w-4 h-4 mr-2" />
-                    Password
-                  </Label>
-                  <Input
-                    id="password"
-                    type="password"
-                    placeholder="Enter admin password"
-                    value={credentials.password}
-                    onChange={(e) => setCredentials(prev => ({ ...prev, password: e.target.value }))}
-                    required
-                    className="bg-muted border-honey/20 focus:border-honey"
-                    data-testid="input-password"
-                  />
-                </div>
-
-                {/* Remember Me Checkbox */}
-                <div className="flex items-center space-x-2">
-                  <Checkbox
-                    id="remember-me"
-                    checked={rememberMe}
-                    onCheckedChange={(checked) => setRememberMe(checked as boolean)}
-                    className="border-honey/50 data-[state=checked]:bg-honey data-[state=checked]:text-black"
-                  />
-                  <Label
-                    htmlFor="remember-me"
-                    className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 cursor-pointer"
-                  >
-                    Remember my credentials
-                  </Label>
-                </div>
-              </div>
-
-              <Button
-                type="submit"
-                className="w-full bg-honey hover:bg-honey/90 text-black font-semibold"
-                disabled={isLoading}
-                data-testid="button-login"
-              >
-                {isLoading ? 'Authenticating...' : 'Login to Admin Panel'}
-              </Button>
-            </form>
-            
-            <div className="mt-6 pt-6 border-t border-border">
-              <div className="text-center">
-                <p className="text-xs text-muted-foreground">
-                  🔒 Secure admin authentication with audit logging
-                </p>
-              </div>
+    <div className="min-h-screen bg-background flex items-center justify-center p-4">
+      <Card className="w-full max-w-md bg-secondary border-border">
+        <CardHeader className="text-center">
+          <div className="mx-auto mb-4 p-3 bg-honey/10 rounded-full w-fit">
+            <Shield className="h-8 w-8 text-honey" />
+          </div>
+          <CardTitle className="text-honey text-2xl">
+            Admin Sign In
+          </CardTitle>
+          <p className="text-muted-foreground text-sm">
+            Access the Beehive administration panel
+          </p>
+        </CardHeader>
+        <CardContent>
+          <form onSubmit={handleSubmit} className="space-y-4">
+            {/* Email */}
+            <div className="space-y-2">
+              <Label htmlFor="email" className="flex items-center">
+                <Mail className="h-4 w-4 mr-2" />
+                Email Address
+              </Label>
+              <Input
+                id="email"
+                type="email"
+                value={formData.email}
+                onChange={(e) => setFormData(prev => ({ ...prev, email: e.target.value }))}
+                placeholder="admin@beehive.com"
+                className="bg-muted border-border"
+                required
+                autoComplete="email"
+              />
             </div>
-          </CardContent>
-        </Card>
-      </motion.div>
+
+            {/* Password */}
+            <div className="space-y-2">
+              <Label htmlFor="password" className="flex items-center">
+                <Lock className="h-4 w-4 mr-2" />
+                Password
+              </Label>
+              <Input
+                id="password"
+                type="password"
+                value={formData.password}
+                onChange={(e) => setFormData(prev => ({ ...prev, password: e.target.value }))}
+                placeholder="Enter your password"
+                className="bg-muted border-border"
+                required
+                autoComplete="current-password"
+              />
+            </div>
+
+            <Button
+              type="submit"
+              disabled={isSubmitting}
+              className="w-full bg-honey text-secondary hover:bg-honey/90"
+            >
+              {isSubmitting ? (
+                <div className="flex items-center">
+                  <div className="animate-spin h-4 w-4 border-2 border-secondary border-t-transparent rounded-full mr-2"></div>
+                  Signing In...
+                </div>
+              ) : (
+                'Sign In'
+              )}
+            </Button>
+
+            <div className="text-center text-xs text-muted-foreground mt-4">
+              <p>⚠️ Admin access only</p>
+              <p>Regular users should use the main platform</p>
+            </div>
+          </form>
+        </CardContent>
+      </Card>
     </div>
   );
 }

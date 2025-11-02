@@ -76,7 +76,7 @@ const NotFound = () => {
 };
 
 // Admin components
-import AdminLogin from "@/pages/AdminLogin";
+import AdminLogin from "@/pages/admin/AdminLogin";
 import AdminDashboard from "@/pages/admin/AdminDashboard";
 import AdminHome from "@/pages/admin/AdminHome";
 import AdminUsers from "@/pages/admin/AdminUsers";
@@ -86,42 +86,15 @@ import AdminMatrix from "@/pages/admin/AdminMatrix";
 import AdminSettings from "@/pages/admin/AdminSettings";
 import AdminServerWallet from "@/pages/admin/AdminServerWallet";
 import AdminNFTs from "@/pages/admin/AdminNFTs";
-const AdminUserManagement = () => {
-  const { t } = useI18n();
-  return <div>{t('common.comingSoon')} - Admin User Management</div>;
-};
-const AdminReferrals = () => {
-  const { t } = useI18n();
-  return <div>{t('common.comingSoon')} - Admin Referrals</div>;
-};
-const AdminContracts = () => {
-  const { t } = useI18n();
-  return <div>{t('common.comingSoon')} - Admin Contracts</div>;
-};
-const AdminContractDetail = () => {
-  const { t } = useI18n();
-  return <div>{t('common.comingSoon')} - Admin Contract Detail</div>;
-};
-const AdminContractDeploy = () => {
-  const { t } = useI18n();
-  return <div>{t('common.comingSoon')} - Admin Contract Deploy</div>;
-};
-const AdminCourses = () => {
-  const { t } = useI18n();
-  return <div>{t('common.comingSoon')} - Admin Courses</div>;
-};
-const AdminBlog = () => {
-  const { t } = useI18n();
-  return <div>{t('common.comingSoon')} - Admin Blog</div>;
-};
-const AdminSystem = () => {
-  const { t } = useI18n();
-  return <div>{t('common.comingSoon')} - Admin System</div>;
-};
-const AdminDiscover = () => {
-  const { t } = useI18n();
-  return <div>{t('common.comingSoon')} - Admin Discover</div>;
-};
+import AdminUserManagement from "@/pages/admin/AdminUserManagement";
+import AdminReferrals from "@/pages/admin/AdminReferrals";
+import AdminContracts from "@/pages/admin/AdminContracts";
+import AdminContractDetail from "@/pages/admin/AdminContractDetail";
+import AdminContractDeploy from "@/pages/admin/AdminContractDeploy";
+import AdminCourses from "@/pages/admin/AdminCourses";
+import AdminBlog from "@/pages/admin/AdminBlog";
+import AdminSystem from "@/pages/admin/AdminSystem";
+import AdminDiscover from "@/pages/admin/AdminDiscover";
 const Courses = () => {
   const { t } = useI18n();
   return <div>{t('common.comingSoon')} - Courses</div>;
