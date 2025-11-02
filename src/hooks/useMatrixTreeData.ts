@@ -221,8 +221,8 @@ export function useMatrixNodeChildren(
 
       console.log('👶 Fetching children for parent:', parentWallet);
 
-      // Query children directly by parent_wallet from members table with users join
-      const { data, error } = await supabase
+      // Query children directly by parent_wallet from members table
+      const { data: membersData, error: membersError } = await supabase
         .from('members')
         .select(`
           wallet_address,
@@ -232,16 +232,38 @@ export function useMatrixNodeChildren(
           referrer_wallet,
           activation_time,
           activation_sequence,
-          current_level,
-          users!inner(username)
+          current_level
         `)
         .eq('parent_wallet', parentWallet)
         .order('position');
 
-      if (error) {
-        console.error('❌ Error fetching children:', error);
-        throw error;
+      if (membersError) {
+        console.error('❌ Error fetching children from members:', membersError);
+        throw membersError;
       }
+
+      // Get usernames for these children
+      const childWallets = membersData?.map(m => m.wallet_address) || [];
+      let usernamesMap = new Map<string, string>();
+
+      if (childWallets.length > 0) {
+        const { data: usersData } = await supabase
+          .from('users')
+          .select('wallet_address, username')
+          .in('wallet_address', childWallets);
+
+        usersData?.forEach(u => {
+          usernamesMap.set(u.wallet_address.toLowerCase(), u.username);
+        });
+      }
+
+      // Merge username data
+      const data = membersData?.map(m => ({
+        ...m,
+        username: usernamesMap.get(m.wallet_address.toLowerCase()) || null
+      })) || [];
+
+      const error = null;
 
       // Check if children have their own children
       const childrenWallets = data?.map(d => d.wallet_address) || [];
@@ -279,7 +301,7 @@ export function useMatrixNodeChildren(
           matrix_root_wallet: '', // Not used anymore
           layer: node.layer_level,
           member_wallet: node.wallet_address,
-          member_username: node.users?.username || null,
+          member_username: node.username || null,
           current_level: node.current_level || 0,
           activation_sequence: node.activation_sequence || 0,
           parent_wallet: node.parent_wallet,
