@@ -1,4 +1,4 @@
-import { ReactNode, useState } from 'react';
+import { ReactNode, useState, useEffect } from 'react';
 import { useLocation } from 'wouter';
 import {
   Activity,
@@ -174,17 +174,33 @@ export function AdminLayout({ children }: AdminLayoutProps) {
     setLocation('/admin/login');
   };
 
+  // Close sidebar on Escape key (mobile)
+  useEffect(() => {
+    const handleEscape = (e: KeyboardEvent) => {
+      if (e.key === 'Escape' && isMobile && sidebarOpen) {
+        setSidebarOpen(false);
+      }
+    };
+
+    if (isMobile && sidebarOpen) {
+      document.addEventListener('keydown', handleEscape);
+      return () => document.removeEventListener('keydown', handleEscape);
+    }
+  }, [isMobile, sidebarOpen]);
+
   const NavContent = () => (
     <div className="flex flex-col h-full">
       {/* Logo and User Info */}
       <div className="p-6 border-b border-border">
         <div className="flex items-center space-x-3">
-          <div className="w-10 h-10 rounded-full bg-honey flex items-center justify-center">
+          <div className="w-10 h-10 rounded-full bg-honey flex items-center justify-center flex-shrink-0">
             <Database className="h-6 w-6 text-black" />
           </div>
-          <div>
+          <div className="flex-1 min-w-0">
             <h2 className="text-lg font-bold text-foreground">Admin Panel</h2>
-            <p className="text-sm text-muted-foreground">{adminUser?.username}</p>
+            <p className="text-sm text-muted-foreground truncate">
+              {adminUser?.username || adminUser?.email || 'Admin'}
+            </p>
           </div>
         </div>
       </div>
@@ -207,14 +223,16 @@ export function AdminLayout({ children }: AdminLayoutProps) {
                     if (isMobile) setSidebarOpen(false);
                   }}
                   className={cn(
-                    'w-full flex items-center space-x-3 px-3 py-2 rounded-lg transition-colors touch-manipulation',
+                    'w-full flex items-center space-x-3 px-4 py-3 rounded-lg transition-all duration-200',
+                    'touch-manipulation min-h-[44px]',
+                    'active:scale-95 active:opacity-80',
                     isActive
-                      ? 'bg-honey text-black font-medium'
-                      : 'text-muted-foreground hover:bg-muted hover:text-foreground'
+                      ? 'bg-honey text-black font-medium shadow-sm'
+                      : 'text-muted-foreground hover:bg-muted hover:text-foreground hover:shadow-sm'
                   )}
                 >
-                  <Icon className="h-5 w-5" />
-                  <span className="text-sm">{item.title}</span>
+                  <Icon className="h-5 w-5 flex-shrink-0" />
+                  <span className="text-sm font-medium">{item.title}</span>
                 </button>
               );
             })}
@@ -244,11 +262,11 @@ export function AdminLayout({ children }: AdminLayoutProps) {
       <div className="p-4 border-t border-border">
         <Button
           variant="ghost"
-          className="w-full justify-start text-red-600 hover:text-red-700 hover:bg-red-50"
+          className="w-full justify-start text-red-600 hover:text-red-700 hover:bg-red-50 dark:hover:bg-red-950/20 touch-manipulation min-h-[44px] active:scale-95"
           onClick={handleLogout}
         >
-          <LogOut className="h-5 w-5 mr-3" />
-          Logout
+          <LogOut className="h-5 w-5 mr-3 flex-shrink-0" />
+          <span className="font-medium">Logout</span>
         </Button>
       </div>
     </div>
@@ -258,22 +276,23 @@ export function AdminLayout({ children }: AdminLayoutProps) {
     <div className="min-h-screen bg-background">
       {/* Mobile Header */}
       {isMobile && (
-        <div className="sticky top-0 z-50 bg-background border-b border-border">
+        <header className="sticky top-0 z-50 bg-background border-b border-border shadow-sm">
           <div className="flex items-center justify-between p-4">
-            <div className="flex items-center space-x-3">
-              <Database className="h-6 w-6 text-honey" />
-              <h1 className="text-lg font-bold">Admin Panel</h1>
+            <div className="flex items-center space-x-3 flex-1 min-w-0">
+              <Database className="h-6 w-6 text-honey flex-shrink-0" />
+              <h1 className="text-lg font-bold truncate">Admin Panel</h1>
             </div>
             <Button
               variant="ghost"
               size="sm"
               onClick={() => setSidebarOpen(!sidebarOpen)}
-              className="touch-manipulation"
+              className="touch-manipulation min-h-[44px] min-w-[44px] active:scale-95 flex-shrink-0"
+              aria-label={sidebarOpen ? "Close menu" : "Open menu"}
             >
               {sidebarOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
             </Button>
           </div>
-        </div>
+        </header>
       )}
 
       <div className="flex">
@@ -283,15 +302,26 @@ export function AdminLayout({ children }: AdminLayoutProps) {
           <>
             {sidebarOpen && (
               <div
-                className="fixed inset-0 z-40 bg-black/50 touch-manipulation"
+                className="fixed inset-0 z-40 bg-black/60 backdrop-blur-sm touch-manipulation"
                 onClick={() => setSidebarOpen(false)}
+                role="button"
+                aria-label="Close menu overlay"
+                tabIndex={0}
+                onKeyDown={(e) => {
+                  if (e.key === 'Escape' || e.key === 'Enter' || e.key === ' ') {
+                    setSidebarOpen(false);
+                  }
+                }}
               />
             )}
             <aside
               className={cn(
-                'fixed top-0 left-0 z-[60] h-full w-72 bg-background border-r border-border transition-transform duration-300',
+                'fixed top-0 left-0 z-[60] h-full w-72 max-w-[80vw] bg-background border-r border-border',
+                'transition-transform duration-300 ease-in-out shadow-2xl',
                 sidebarOpen ? 'translate-x-0' : '-translate-x-full'
               )}
+              role="navigation"
+              aria-label="Admin navigation"
             >
               <NavContent />
             </aside>
