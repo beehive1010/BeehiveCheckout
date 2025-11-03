@@ -54,27 +54,70 @@ const MatrixLayerStatsView: React.FC<MatrixLayerStatsViewProps> = ({
     try {
       console.log('🔍 Loading matrix layer stats for wallet:', walletAddress);
 
-      // Get total member count from user's subtree
-      const { data: subtreeStats, error: statsError } = await supabase
-        .rpc('fn_get_user_matrix_stats', { p_user_wallet: walletAddress })
-        .single();
+      const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL;
+      const SUPABASE_ANON_KEY = import.meta.env.VITE_SUPABASE_ANON_KEY;
 
-      if (statsError) {
-        console.error('❌ Failed to fetch user matrix stats:', statsError);
+      // Get total member count from user's subtree using direct fetch
+      console.log('📡 Fetching user matrix stats via direct RPC call...');
+
+      let subtreeStats = null;
+      let statsError = null;
+
+      try {
+        const statsResponse = await fetch(`${SUPABASE_URL}/rest/v1/rpc/fn_get_user_matrix_stats`, {
+          method: 'POST',
+          headers: {
+            'apikey': SUPABASE_ANON_KEY,
+            'Authorization': `Bearer ${SUPABASE_ANON_KEY}`,
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ p_user_wallet: walletAddress })
+        });
+
+        if (statsResponse.ok) {
+          subtreeStats = await statsResponse.json();
+          console.log('✅ User matrix stats fetched:', subtreeStats);
+        } else {
+          statsError = new Error(`HTTP ${statsResponse.status}: ${statsResponse.statusText}`);
+          console.error('❌ Failed to fetch user matrix stats:', statsError);
+        }
+      } catch (error) {
+        console.error('❌ Error in user matrix stats fetch:', error);
+        statsError = error;
       }
 
       const totalMembers = subtreeStats?.total_members || 0;
       setTotalDownlineMembers(totalMembers);
       console.log('📊 Total members in user subtree:', totalMembers);
 
-      // Use RPC function for user's 19-layer stats
-      console.log('📊 Using fn_get_user_layer_stats RPC for user matrix stats');
+      // Use RPC function for user's 19-layer stats via direct fetch
+      console.log('📊 Using fn_get_user_layer_stats RPC via direct fetch');
 
-      const { data: layerData, error: matrixError } = await supabase
-        .rpc('fn_get_user_layer_stats', { p_user_wallet: walletAddress });
+      let layerData = null;
+      let matrixError = null;
 
-      if (matrixError) {
-        console.error('❌ Failed to fetch layer stats:', matrixError);
+      try {
+        const layerResponse = await fetch(`${SUPABASE_URL}/rest/v1/rpc/fn_get_user_layer_stats`, {
+          method: 'POST',
+          headers: {
+            'apikey': SUPABASE_ANON_KEY,
+            'Authorization': `Bearer ${SUPABASE_ANON_KEY}`,
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ p_user_wallet: walletAddress })
+        });
+
+        if (layerResponse.ok) {
+          layerData = await layerResponse.json();
+          console.log('✅ Layer stats fetched successfully');
+        } else {
+          matrixError = new Error(`HTTP ${layerResponse.status}: ${layerResponse.statusText}`);
+          console.error('❌ Failed to fetch layer stats:', matrixError);
+          // Continue with empty data instead of throwing
+        }
+      } catch (error) {
+        console.error('❌ Error in layer stats fetch:', error);
+        matrixError = error;
         // Continue with empty data instead of throwing
       }
 

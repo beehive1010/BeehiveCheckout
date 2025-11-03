@@ -88,26 +88,61 @@ export default function ReferralsStats({ walletAddress, className }: ReferralsSt
         return data;
       } catch (error) {
         console.error('❌ Failed to fetch referrer stats:', error);
-        // Fallback to v_referral_statistics view (fixed to use recursive CTE)
+        // Fallback to v_referral_statistics view using direct fetch
 
-        // Use v_referral_statistics for comprehensive team statistics
-        const { data: stats, error: statsError } = await supabase
-          .from('v_referral_statistics')
-          .select('direct_referral_count, max_spillover_layer, total_team_count, matrix_19_layer_count, activation_rate_percentage')
-          .ilike('member_wallet', walletAddress)
-          .maybeSingle();
+        const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL;
+        const SUPABASE_ANON_KEY = import.meta.env.VITE_SUPABASE_ANON_KEY;
 
-        if (statsError) {
-          console.error('❌ Failed to fetch from v_referral_statistics:', statsError);
+        // Use v_referral_statistics for comprehensive team statistics via direct fetch
+        let stats = null;
+        let statsError = null;
+
+        try {
+          const statsUrl = `${SUPABASE_URL}/rest/v1/v_referral_statistics?member_wallet=ilike.${walletAddress}&select=direct_referral_count,max_spillover_layer,total_team_count,matrix_19_layer_count,activation_rate_percentage`;
+
+          const statsResponse = await fetch(statsUrl, {
+            method: 'GET',
+            headers: {
+              'apikey': SUPABASE_ANON_KEY,
+              'Authorization': `Bearer ${SUPABASE_ANON_KEY}`,
+              'Content-Type': 'application/json',
+            }
+          });
+
+          if (statsResponse.ok) {
+            const statsArray = await statsResponse.json();
+            stats = statsArray && statsArray.length > 0 ? statsArray[0] : null;
+          } else {
+            statsError = new Error(`HTTP ${statsResponse.status}`);
+            console.error('❌ Failed to fetch from v_referral_statistics:', statsError);
+          }
+        } catch (fetchError) {
+          console.error('❌ Error fetching v_referral_statistics:', fetchError);
+          statsError = fetchError;
         }
 
-        // Use v_matrix_layer_summary for layer 1 stats
-        const { data: layer1Stats } = await supabase
-          .from('v_matrix_layer_summary')
-          .select('*')
-          .ilike('matrix_root_wallet', walletAddress)
-          .eq('layer', 1)
-          .maybeSingle();
+        // Use v_matrix_layer_summary for layer 1 stats via direct fetch
+        let layer1Stats = null;
+
+        try {
+          const layer1Url = `${SUPABASE_URL}/rest/v1/v_matrix_layer_summary?matrix_root_wallet=ilike.${walletAddress}&layer=eq.1&select=*`;
+
+          const layer1Response = await fetch(layer1Url, {
+            method: 'GET',
+            headers: {
+              'apikey': SUPABASE_ANON_KEY,
+              'Authorization': `Bearer ${SUPABASE_ANON_KEY}`,
+              'Content-Type': 'application/json',
+            }
+          });
+
+          if (layer1Response.ok) {
+            const layer1Array = await layer1Response.json();
+            layer1Stats = layer1Array && layer1Array.length > 0 ? layer1Array[0] : null;
+          }
+        } catch (fetchError) {
+          console.error('❌ Error fetching v_matrix_layer_summary:', fetchError);
+        }
 
         const directReferralsCount = stats?.direct_referral_count || 0;
         const totalTeamSize = stats?.total_team_count || 0; // ✅ Now uses fixed recursive CTE
