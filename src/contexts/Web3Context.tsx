@@ -154,9 +154,18 @@ function Web3ContextProvider({ children }: { children: React.ReactNode }) {
         return;
       }
 
+      // Check if wallet address is saved in storage (page refresh case)
+      const savedAddress = sessionStorage.getItem('wallet-address') || localStorage.getItem('walletAddress');
+
       // Handle different authentication states
-      if (!account?.address && !isSupabaseAuthenticated) {
+      if (!account?.address && !isSupabaseAuthenticated && !savedAddress) {
         console.log('❌ No wallet and no Supabase auth - staying on current page');
+        return;
+      }
+
+      // If we have a saved address but account is not ready yet, skip checks (ThirdWeb reconnecting)
+      if (!account?.address && savedAddress && isSupabaseAuthenticated) {
+        console.log('⏳ Wallet reconnecting from saved address:', savedAddress);
         return;
       }
 

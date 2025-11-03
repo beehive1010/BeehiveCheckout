@@ -277,14 +277,25 @@ export function useMatrixNodeChildren(
         let usernamesMap = new Map<string, string>();
 
         if (childWallets.length > 0) {
-          const { data: usersData } = await supabase
-            .from('users')
-            .select('wallet_address, username')
-            .in('wallet_address', childWallets);
+          try {
+            const { data: usersData, error: usersError } = await supabase
+              .from('users')
+              .select('wallet_address, username')
+              .in('wallet_address', childWallets);
 
-          usersData?.forEach(u => {
-            usernamesMap.set(u.wallet_address.toLowerCase(), u.username);
-          });
+            if (usersError) {
+              console.warn('⚠️ Error fetching usernames:', usersError);
+              // Continue without usernames
+            } else {
+              console.log('✅ Fetched usernames for', usersData?.length || 0, 'children');
+              usersData?.forEach(u => {
+                usernamesMap.set(u.wallet_address.toLowerCase(), u.username);
+              });
+            }
+          } catch (err) {
+            console.warn('⚠️ Exception fetching usernames:', err);
+            // Continue without usernames
+          }
         }
 
         // Merge username data
@@ -300,15 +311,22 @@ export function useMatrixNodeChildren(
         let grandchildrenData: any[] = [];
 
         if (childrenWallets.length > 0) {
-          // Query each child's children individually to avoid case sensitivity issues with .in()
-          const gcPromises = childrenWallets.map(wallet =>
-            supabase
-              .from('members')
-              .select('parent_wallet, position')
-              .ilike('parent_wallet', wallet)
-          );
-          const gcResults = await Promise.all(gcPromises);
-          grandchildrenData = gcResults.flatMap(result => result.data || []);
+          try {
+            console.log('👶👶 Fetching grandchildren for', childrenWallets.length, 'children');
+            // Query each child's children individually to avoid case sensitivity issues with .in()
+            const gcPromises = childrenWallets.map(wallet =>
+              supabase
+                .from('members')
+                .select('parent_wallet, position')
+                .ilike('parent_wallet', wallet)
+            );
+            const gcResults = await Promise.all(gcPromises);
+            grandchildrenData = gcResults.flatMap(result => result.data || []);
+            console.log('✅ Found', grandchildrenData.length, 'grandchildren');
+          } catch (err) {
+            console.warn('⚠️ Exception fetching grandchildren:', err);
+            // Continue without grandchildren data
+          }
         }
 
         // Build children_slots for each child (use lowercase keys for case-insensitive matching)
@@ -357,6 +375,14 @@ export function useMatrixNodeChildren(
         };
 
         console.log('✅ Found children:', Object.values(children).filter(Boolean).length);
+        console.log('📤 Returning children data:', {
+          hasL: !!children.L,
+          hasM: !!children.M,
+          hasR: !!children.R,
+          L: children.L ? `${children.L.member_wallet.slice(0, 10)}... (${children.L.member_username || 'no username'})` : null,
+          M: children.M ? `${children.M.member_wallet.slice(0, 10)}... (${children.M.member_username || 'no username'})` : null,
+          R: children.R ? `${children.R.member_wallet.slice(0, 10)}... (${children.R.member_username || 'no username'})` : null
+        });
 
         return children;
       } catch (error) {

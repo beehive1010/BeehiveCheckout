@@ -96,24 +96,34 @@ export function useUserReferralStats() {
         // Use fn_get_user_total_referral_stats for accurate team statistics
         console.log('🔍 Calling fn_get_user_total_referral_stats...');
 
-        const rpcPromise = supabase
-          .rpc('fn_get_user_total_referral_stats', { p_user_wallet: walletAddress })
-          .single();
+        let teamStats = null;
+        let teamStatsError = null;
 
-        const rpcTimeout = new Promise((_, reject) => {
-          setTimeout(() => reject(new Error('RPC fn_get_user_total_referral_stats timeout')), 20000);
-        });
+        try {
+          const rpcPromise = supabase
+            .rpc('fn_get_user_total_referral_stats', { p_user_wallet: walletAddress })
+            .single();
 
-        const { data: teamStats, error: teamStatsError } = await Promise.race([
-          rpcPromise,
-          rpcTimeout
-        ]) as any;
+          const rpcTimeout = new Promise((_, reject) => {
+            setTimeout(() => reject(new Error('RPC fn_get_user_total_referral_stats timeout')), 20000);
+          });
 
-        if (teamStatsError) {
-          console.error('❌ Error fetching team statistics:', teamStatsError);
-          // Continue execution with default values instead of throwing
-        } else {
-          console.log('✅ Team stats received:', teamStats);
+          const result = await Promise.race([
+            rpcPromise,
+            rpcTimeout
+          ]) as any;
+
+          teamStats = result.data;
+          teamStatsError = result.error;
+
+          if (teamStatsError) {
+            console.error('❌ Error fetching team statistics:', teamStatsError);
+          } else {
+            console.log('✅ Team stats received:', teamStats);
+          }
+        } catch (error: any) {
+          console.error('❌ RPC timeout or error:', error.message);
+          // Continue with null values - will use defaults below
         }
 
         console.log(`📊 Team Statistics for ${walletAddress}:`, {
@@ -239,15 +249,24 @@ export function useUserMatrixStats() {
           setTimeout(() => reject(new Error('v_referral_statistics timeout')), 15000);
         });
 
-        const { data: matrixOverview, error: matrixOverviewError } = await Promise.race([
-          matrixOverviewPromise,
-          matrixOverviewTimeout
-        ]) as any;
+        let matrixOverview = null;
+        let matrixOverviewError = null;
 
-        if (matrixOverviewError) {
-          console.error('❌ Error fetching matrix overview:', matrixOverviewError);
-        } else {
-          console.log('✅ Matrix overview:', matrixOverview);
+        try {
+          const result = await Promise.race([
+            matrixOverviewPromise,
+            matrixOverviewTimeout
+          ]) as any;
+          matrixOverview = result.data;
+          matrixOverviewError = result.error;
+
+          if (matrixOverviewError) {
+            console.error('❌ Error fetching matrix overview:', matrixOverviewError);
+          } else {
+            console.log('✅ Matrix overview:', matrixOverview);
+          }
+        } catch (error: any) {
+          console.error('❌ Matrix overview timeout or error:', error.message);
         }
 
         // Use RPC function for layer-by-layer statistics (user's 19 layers)
@@ -259,15 +278,24 @@ export function useUserMatrixStats() {
           setTimeout(() => reject(new Error('fn_get_user_layer_stats timeout')), 15000);
         });
 
-        const { data: layerData, error: layerDataError } = await Promise.race([
-          layerDataPromise,
-          layerDataTimeout
-        ]) as any;
+        let layerData = null;
+        let layerDataError = null;
 
-        if (layerDataError) {
-          console.error('❌ Error fetching layer stats:', layerDataError);
-        } else {
-          console.log('✅ Layer stats received:', layerData?.length, 'layers');
+        try {
+          const result = await Promise.race([
+            layerDataPromise,
+            layerDataTimeout
+          ]) as any;
+          layerData = result.data;
+          layerDataError = result.error;
+
+          if (layerDataError) {
+            console.error('❌ Error fetching layer stats:', layerDataError);
+          } else {
+            console.log('✅ Layer stats received:', layerData?.length, 'layers');
+          }
+        } catch (error: any) {
+          console.error('❌ Layer stats timeout or error:', error.message);
         }
 
         // Count ALL unique members via referrer tree (no layer limit)
@@ -280,15 +308,24 @@ export function useUserMatrixStats() {
           setTimeout(() => reject(new Error('members table timeout')), 15000);
         });
 
-        const { data: allMembersForCount, error: allMembersError } = await Promise.race([
-          allMembersPromise,
-          allMembersTimeout
-        ]) as any;
+        let allMembersForCount = null;
+        let allMembersError = null;
 
-        if (allMembersError) {
-          console.error('❌ Error fetching all members:', allMembersError);
-        } else {
-          console.log('✅ All members fetched:', allMembersForCount?.length);
+        try {
+          const result = await Promise.race([
+            allMembersPromise,
+            allMembersTimeout
+          ]) as any;
+          allMembersForCount = result.data;
+          allMembersError = result.error;
+
+          if (allMembersError) {
+            console.error('❌ Error fetching all members:', allMembersError);
+          } else {
+            console.log('✅ All members fetched:', allMembersForCount?.length);
+          }
+        } catch (error: any) {
+          console.error('❌ All members timeout or error:', error.message);
         }
 
         // Build downline tree recursively
