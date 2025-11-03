@@ -214,7 +214,31 @@ export function useUserReferralStats() {
         };
       } catch (error) {
         console.error('💥 Exception in useUserReferralStats:', error);
-        throw error;
+        // Return default values instead of throwing to prevent infinite retry loop
+        return {
+          directReferralCount: 0,
+          totalTeamCount: 0,
+          totalTeamActivated: 0,
+          matrixStats: {
+            totalMembers: 0,
+            activeMembers: 0,
+            deepestLayer: 0,
+            directReferrals: 0,
+            spilloverMembers: 0
+          },
+          totalReferrals: 0,
+          totalEarnings: '0',
+          monthlyEarnings: '0',
+          pendingCommissions: '0',
+          nextPayout: 'TBD',
+          currentLevel: 1,
+          memberActivated: false,
+          matrixLevel: 1,
+          positionIndex: 1,
+          levelsOwned: [1],
+          downlineMatrix: [],
+          recentReferrals: []
+        };
       }
     },
     enabled: !!walletAddress,
@@ -362,7 +386,13 @@ export function useUserMatrixStats() {
         };
       } catch (error) {
         console.error('💥 Exception in useUserMatrixStats:', error);
-        throw error;
+        // Return default values instead of throwing to prevent infinite retry loop
+        return {
+          totalLayers: 0,
+          layerStats: {},
+          totalMembers: 0,
+          matrixData: []
+        };
       }
     },
     enabled: !!walletAddress,
@@ -381,14 +411,22 @@ export function useFullMatrixStructure() {
     queryFn: async () => {
       if (!walletAddress) throw new Error('No wallet address');
 
-      // 获取完整的19层矩阵结构 - use fn_get_user_matrix_subtree
-      const { data: fullMatrixData, error: matrixError } = await supabase
-        .rpc('fn_get_user_matrix_subtree', { p_root_wallet: walletAddress });
+      try {
+        // 获取完整的19层矩阵结构 - use fn_get_user_matrix_subtree
+        const { data: fullMatrixData, error: matrixError } = await supabase
+          .rpc('fn_get_user_matrix_subtree', { p_root_wallet: walletAddress });
 
-      if (matrixError) {
-        console.error('Error fetching matrix subtree:', matrixError);
-        throw matrixError;
-      }
+        if (matrixError) {
+          console.error('Error fetching matrix subtree:', matrixError);
+          // Return empty structure instead of throwing
+          return {
+            matrixByLayers: {},
+            layerSummary: [],
+            totalMembers: 0,
+            totalLayers: 0,
+            fullMatrixData: []
+          };
+        }
 
       // Transform data to expected format
       const transformedData = fullMatrixData
@@ -440,6 +478,17 @@ export function useFullMatrixStructure() {
         totalLayers: Object.keys(matrixByLayers).length,
         fullMatrixData: transformedData
       };
+      } catch (error) {
+        console.error('💥 Exception in useFullMatrixStructure:', error);
+        // Return empty structure instead of throwing to prevent infinite retry loop
+        return {
+          matrixByLayers: {},
+          layerSummary: [],
+          totalMembers: 0,
+          totalLayers: 0,
+          fullMatrixData: []
+        };
+      }
     },
     enabled: !!walletAddress,
     staleTime: 60000, // 1分钟缓存（矩阵结构变化较慢）
