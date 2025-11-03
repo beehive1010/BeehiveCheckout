@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test Direct Fetch vs Supabase Client</title>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <style>
+        body {
+            font-family: monospace;
+            padding: 20px;
+            background: #1a1a1a;
+            color: #0f0;
+        }
+        .result {
+            background: #000;
+            padding: 15px;
+            margin: 10px 0;
+            border: 1px solid #0f0;
+            border-radius: 5px;
+        }
+        button {
+            background: #0f0;
+            color: #000;
+            padding: 10px 20px;
+            border: none;
+            cursor: pointer;
+            font-family: monospace;
+            font-size: 14px;
+            margin: 5px;
+        }
+        button:hover {
+            background: #0c0;
+        }
+        .error { color: #f00; }
+        .success { color: #0f0; }
+        .warning { color: #ff0; }
+    </style>
+</head>
+<body>
+    <h1>🔧 Direct Fetch vs Supabase Client Test</h1>
+    <p>Testing if the issue is in Supabase JS client or network</p>
+
+    <div id="results"></div>
+
+    <button onclick="testDirectFetch()">Test 1: Direct Fetch (Bypass Client)</button>
+    <button onclick="testSupabaseClient()">Test 2: Supabase Client</button>
+    <button onclick="testBoth()">Test 3: Both (Side by Side)</button>
+
+    <script>
+        const SUPABASE_URL = 'https://cvqibjcbfrwsgkvthccp.supabase.co';
+        const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImN2cWliamNiZnJ3c2drdnRoY2NwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTcwNjU0MDUsImV4cCI6MjA3MjY0MTQwNX0.7CfL8CS1dQ8Gua89maSCDkgnMsNb19qp97mJyoJqJjs';
+
+        const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+        const TEST_WALLET = '0x479ABda60F8c62a7C3fba411ab948a8BE0E616Ab';
+
+        function log(message, className = 'success') {
+            const div = document.createElement('div');
+            div.className = 'result ' + className;
+            div.textContent = message;
+            document.getElementById('results').appendChild(div);
+        }
+
+        function clear() {
+            document.getElementById('results').innerHTML = '';
+        }
+
+        async function testDirectFetch() {
+            clear();
+            log('🚀 Test 1: Direct Fetch API (Bypassing Supabase Client)');
+
+            const startTime = performance.now();
+
+            try {
+                const response = await fetch(
+                    `${SUPABASE_URL}/rest/v1/members?parent_wallet=ilike.${TEST_WALLET}&select=wallet_address,parent_wallet,position,layer_level,current_level&order=position`,
+                    {
+                        method: 'GET',
+                        headers: {
+                            'apikey': SUPABASE_ANON_KEY,
+                            'Authorization': `Bearer ${SUPABASE_ANON_KEY}`,
+                            'Content-Type': 'application/json',
+                        }
+                    }
+                );
+
+                const endTime = performance.now();
+                const duration = (endTime - startTime).toFixed(2);
+
+                if (response.ok) {
+                    const data = await response.json();
+                    log(`✅ Direct Fetch SUCCESS in ${duration}ms`);
+                    log(`Found ${data.length} children: ${JSON.stringify(data, null, 2)}`);
+                } else {
+                    log(`❌ Direct Fetch FAILED: ${response.status} ${response.statusText}`, 'error');
+                    const errorText = await response.text();
+                    log(`Error: ${errorText}`, 'error');
+                }
+            } catch (error) {
+                const endTime = performance.now();
+                const duration = (endTime - startTime).toFixed(2);
+                log(`❌ Exception after ${duration}ms: ${error.message}`, 'error');
+            }
+        }
+
+        async function testSupabaseClient() {
+            clear();
+            log('🚀 Test 2: Supabase JS Client');
+
+            const startTime = performance.now();
+
+            try {
+                const { data, error } = await supabase
+                    .from('members')
+                    .select('wallet_address, parent_wallet, position, layer_level, current_level')
+                    .ilike('parent_wallet', TEST_WALLET)
+                    .order('position');
+
+                const endTime = performance.now();
+                const duration = (endTime - startTime).toFixed(2);
+
+                if (error) {
+                    log(`❌ Supabase Client FAILED after ${duration}ms`, 'error');
+                    log(`Error: ${JSON.stringify(error, null, 2)}`, 'error');
+                } else {
+                    log(`✅ Supabase Client SUCCESS in ${duration}ms`);
+                    log(`Found ${data?.length || 0} children: ${JSON.stringify(data, null, 2)}`);
+                }
+            } catch (error) {
+                const endTime = performance.now();
+                const duration = (endTime - startTime).toFixed(2);
+                log(`❌ Exception after ${duration}ms: ${error.message}`, 'error');
+            }
+        }
+
+        async function testBoth() {
+            clear();
+            log('🚀 Test 3: Running Both Tests Side by Side');
+            log('');
+
+            // Test Direct Fetch
+            log('📡 Starting Direct Fetch...');
+            const fetchStart = performance.now();
+
+            try {
+                const fetchPromise = fetch(
+                    `${SUPABASE_URL}/rest/v1/members?parent_wallet=ilike.${TEST_WALLET}&select=wallet_address,parent_wallet,position&order=position`,
+                    {
+                        method: 'GET',
+                        headers: {
+                            'apikey': SUPABASE_ANON_KEY,
+                            'Authorization': `Bearer ${SUPABASE_ANON_KEY}`,
+                            'Content-Type': 'application/json',
+                        }
+                    }
+                );
+
+                const response = await fetchPromise;
+                const fetchEnd = performance.now();
+                const fetchDuration = (fetchEnd - fetchStart).toFixed(2);
+
+                if (response.ok) {
+                    const data = await response.json();
+                    log(`✅ Direct Fetch completed in ${fetchDuration}ms (${data.length} results)`);
+                } else {
+                    log(`❌ Direct Fetch failed: ${response.status}`, 'error');
+                }
+            } catch (error) {
+                const fetchEnd = performance.now();
+                const fetchDuration = (fetchEnd - fetchStart).toFixed(2);
+                log(`❌ Direct Fetch exception after ${fetchDuration}ms: ${error.message}`, 'error');
+            }
+
+            log('');
+            log('📚 Starting Supabase Client...');
+            const clientStart = performance.now();
+
+            try {
+                const { data, error } = await supabase
+                    .from('members')
+                    .select('wallet_address, parent_wallet, position')
+                    .ilike('parent_wallet', TEST_WALLET)
+                    .order('position');
+
+                const clientEnd = performance.now();
+                const clientDuration = (clientEnd - clientStart).toFixed(2);
+
+                if (error) {
+                    log(`❌ Supabase Client failed after ${clientDuration}ms: ${JSON.stringify(error)}`, 'error');
+                } else {
+                    log(`✅ Supabase Client completed in ${clientDuration}ms (${data?.length || 0} results)`);
+                }
+            } catch (error) {
+                const clientEnd = performance.now();
+                const clientDuration = (clientEnd - clientStart).toFixed(2);
+                log(`❌ Supabase Client exception after ${clientDuration}ms: ${error.message}`, 'error');
+            }
+
+            log('');
+            log('✅ Comparison complete!');
+        }
+    </script>
+</body>
+</html>

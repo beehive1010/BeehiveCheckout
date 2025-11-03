@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Supabase Client Direct Test</title>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <style>
+        body {
+            font-family: monospace;
+            padding: 20px;
+            background: #1a1a1a;
+            color: #0f0;
+        }
+        .result {
+            background: #000;
+            padding: 15px;
+            margin: 10px 0;
+            border: 1px solid #0f0;
+            border-radius: 5px;
+            white-space: pre-wrap;
+        }
+        button {
+            background: #0f0;
+            color: #000;
+            padding: 10px 20px;
+            border: none;
+            cursor: pointer;
+            font-family: monospace;
+            font-size: 14px;
+            margin: 5px;
+        }
+        button:hover {
+            background: #0c0;
+        }
+        .error { color: #f00; }
+        .success { color: #0f0; }
+        .warning { color: #ff0; }
+    </style>
+</head>
+<body>
+    <h1>🔧 Supabase Client Direct Test</h1>
+    <p>Testing Supabase JS client with detailed logging</p>
+
+    <div id="results"></div>
+
+    <button onclick="testSupabaseQuery()">Test Supabase Client Query</button>
+    <button onclick="clearResults()">Clear</button>
+
+    <script>
+        const SUPABASE_URL = 'https://cvqibjcbfrwsgkvthccp.supabase.co';
+        const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImN2cWliamNiZnJ3c2drdnRoY2NwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTcwNjU0MDUsImV4cCI6MjA3MjY0MTQwNX0.7CfL8CS1dQ8Gua89maSCDkgnMsNb19qp97mJyoJqJjs';
+        const TEST_WALLET = '0x479ABda60F8c62a7C3fba411ab948a8BE0E616Ab';
+
+        function log(message, className = 'success') {
+            const div = document.createElement('div');
+            div.className = 'result ' + className;
+            div.textContent = message;
+            document.getElementById('results').appendChild(div);
+            console.log(message);
+        }
+
+        function clearResults() {
+            document.getElementById('results').innerHTML = '';
+        }
+
+        async function testSupabaseQuery() {
+            clearResults();
+            log('🚀 Creating Supabase client...');
+
+            try {
+                const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
+                    auth: {
+                        persistSession: false,
+                        autoRefreshToken: false,
+                    },
+                    global: {
+                        headers: {
+                            'x-test-client': 'direct-test'
+                        }
+                    }
+                });
+
+                log('✅ Client created successfully');
+                log('📊 Supabase URL: ' + SUPABASE_URL);
+                log('🔑 Using ANON key');
+                log('');
+
+                log('🔍 Starting query for parent_wallet: ' + TEST_WALLET);
+                const startTime = performance.now();
+
+                // Set a manual timeout
+                const timeoutMs = 5000;
+                let timeoutId;
+
+                const queryPromise = supabase
+                    .from('members')
+                    .select('wallet_address, parent_wallet, position, layer_level, current_level')
+                    .ilike('parent_wallet', TEST_WALLET)
+                    .order('position');
+
+                const timeoutPromise = new Promise((_, reject) => {
+                    timeoutId = setTimeout(() => {
+                        reject(new Error(`Query timeout after ${timeoutMs}ms`));
+                    }, timeoutMs);
+                });
+
+                log(`⏱️  Timeout set to ${timeoutMs}ms`);
+                log('⏳ Waiting for response...');
+
+                const { data, error } = await Promise.race([queryPromise, timeoutPromise]);
+
+                clearTimeout(timeoutId);
+                const endTime = performance.now();
+                const duration = (endTime - startTime).toFixed(2);
+
+                if (error) {
+                    log(`❌ Query FAILED after ${duration}ms`, 'error');
+                    log(`Error code: ${error.code || 'N/A'}`, 'error');
+                    log(`Error message: ${error.message}`, 'error');
+                    log(`Error details: ${JSON.stringify(error, null, 2)}`, 'error');
+                } else {
+                    log(`✅ Query SUCCESS in ${duration}ms`, 'success');
+                    log(`📊 Found ${data?.length || 0} children`);
+                    log('');
+                    log('Data:');
+                    log(JSON.stringify(data, null, 2));
+                }
+
+            } catch (error) {
+                log(`💥 Exception: ${error.message}`, 'error');
+                log(`Stack: ${error.stack}`, 'error');
+            }
+        }
+
+        // Auto-run test on load
+        window.addEventListener('load', () => {
+            setTimeout(() => {
+                log('🎬 Auto-running test in 1 second...', 'warning');
+                setTimeout(testSupabaseQuery, 1000);
+            }, 0);
+        });
+    </script>
+</body>
+</html>
