@@ -98,7 +98,8 @@ interface PendingReward extends LayerReward {
 
 // Helper function to call Supabase functions
 const callSupabaseFunction = async (functionName: string, action: string, walletAddress: string, extraData: any = {}) => {
-  const response = await fetch(`https://cvqibjcbfrwsgkvthccp.supabase.co/functions/v1/${functionName}`, {
+  const supabaseUrl = import.meta.env.VITE_SUPABASE_URL || 'https://cvqibjcbfrwsgkvthccp.supabase.co';
+  const response = await fetch(`${supabaseUrl}/functions/v1/${functionName}`, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
