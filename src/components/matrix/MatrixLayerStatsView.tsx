@@ -74,7 +74,8 @@ const MatrixLayerStatsView: React.FC<MatrixLayerStatsViewProps> = ({
         .rpc('fn_get_user_layer_stats', { p_user_wallet: walletAddress });
 
       if (matrixError) {
-        throw new Error(`Database error: ${matrixError.message}`);
+        console.error('❌ Failed to fetch layer stats:', matrixError);
+        // Continue with empty data instead of throwing
       }
 
       console.log('📊 Matrix layer data from fn_get_user_layer_stats:', layerData);

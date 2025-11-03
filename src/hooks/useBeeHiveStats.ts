@@ -76,7 +76,7 @@ export function useUserReferralStats() {
         });
 
         const viewTimeout = new Promise((_, reject) => {
-          setTimeout(() => reject(new Error('referrals_stats_view timeout')), 8000);
+          setTimeout(() => reject(new Error('referrals_stats_view timeout')), 15000);
         });
 
         const response = await Promise.race([fetchPromise, viewTimeout]) as Response;
@@ -101,7 +101,7 @@ export function useUserReferralStats() {
           .single();
 
         const rpcTimeout = new Promise((_, reject) => {
-          setTimeout(() => reject(new Error('RPC fn_get_user_total_referral_stats timeout')), 8000);
+          setTimeout(() => reject(new Error('RPC fn_get_user_total_referral_stats timeout')), 20000);
         });
 
         const { data: teamStats, error: teamStatsError } = await Promise.race([
@@ -111,6 +111,7 @@ export function useUserReferralStats() {
 
         if (teamStatsError) {
           console.error('❌ Error fetching team statistics:', teamStatsError);
+          // Continue execution with default values instead of throwing
         } else {
           console.log('✅ Team stats received:', teamStats);
         }
@@ -207,9 +208,10 @@ export function useUserReferralStats() {
       }
     },
     enabled: !!walletAddress,
-    staleTime: 5000,
-    refetchInterval: 10000,
-    refetchIntervalInBackground: true,
+    staleTime: 30000, // 增加到30秒，减少频繁查询
+    refetchInterval: 30000, // 30秒刷新一次
+    refetchIntervalInBackground: false, // 不在后台刷新，节省资源
+    retry: 1, // 失败时只重试一次
   });
 }
 
@@ -234,7 +236,7 @@ export function useUserMatrixStats() {
           .maybeSingle();
 
         const matrixOverviewTimeout = new Promise((_, reject) => {
-          setTimeout(() => reject(new Error('v_referral_statistics timeout')), 8000);
+          setTimeout(() => reject(new Error('v_referral_statistics timeout')), 15000);
         });
 
         const { data: matrixOverview, error: matrixOverviewError } = await Promise.race([
@@ -254,7 +256,7 @@ export function useUserMatrixStats() {
           .rpc('fn_get_user_layer_stats', { p_user_wallet: walletAddress });
 
         const layerDataTimeout = new Promise((_, reject) => {
-          setTimeout(() => reject(new Error('fn_get_user_layer_stats timeout')), 8000);
+          setTimeout(() => reject(new Error('fn_get_user_layer_stats timeout')), 15000);
         });
 
         const { data: layerData, error: layerDataError } = await Promise.race([
@@ -275,7 +277,7 @@ export function useUserMatrixStats() {
           .select('wallet_address, referrer_wallet');
 
         const allMembersTimeout = new Promise((_, reject) => {
-          setTimeout(() => reject(new Error('members table timeout')), 8000);
+          setTimeout(() => reject(new Error('members table timeout')), 15000);
         });
 
         const { data: allMembersForCount, error: allMembersError } = await Promise.race([
@@ -327,8 +329,9 @@ export function useUserMatrixStats() {
       }
     },
     enabled: !!walletAddress,
-    staleTime: 5000,
-    refetchInterval: 15000,
+    staleTime: 30000, // 增加缓存时间
+    refetchInterval: 45000, // 45秒刷新一次（这个查询更重）
+    retry: 1,
   });
 }
 
@@ -402,8 +405,9 @@ export function useFullMatrixStructure() {
       };
     },
     enabled: !!walletAddress,
-    staleTime: 3000,
-    refetchInterval: 10000,
+    staleTime: 60000, // 1分钟缓存（矩阵结构变化较慢）
+    refetchInterval: 60000,
+    retry: 1,
   });
 }
 
@@ -464,7 +468,8 @@ export function useUserRewardStats() {
       };
     },
     enabled: !!walletAddress,
-    staleTime: 3000,
-    refetchInterval: 8000,
+    staleTime: 30000, // 30秒缓存
+    refetchInterval: 30000,
+    retry: 1,
   });
 }
