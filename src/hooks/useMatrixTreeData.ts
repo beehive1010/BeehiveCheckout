@@ -78,7 +78,13 @@ export function useMatrixTreeData(
 
       if (error) {
         console.error('❌ Error fetching matrix tree data:', error);
-        throw error;
+        // Return empty structure instead of throwing
+        return {
+          nodes: [],
+          totalNodes: 0,
+          maxLayer: 0,
+          matrixRootWallet
+        };
       }
 
       if (!data || data.length === 0) {
@@ -106,6 +112,10 @@ export function useMatrixTreeData(
     enabled: !!matrixRootWallet,
     staleTime: 30000, // Cache for 30 seconds
     gcTime: 300000, // Keep in cache for 5 minutes
+    refetchInterval: false, // Disable automatic refetch to prevent infinite loops
+    refetchOnWindowFocus: false, // Disable refetch on window focus
+    refetchOnReconnect: false, // Disable refetch on reconnect
+    retry: false, // Disable all retries - return empty structure instead
   });
 }
 
@@ -387,12 +397,21 @@ export function useMatrixNodeChildren(
         return children;
       } catch (error) {
         console.error('💥 Exception in useMatrixNodeChildren:', error);
-        throw error;
+        // Return empty children instead of throwing to prevent infinite retry loop
+        return {
+          L: null,
+          M: null,
+          R: null
+        };
       }
     },
     enabled: !!parentWallet,
     staleTime: 30000,
     gcTime: 300000,
+    refetchInterval: false, // Disable automatic refetch to prevent infinite loops
+    refetchOnWindowFocus: false, // Disable refetch on window focus
+    refetchOnReconnect: false, // Disable refetch on reconnect
+    retry: false, // Disable all retries - return empty children instead
   });
 }
 

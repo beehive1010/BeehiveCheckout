@@ -243,9 +243,11 @@ export function useUserReferralStats() {
     },
     enabled: !!walletAddress,
     staleTime: 30000, // 增加到30秒，减少频繁查询
-    refetchInterval: 30000, // 30秒刷新一次
+    refetchInterval: false, // Disable automatic refetch to prevent infinite loops
     refetchIntervalInBackground: false, // 不在后台刷新，节省资源
-    retry: 1, // 失败时只重试一次
+    refetchOnWindowFocus: false, // Disable refetch on window focus
+    refetchOnReconnect: false, // Disable refetch on reconnect
+    retry: false, // Disable all retries - return default values instead
   });
 }
 
@@ -397,8 +399,10 @@ export function useUserMatrixStats() {
     },
     enabled: !!walletAddress,
     staleTime: 30000, // 增加缓存时间
-    refetchInterval: 45000, // 45秒刷新一次（这个查询更重）
-    retry: 1,
+    refetchInterval: false, // Disable automatic refetch to prevent infinite loops
+    refetchOnWindowFocus: false, // Disable refetch on window focus
+    refetchOnReconnect: false, // Disable refetch on reconnect
+    retry: false, // Disable all retries - return default values instead
   });
 }
 
@@ -492,8 +496,10 @@ export function useFullMatrixStructure() {
     },
     enabled: !!walletAddress,
     staleTime: 60000, // 1分钟缓存（矩阵结构变化较慢）
-    refetchInterval: 60000,
-    retry: 1,
+    refetchInterval: false, // Disable automatic refetch to prevent infinite loops
+    refetchOnWindowFocus: false, // Disable refetch on window focus
+    refetchOnReconnect: false, // Disable refetch on reconnect
+    retry: false, // Disable all retries - return default values instead
   });
 }
 
@@ -555,7 +561,9 @@ export function useUserRewardStats() {
     },
     enabled: !!walletAddress,
     staleTime: 30000, // 30秒缓存
-    refetchInterval: 30000,
-    retry: 1,
+    refetchInterval: false, // Disable automatic refetch to prevent infinite loops
+    refetchOnWindowFocus: false, // Disable refetch on window focus
+    refetchOnReconnect: false, // Disable refetch on reconnect
+    retry: false, // Disable all retries - return default values instead
   });
 }
