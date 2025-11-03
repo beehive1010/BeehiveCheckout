@@ -51,7 +51,7 @@ function Web3ContextProvider({ children }: { children: React.ReactNode }) {
   } | null>(null);
 
   // Enhanced wallet connection with gas sponsorship support
-  const connectWallet = async () => {
+  const connectWallet = useCallback(async () => {
     try {
       // Use enhanced sponsored wallet instead of basic InAppWallet - default to Arbitrum One
       const targetChain = activeChain || arbitrum;
@@ -121,10 +121,10 @@ function Web3ContextProvider({ children }: { children: React.ReactNode }) {
         throw fallbackError;
       }
     }
-  };
+  }, [activeChain, connect, client]);
 
   // Capture referrer from URL parameters (no auto-registration)
-  const recordWalletConnection = async () => {
+  const recordWalletConnection = useCallback(async () => {
     try {
       if (!account?.address) return;
 
@@ -143,10 +143,10 @@ function Web3ContextProvider({ children }: { children: React.ReactNode }) {
     } catch (error) {
       console.error('Failed to process wallet connection:', error);
     }
-  };
+  }, [account]);
 
   // Simplified routing - no longer checks membership here, just handles basic auth routing
-  const checkBasicAuthRouting = async () => {
+  const checkBasicAuthRouting = useCallback(async () => {
     try {
       // Skip all auth checks for admin routes - AdminAuthContext handles admin authentication
       if (location.startsWith('/admin')) {
@@ -190,10 +190,10 @@ function Web3ContextProvider({ children }: { children: React.ReactNode }) {
     } catch (error) {
       console.error('Failed to check basic auth routing:', error);
     }
-  };
+  }, [location, account, isSupabaseAuthenticated, setLocation]);
 
   // Check gas sponsorship eligibility for current wallet and chain
-  const checkGasSponsorshipEligibility = async () => {
+  const checkGasSponsorshipEligibility = useCallback(async () => {
     try {
       if (!account?.address || !activeChain?.id) {
         setGasSponsorship(null);
@@ -224,10 +224,10 @@ function Web3ContextProvider({ children }: { children: React.ReactNode }) {
       console.error('Failed to check gas sponsorship eligibility:', error);
       setGasSponsorship(null);
     }
-  };
+  }, [account, activeChain]);
 
   // Sign out (wallet-based auth)
-  const signOut = async () => {
+  const signOut = useCallback(async () => {
     try {
       // No Supabase auth signOut needed
       setIsSupabaseAuthenticated(false);
@@ -237,9 +237,9 @@ function Web3ContextProvider({ children }: { children: React.ReactNode }) {
     } catch (error) {
       console.error('Sign out error:', error);
     }
-  };
+  }, []);
 
-  const disconnectWallet = async () => {
+  const disconnectWallet = useCallback(async () => {
     try {
       if (wallet) {
         await wallet.disconnect();
@@ -265,7 +265,7 @@ function Web3ContextProvider({ children }: { children: React.ReactNode }) {
     } catch (error) {
       console.error('Failed to disconnect wallet:', error);
     }
-  };
+  }, [wallet, signOut, location, setLocation]);
 
   // Initialize wallet-based authentication (no Supabase Auth)
   useEffect(() => {
@@ -405,8 +405,7 @@ function Web3ContextProvider({ children }: { children: React.ReactNode }) {
     return () => {
       isMounted = false;
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [isConnected, isSupabaseAuthenticated, account?.address]);
+  }, [isConnected, isSupabaseAuthenticated, account?.address, checkBasicAuthRouting]);
 
   // Check gas sponsorship eligibility when wallet or chain changes
   useEffect(() => {
@@ -415,7 +414,7 @@ function Web3ContextProvider({ children }: { children: React.ReactNode }) {
     } else {
       setGasSponsorship(null);
     }
-  }, [isConnected, account?.address, activeChain?.id]);
+  }, [isConnected, account?.address, activeChain?.id, checkGasSponsorshipEligibility]);
 
   const value = useMemo(() => ({
     client,
@@ -447,6 +446,12 @@ function Web3ContextProvider({ children }: { children: React.ReactNode }) {
     isMember,
     referrerWallet,
     gasSponsorship,
+    connectWallet,
+    disconnectWallet,
+    recordWalletConnection,
+    checkBasicAuthRouting,
+    signOut,
+    checkGasSponsorshipEligibility,
   ]);
 
   return (
