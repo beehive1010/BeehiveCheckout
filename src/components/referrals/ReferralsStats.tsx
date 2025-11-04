@@ -121,34 +121,35 @@ export default function ReferralsStats({ walletAddress, className }: ReferralsSt
           statsError = fetchError;
         }
 
-        // Use v_matrix_layer_summary for layer 1 stats via direct fetch
+        // ✅ Use fn_get_user_layer_stats RPC function for layer 1 stats via direct fetch
+        // This correctly calculates per-member matrix (not global matrix_root_wallet)
         let layer1Stats = null;
 
         try {
-          const layer1Url = `${SUPABASE_URL}/rest/v1/v_matrix_layer_summary?matrix_root_wallet=ilike.${walletAddress}&layer=eq.1&select=*`;
-
-          const layer1Response = await fetch(layer1Url, {
-            method: 'GET',
+          const layer1Response = await fetch(`${SUPABASE_URL}/rest/v1/rpc/fn_get_user_layer_stats`, {
+            method: 'POST',
             headers: {
               'apikey': SUPABASE_ANON_KEY,
               'Authorization': `Bearer ${SUPABASE_ANON_KEY}`,
               'Content-Type': 'application/json',
-            }
+            },
+            body: JSON.stringify({ p_user_wallet: walletAddress })
           });
 
           if (layer1Response.ok) {
-            const layer1Array = await layer1Response.json();
-            layer1Stats = layer1Array && layer1Array.length > 0 ? layer1Array[0] : null;
+            const layerStatsArray = await layer1Response.json();
+            // Get Layer 1 data from the results
+            layer1Stats = layerStatsArray?.find((l: any) => l.layer === 1) || null;
           }
         } catch (fetchError) {
-          console.error('❌ Error fetching v_matrix_layer_summary:', fetchError);
+          console.error('❌ Error fetching fn_get_user_layer_stats:', fetchError);
         }
 
         const directReferralsCount = stats?.direct_referral_count || 0;
         const totalTeamSize = stats?.total_team_count || 0; // ✅ Now uses fixed recursive CTE
         const matrixTeamSize = stats?.matrix_19_layer_count || 0;
         const maxDepth = stats?.max_spillover_layer || 0;
-        const layer1Filled = layer1Stats?.filled_slots || 0;
+        const layer1Filled = layer1Stats?.filled || 0; // ✅ fn_get_user_layer_stats returns 'filled' column
         const activationRate = stats?.activation_rate_percentage || 0;
 
         return {

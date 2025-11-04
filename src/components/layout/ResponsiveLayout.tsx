@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useContext } from 'react';
 import { useLocation } from 'wouter';
 import { Card, CardContent } from '../ui/card';
 import { Button } from '../ui/button';
@@ -25,6 +25,7 @@ import {
 import { cn } from '../../lib/utils';
 import { useWallet } from '../../hooks/useWallet';
 import { useI18n } from '../../contexts/I18nContext';
+import { AdminAuthContext } from '../../contexts/AdminAuthContext';
 
 interface ResponsiveLayoutProps {
   children: React.ReactNode;
@@ -104,6 +105,10 @@ export function ResponsiveLayout({ children, className }: ResponsiveLayoutProps)
   const [location, setLocation] = useLocation();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [screenSize, setScreenSize] = useState<'mobile' | 'tablet' | 'desktop'>('desktop');
+
+  // Get admin status from context if available (will be undefined if not in admin route tree)
+  const adminContext = useContext(AdminAuthContext);
+  const isAdmin = adminContext?.isAdminAuthenticated || false;
 
   // Detect screen size
   useEffect(() => {
