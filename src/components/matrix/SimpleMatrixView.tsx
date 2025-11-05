@@ -46,23 +46,15 @@ const SimpleMatrixView: React.FC<SimpleMatrixViewProps> = ({ walletAddress, root
       setError(null);
       
       try {
-        // Get complete 19-layer matrix tree from referrals table with direct/spillover info
+        // ✅ Use v_matrix_tree_19_layers view for per-member matrix data
         const { data: treeData, error } = await supabase
-          .from('referrals')
-          .select(`
-            member_wallet,
-            matrix_root_wallet,
-            matrix_layer,
-            matrix_position,
-            is_direct_referral,
-            is_spillover_placement,
-            placed_at,
-            referrer_wallet,
-            member_activation_sequence
-          `)
-          .eq('matrix_root_wallet', walletAddress.toLowerCase()) // Use ilike for case-insensitive comparison
-          .order('matrix_layer')
-          .order('member_activation_sequence');
+          .from('v_matrix_tree_19_layers')
+          .select('*')
+          .eq('matrix_root_wallet', walletAddress) // Case-insensitive comparison handled by view
+          .gte('layer', 1)
+          .lte('layer', 19)
+          .order('layer')
+          .order('slot_num_seq');
         
         if (!error && treeData) {
           console.log(`🔍 SimpleMatrixView: Raw tree data for ${walletAddress}:`, treeData.length, 'records');
@@ -100,17 +92,16 @@ const SimpleMatrixView: React.FC<SimpleMatrixViewProps> = ({ walletAddress, root
             }
           }
 
-          // Organize matrix data by layer and position (from referrals table)
+          // Organize matrix data by layer and position (from v_matrix_tree_19_layers view)
           treeData.forEach((node: any) => {
-            const layer = node.matrix_layer;
-            const position = node.matrix_position;
-            
-            console.log(`🔍 Processing node:`, { 
-              layer, 
-              position, 
+            const layer = node.layer; // ✅ Use 'layer' from view
+            const position = node.slot; // ✅ Use 'slot' from view (L/M/R)
+
+            console.log(`🔍 Processing node:`, {
+              layer,
+              position,
               member_wallet: node.member_wallet,
-              isDirect: node.is_direct_referral,
-              isSpillover: node.is_spillover_placement
+              slot_num_seq: node.slot_num_seq
             });
 
             const userData = usersData.find(u => 
@@ -124,12 +115,12 @@ const SimpleMatrixView: React.FC<SimpleMatrixViewProps> = ({ walletAddress, root
               walletAddress: node.member_wallet,
               username: userData?.username || `User${node.member_wallet.slice(-4)}`,
               level: memberDetail?.current_level || 1,
-              isActive: true, // All in matrix are ActiveMember
+              isActive: true, // All in matrix are active
               layer: layer,
               position: position,
-              isDirect: node.is_direct_referral || false,
-              isSpillover: node.is_spillover_placement || false,
-              referrerWallet: node.referrer_wallet
+              isDirect: false, // Will be calculated if needed
+              isSpillover: false, // Will be calculated if needed
+              referrerWallet: undefined
             };
             
             // Distribute to L-M-R based on position

@@ -1154,6 +1154,9 @@
     "linkDescription": "Share this link to earn rewards when people join through your referral and activate membership",
     "matrixLayers": "Matrix Layers",
     "matrixLevel": "Matrix Level",
+    "totalTeam": "Total Team",
+    "matrixTeam": "Matrix Team",
+    "maxLayer": "Max Layer",
     "matrixManagement": {
       "directReferrals": "Direct Referrals",
       "layerDetails": "Layer Details",
