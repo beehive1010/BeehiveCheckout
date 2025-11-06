@@ -4,9 +4,9 @@ import { Badge } from '../../components/ui/badge';
 import { Button } from '../../components/ui/button';
 import { Input } from '../../components/ui/input';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '../../components/ui/tabs';
-import { 
-  Network, 
-  Search, 
+import {
+  Network,
+  Search,
   Users,
   TrendingUp,
   ArrowRight,
@@ -21,6 +21,7 @@ import {
 } from 'lucide-react';
 import { useAdminAuthContext } from '../../contexts/AdminAuthContext';
 import { useIsMobile } from '../../hooks/use-mobile';
+import { supabase } from '../../lib/supabase';
 
 interface GlobalMatrixPosition {
   walletAddress: string;
@@ -61,43 +62,64 @@ export default function AdminReferrals() {
   const loadReferrals = async () => {
     try {
       setIsLoading(true);
-      
-      // Get admin session token from localStorage or use temporary token
-      let sessionToken = localStorage.getItem('adminSessionToken');
-      
-      // Temporary: Use a valid token for testing if no token in localStorage
-      if (!sessionToken) {
-        sessionToken = 'test-admin-token-123456';
-        // Store it for future use
-        localStorage.setItem('adminSessionToken', sessionToken);
-        localStorage.setItem('adminUser', JSON.stringify({
-          id: '1ff147ab-9697-40ab-924e-e1cf651e115a',
-          username: 'admin',
-          email: 'admin@beehive.com',
-          role: 'super_admin'
-        }));
+
+      // Query v_member_overview view directly from Supabase
+      let query = supabase
+        .from('v_member_overview')
+        .select('*')
+        .order('activation_sequence', { ascending: true });
+
+      // Apply search filter if provided
+      if (searchTerm) {
+        query = query.or(`wallet_address.ilike.%${searchTerm}%,username.ilike.%${searchTerm}%`);
       }
-      
-      // Fetch global matrix data from the API
-      const response = await fetch(`/api/admin/global-matrix?search=${encodeURIComponent(searchTerm)}`, {
-        credentials: 'include',
-        headers: {
-          'Authorization': `Bearer ${sessionToken}`,
-          'Content-Type': 'application/json'
+
+      const { data, error } = await query;
+
+      if (error) {
+        console.error('Supabase query error:', error);
+        throw error;
+      }
+
+      // Map the data to GlobalMatrixPosition format
+      const positions: GlobalMatrixPosition[] = (data || []).map((member: any) => ({
+        walletAddress: member.wallet_address,
+        matrixLevel: member.deepest_layer || 1,
+        positionIndex: member.activation_sequence,
+        directSponsorWallet: member.referrer_wallet || '',
+        placementSponsorWallet: member.referrer_wallet || '',
+        joinedAt: member.activation_time,
+        username: member.username || '',
+        memberActivated: member.is_active,
+        currentLevel: member.current_level || 0,
+        directReferralCount: member.direct_referrals_count || 0,
+        totalTeamCount: member.active_members || 0,
+      }));
+
+      setMatrixPositions(positions);
+
+      // Group positions by matrix level for visualization
+      const levelGroups: Record<number, GlobalMatrixPosition[]> = {};
+      positions.forEach(pos => {
+        const level = pos.matrixLevel;
+        if (!levelGroups[level]) {
+          levelGroups[level] = [];
         }
+        levelGroups[level].push(pos);
       });
-      
-      if (!response.ok) {
-        throw new Error('Failed to fetch global matrix data');
-      }
-      
-      const data = await response.json();
-      setMatrixPositions(data.positions || []);
-      setMatrixVisualization(data.matrixLevels || []);
+
+      const visualization: GlobalMatrixVisualization[] = Object.entries(levelGroups).map(([level, positions]) => ({
+        matrixLevel: parseInt(level),
+        maxPositions: Math.pow(3, parseInt(level)), // 3^n for each level
+        filledPositions: positions.length,
+        positions: positions,
+      }));
+
+      setMatrixVisualization(visualization.sort((a, b) => a.matrixLevel - b.matrixLevel));
       setIsLoading(false);
     } catch (error) {
-      console.error('Failed to load global matrix:', error);
-      setMatrixPositions([]); // Clear positions on error
+      console.error('Failed to load referral data:', error);
+      setMatrixPositions([]);
       setMatrixVisualization([]);
       setIsLoading(false);
     }
