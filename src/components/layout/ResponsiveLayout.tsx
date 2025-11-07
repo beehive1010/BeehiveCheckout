@@ -107,8 +107,13 @@ export function ResponsiveLayout({ children, className }: ResponsiveLayoutProps)
   const [screenSize, setScreenSize] = useState<'mobile' | 'tablet' | 'desktop'>('desktop');
 
   // Get admin status from context if available (will be undefined if not in admin route tree)
+  // This is safe - useContext returns undefined when no provider exists
   const adminContext = useContext(AdminAuthContext);
-  const isAdmin = adminContext?.isAdminAuthenticated || false;
+
+  // Memoize the admin check to prevent unnecessary re-renders
+  const isAdmin = React.useMemo(() => {
+    return adminContext?.isAdminAuthenticated || false;
+  }, [adminContext?.isAdminAuthenticated]);
 
   // Detect screen size
   useEffect(() => {
