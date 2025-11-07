@@ -76,12 +76,13 @@ export default function ReferralsStats({ walletAddress, className }: ReferralsSt
           total_direct_referrals: statsData.direct_referrals || 0,
           activated_referrals: statsData.activated_referrals || 0,
           total_team_size: statsData.total_team_size || 0,
+          matrix_team_size: statsData.matrix_team_size || 0,
           activated_members: statsData.total_activated_members || 0,
           max_depth: statsData.max_layer || 0,
           network_strength: statsData.network_strength || 0,
           highest_referral_level: statsData.max_layer || 0,
           level2_upgrade_eligible: (statsData.activated_referrals || 0) >= 3,
-          layer1_filled: layer1Stats?.totalMembers || 0,
+          layer1_filled: layer1Stats?.filled || layer1Stats?.totalMembers || 0,
           layer1_max: layer1Stats?.maxCapacity || 3
         };
         
