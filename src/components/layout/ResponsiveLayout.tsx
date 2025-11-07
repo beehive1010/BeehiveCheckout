@@ -1,17 +1,17 @@
-import React, { useState, useEffect, useContext } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useLocation } from 'wouter';
 import { Card, CardContent } from '../ui/card';
 import { Button } from '../ui/button';
 import { Badge } from '../ui/badge';
 import { Drawer, DrawerContent, DrawerTrigger } from '../ui/drawer';
-import { 
-  Menu, 
-  X, 
-  Home, 
-  Users, 
-  TrendingUp, 
-  Gift, 
-  Settings, 
+import {
+  Menu,
+  X,
+  Home,
+  Users,
+  TrendingUp,
+  Gift,
+  Settings,
   Bell,
   User,
   Coins,
@@ -25,7 +25,6 @@ import {
 import { cn } from '../../lib/utils';
 import { useWallet } from '../../hooks/useWallet';
 import { useI18n } from '../../contexts/I18nContext';
-import { AdminAuthContext } from '../../contexts/AdminAuthContext';
 
 interface ResponsiveLayoutProps {
   children: React.ReactNode;
@@ -106,14 +105,8 @@ export function ResponsiveLayout({ children, className }: ResponsiveLayoutProps)
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [screenSize, setScreenSize] = useState<'mobile' | 'tablet' | 'desktop'>('desktop');
 
-  // Get admin status from context if available (will be undefined if not in admin route tree)
-  // This is safe - useContext returns undefined when no provider exists
-  const adminContext = useContext(AdminAuthContext);
-
-  // Memoize the admin check to prevent unnecessary re-renders
-  const isAdmin = React.useMemo(() => {
-    return adminContext?.isAdminAuthenticated || false;
-  }, [adminContext?.isAdminAuthenticated]);
+  // Check if user is on admin route (simple route-based check)
+  const isAdmin = location.startsWith('/admin');
 
   // Detect screen size
   useEffect(() => {

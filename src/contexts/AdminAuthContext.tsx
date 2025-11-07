@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState, useEffect, useRef } from 'react';
+import React, { createContext, useContext, useState, useEffect, useRef, useMemo, useCallback } from 'react';
 import { supabase } from '../lib/supabase';
 import { useLocation } from 'wouter';
 import { useToast } from '../hooks/use-toast';
@@ -395,7 +395,7 @@ const AdminAuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }
     scheduleTokenRefresh();
   }, [isAdminAuthenticated, isOnline, lastActivity]);
 
-  const signInAdmin = async (email: string, password: string) => {
+  const signInAdmin = useCallback(async (email: string, password: string) => {
     console.log('🔐 AdminAuthContext: Starting admin sign in for:', email);
 
     try {
@@ -498,9 +498,9 @@ const AdminAuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }
       setAdminUser(null);
       throw error;
     }
-  };
+  }, [setLocation]);
 
-  const signOutAdmin = async () => {
+  const signOutAdmin = useCallback(async () => {
     try {
       // Clear all admin state BEFORE sign out
       setIsAdminAuthenticated(false);
@@ -527,9 +527,9 @@ const AdminAuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }
       setAdminUser(null);
       setLocation('/admin/login');
     }
-  };
+  }, [setLocation]);
 
-  const hasPermission = (permission: string): boolean => {
+  const hasPermission = useCallback((permission: string): boolean => {
     if (!adminUser || !isAdminAuthenticated) return false;
 
     // Check if user has explicit permissions array
@@ -567,9 +567,9 @@ const AdminAuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }
     const adminLevel = adminUser.admin_level || adminUser.adminLevel || 0;
     const userPermissions = levelPermissions[adminLevel] || [];
     return userPermissions.includes('*') || userPermissions.includes(permission);
-  };
+  }, [adminUser, isAdminAuthenticated]);
 
-  const hasRole = (requiredRoles: string[]): boolean => {
+  const hasRole = useCallback((requiredRoles: string[]): boolean => {
     if (!adminUser || !isAdminAuthenticated) return false;
 
     // Check if admin has required role
@@ -588,9 +588,9 @@ const AdminAuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }
     if (adminLevel >= 1 && requiredRoles.includes('basic_admin')) return true;
 
     return false;
-  };
+  }, [adminUser, isAdminAuthenticated]);
 
-  const value = {
+  const value = useMemo(() => ({
     isAdminAuthenticated,
     adminUser,
     isLoading,
@@ -600,7 +600,7 @@ const AdminAuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }
     hasPermission,
     hasRole,
     logout: signOutAdmin, // Alias for compatibility with AdminLayout
-  };
+  }), [isAdminAuthenticated, adminUser, isLoading, isOnline, signInAdmin, signOutAdmin, hasPermission, hasRole]);
 
   return (
     <AdminAuthContext.Provider value={value}>
