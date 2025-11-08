@@ -99,23 +99,23 @@ export default function Referrals() {
             walletAddress={activeWalletAddress || ''}
           />
 
-          {/* TEMPORARILY DISABLED: Interactive Matrix View - 桌面端 */}
+          {/* Interactive Matrix View - 桌面端 */}
           {/* 显示用户自己作为matrix root的树 */}
-          {/* <div className="hidden md:block">
+          <div className="hidden md:block">
             <InteractiveMatrixView
               rootWalletAddress={activeWalletAddress || ''}
               rootUser={{username: userData?.username, currentLevel: userData?.currentLevel}}
             />
-          </div> */}
+          </div>
 
-          {/* TEMPORARILY DISABLED: Mobile Matrix View - 移动端 */}
+          {/* Mobile Matrix View - 移动端 */}
           {/* 显示用户自己作为matrix root的树 */}
-          {/* <div className="block md:hidden">
+          <div className="block md:hidden">
             <MobileMatrixView
               rootWalletAddress={activeWalletAddress || ''}
               rootUser={{username: userData?.username, currentLevel: userData?.currentLevel}}
             />
-          </div> */}
+          </div>
         </TabsContent>
 
         {/* Statistics Tab - Simplified */}
