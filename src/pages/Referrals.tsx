@@ -95,27 +95,27 @@ export default function Referrals() {
         {/* Matrix Network Tab */}
         <TabsContent value="matrix" className="space-y-6">
           {/* Matrix Layer Statistics - 保留原有统计视图 */}
-          <MatrixLayerStatsView 
+          <MatrixLayerStatsView
             walletAddress={activeWalletAddress || ''}
           />
-          
-          {/* Interactive Matrix View - 桌面端 */}
+
+          {/* TEMPORARILY DISABLED: Interactive Matrix View - 桌面端 */}
           {/* 显示用户自己作为matrix root的树 */}
-          <div className="hidden md:block">
+          {/* <div className="hidden md:block">
             <InteractiveMatrixView
               rootWalletAddress={activeWalletAddress || ''}
               rootUser={{username: userData?.username, currentLevel: userData?.currentLevel}}
             />
-          </div>
+          </div> */}
 
-          {/* Mobile Matrix View - 移动端 */}
+          {/* TEMPORARILY DISABLED: Mobile Matrix View - 移动端 */}
           {/* 显示用户自己作为matrix root的树 */}
-          <div className="block md:hidden">
+          {/* <div className="block md:hidden">
             <MobileMatrixView
               rootWalletAddress={activeWalletAddress || ''}
               rootUser={{username: userData?.username, currentLevel: userData?.currentLevel}}
             />
-          </div>
+          </div> */}
         </TabsContent>
 
         {/* Statistics Tab - Simplified */}
