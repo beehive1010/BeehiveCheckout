@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import { Card, CardHeader, CardTitle, CardContent } from '../ui/card';
 import { Badge } from '../ui/badge';
 import { Button } from '../ui/button';
@@ -102,15 +102,18 @@ const InteractiveMatrixView: React.FC<InteractiveMatrixViewProps> = ({
     };
   }, [childrenData]);
 
+  // Extract primitive value to avoid object reference issues
+  const totalCurrentLayerMembers = matrixData?.totalCurrentLayerMembers || 0;
+
   // 简化的层级检查 - 根据matrixData动态判断
   useEffect(() => {
-    if (matrixData && matrixData.totalCurrentLayerMembers > 0) {
+    if (totalCurrentLayerMembers > 0) {
       // 如果当前层有数据，假设最大层级为19（可以根据实际情况调整）
       setMaxAvailableLayer(19);
     } else {
       setMaxAvailableLayer(currentNodeLayer);
     }
-  }, [matrixData, currentNodeLayer]);
+  }, [totalCurrentLayerMembers, currentNodeLayer]);
 
   useEffect(() => {
     console.log('🔍 InteractiveMatrixView - Current root:', currentRoot, 'current node layer:', currentNodeLayer);
@@ -118,7 +121,7 @@ const InteractiveMatrixView: React.FC<InteractiveMatrixViewProps> = ({
     console.log('🎚️ Max available layer:', maxAvailableLayer);
   }, [currentRoot, currentNodeLayer, matrixData, maxAvailableLayer]);
 
-  const handleNavigateToMember = (memberWallet: string, memberData?: MatrixMember) => {
+  const handleNavigateToMember = useCallback((memberWallet: string, memberData?: MatrixMember) => {
     // Get the layer of the member we're drilling down to
     const childNode = childrenData?.L?.member_wallet === memberWallet ? childrenData.L :
                      childrenData?.M?.member_wallet === memberWallet ? childrenData.M :
@@ -131,7 +134,7 @@ const InteractiveMatrixView: React.FC<InteractiveMatrixViewProps> = ({
     setNavigationHistory(prev => [...prev, {
       wallet: currentRoot,
       username: currentRootUser?.username || `${t('common.user')}${currentRoot.slice(-4)}`,
-      level: navigationHistory.length + 1,
+      level: prev.length + 1,
       layer: currentNodeLayer
     }]);
 
@@ -146,15 +149,15 @@ const InteractiveMatrixView: React.FC<InteractiveMatrixViewProps> = ({
 
     // 如果有外部导航处理器，也调用它
     onNavigateToMember?.(memberWallet);
-  };
+  }, [childrenData, currentNodeLayer, currentRoot, currentRootUser, t, onNavigateToMember]);
 
-  const handleLayerChange = (newLayer: number) => {
+  const handleLayerChange = useCallback((newLayer: number) => {
     if (newLayer >= 1 && newLayer <= 19) {
       setCurrentLayer(newLayer);
     }
-  };
+  }, []);
 
-  const handleGoBack = () => {
+  const handleGoBack = useCallback(() => {
     if (navigationHistory.length > 0) {
       const previous = navigationHistory[navigationHistory.length - 1];
       setCurrentRoot(previous.wallet);
@@ -166,15 +169,15 @@ const InteractiveMatrixView: React.FC<InteractiveMatrixViewProps> = ({
       setNavigationHistory(prev => prev.slice(0, -1));
       setCurrentLayer(1);
     }
-  };
+  }, [navigationHistory, t]);
 
-  const handleGoHome = () => {
+  const handleGoHome = useCallback(() => {
     setCurrentRoot(rootWalletAddress);
     setCurrentRootUser(rootUser);
     setNavigationHistory([]);
     setCurrentNodeLayer(1); // Reset to layer 1
     setCurrentLayer(1);
-  };
+  }, [rootWalletAddress, rootUser]);
 
   const formatWallet = (wallet: string) => {
     return `${wallet.slice(0, 6)}...${wallet.slice(-4)}`;
